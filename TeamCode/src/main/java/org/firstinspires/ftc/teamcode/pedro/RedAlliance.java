@@ -34,8 +34,8 @@ RedAlliance extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     private final Pose start = poseFactory.of(6.357, 29.5244, 90);
-    private final Pose point1 = poseFactory.of(59.3435, 3.5, 161.926);
-    private final Pose point2 = poseFactory.of(59.3435, 110, 90.5363);
+    private final Pose point1 = poseFactory.of(57.00, 3.5, 161.926);
+    private final Pose point2 = poseFactory.of(57.00, 110, 90.5363);
     private final Pose point3 = poseFactory.of(15.357, 115, 16.1885);
 
     public Path path1() {
@@ -92,7 +92,7 @@ RedAlliance extends LinearOpMode {
                         270
                 )),
 
-                waitMs(4000),
+//                waitMs(4000),
 
                 // Detect which side of the hive to shoot into, aim and launch pollen.
 //                aimAndLaunch(),

@@ -67,17 +67,13 @@ public class BioBuzzRobot extends OpMode {
         if (gamepad1.left_trigger > 0.5) {
             servoLeft.setPower(1);
             servoRight.setPower(1);
-        } else {
-            servoLeft.setPower(0);
-            servoRight.setPower(0);
         }
+
         if (gamepad1.right_trigger > 0.5) {
             servoLeft.setPower(-1);
             servoLeft.setPower(-1);
-        } else {
-            servoLeft.setPower(0);
-            servoRight.setPower(0);
         }
+
 
         // Controls for feeder
         if (gamepad1.left_bumper)
@@ -104,6 +100,8 @@ public class BioBuzzRobot extends OpMode {
         if (gamepad1.dpad_up) {
             // TODO
             telemetry.addLine("'dpad_up' was pressed");
+            servoLeft.setPower(0);
+            servoRight.setPower(0);
         }
         if (gamepad1.dpad_down) {
             // TODO
