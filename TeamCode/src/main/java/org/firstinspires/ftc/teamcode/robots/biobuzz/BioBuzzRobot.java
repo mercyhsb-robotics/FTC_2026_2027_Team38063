@@ -64,16 +64,16 @@ public class BioBuzzRobot extends OpMode {
         // Example controls for first iteration of BioBuzz robot.   It is
         // up to team to determine what controls they want.  
         // Controls for left and right feeders
-        if (gamepad1.left_trigger > 0.5) {
-            servoLeft.setPower(1);
+        if (gamepad1.left_trigger > 0.3) {
+            servoLeft.setPower(-1);
+        } else {
+            servoLeft.setPower(0);
+        }
+        if (gamepad1.right_trigger > 0.3) {
             servoRight.setPower(1);
+        } else {
+            servoRight.setPower(0);
         }
-
-        if (gamepad1.right_trigger > 0.5) {
-            servoLeft.setPower(-1);
-            servoLeft.setPower(-1);
-        }
-
 
         // Controls for feeder
         if (gamepad1.left_bumper)
