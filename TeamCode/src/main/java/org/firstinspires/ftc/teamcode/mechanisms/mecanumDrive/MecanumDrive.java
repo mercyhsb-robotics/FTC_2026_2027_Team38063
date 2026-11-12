@@ -28,22 +28,15 @@ public class MecanumDrive {
         frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
         backRightMotor.setDirection(DcMotor.Direction.REVERSE);
 
-        // RevRobotics
-//        frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-//        backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-//        frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
-//        backRightMotor.setDirection(DcMotor.Direction.FORWARD);
-
-        // Works on Star Robot
-//        frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-//        backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
-//        frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
-//        backRightMotor.setDirection(DcMotor.Direction.REVERSE);
-
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         imu = hardwareMap.get(IMU.class, "imu");
 

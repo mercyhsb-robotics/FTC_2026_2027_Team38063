@@ -18,14 +18,12 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.pedro.Constants;
-
 import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
 import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
 
-@Autonomous(name = "RedAlliance", group = "Autonomous")
+@Autonomous(name = "RedAlliance_B1", group = "Autonomous")
 public class
-RedAlliance extends LinearOpMode {
+RedAlliance_B1 extends LinearOpMode {
     Intake intake;
     Launcher launcher;
 
@@ -33,37 +31,27 @@ RedAlliance extends LinearOpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(6.357, 29.5244, 90);
-    private final Pose point1 = poseFactory.of(59.3435, 3.5, 161.926);
-    private final Pose point2 = poseFactory.of(59.3435, 110, 90.5363);
-    private final Pose point3 = poseFactory.of(15.357, 115, 16.1885);
+    private final Pose start = poseFactory.of(35.0, 9.2, -90);
+    private final Pose point1 = poseFactory.of(35.8, 90, -90);
+    private final Pose point2 = poseFactory.of(12, 90, 0);
 
     public Path path1() {
-        return line(start, point1).tangent();
+        return line(start, point1).reverseTangent();
     }
 
-    public Path path2() {
-        return line(point1, point2).tangent();
-    }
+    public Path path2() {return line(point1, point2).reverseTangent();}
 
-    public Path path3() {
-        return line(point2, point3).tangent();
-    }
+//    public Path path3() {return line(point2, point3).tangent();}
 
     // Autonomous routine
     public Command autoRoutine() {
         return sequential(
-                // Start from loading zone to point 1.
-                follow(follower, path1()),
-
-                // Stay at point 1 and turn to an absolute heading of 90°.
-                // poseFactory uses degrees, so no Math.toRadians() is needed.
+                // Start Pose: Heading is 60 degrees towards Red Alliance hive.
                 hold(follower, poseFactory.of(
-                        point1.x(),
-                        point1.y(),
-                        270
+                        start.x(),
+                        start.y(),
+                        -115
                 )),
-
 
                 // Detect which side of the hive to shoot into, aim and launch pollen.
                 aimAndLaunch(),
@@ -71,33 +59,15 @@ RedAlliance extends LinearOpMode {
                 // Wait for 4 seconds
                 waitMs(4500),
 
-                hold(follower, poseFactory.of(
-                        point1.x(),
-                        point1.y(),
-                        270
-                )),
+                instant(() -> {
+                    launcher.stop();
+                }),
 
-                // Start intake system and detect if we have 4 pollen
-//                intakePollen(),
+                // Go to path 1
+                follow(follower, path1()),
 
-
-                // If time is < 5 seconds, then park.
-                follow(follower, path2()),
-
-                // Stay at point 1 and turn to an absolute heading of 90°.
-                // poseFactory uses degrees, so no Math.toRadians() is needed.
-                hold(follower, poseFactory.of(
-                        point2.x(),
-                        point2.y(),
-                        270
-                )),
-
-                waitMs(4000),
-
-                // Detect which side of the hive to shoot into, aim and launch pollen.
-//                aimAndLaunch(),
-
-                follow(follower, path3())
+                // Go to path 2
+                follow(follower, path2())
         );
     }
 
@@ -162,7 +132,7 @@ RedAlliance extends LinearOpMode {
                     // This is just to test out autonomous for now.   What we really want
                     // is to calculate rpm based on distance using AprilTag
 //                    long rpm = calculateRpmBasedOnDistance(distance);
-                    long rpm = 10;
+                    long rpm = Launcher.LAUNCHER_TARGET_VELOCITY;
 
                     launcher.increaseRpm(rpm);
                 }),
@@ -175,19 +145,13 @@ RedAlliance extends LinearOpMode {
                     telemetry.addLine("Launching game piece...");
                     telemetry.update();
                     launcher.launch(true);
-                    waitMs(1000);
                     launcher.feederForward();
                 }),
 
                 // Step 4: Allow time for launching.
                 // Ideally we can detect when the launcher has launched four pollen.
                 // For now, wait 3 seconds.
-                waitMs(5000),
-
-                // Step 5: Stop launcher
-                instant(() -> {
-                    launcher.stop();
-                })
+                waitMs(5000)
         );
     }
 

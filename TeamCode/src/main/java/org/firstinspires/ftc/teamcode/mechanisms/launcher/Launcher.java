@@ -16,7 +16,7 @@ public class Launcher {
     private DcMotorEx flywheel;
     private CRServo feeder;
 
-    public final static int LAUNCHER_TARGET_VELOCITY = 1100;
+    public final static int LAUNCHER_TARGET_VELOCITY = 1200;
     //changing velocity from 1250->500
     public final static int LAUNCHER_MIN_VELOCITY = 950;
     //changing velocity from 1200->450
