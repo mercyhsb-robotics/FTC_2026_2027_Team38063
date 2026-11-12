@@ -31,8 +31,8 @@ public class Constants {
 //    public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
 //        c.name.set("pinpoint");
 //        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-//        c.xPodOffset.set(0.009522615807262932);
-//        c.yPodOffset.set(-0.7217529627281849);
+//        c.xPodOffset.set(0.10174839515385667);
+//        c.yPodOffset.set(0.15836214456032582);
 //        c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 //        c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 //        c.globalDistanceUnit.set(DistanceUnit.INCH);
@@ -42,15 +42,13 @@ public class Constants {
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set("pinpoint");
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        c.xPodOffset.set(-0.453016964469369);
-        c.yPodOffset.set(-2.9969748549574002);
+        c.xPodOffset.set(-0.16720460155817468);
+        c.yPodOffset.set(0.03722864342486765);
         c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
         c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
         c.globalDistanceUnit.set(DistanceUnit.INCH);
         c.offsetUnits.set(DistanceUnit.INCH);
     });
-
-
 
     // PROVISIONAL: these are the official documentation's example Foresight
     // values, NOT values measured on your robot. Run Foresight AutoTune.

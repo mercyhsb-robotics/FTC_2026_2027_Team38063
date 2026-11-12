@@ -1,66 +1,45 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
-import static com.pedropathing.api.Paths.line;
-import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.instant;
-import static com.pedropathing.ivy.commands.Commands.waitMs;
-import static com.pedropathing.ivy.commands.Commands.waitUntil;
-import static com.pedropathing.ivy.groups.Groups.sequential;
-import static com.pedropathing.ivy.pedro.PedroCommands.follow;
-import static com.pedropathing.ivy.pedro.PedroCommands.hold;
+import static com.pedropathing.api.Paths.*;
+import com.pedropathing.api.Paths;
 
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ivy.Command;
-import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.Scheduler;
+import static com.pedropathing.ivy.Scheduler.schedule;
+import static com.pedropathing.ivy.commands.Commands.*;
+import static com.pedropathing.ivy.groups.Groups.sequential;
+import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
-import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "RedAlliance_LeavePark", group = "Autonomous")
-public class
-RedAlliance_LeavePark extends LinearOpMode {
-    Intake intake;
-    Launcher launcher;
+public class RedAlliance_LeavePark extends LinearOpMode {
 
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(15.0, 66.8, -90);
-    private final Pose point1 = poseFactory.of(15.0, 93.6, -90);
-
-    public Path path1() {
-        return line(start, point1).tangent();
-    }
-
-//    public Path path2() {
-//        return line(point1, point2).tangent();
-//    }
-
-//    public Path path3() {
-//        return line(point2, point3).tangent();
-//    }
+    private final Pose start = poseFactory.of(9.2112, 70.2702, 180);
+    private final Pose path1 = poseFactory.of(24.8608, 83.6152, 135);
+    private final Pose point2Start = poseFactory.of(24.8608, 83.6152, 135);
+    private final Pose point2 = poseFactory.of(16, 91.50, 135);
 
     // Autonomous routine
     public Command autoRoutine() {
         return sequential(
-                // Move to flower
-                follow(follower, path1())
+                follow(follower, path1()),
+                follow(follower, path2())
         );
     }
 
     @Override
     public void runOpMode() {
-        // Initialize launcher and intake
-        launcher = new Launcher();
-        launcher.init(hardwareMap, telemetry);
-
-
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
@@ -86,78 +65,11 @@ RedAlliance_LeavePark extends LinearOpMode {
         }
     }
 
-    /**
-     * Intake pollen from the ground.
-     */
-    public Command intakePollen() {
-        telemetry.addLine("Intaking pollen...");
-        telemetry.update();
-
-        return sequential(
-                instant(() -> {
-                    intake.startIntake();
-
-                    // If pollen count > 4, then stop the intake to save batteries / avoid penalties.
-                    // Since we currently cannot count pollen, just wait 4.5 seconds
-                    waitMs(4500);
-                })
-        );
+    public Path path1() {
+        return Paths.line(start, path1).linear(start, path1);
     }
 
-    /**
-     * Aim and launch pollen and nectar.
-     */
-    public Command aimAndLaunch() {
-
-        return sequential(
-
-                // Step 1: Calculate target RPM and spin up
-                instant(() -> {
-
-
-                    double distance = getDistanceFromHive();
-
-                    // This is just to test out autonomous for now.   What we really want
-                    // is to calculate rpm based on distance using AprilTag
-//                    long rpm = calculateRpmBasedOnDistance(distance);
-                    long rpm = 10;
-
-                    launcher.increaseRpm(rpm);
-                }),
-
-                // Step 2: Wait until launcher is ready
-                waitUntil(() -> launcher.isAtTargetRpm()),
-
-                // Step 3: Launch game piece
-                instant(() -> {
-                    telemetry.addLine("Launching game piece...");
-                    telemetry.update();
-                    launcher.launch(true);
-                    waitMs(1000);
-                    launcher.feederForward();
-                }),
-
-                // Step 4: Allow time for launching.
-                // Ideally we can detect when the launcher has launched four pollen.
-                // For now, wait 3 seconds.
-                waitMs(5000),
-
-                // Step 5: Stop launcher
-                instant(() -> {
-                    launcher.stop();
-                })
-        );
+    public Path path2() {
+        return Paths.line(point2Start, point2).linear(point2Start, point2);
     }
-
-    private long calculateRpmBasedOnDistance(double distance) {
-        // Add code to calculate rpm based on distance
-        return -1;
-    }
-
-    private double getDistanceFromHive() {
-        // Add code to get distance from hive
-        return -1;
-    }
-
-
 }

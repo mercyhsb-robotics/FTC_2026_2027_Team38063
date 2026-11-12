@@ -32,8 +32,8 @@ RedAlliance_B1 extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     private final Pose start = poseFactory.of(35.0, 9.2, -90);
-    private final Pose point1 = poseFactory.of(35.8, 96.4, -90);
-    private final Pose point2 = poseFactory.of(25, 96.4, 0);
+    private final Pose point1 = poseFactory.of(35.8, 90, -90);
+    private final Pose point2 = poseFactory.of(12, 90, 0);
 
     public Path path1() {
         return line(start, point1).reverseTangent();
@@ -50,7 +50,7 @@ RedAlliance_B1 extends LinearOpMode {
                 hold(follower, poseFactory.of(
                         start.x(),
                         start.y(),
-                        -125
+                        -115
                 )),
 
                 // Detect which side of the hive to shoot into, aim and launch pollen.
@@ -58,6 +58,10 @@ RedAlliance_B1 extends LinearOpMode {
 
                 // Wait for 4 seconds
                 waitMs(4500),
+
+                instant(() -> {
+                    launcher.stop();
+                }),
 
                 // Go to path 1
                 follow(follower, path1()),
@@ -141,19 +145,13 @@ RedAlliance_B1 extends LinearOpMode {
                     telemetry.addLine("Launching game piece...");
                     telemetry.update();
                     launcher.launch(true);
-                    waitMs(1000);
                     launcher.feederForward();
                 }),
 
                 // Step 4: Allow time for launching.
                 // Ideally we can detect when the launcher has launched four pollen.
                 // For now, wait 3 seconds.
-                waitMs(5000),
-
-                // Step 5: Stop launcher
-                instant(() -> {
-                    launcher.stop();
-                })
+                waitMs(5000)
         );
     }
 

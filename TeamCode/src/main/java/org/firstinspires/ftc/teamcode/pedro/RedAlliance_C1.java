@@ -32,8 +32,10 @@ RedAlliance_C1 extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     private final Pose start = poseFactory.of(58.0, 9.2, -90);
-    private final Pose point1 = poseFactory.of(58.0, 118.1, -90);
-    private final Pose point2 = poseFactory.of(10, 118.1, 0);
+//
+    private final Pose point1 = poseFactory.of(62.0, 118.1, -90);
+    private final Pose point2 = poseFactory.of(58.0, 118.1, -90);
+    private final Pose point3 = poseFactory.of(12, 118.1, -90);
 
     public Path path1() {
         return line(start, point1).reverseTangent();
@@ -41,7 +43,7 @@ RedAlliance_C1 extends LinearOpMode {
 
     public Path path2() {return line(point1, point2).reverseTangent();}
 
-//    public Path path3() {return line(point2, point3).tangent();}
+    public Path path3() {return line(point2, point3).reverseTangent();}
 
     // Autonomous routine
     public Command autoRoutine() {
@@ -59,11 +61,14 @@ RedAlliance_C1 extends LinearOpMode {
                 // Wait for 4 seconds
                 waitMs(4500),
 
-                // Go to path 1
-                follow(follower, path1()),
+                instant(() -> {
+                    launcher.stop();
+                }),
 
-                // Go to path 2
-                follow(follower, path2())
+                // Go home
+                follow(follower, path1()),
+                follow(follower, path2()),
+                follow(follower, path3())
         );
     }
 
@@ -122,7 +127,6 @@ RedAlliance_C1 extends LinearOpMode {
                 // Step 1: Calculate target RPM and spin up
                 instant(() -> {
 
-
                     double distance = getDistanceFromHive();
 
                     // This is just to test out autonomous for now.   What we really want
@@ -141,19 +145,14 @@ RedAlliance_C1 extends LinearOpMode {
                     telemetry.addLine("Launching game piece...");
                     telemetry.update();
                     launcher.launch(true);
-                    waitMs(1000);
                     launcher.feederForward();
                 }),
 
                 // Step 4: Allow time for launching.
                 // Ideally we can detect when the launcher has launched four pollen.
                 // For now, wait 3 seconds.
-                waitMs(5000),
+                waitMs(5000)
 
-                // Step 5: Stop launcher
-                instant(() -> {
-                    launcher.stop();
-                })
         );
     }
 
