@@ -155,6 +155,39 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // AUTO-SHOOT: choosing where to stand (the "closest feasible scoring pose")
+    // =========================================================================================
+    public static final class AutoShoot {
+        private AutoShoot() {
+        }
+
+        /** TUNE: extra clearance kept between the robot and the HIVE frame / FLOWERS, beyond the robot's own size. */
+        public static final double KEEPOUT_MARGIN_IN = 1.5;
+        /** TUNE: how close to a perimeter wall the edge of the robot may be placed (0 = touching). */
+        public static final double WALL_CLEARANCE_IN = 0.25;
+
+        /**
+         * VERIFY: the shooter may stand anywhere inside a cone of this half-angle, measured from the
+         * direction the cell opening faces. The opening is 20 in wide, so shots from the side see a
+         * narrower window (17.2 in in line, 11.6 in at 25 degrees); 20 degrees is a conservative starting limit.
+         */
+        public static final double SHOOT_CONE_HALF_ANGLE_DEG = 20.0;
+        /** TUNE: resolution of the search over the cone. */
+        public static final double SHOOT_CONE_STEP_DEG = 2.5;
+        /** TUNE: resolution of the search over range. */
+        public static final double SHOOT_RANGE_STEP_IN = 1.0;
+        /** TUNE: the range the solver prefers when several poses are equally close (the middle of the measured table). */
+        public static final double PREFERRED_RANGE_IN = 34.0;
+
+        /** TUNE: planning cost of turning the robot, in inches of travel per degree. */
+        public static final double PLAN_ROTATION_COST_IN_PER_DEG = 0.15;
+        /** TUNE: planning cost of being away from the preferred range, in inches of travel per inch. */
+        public static final double PLAN_RANGE_COST_IN_PER_IN = 0.40;
+        /** TUNE: planning cost of standing off the opening's centre line, in inches of travel per degree. */
+        public static final double PLAN_AZIMUTH_COST_IN_PER_DEG = 0.20;
+    }
+
+    // =========================================================================================
     // FIELD AND HIVE (manual TU09 sections 9.2-9.9; RED frame)
     // =========================================================================================
     public static final class Field {
