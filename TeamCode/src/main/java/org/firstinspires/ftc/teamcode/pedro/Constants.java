@@ -78,11 +78,15 @@ public class Constants {
         // many encoder ticks make one inch (the "scalar"). A home-made pod would use ticksPerUnit instead, which the
         // tuner measures by pushing the robot a known distance.
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        // Where each pod sits relative to the robot's center of rotation, in inches (see offsetUnits below). Measured
-        // by the tuner's "Offsets Identification" step: spin the robot in place 180 degrees counter-clockwise. Both
-        // values here are tiny (under 0.2 inch).
-        c.xPodOffset.set(-0.16720460155817468);
-        c.yPodOffset.set(0.03722864342486765);
+        // Where each pod sits relative to the robot's center of rotation, in inches (see offsetUnits below). MEASURED
+        // with a tape by the team on 2026-11-13 (the tuner's "Offsets Identification" step can confirm them):
+        //  * xPodOffset = how far to the LEFT the FORWARD-measuring pod is. That pod's wheel is 0.42 in to the RIGHT of
+        //    the center line, so the value is -0.42.
+        //  * yPodOffset = how far FORWARD the STRAFE-measuring pod is. That pod's wheel is 5.1875 in in front of the back
+        //    of the robot, and the back is 8.03 in behind the center of rotation, so it is 8.03 - 5.1875 = 2.8425 in
+        //    BEHIND the center: -2.8425.
+        c.xPodOffset.set(-0.42);
+        c.yPodOffset.set(-2.8425);
         // Whether a pod's counting direction has to be flipped: FORWARD = leave it, REVERSED = flip it. Found by the
         // tuner's "Forward Direction" step (push the robot forward) for the x pod and its "Strafe Direction" step
         // (push the robot to the left) for the y pod: a pod whose reading goes negative is REVERSED.

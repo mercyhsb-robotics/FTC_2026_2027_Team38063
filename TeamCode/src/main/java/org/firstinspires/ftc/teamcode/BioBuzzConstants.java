@@ -41,15 +41,10 @@ public final class BioBuzzConstants {
      * marker to VERIFY or TUNE AND delete its name here; a unit test fails if this list and the markers disagree.
      */
     public static final String[] PLACEHOLDERS = {
-            "Robot.LAUNCH_POINT_FORWARD_IN",
             "Robot.LAUNCH_POINT_LEFT_IN",
             "Robot.INTAKE_REACH_IN",
             "Robot.INTAKE_WHEEL_OFFSET_IN",
             "Shooter.SHOT_TABLE",
-            "Vision.CAMERA_FORWARD_IN",
-            "Vision.CAMERA_LEFT_IN",
-            "Vision.CAMERA_HEIGHT_IN",
-            "Vision.CAMERA_PITCH_UP_DEG",
             "Auto.CRUISE_SPEED_IN_PER_SEC",
             "Auto.ACCEL_IN_PER_SEC2",
             "Auto.TURN_RATE_DEG_PER_SEC",
@@ -451,11 +446,11 @@ public final class BioBuzzConstants {
         public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
         /**
          * TUNE: the height, in inches, below which a part of the HIVE counts as an obstacle for the robot: the tallest point of the robot, with
-         * its camera (12.13 in tall, 13.0 in with the Limelight on top). The exact HIVE solid is everything of the HIVE lower than this: the foot
+         * its camera (the Limelight on top makes it about 15.75 in tall: see Robot.HEIGHT_IN). The exact HIVE solid is everything of the HIVE lower than this: the foot
          * bars and the stubs of the legs, which are a little longer for a taller robot (the legs lean inward as they climb). Must stay below
          * {@code Field.HIVE_LOWEST_CELL_POINT_IN}: the solid has no cells in it.
          */
-        public static final double HIVE_SOLID_HEIGHT_IN = 13.0;
+        public static final double HIVE_SOLID_HEIGHT_IN = 16.0;
         /**
          * TUNE (G409 / G417 design guard for a step that is allowed under the HIVE): the clearance, in inches, the robot keeps on BOTH sides to
          * the foot bars and the leg stubs while it drives along the lane between them. The lane is 40.1 in wide where the stubs narrow it, the
@@ -636,8 +631,13 @@ public final class BioBuzzConstants {
         public static final double IMPLICIT_MOVE_WARN_IN = 3.0;
         /** VERIFY (hive_tags report 6d, 70-75 deg launcher): closest launch-point distance to the cell aim point. */
         public static final double SHOOT_STANDOFF_MIN_IN = 30.0;
-        /** VERIFY (hive_tags report 6d): farthest launch-point distance (the audience wall limits the near side). */
-        public static final double SHOOT_STANDOFF_MAX_IN = 38.0;
+        /**
+         * VERIFY (hive_tags report 6d): farthest launch-point distance (the audience wall limits the near side). With the
+         * MEASURED ball exit (5.38 in behind the center of rotation) a robot with its front on the audience wall and in line
+         * with the HIVE is 39.0 in from the aim point in the model, and that is the shot the team saw work, so the band must
+         * reach it: 39.5 in.
+         */
+        public static final double SHOOT_STANDOFF_MAX_IN = 39.5;
         /** TUNE: standoff used for the nominal pose that is drawn when a SHOOT leaves its pose to the solver. */
         public static final double SHOOT_STANDOFF_NOMINAL_IN = 34.0;
         /** TUNE (hive_tags report 6d: +/-13..17 deg in line): largest aim error of the back toward the cell before a WARN. */
@@ -720,8 +720,13 @@ public final class BioBuzzConstants {
          * perimeter really lies around that point. Used for the 18 in start cube (rule R102).
          */
         public static final double LENGTH_IN = 17.80;
-        /** FIXED (same drawing): overall width, side to side, 452 mm, wheels included. The robot is square, so it fits the 18 in start cube (rule R102) with 0.2 in to spare. */
-        public static final double WIDTH_IN = 17.80;
+        /**
+         * MEASURED (team, 2026-11-13): overall width, side to side, 18.04 in. The goBILDA drawing says 17.80 in, but the team
+         * added WHEEL GUARDS on the outside of the mecanum wheels, which makes the robot 0.24 in wider. NOTE: rule R102 limits
+         * the starting configuration to an 18 in cube, so with these guards the robot is 0.04 in too wide for inspection:
+         * trim or move the guards (the TeleOp shows a warning at INIT until the width is 18.00 in or less).
+         */
+        public static final double WIDTH_IN = 18.04;
 
         // ---- where the perimeter lies around the center of rotation -----------------------------------------
         // The robot's POSITION is the point it spins about (the "center of rotation": for a mecanum robot, about the
@@ -739,34 +744,43 @@ public final class BioBuzzConstants {
          */
         public static final double FRONT_EXTENT_IN = 9.77;
         /**
-         * VERIFY: distance, in inches, from the center of rotation to the REAR edge of the perimeter (the back lip, where
-         * the ball leaves). 8.03 in from the drawing. See {@link #FRONT_EXTENT_IN}.
+         * MEASURED (team, 2026-11-13): distance, in inches, from the center of rotation to the REAR edge of the perimeter
+         * (the back of the robot frame): 8.03 in. See {@link #FRONT_EXTENT_IN}.
          */
         public static final double REAR_EXTENT_IN = 8.03;
         /**
-         * VERIFY: distance, in inches, from the center of rotation to the LEFT edge of the perimeter (the outer face of
-         * the left mecanum wheels, seen from above, with the robot facing forward). 8.90 in because the drive is symmetric
-         * left to right. Must satisfy {@code LEFT_EXTENT_IN + RIGHT_EXTENT_IN = WIDTH_IN}.
+         * MEASURED (team, 2026-11-13): distance, in inches, from the center of rotation to the LEFT edge of the perimeter (the
+         * outer face of the left wheel guard, seen from above, with the robot facing forward). The center of rotation is exactly
+         * half way across, so 18.04 / 2 = 9.02 in. Must satisfy {@code LEFT_EXTENT_IN + RIGHT_EXTENT_IN = WIDTH_IN}.
          */
-        public static final double LEFT_EXTENT_IN = 8.90;
-        /** VERIFY: distance, in inches, from the center of rotation to the RIGHT edge of the perimeter. See {@link #LEFT_EXTENT_IN}. */
-        public static final double RIGHT_EXTENT_IN = 8.90;
-        /** FIXED (same drawing): height of the tallest part, 308 mm. */
-        public static final double HEIGHT_IN = 12.13;
+        public static final double LEFT_EXTENT_IN = 9.02;
+        /** MEASURED (team, 2026-11-13): distance, in inches, from the center of rotation to the RIGHT edge of the perimeter: 9.02 in. See {@link #LEFT_EXTENT_IN}. */
+        public static final double RIGHT_EXTENT_IN = 9.02;
+        /**
+         * VERIFY: height of the tallest part, in inches. The goBILDA drawing says 12.13 in (308 mm), but the Limelight now sits on
+         * top: its lens is 14.25 in above the floor (team measurement) and its case reaches a little higher. 15.75 in is an
+         * ESTIMATE (lens height plus about 1.5 in): measure the very top of the Limelight with a tape.
+         */
+        public static final double HEIGHT_IN = 15.75;
         /** FIXED (same drawing): mecanum wheel diameter, 104 mm. */
         public static final double WHEEL_DIAMETER_IN = 4.09;
 
         /**
-         * ADD: where the ball leaves the shooter, measured from the robot's center of rotation. The
-         * shooter fires out the BACK, so forward is NEGATIVE. The starting value, -8.03 in, is DERIVED FROM THE CAD
-         * DRAWING, not measured: the drawing dimensions the launch height at the REAR lip of the robot, so the ball is
-         * assumed to leave at the rear edge of the perimeter, {@link #REAR_EXTENT_IN} behind the center of rotation.
-         * Measure the real exit (from the center of rotation straight back to where the ball leaves) and replace it.
-         * With this value and the robot's front on the audience wall, the ball exit is 17.80 in from that wall, which is
-         * the situation of the measured shot (37.7 in from the aim point).
+         * MEASURED (team, 2026-11-13): where the ball leaves the shooter, measured from the robot's center of rotation. The
+         * shooter fires out the BACK, so forward is NEGATIVE. At the moment the POLLEN stops touching the flywheel, the back
+         * edge of the POLLEN is about 1.25 in in front of the back of the robot frame, so the CENTER of the 2.8 in ball is about
+         * 1.25 + 1.4 = 2.65 in in front of the back, which is {@link #REAR_EXTENT_IN} - 2.65 = 5.38 in BEHIND the center of
+         * rotation: -5.38. (The goBILDA CAD said 6.58 in behind; this is the real robot, which has a different ramp.)
          */
-        public static final double LAUNCH_POINT_FORWARD_IN = -8.03;
-        /** ADD: sideways offset of the exit from the center line (positive = robot's left). */
+        public static final double LAUNCH_POINT_FORWARD_IN = -5.38;
+        /**
+         * ADD: sideways offset of the ball's path from the robot's center line (positive = robot's LEFT, so a ball that
+         * leaves to the right of center is NEGATIVE). The team says the POLLEN is NOT centered left to right when it is
+         * launched, and the photos show it on the robot's right half, but the amount is not measured yet: measure it
+         * (from the center line to the middle of the ball at the moment it leaves the flywheel) and replace 0.0. It
+         * matters: at 38 in range every inch of sideways offset turns the aim by about 1.5 degrees, and the robot aims
+         * with this number.
+         */
         public static final double LAUNCH_POINT_LEFT_IN = 0.0;
 
         // ---- the two flat intake wheels --------------------------------------------------------------------
@@ -809,11 +823,12 @@ public final class BioBuzzConstants {
         public static final double INTAKE_WHEEL_DIAMETER_IN = 2.8;
 
         /**
-         * VERIFY: height of the ball exit above the floor, used only for the diagnostic ballistics
-         * print-out. 7.89 in is the 200.5 mm launch-deck dimension on the goBILDA side-view drawing;
-         * measure the real exit.
+         * MEASURED (team, 2026-11-13): height of the CENTER of the ball above the floor at the moment it leaves the flywheel,
+         * used only for the diagnostic ballistics print-out: the top edge of the POLLEN is about 7.375 in above the floor and
+         * the ball is 2.8 in across, so the center is 7.375 - 1.4 = 5.975 in. (The goBILDA drawing's 7.89 in is the top of the
+         * rear motors, not the ball.)
          */
-        public static final double LAUNCH_HEIGHT_IN = 7.89;
+        public static final double LAUNCH_HEIGHT_IN = 5.975;
         /**
          * VERIFY: the fixed launch angle above horizontal, about 68.5 degrees (team measurement, 2026-11-13). The manual's
          * geometry needs roughly 67 degrees or more for a good entry into the opening from 38 in. Used only for the
@@ -1190,20 +1205,25 @@ public final class BioBuzzConstants {
         /** VERIFY: true if a positive ty means the tag is ABOVE the crosshair (the docs disagree with themselves). */
         public static final boolean TY_POSITIVE_IS_UP = true;
 
-        /** ADD: where the lens is, measured from the robot's rotation center. It sits on top and behind center, so forward is negative. */
-        public static final double CAMERA_FORWARD_IN = -6.0;
-        /** ADD: sideways offset of the lens from the center line (positive = robot's left). */
+        /**
+         * MEASURED (team, 2026-11-13): where the lens is, measured from the robot's rotation center. It sits on top and behind
+         * center, so forward is negative: the lens center is 4.375 in in front of the back of the robot, which is
+         * 8.03 - 4.375 = 3.655 in behind the center of rotation. The Limelight is mounted UPSIDE DOWN (see the
+         * Limelight setup steps in docs/START_HERE.md: the pipeline must be set to the matching orientation, or the two
+         * signs below must be flipped).
+         */
+        public static final double CAMERA_FORWARD_IN = -3.655;
+        /** MEASURED (team, 2026-11-13): sideways offset of the lens from the center line (positive = robot's left): the lens is centered, 0.0 in. */
         public static final double CAMERA_LEFT_IN = 0.0;
-        /** ADD: height of the lens above the floor. The robot is 12.13 in tall; the camera sits on top. */
-        public static final double CAMERA_HEIGHT_IN = 13.0;
+        /** MEASURED (team, 2026-11-13): height of the center of the lens above the floor: 14.25 in. */
+        public static final double CAMERA_HEIGHT_IN = 14.25;
         /** FIXED by the mounting: the camera looks out the back, 180 degrees from the robot's forward direction. */
         public static final double CAMERA_YAW_DEG = 180.0;
         /**
-         * ADD: how far the camera is tilted UP from level. The tag rows are 35-50 in up and the verified
-         * geometry says the camera needs roughly +30 to +40 degrees to keep them inside its 42 degree
-         * vertical field of view.
+         * MEASURED (team, 2026-11-13): how far the camera is tilted UP from level: about 40 degrees. The tag rows are 35-50 in up
+         * and the camera needs roughly +30 to +40 degrees to keep them inside its 42 degree vertical field of view.
          */
-        public static final double CAMERA_PITCH_UP_DEG = 35.0;
+        public static final double CAMERA_PITCH_UP_DEG = 40.0;
 
         /** FIXED by the setup checklist (docs/START_HERE.md): the AprilTag pipeline is index 0. */
         public static final int PIPELINE_INDEX = 0;
