@@ -198,7 +198,7 @@ public class RouteGalleryTest {
     public void theMetadataTableStatesTheNumbersOfTheRoute() throws Exception {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         Element garden = section(page, "garden_cycle");
-        assertEquals("B1", rowValue(garden, "Start tile"));
+        assertEquals("RED B1, BLUE E6", rowValue(garden, "Start tile"));
         assertEquals(String.format(java.util.Locale.ROOT, "(35.0, %.1f) in, heading -90 deg", BioBuzzConstants.Robot.FRONT_EXTENT_IN), rowValue(garden, "Start pose, RED"));
         assertEquals(String.format(java.util.Locale.ROOT, "(%.1f, %.1f) in, heading 90 deg", BioBuzzConstants.Field.SIZE_IN - 35.0,
                 BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN), rowValue(garden, "Start pose, BLUE"));
