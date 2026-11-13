@@ -235,6 +235,12 @@ public final class RouteValidator {
         final HiveSolid solid = f.model().hiveSolid();
         final double laneMargin = BioBuzzConstants.Auto.HIVE_LANE_MARGIN_IN;
         final double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
+        double jumpArc = leg.headingJumpArc();
+        if (!Double.isNaN(jumpArc)) {
+            // no sweep can follow a heading that jumps, and the leg is wrong anyway: report that and nothing else about this leg
+            out.add(pathShapeError(info, what, leg.poseAt(jumpArc)));
+            return;
+        }
         LegSweeps sweeps = LegSweeps.run(f, leg, press, underHive);
         Sweep.Result bounds = sweeps.bounds;
         Sweep.Result hive = sweeps.hive;
@@ -244,6 +250,10 @@ public final class RouteValidator {
         Sweep.Result pressing = sweeps.pressing;
         Sweep.Result otherWheel = sweeps.otherWheel;
 
+        Pose2 unprovable = sweeps.unprovablePose();
+        if (unprovable != null) {
+            out.add(pathShapeError(info, what, unprovable));       // the safety net of the sweep: a gap that could not be proven clear
+        }
         if (bounds.broken()) {
             out.add(error(info.index, Rule.FIELD_BOUNDS, what + ": the robot footprint leaves the field by up to "
                     + in(bounds.worst + fieldTol + EPS) + " (first at " + pose(bounds.firstPose) + "); a robot cannot drive or turn through"
@@ -291,6 +301,14 @@ public final class RouteValidator {
                     + " half by up to " + in(side.worst + EPS) + " (first at " + pose(side.firstPose) + "); in AUTO a "
                     + a.route().alliance() + " robot must stay on its own side"));
         }
+    }
+
+    /** The ERROR for a leg whose heading jumps near {@code at}: nothing can follow it, and no check can say where the robot is inside the jump. */
+    private Issue pathShapeError(RouteAnalysis.StepInfo info, String what, Pose2 at) {
+        return error(info.index, Rule.PATH_SHAPE, what + ": the robot's heading JUMPS near " + pose(at) + ", so the robot cannot follow this path and no check can say"
+                + " where it is during the jump. A path that turns back on itself does this (a via point past the target, or in a line with it, in a tangent"
+                + " mode), and so does a leg that keeps facing a point and drives through that point. A via point only bends the path toward it: it is not a"
+                + " point to pass through");
     }
 
     /**

@@ -362,12 +362,12 @@ Front-left corner on the audience wall, 35.8 in from the red wall. Turned 40 deg
 red wall). A straight robot (within `Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG` of straight at a wall) is placed by the side that is on the wall and the distance of its nearest
 edge from the own side wall (from the audience wall for a start on a side wall); a robot in a corner is placed by the two walls alone; a turned robot is placed by the
 corner that touches each wall and the angle, clockwise or counter-clockwise as seen from above (as in the diagrams, audience wall at the bottom). A test follows the words
-for every straight start of the grid and checks they give the start back. The gallery and the Auto Route Picker will show these words.
+for every straight start of the grid and checks they give the start back. The gallery shows these words for every route and both alliances (the rows "Place the robot, RED" and "Place the robot, BLUE"), and the Auto Route Picker will too.
 
 **The picture.** `RouteSvgRenderer.render(route, alliance, issues, timing, true)` tints the legal stretches of the own walls for the heading the route starts with (a thin
 strip along each wall; the gaps are the FLOWERS and their brackets, the LOADING ZONE, the corners the robot does not fit in and the center line) and draws the start
-footprint on top. The gallery in `docs/autos` does **not** draw them yet: it is a committed copy of what the code draws, and a test fails when the two differ. To show them,
-set `Auto.RENDER_GALLERY_SHOWS_START_BANDS = true`, run `tools/render-autos.sh` and commit `docs/autos` in the same change.
+footprint on top. The gallery in `docs/autos` draws them on every diagram (`Auto.RENDER_GALLERY_SHOWS_START_BANDS` is `true`); it is a committed copy of what the code draws, and a test fails when the
+two differ, so after changing the flag run `tools/render-autos.sh` and commit `docs/autos` in the same change.
 
 **The numbers** (all in `BioBuzzConstants.Auto`, TUNE): `START_SEARCH_STEP_IN` 0.25 in and `START_SEARCH_HEADING_STEP_DEG` 5 degrees (the grid; the heading step should
 divide 90), `START_PLACEMENT_MARGIN_IN` 1 in and `START_PLACEMENT_MARGIN_DEG` 3 degrees, `START_SEARCH_MAX_VALIDATIONS` 3000 (how many starts the search checks with the full
@@ -771,12 +771,12 @@ the OpMode's start y (or x) to match once the real center of rotation is measure
   (without `launchSeconds`) stops only a moment after the tip, so its 4th POLLEN is probably launched too (see "The camera stops a
   volley late"): better than a timed volley, not free.
 * **`red_c1`** drives its first leg, straight from (58, 9.2) to (62, 118.1), **through the HIVE frame**. The route cannot
-  work as written. At y = 9.2 its shot is also 38.3 in from the aim point, just outside the 30-38 in band (placed with the
-  front on the wall, 37.7 in: the measured shot).
+  work as written. Its shot is fine: at y = 9.2 the launch point is 36.9 in from the aim point (36.4 in with the front on the wall), inside the
+  30-38 in band, and the validator prints no shooting-pose finding for it.
 * **`red_b1`** turns to -115 degrees right against the audience wall (a corner pokes **3.4 in through the wall**: with its
-  center 9.2 in out the robot needs 12.6 in to turn that far), shoots from 44 in (the good band is 30-38 in), drives so close
+  center 9.2 in out the robot needs 12.6 in to turn that far), shoots from 42.4 in (the good band is 30-38 in), drives so close
   to the HIVE that the robot is inside the 3 in keep-out (the numbers were written for a narrower robot), and parks only
-  **2.9 in** into the LOADING ZONE.
+  **4.3 in** into the LOADING ZONE (the zone is 11 in deep; the footprint is 17.8 in wide and the pose is 12 in from the wall).
 * **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes with no ERROR (one WARN each, see below): both start with the **front edge on the
   audience wall** (`start(x, 9.77, -90)`, written with `Robot.FRONT_EXTENT_IN`). The first shoots the pre-loads (the first
   tip: 3 POLLEN; the 4th is the spare and is probably launched before the feeder can stop, which is the one WARN), slides along the wall and leaves through the left corridor and parks deep in the zone, standing about
@@ -835,6 +835,10 @@ they can never disagree with each other.
 | A unit test says `docs/autos/... is missing` or `... differs from what the code draws now` | You added or renamed a route, or changed a rule, a constant or a text that the page shows, without regenerating: run `tools/render-autos.sh` (or `.bat`) and commit `docs/autos` in the SAME change. The test `RouteGalleryTest.theCommittedGalleryIsExactlyWhatTheCurrentCodeDraws` compares every committed file with a fresh drawing, so a stale page cannot sit next to new code. |
 | A diagram label overlaps something | Labels avoid each other and the step circles, not every line of the field. Open the SVG in a browser and zoom; the step list on the page says what each number is. |
 | The script printed a `Note: ... belongs to no route` | You removed a route. Delete its two old SVG files by hand (the tool never deletes files). |
+
+## Park assist (TeleOp: hold a button, the robot parks in its own LOADING ZONE)
+
+At the end of TeleOp a robot that is at least partly inside its own LOADING ZONE scores PARK (5 points), and touching the wall there is fine in TeleOp (the "off the wall" rule is only for the end of AUTO). `core/ParkAssist` is a small cousin of the hold-to-shoot state machine: while the driver HOLDS `Controls.PARK_BUTTON` (default OPTIONS) it plans a road from the robot's pose to a park spot, drives it, then holds the spot (the Driver Station says "Parking: driving to the LOADING ZONE", then "Parked: release the button"); letting go, or a hard push of the left stick, gives the sticks back at once. The spot is the nearest legal one: the whole robot outline inside the field with the wall clearance, clear of the HIVE frame and the FLOWER plates, and reaching at least `Park.MIN_OVERLAP_IN` (8 in) into the zone (the same overlap measure as the route validator), judged by driving distance plus the cost of turning; it is worked out in the RED frame and turned half a turn for BLUE. It has no collision checker of its own: the road comes from `ScoringPlanner.routeTo`, the same road finder and `RouteSweep` wall check that hold-to-shoot uses, and it is driven by the same `PedroDrive.follow` and Pedro speed settings, so it never moves faster than hold-to-shoot. It fails closed with a plain message: no trusted pose ("the robot does not know where it is"), no safe road ("no safe route to the LOADING ZONE from here"), stuck or too slow. The shoot button, the jam-clearing buttons and a running auto-shoot all take priority (holding any of them cancels the park, and it needs a fresh press afterwards), and `ConstantsCheck` refuses a park button that another control already uses. `ParkAssistSimTest` drives the real assist against a simulated robot from many starts for both alliances and checks the real outline against the walls, the HIVE frame and the FLOWERS at every 20 ms tick, plus release, refusal and stick-cancel; `ParkPoseChoiceTest` checks the choice of spot.
 
 ## Running an auto on the robot
 

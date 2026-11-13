@@ -50,7 +50,9 @@ public final class Issue {
         /** FIRST's calibration and Q&A QA46: a HIVE drifts, so a route plans one POLLEN more than the minimum that tips a cell. */
         TIP_MARGIN("QA46", "plan a spare POLLEN for a HIVE that drifts"),
         /** Design rule: an explicit pose should be where the route already is. */
-        IMPLICIT_MOVE("-", "pose reached by an unplanned move");
+        IMPLICIT_MOVE("-", "pose reached by an unplanned move"),
+        /** Design rule: a leg must be a path the robot can follow, so its heading may not jump. */
+        PATH_SHAPE("-", "a path the robot can follow");
 
         private final String manualRule;
         private final String title;

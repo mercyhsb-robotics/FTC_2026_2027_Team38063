@@ -87,6 +87,14 @@ final class Sweep {
         Pose2 firstPose;
         /** The largest depth found (negative infinity if nothing broke the rule). */
         double worst = Double.NEGATIVE_INFINITY;
+        /**
+         * True if a gap was cut {@code SWEEP_MAX_CUTS} times and still could not be proven clear: the robot's heading JUMPS there (see
+         * {@link #refine}). Nothing was found in it, so it is not counted as a collision, but the leg cannot be followed: the validator reports it.
+         */
+        boolean unprovable;
+        /** The first gap that could not be proven (valid only if {@link #unprovable}): the distance along the leg, and the pose. */
+        double unprovableArc;
+        Pose2 unprovablePose;
 
         private double firstKey = Double.POSITIVE_INFINITY;
 
@@ -169,7 +177,7 @@ final class Sweep {
             }
         }
         for (int i = 1; i < n; i++) {
-            refine(motion, depth, coarse.get(i - 1), d[i - 1], coarse.get(i), d[i], phase, into);
+            refine(motion, depth, coarse.get(i - 1), d[i - 1], coarse.get(i), d[i], phase, into, 0);
         }
     }
 
@@ -178,11 +186,24 @@ final class Sweep {
      * break the rule, or cut the gap in half and look at both halves.
      */
     private static void refine(Motion motion, Depth depth, double ua, double da, double ub, double db, int phase,
-                               Result into) {
+                               Result into, int cuts) {
+        if (into.unprovable) {
+            return;                                                 // the leg is already known to be one nothing can follow: no more cutting
+        }
         double bound = (da + db + motion.travel(ua, ub)) / 2.0;    // no pose between can be deeper than this
         double known = Math.max(Math.max(da, db), 0.0);            // the deepest the two ends already show
         if (bound <= known + BioBuzzConstants.Auto.SWEEP_RESOLUTION_IN) {
             return;                                                 // proven: nothing worth reporting hides in here
+        }
+        if (cuts >= BioBuzzConstants.Auto.SWEEP_MAX_CUTS) {
+            // A smooth motion is proven long before this. A gap that stays unproven however small it gets means the travel does not shrink with the gap:
+            // the heading JUMPS inside it (a cusp, or a path through the point the robot must face). Stop, and say so, instead of cutting for ever.
+            if (!into.unprovable) {
+                into.unprovable = true;
+                into.unprovableArc = motion.arc((ua + ub) / 2.0);
+                into.unprovablePose = motion.poseAt((ua + ub) / 2.0);
+            }
+            return;
         }
         double um = (ua + ub) / 2.0;
         Pose2 pose = motion.poseAt(um);
@@ -190,8 +211,8 @@ final class Sweep {
         if (dm > 0.0) {
             into.add(phase * PHASE_SPAN + um, motion.arc(um), pose, dm);
         }
-        refine(motion, depth, ua, da, um, dm, phase, into);
-        refine(motion, depth, um, dm, ub, db, phase, into);
+        refine(motion, depth, ua, da, um, dm, phase, into, cuts + 1);
+        refine(motion, depth, um, dm, ub, db, phase, into, cuts + 1);
     }
 
     // ---- the two kinds of motion of a leg -----------------------------------------------------------------

@@ -615,9 +615,14 @@ public final class RouteSvgRenderer {
             w.close("g");
         }
 
+        /**
+         * The tooltip of a step. The notes of a route are written in RED words (audience wall, left corridor, red wall, tile B1), so the BLUE picture
+         * leaves them out rather than print words that describe the other half of the field: the gallery shows them with the key for reading them as BLUE.
+         */
         private String stepTitle(RouteAnalysis.StepInfo info) {
+            boolean note = alliance == Alliance.RED && !info.step.note().isEmpty();
             return "step " + (info.index + 1) + ": " + info.step.describe() + String.format(Locale.ROOT, " (t = %.1f to %.1f s)",
-                    info.startSec, info.endSec()) + (info.step.note().isEmpty() ? "" : " - " + info.step.note());
+                    info.startSec, info.endSec()) + (note ? " - " + info.step.note() : "");
         }
 
         private void driveLeg(RouteAnalysis.StepInfo info) {

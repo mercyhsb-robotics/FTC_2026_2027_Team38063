@@ -87,7 +87,7 @@ public class RouteSvgStartBandsTest {
 
     /**
      * Situation: a route drawn without the stretches (the default and an explicit false), and the same route with them.
-     * Expected: the default drawings are exactly the old ones (so docs/autos stays the committed copy), they hold no {@code start-bands}; the drawing with the stretches
+     * Expected: the default drawing of {@code RouteSvgRenderer.render(route, alliance)} holds no {@code start-bands} (the gallery asks for them with the flag); the drawing with the stretches
      *     is well-formed XML and holds them.
      */
     @Test
@@ -101,7 +101,7 @@ public class RouteSvgStartBandsTest {
         Document d = parse(with);
         assertNotNull(byId(d, "start-bands"));
         assertTrue(bands(d).size() >= 3);
-        assertFalse("the gallery does not draw them yet (see RENDER_GALLERY_SHOWS_START_BANDS)", BioBuzzConstants.Auto.RENDER_GALLERY_SHOWS_START_BANDS);
+        assertTrue("the gallery draws them (see RENDER_GALLERY_SHOWS_START_BANDS and GalleryStartWordsTest)", BioBuzzConstants.Auto.RENDER_GALLERY_SHOWS_START_BANDS);
     }
 
     // ---- where the strips are ---------------------------------------------------------------------------------------------

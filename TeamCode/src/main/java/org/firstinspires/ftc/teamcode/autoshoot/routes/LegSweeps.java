@@ -98,6 +98,21 @@ final class LegSweeps {
         return new LegSweeps(bounds, hive, side, flowers, chassis, pressing, otherWheel, underHive);
     }
 
+    /**
+     * The pose where a sweep gave up because the leg's heading jumps (see {@link Sweep.Result#unprovable}), or null if every sweep of the leg was proven.
+     * A jump is a fault of the PATH, whichever rule noticed it, so the first one found is enough.
+     */
+    Pose2 unprovablePose() {
+        java.util.List<Sweep.Result> all = new java.util.ArrayList<Sweep.Result>(java.util.Arrays.asList(bounds, hive, side, chassis, pressing, otherWheel));
+        all.addAll(java.util.Arrays.asList(flowers));
+        for (Sweep.Result r : all) {
+            if (r.unprovable) {
+                return r.unprovablePose;
+            }
+        }
+        return null;
+    }
+
     /** True if any rule is broken anywhere on the leg. */
     boolean broken() {
         if (bounds.broken() || hive.broken() || side.broken() || chassis.broken() || pressing.broken() || otherWheel.broken()) {

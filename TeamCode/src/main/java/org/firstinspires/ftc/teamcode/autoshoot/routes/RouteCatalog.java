@@ -77,7 +77,7 @@ public final class RouteCatalog {
         // RedAlliance_B1.java
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(RED_B1)
-                .title("Red B1: shoot, then drive up the left side to the LOADING ZONE")
+                .title("Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE")
                 .description("Conversion of RedAlliance_B1.java. Starts in tile B1, turns to -115 deg and fires the 4 "
                         + "pre-loads at the UP cell, waits for the launcher, then drives backwards up the left corridor "
                         + "to (35.8, 90) and sideways to (12, 90), ending partly in the red LOADING ZONE. The staged NECTAR plus the "
@@ -109,7 +109,7 @@ public final class RouteCatalog {
         // RedAlliance_C1.java
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(RED_C1)
-                .title("Red C1: shoot, then drive past the HIVE to the LOADING ZONE")
+                .title("Copy of RedAlliance_C1: shoot 4, then through the HIVE to the LOADING ZONE (do not run)")
                 .description("Conversion of RedAlliance_C1.java. Starts in tile C1 with the back toward the UP cell, "
                         + "fires the 4 pre-loads, waits, then drives (58, 9.2) -> (62, 118.1) -> (58, 118.1) -> (12, 118.1), "
                         + "all backwards. The first leg is a straight line through the HIVE footprint. The staged NECTAR plus the "
@@ -138,7 +138,7 @@ public final class RouteCatalog {
         // RedAlliance_LeavePark.java
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(RED_LEAVE_PARK)
-                .title("Red A3: leave the wall and park (no shooting)")
+                .title("Copy of RedAlliance_LeavePark: leave the wall and park (no shooting)")
                 .description("Conversion of RedAlliance_LeavePark.java. Starts on the left wall in tile A3 facing 180 deg, "
                         + "drives to (24.86, 83.62) turning to 135 deg, then to (16, 91.5): LEAVE and a PARK with only a corner in the zone. "
                         + "The 4 pre-loads are never fired.")
@@ -160,7 +160,7 @@ public final class RouteCatalog {
         // new demonstration routes (both pass the validator)
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(WALL_SHOOT_PARK)
-                .title("Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE")
+                .title("Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park")
                 .description("Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver "
                         + "picks, then drives out through the left corridor (x < 43, clear of the HIVE frame keep-out) and "
                         + "parks deep inside the red LOADING ZONE. The 3 NECTAR already in the UP cell plus the 3rd POLLEN tip "
@@ -193,7 +193,7 @@ public final class RouteCatalog {
                 .build());
 
         routes.add(AutoRoute.builder(GARDEN_CYCLE)
-                .title("Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall")
+                .title("Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall")
                 .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the 3 NECTAR already in that "
                         + "cell the 3rd POLLEN tips the HIVE (+20); the 4th pre-load is the spare for a stiff HIVE, and because the camera "
                         + "sees the tip only about 0.85 s after the 3rd POLLEN lands it is probably launched into the swinging cell and spent. After a "

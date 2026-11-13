@@ -27,6 +27,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.WiggleTestRobot;
 import org.junit.Rule;
 import org.junit.Test;
@@ -121,7 +123,8 @@ public class RouteGalleryTest {
         Map<String, String> files = RouteGallery.build(RouteCatalog.all());
         for (AutoRoute r : RouteCatalog.all()) {
             for (Alliance a : Alliance.values()) {
-                assertEquals(r.id() + " " + a, RouteSvgRenderer.render(r, a), files.get(RouteGallery.svgFileName(r, a)));
+                assertEquals(r.id() + " " + a, RouteSvgRenderer.render(r, a, new RouteValidator().validate(r.forAlliance(a)), new TimingModel(),
+                        BioBuzzConstants.Auto.RENDER_GALLERY_SHOWS_START_BANDS), files.get(RouteGallery.svgFileName(r, a)));
             }
         }
     }
@@ -198,7 +201,7 @@ public class RouteGalleryTest {
     public void theMetadataTableStatesTheNumbersOfTheRoute() throws Exception {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         Element garden = section(page, "garden_cycle");
-        assertEquals("B1", rowValue(garden, "Start tile"));
+        assertEquals("RED B1, BLUE E6", rowValue(garden, "Start tile"));
         assertEquals(String.format(java.util.Locale.ROOT, "(35.0, %.1f) in, heading -90 deg", BioBuzzConstants.Robot.FRONT_EXTENT_IN), rowValue(garden, "Start pose, RED"));
         assertEquals(String.format(java.util.Locale.ROOT, "(%.1f, %.1f) in, heading 90 deg", BioBuzzConstants.Field.SIZE_IN - 35.0,
                 BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN), rowValue(garden, "Start pose, BLUE"));

@@ -492,7 +492,8 @@ All buttons use gamepad 1, a PlayStation-style gamepad. "Cross" is the X button 
 | Left trigger (L2) | **Hold** (pull past 0.3): the left corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
 | Right trigger (R2) | **Hold** (pull past 0.3): the right corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
 | Share | **Hold 0.6 s:** "the robot is on the default start pose". Resets its position. Works only when it is not auto-scoring. | `Controls.RESET_POSE_BUTTON`, `Controls.RESET_POSE_HOLD_SEC` |
-| Options, PS, touchpad, left stick push (L3), right stick push (R3) | Not used. | none |
+| Options | **Hold:** park assist. The robot drives itself into your own LOADING ZONE by a safe road, stops there and holds. The screen says "Parked: release the button". Letting go, pushing the left stick hard, or holding the shoot or a jam button gives the sticks back at once. Do this at the end of the match for the 5 PARK points. It needs a trusted position (the start pose or the Share reset). | `Controls.PARK_BUTTON` |
+| PS, touchpad, left stick push (L3), right stick push (R3) | Not used. | none |
 
 While the robot auto-scores, the intake, the corner servos, the manual launch buttons and the right bumper are switched off, because it may hold at most 4 POLLEN. A jam button cancels the auto-score and then works as written.
 If you still hold D-pad up when you let go of a jam button, the auto-score can start again: let go of D-pad up first. The screen says **CLEARING A JAM** while you hold a jam button.
