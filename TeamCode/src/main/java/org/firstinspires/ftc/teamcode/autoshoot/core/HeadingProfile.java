@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * The one rule that says WHICH WAY THE ROBOT FACES at every point of a route it is driving.
  *
  * <p>Why this class exists. A route is a list of points to drive through (the "waypoints"). The position of the robot
- * on that route is easy: it is on the straight lines between the points. But the robot is a 17.8 x 17.8 in rectangle, not a
+ * on that route is easy: it is on the straight lines between the points. But the robot is a 17.80 x 17.62 in rectangle, not a
  * dot (and not even centered on its position: the front edge is 9.77 in from it, the back 8.03 in), and a rectangle takes up more
  * room when it is turned (turned 45 degrees it is about 25 in wide, not 17.8).
  * So whether a route is safe near a wall depends on the robot's <b>heading</b> (the way it faces) at every point of

@@ -109,7 +109,7 @@ public final class StartPoseSearch {
     /**
      * The robot pushed against {@code wall}: the pose, {@code alongIn} inches along the wall and facing {@code headingRad}, whose footprint touches the
      * wall exactly. The pose point is a different distance from the wall at every heading, because the robot is not centered on it: facing the audience
-     * wall front-first the pose is 9.77 in from it, facing away 8.03 in, sideways 8.90 in, and a robot turned 45 degrees needs about 13 in.
+     * wall front-first the pose is 9.77 in from it, facing away 8.03 in, sideways 8.81 in, and a robot turned 45 degrees needs about 13 in.
      */
     public static Pose2 seatedAt(Wall wall, double alongIn, double headingRad, double fieldSize) {
         Pose2 loose = wall.runsAlongX() ? new Pose2(alongIn, 0.0, headingRad) : new Pose2(0.0, alongIn, headingRad);

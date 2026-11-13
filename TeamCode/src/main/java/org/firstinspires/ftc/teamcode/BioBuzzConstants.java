@@ -263,7 +263,7 @@ public final class BioBuzzConstants {
         /**
          * FIXED (CAD): the same for the DOWN cell, which overhangs the frame (the red rear cell DOWN is y [73.39, 95.80]). The
          * part nearest the pivot is the cell's base tube; the box of the cell itself starts 7.4 in out. The overhang beyond the
-         * frame is high up: at 35.5 in or more above the floor, so a 12.13 in tall robot passes under it.
+         * frame is high up: at 35.5 in or more above the floor, so a robot of about 15 in passes under it.
          */
         public static final double DOWN_CELL_PLAN_OUT_NEAR_IN = 2.72;
         public static final double DOWN_CELL_PLAN_OUT_FAR_IN = 25.13;
@@ -386,7 +386,7 @@ public final class BioBuzzConstants {
         public static final double TIME_SAFETY_MARGIN_SEC = 2.0;
         /**
          * FIXED: spacing of the COARSE samples that the validator checks along every leg (inches). Between two coarse
-         * samples a corner of the robot can move up to {@code PATH_SAMPLE_STEP_IN + 13.22 in * TURN_SAMPLE_STEP_DEG in
+         * samples a corner of the robot can move up to {@code PATH_SAMPLE_STEP_IN + 13.16 in * TURN_SAMPLE_STEP_DEG in
          * radians} (2.15 in); the validator grows every obstacle by half of that and cuts a gap in two whenever it
          * cannot prove it is clear, so nothing can slip between two samples (see {@code routes/Sweep.java}).
          */
@@ -414,14 +414,14 @@ public final class BioBuzzConstants {
          * The validator's keep-out is the whole frame footprint (x 45.94 to 95.41, y 51.20 to 90.15) grown by this much.
          * (A route step that says {@code allowUnderHive} is checked against the exact solid instead, see {@link #HIVE_LANE_MARGIN_IN}.)
          *
-         * <p><b>What the 12.13 in tall robot can actually hit</b> (the official CAD, measured and checked a second time):
+         * <p><b>What the robot, about 15 in tall with the Limelight, can actually hit</b> (the official CAD, measured and checked a second time):
          * <ul>
          *   <li>The only things of the HIVE below the robot's height are in the FRAME: two foot bars on the floor along y (1.98 in wide,
-         *       2.15 in tall, x 45.94 to 47.92 and 93.42 to 95.41) and the four legs that lean inward from their ends. A leg is only 12.13
-         *       in high where it has moved about 3.2 in in along x and 5.2 in along y, so below the robot's height the legs are two short
-         *       stubs at each end of each bar, reaching in to x 50.61 (and 90.73). Nothing else of the HIVE is lower than 30.65 in.</li>
+         *       2.15 in tall, x 45.94 to 47.92 and 93.42 to 95.41) and the four legs that lean inward from their ends. A leg leans in as it
+         *       climbs, so below the 16 in the planner uses ({@link #HIVE_SOLID_HEIGHT_IN}: the robot's 15 in plus 1 in) the legs are two short
+         *       stubs at each end of each bar, reaching in to x 51.71 (and 89.64). Nothing else of the HIVE is lower than 30.65 in.</li>
          *   <li>The crossbar is 40.95 in up and the lowest point of any CELL is 30.652 in up (an UP cell's is 43.96 in). The tallest part
-         *       of the robot is 12.13 in (13.0 in with the camera), so no CELL, and no cell that is swinging up or down, can touch it.</li>
+         *       of the robot is about 15 in (the Limelight on top), so no CELL, and no cell that is swinging up or down, can touch it.</li>
          *   <li>A DOWN cell hangs out past the frame footprint by up to 5.66 in (red rear cell: y up to 95.80, the frame ends at 90.15),
          *       but only at 35.5 in up or higher, so a robot passes UNDER that overhang. That is why the overhang is not part of the
          *       keep-out.</li>
@@ -429,8 +429,8 @@ public final class BioBuzzConstants {
          *       and the loose POLLEN.</li>
          * </ul>
          *
-         * <p><b>The lane.</b> Between the feet the plan is open: 45.5 in wide between the bars and 40.1 in wide where the leg stubs narrow
-         * it (x 50.6 to 90.7), so a 17.80 in wide robot has about 11 in to spare on each side. A robot that is 12 to 13 in tall can
+         * <p><b>The lane.</b> Between the feet the plan is open: 45.5 in wide between the bars and 37.9 in wide where the leg stubs narrow
+         * it at 16 in (x 51.7 to 89.6), so a 17.62 in wide robot has about 10 in to spare on each side. A robot that is about 15 in tall can
          * therefore drive north-south UNDER the HIVE. That saves a trip of about 20 in around it (see docs/AUTOS.md), but it is a design
          * choice, not a default: G409 says a robot may not catch what a tipped HIVE releases and G417 forbids launching into a cell that is
          * tipping, and a robot under a tipping HIVE is exactly where nobody wants to be. So the default keep-out below treats the WHOLE
@@ -452,8 +452,8 @@ public final class BioBuzzConstants {
         public static final double HIVE_SOLID_HEIGHT_IN = 16.0;
         /**
          * TUNE (G409 / G417 design guard for a step that is allowed under the HIVE): the clearance, in inches, the robot keeps on BOTH sides to
-         * the foot bars and the leg stubs while it drives along the lane between them. The lane is 40.1 in wide where the stubs narrow it, the
-         * robot 17.80 in, so 3.0 in on each side leaves about 8 in of freedom to steer. It is the same size as the margin around the whole
+         * the foot bars and the leg stubs while it drives along the lane between them. The lane is 37.9 in wide where the stubs narrow it, the
+         * robot 17.62 in, so 3.0 in on each side leaves about 14 in of freedom to steer (the narrowest place is the stubs: the robot is 17.62 in wide, the lane 37.9 in). It is the same size as the margin around the whole
          * footprint on purpose: a robot is never closer to the HIVE under it than beside it.
          */
         public static final double HIVE_LANE_MARGIN_IN = 3.0;
@@ -728,7 +728,7 @@ public final class BioBuzzConstants {
 
         // ---- where the perimeter lies around the center of rotation -----------------------------------------
         // The robot's POSITION is the point it spins about (the "center of rotation": for a mecanum robot, about the
-        // middle between the axles). It is NOT the middle of the 17.80 x 17.80 in perimeter, because the intake sticks
+        // middle between the axles). It is NOT the middle of the 17.80 x 17.62 in perimeter, because the intake sticks
         // out in front of the front axle and the back of the robot ends nearer to the rear axle. These four numbers say
         // how far the perimeter is from that point in each direction. Facing the audience wall front-first, the robot's
         // position is FRONT_EXTENT_IN from the wall when the front touches it.
@@ -1024,7 +1024,7 @@ public final class BioBuzzConstants {
         public static final double PATH_MIN_LEG_IN = 0.5;
 
         // ---- keeping the whole robot (not just its center) off the walls while it drives ------
-        // The route checker (core/RouteSweep) slides the robot's real 17.8 x 17.8 in outline (not centered on its position) along the route and tests it
+        // The route checker (core/RouteSweep) slides the robot's real 17.80 x 17.62 in outline (not centered on its position) along the route and tests it
         // against the walls, the HIVE frame and the FLOWER plates. It looks at least this often, and more often
         // wherever the robot is close to something.
 
@@ -1532,7 +1532,7 @@ public final class BioBuzzConstants {
         /** FIXED (CAD): ... and this many inches toward the center along y (so the legs of the two ends converge on the cell axles). */
         public static final double HIVE_LEG_LEAN_Y_PER_Z = 0.4452;
         /**
-         * FIXED (CAD, fitted so that the plan "shadow" of everything below 12.13 in reproduces the measured one to 0.02 in: stub tips at
+         * FIXED (CAD, fitted so that the plan "shadow" of everything below 12.13 in (the height of the robot in the drawing) reproduces the measured one to 0.02 in: stub tips at
          * x 50.61 and y 57.82 / 83.53, in the wall-corner frame): half the width of a leg as seen from above, 0.55 in. The tube is 1.19 x 1.00 in,
          * and a leaning tube looks a little wider from above.
          */
@@ -1646,7 +1646,7 @@ public final class BioBuzzConstants {
         /** Derived (the plate): FLOWER keep-out depth out from the wall, 5.033 in. */
         public static final double FLOWER_KEEPOUT_DEPTH_IN = FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN;
 
-        // ---- the rest of the FLOWER, from the CAD (what a 12.13 in tall robot can meet) ---------------------------------
+        // ---- the rest of the FLOWER, from the CAD (what a robot of about 15 in can meet) ---------------------------------
         // The FLOWER stands on the wall as a stack: the bottom ring on the tile (z 0 to 0.354 in), two supports with the retrieval
         // opening between them (z 0.354 to 3.904), the middle ring (z 3.904 to 5.254), four green pipes (z 4.25 to 21.25) and the
         // top ring (z 20.254 to 21.404, hole 3.99 in), with the backstop 1 in above it. The robot meets only the part below its own
@@ -1676,7 +1676,7 @@ public final class BioBuzzConstants {
 
         /**
          * FIXED (CAD, the black "Field Bracket" that holds the FLOWER to the wall): the bracket sticks out 1.67 in from the wall face ...
-         * It is only 0.4 in tall, at 11.437 to 11.837 in above the tile, which is INSIDE the 12.13 in the robot is tall: a part of
+         * It is only 0.4 in tall, at 11.437 to 11.837 in above the tile, which is INSIDE the 15 in the robot is tall: a part of
          * the robot that is taller than 11.44 in and within 1.67 in of the wall next to a FLOWER can touch it.
          */
         public static final double FLOWER_BRACKET_PROTRUSION_IN = 1.67;

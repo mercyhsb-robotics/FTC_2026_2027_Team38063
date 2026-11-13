@@ -58,7 +58,7 @@ public final class AllianceField {
     /**
      * The HIVE frame footprint grown by {@link BioBuzzConstants.Auto#HIVE_KEEPOUT_MARGIN_IN} on every side: where no
      * part of the robot may be. It is a solid box: the gaps under and inside the frame count as solid too (see the
-     * constant for what the 12.13 in tall robot can really hit and why).
+     * constant for what the robot of about 15 in can really hit and why).
      */
     public Rect hiveKeepOut() {
         return model.hiveFrame().inflate(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN);

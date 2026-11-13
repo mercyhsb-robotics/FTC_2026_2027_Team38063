@@ -14,7 +14,7 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
  *       way it faces (radians, 0 = +x, counter-clockwise positive).</li>
  *   <li>{@code launchForwardIn} / {@code launchLeftIn} locate the ball exit relative to that rotation center, in
  *       the robot's own frame: forward is the way the intake faces, left is 90 degrees counter-clockwise from it.
- *       The shooter is at the back, so {@code launchForwardIn} is negative (about -8.03 in: the rear edge of the robot,
+ *       The shooter is at the back, so {@code launchForwardIn} is negative (-5.38 in, measured: 2.65 in in front of the rear edge of the robot,
  *       which is NOT the same distance behind the center of rotation as the front edge is in front of it).</li>
  *   <li>{@code targetX}, {@code targetY} are field inches; normally a cell's aim point
  *       ({@link CellSpec#originX}, {@link CellSpec#originY}).</li>

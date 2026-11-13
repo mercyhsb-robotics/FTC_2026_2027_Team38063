@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 /**
  * The robot's floor footprint at a pose: a rectangle turned to the pose's heading about the robot's POSITION, which is
  * its center of rotation. The rectangle is NOT centered on that point: a {@link RobotShape} says how far it reaches in
- * front of, behind, left of and right of it (9.77, 8.03, 8.90 and 8.90 in for the real robot). The corners run
+ * front of, behind, left of and right of it (9.77, 8.03, 8.81 and 8.81 in for the real robot). The corners run
  * counter-clockwise starting at the front-left one.
  *
  * <p>Three shapes come out of this class, all rectangles that turn with the robot:
@@ -68,17 +68,17 @@ public final class Footprint {
         return ROBOT.frontIn();
     }
 
-    /** How far the perimeter reaches BEHIND the pose point, in inches (the back lip, where the ball leaves; 8.03 in). */
+    /** How far the perimeter reaches BEHIND the pose point, in inches (the back of the robot frame; 8.03 in). */
     public static double rearExtentIn() {
         return ROBOT.rearIn();
     }
 
-    /** How far the perimeter reaches to the robot's LEFT of the pose point, in inches (8.90 in). */
+    /** How far the perimeter reaches to the robot's LEFT of the pose point, in inches (8.81 in). */
     public static double leftExtentIn() {
         return ROBOT.leftIn();
     }
 
-    /** How far the perimeter reaches to the robot's RIGHT of the pose point, in inches (8.90 in). */
+    /** How far the perimeter reaches to the robot's RIGHT of the pose point, in inches (8.81 in). */
     public static double rightExtentIn() {
         return ROBOT.rightIn();
     }
@@ -228,8 +228,8 @@ public final class Footprint {
 
     /**
      * The distance from the robot's center of rotation to its farthest corner, in inches: the circumscribed radius,
-     * {@code hypot(max(front, rear), max(left, right))}, 13.22 in for the real robot (a centered 17.80 in square would
-     * be 12.59 in). Every point of the robot, the chassis and the wheel discs included, is at most this far from the
+     * {@code hypot(max(front, rear), max(left, right))}, 13.16 in for the real robot (a centered 17.80 x 17.62 in rectangle would
+     * be 12.52 in). Every point of the robot, the chassis and the wheel discs included, is at most this far from the
      * center of rotation, so turning the robot by an angle t moves no point of it by more than
      * {@code circumscribedRadiusIn * t}. The route validator relies on this to prove that its samples cannot miss a
      * collision (see {@code Sweep}).

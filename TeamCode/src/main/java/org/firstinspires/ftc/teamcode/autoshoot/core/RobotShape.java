@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  *
  * <p><b>Why four numbers and not "length and width".</b> The robot's position, the point Pedro Pathing and the
  * odometry report, is its <b>center of rotation</b>: the point the robot spins about. On this robot that point is NOT
- * the middle of the 17.80 x 17.80 in outline. The intake sticks out in front of the front axle, so the front edge is
- * 9.77 in from the position and the rear edge only 8.03 in. (Left and right are 8.90 in each because the drive is
+ * the middle of the 17.80 x 17.62 in outline. The intake sticks out in front of the front axle, so the front edge is
+ * 9.77 in from the position and the rear edge only 8.03 in. (Left and right are 8.81 in each because the drive is
  * symmetric.) A robot that faces a wall with its front touching it therefore has its position 9.77 in from that
  * wall, but facing away with its back on the wall, 8.03 in. Anything that decides "does the robot fit here?" has to use
  * these four numbers, never half the length or half the width.
@@ -92,8 +92,8 @@ public final class RobotShape {
 
     /**
      * The radius of the smallest circle around the position that holds the whole robot, inches: the distance to the
-     * farthest corner, {@code hypot(max(front, rear), max(left, right))} (13.22 in for the real robot, not the 12.59 in of a
-     * centered 17.80 in square). Spinning in place or turning on the move sweeps the robot out to this radius.
+     * farthest corner, {@code hypot(max(front, rear), max(left, right))} (13.16 in for the real robot, not the 12.52 in of a
+     * centered 17.80 x 17.62 in rectangle). Spinning in place or turning on the move sweeps the robot out to this radius.
      */
     public double reachIn() {
         return Math.hypot(Math.max(frontIn, rearIn), Math.max(leftIn, rightIn));
@@ -112,7 +112,7 @@ public final class RobotShape {
      * distance the position must keep from a wall (or any flat edge) that lies in that direction so that the robot only
      * touches it. Example: facing the audience wall front-first (heading -90 degrees) the audience wall is in the
      * direction -90 degrees, so the answer is the front extent, 9.77 in; facing away from it, the rear extent, 8.03 in;
-     * sideways, a side extent, 8.90 in; at 45 degrees, a corner, so more than any of them.
+     * sideways, a side extent, 8.81 in; at 45 degrees, a corner, so more than any of them.
      *
      * @param headingRad   the way the robot faces (0 = +x, counter-clockwise positive)
      * @param directionRad the field direction to look in (for example 0 for the wall at the +x end of the field)
