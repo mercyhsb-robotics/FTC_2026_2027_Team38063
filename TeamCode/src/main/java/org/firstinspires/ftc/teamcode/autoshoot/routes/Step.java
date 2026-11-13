@@ -409,31 +409,41 @@ public abstract class Step {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Stand still at the current pose until the HIVE cell the route shoots at next is UP, but at most
-     * {@link #timeoutSeconds()}. It is for routes that assume the alliance partner shoots the first tip
-     * ({@link FirstTip#PARTNER}): the other cell only comes up when the partner's volley has tipped the HIVE, so the
-     * robot waits for it instead of launching into a cell that still faces down (rule G417). On the robot this is
-     * what the camera-gated shoot step does anyway: it fires only into a cell whose tags read UP.
+     * Stand still at the current pose until the camera has seen the HIVE tip, and give up at {@link #giveUpSec()}. It is
+     * for routes that assume the alliance partner shoots the first tip ({@link FirstTip#PARTNER}): the other cell only
+     * comes up when the partner's volley has tipped the HIVE, and partner teams tip at different times, so the robot
+     * does not guess. A time never makes it shoot (rule G417: only a cell that faces up may be launched into): it waits
+     * until its camera sees the cell UP and steady, and only then goes on to the volley after this step.
+     *
+     * <p>{@code giveUpSec} is a DEADLINE on the route clock (seconds since the start of AUTO), not a length of time and
+     * not a guess of when the partner tips. When the clock reaches it and the tip has not been seen, the robot skips
+     * the volleys that need the tip and goes on with the safe steps (LEAVE, PARK). Choose it so that the steps after
+     * the wait still fit before the AUTO limit: the analysis reports the latest such time
+     * ({@link RouteAnalysis#latestGiveUpSec}) and the checker warns if the deadline is later.
+     *
+     * <p>The analysis (not the robot) must still guess when the tip happens, to estimate the time and the points: it
+     * uses {@code Auto.PARTNER_FIRST_TIP_DONE_SEC} and reports how late a tip could be and still work.
      */
     public static final class WaitForTip extends Step {
-        private final double timeoutSeconds;
+        private final double giveUpSec;
 
-        public WaitForTip(double timeoutSeconds, String note) {
+        public WaitForTip(double giveUpSec, String note) {
             super(StepKind.WAIT_FOR_TIP, note);
-            if (!(timeoutSeconds > 0.0)) {
-                throw new IllegalArgumentException("the timeout of a WAIT_FOR_TIP must be > 0 s, got " + timeoutSeconds);
+            if (!(giveUpSec > 0.0)) {
+                throw new IllegalArgumentException("the give-up time of a WAIT_FOR_TIP is a route-clock time and must be > 0 s, got "
+                        + giveUpSec);
             }
-            this.timeoutSeconds = timeoutSeconds;
+            this.giveUpSec = giveUpSec;
         }
 
-        /** The longest the robot waits, in seconds; after that it carries on even if the cell is not UP. */
-        public double timeoutSeconds() {
-            return timeoutSeconds;
+        /** The route-clock time in seconds at which the robot stops waiting if it has not seen the tip; then it skips the volleys that need it. */
+        public double giveUpSec() {
+            return giveUpSec;
         }
 
         @Override
         public Step withNote(String note) {
-            return new WaitForTip(timeoutSeconds, note);
+            return new WaitForTip(giveUpSec, note);
         }
 
         @Override
@@ -443,7 +453,7 @@ public abstract class Step {
 
         @Override
         public String describe() {
-            return "WAIT_FOR_TIP until the HIVE has tipped, at most " + fmt(timeoutSeconds) + " s";
+            return "WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at " + fmt(giveUpSec) + " s on the route clock";
         }
     }
 

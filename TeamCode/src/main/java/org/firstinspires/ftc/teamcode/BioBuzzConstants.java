@@ -135,6 +135,15 @@ public final class BioBuzzConstants {
          */
         public static final double PARTNER_FIRST_TIP_DONE_SEC = 12.0;
         /**
+         * TUNE: the least number of seconds of SLACK a route that waits for the partner's tip should have. Slack is the
+         * time between the tip that the route ASSUMES (PARTNER_FIRST_TIP_DONE_SEC) and the latest partner tip for which
+         * the route still finishes inside the AUTO limit minus TIME_SAFETY_MARGIN_SEC. Partner teams tip at different
+         * times, so a route with little slack only works with a fast partner: the checker WARNs below this value and
+         * the gallery shows the real number for every partner route. The robot never shoots because of a TIME: it shoots
+         * after its camera has seen the cell UP, and gives the volley up when the wait runs out.
+         */
+        public static final double PARTNER_TIP_MIN_SLACK_SEC = 3.0;
+        /**
          * VERIFY (rule G409): when a HIVE tips, the cell that was UP tips down and everything in it (the staged
          * NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE.
          * G409 says a robot may not catch or deflect what a tipped HIVE releases, so for this many seconds after a

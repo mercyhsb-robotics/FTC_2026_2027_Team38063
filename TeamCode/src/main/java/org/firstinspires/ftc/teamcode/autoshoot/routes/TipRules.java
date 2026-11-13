@@ -24,9 +24,11 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       ERROR: fire fewer POLLEN in that volley.</li>
  *   <li><b>G417, launching into a cell that faces down.</b> Only an upward-facing cell may be launched into. A SHOOT at
  *       a cell that is DOWN when the first POLLEN leaves is a WARN, except in a route that assumes the PARTNER shoots
- *       the first tip: there, a SHOOT at the cell that comes UP with the partner's tip, which starts BEFORE that tip
- *       is done, is an ERROR (with a WAIT_FOR_TIP before it that lasts until the tip the SHOOT is fine). A volley
- *       that is still firing at the old cell when the partner's tip happens is a WARN.</li>
+ *       the first tip. There the cell that comes UP with the partner's tip is special, because partner teams tip at
+ *       different times and the robot must not guess: every SHOOT at that cell needs a WAIT_FOR_TIP before it, even
+ *       one that starts after the assumed tip time (a time never lets the robot shoot, only its camera does), and the
+ *       wait must last until the tip (an ERROR otherwise). A volley that is still firing at the old cell when the
+ *       partner's tip happens is a WARN.</li>
  *   <li><b>G409, the spill.</b> When a HIVE tips, the cell that was UP tips down and everything in it falls out of its
  *       opening onto the floor on that side of the HIVE: its 3 staged NECTAR (if it is the first tip) and the POLLEN
  *       launched into it (field_layout.verified.md 2.1 and 5.2: the red audience cell is x [49.25, 69.25],
@@ -36,8 +38,10 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       the spill zone: that cell's plan footprint grown by {@code TIP_SPILL_MARGIN_IN}. The other cell's side of the
  *       HIVE is not in the zone; it is where a robot waiting for the partner's tip stands. ERROR.</li>
  *   <li><b>The assumption must hold.</b> WARN: a WAIT_FOR_TIP in a route that assumes we shoot the first tip (there is
- *       nothing to wait for); a WAIT_FOR_TIP whose timeout ends before the tip it waits for; our own volley tipping
- *       the HIVE before the partner's assumed tip (the route then does not need the partner).</li>
+ *       nothing to wait for); a WAIT_FOR_TIP that gives up before the tip it waits for, or later than the rest of the
+ *       route can afford; our own volley tipping the HIVE before the partner's assumed tip (the route then does not
+ *       need the partner); and a route with less than {@code PARTNER_TIP_MIN_SLACK_SEC} of slack, which only works if
+ *       the partner is about as fast as assumed ({@link RouteAnalysis#partnerTipSlackSec()}).</li>
  * </ul>
  */
 final class TipRules {
@@ -97,17 +101,22 @@ final class TipRules {
             return;
         }
         RouteAnalysis.TipEvent partner = partnerEvent(a);
+        if (partner != null && info.targetSide == partner.newUpSide) {
+            // The cell that only comes UP when the partner's tip is done. The robot must SEE it up before it shoots: a
+            // time never decides, because partner teams tip at different times.
+            int waitIndex = lastWaitBefore(a, info.index);
+            if (waitIndex < 0) {
+                out.add(error(info.index, Rule.SHOOT_TARGET, noWaitMessage(info, partner)));
+            } else if (a.step(waitIndex).endSec() < partner.timeSec - EPS || info.launchSec < partner.timeSec - EPS) {
+                out.add(error(info.index, Rule.SHOOT_TARGET, waitEndsTooEarlyMessage(a, info, partner, waitIndex)));
+            }
+            return;
+        }
         if (!info.targetWasUp) {
             Side upNow = info.targetSide.opposite();      // a HIVE has two cells, so the other one is the UP one
-            boolean beforePartnerTip = partner != null && info.targetSide == partner.newUpSide
-                    && info.launchSec < partner.timeSec - EPS;
-            if (beforePartnerTip) {
-                out.add(error(info.index, Rule.SHOOT_TARGET, beforePartnerTipMessage(a, info, partner)));
-            } else {
-                out.add(warn(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": fires at the " + info.targetSide
-                        + " cell, but at this point the " + upNow + " cell is the UP one; launching into a cell that faces"
-                        + " down is a G417 violation"));
-            }
+            out.add(warn(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": fires at the " + info.targetSide
+                    + " cell, but at this point the " + upNow + " cell is the UP one; launching into a cell that faces"
+                    + " down is a G417 violation"));
         } else if (partner != null && info.targetSide == partner.releasingSide && info.launchSec < partner.timeSec - EPS
                 && info.endSec() > partner.timeSec + EPS) {
             out.add(warn(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": the volley at the "
@@ -118,23 +127,35 @@ final class TipRules {
         }
     }
 
-    private static String beforePartnerTipMessage(RouteAnalysis a, RouteAnalysis.StepInfo info, RouteAnalysis.TipEvent partner) {
+    /** Index of the last WAIT_FOR_TIP before step {@code index}, or -1 if there is none. */
+    private static int lastWaitBefore(RouteAnalysis a, int index) {
         int waitIndex = -1;
-        for (int i = 0; i < info.index; i++) {
+        for (int i = 0; i < index; i++) {
             if (a.step(i).step.kind() == StepKind.WAIT_FOR_TIP) {
                 waitIndex = i;
             }
         }
-        String start = RouteValidator.describe(info) + ": launches into the " + info.targetSide + " cell at "
-                + RouteValidator.sec(info.launchSec) + ", but that cell only comes up when the partner's tip is done, assumed at "
-                + RouteValidator.sec(partner.timeSec) + ", and a cell that faces down must not be launched into (G417). ";
-        if (waitIndex < 0) {
-            return start + "Put a WAIT_FOR_TIP before this SHOOT so the robot waits for the tip";
-        }
+        return waitIndex;
+    }
+
+    private static String noWaitMessage(RouteAnalysis.StepInfo info, RouteAnalysis.TipEvent partner) {
+        return RouteValidator.describe(info) + ": aims at the " + info.targetSide + " cell, which only comes up when the partner's"
+                + " tip is done (assumed at " + RouteValidator.sec(partner.timeSec) + "), with no WAIT_FOR_TIP before it. Partner"
+                + " teams tip at different times, so the robot shoots at that cell only after its camera has SEEN it UP, never"
+                + " because a time has passed (a cell that faces down must not be launched into, G417). Put a WAIT_FOR_TIP"
+                + " before this SHOOT";
+    }
+
+    private static String waitEndsTooEarlyMessage(RouteAnalysis a, RouteAnalysis.StepInfo info, RouteAnalysis.TipEvent partner,
+                                                  int waitIndex) {
         RouteAnalysis.StepInfo wait = a.step(waitIndex);
-        return start + "The WAIT_FOR_TIP at step " + (waitIndex + 1) + " ends at " + RouteValidator.sec(wait.endSec())
-                + ", before the tip (its timeout is " + RouteValidator.sec(((Step.WaitForTip) wait.step).timeoutSeconds())
-                + "): raise the timeout or start the SHOOT later";
+        return RouteValidator.describe(info) + ": launches into the " + info.targetSide + " cell at "
+                + RouteValidator.sec(info.launchSec) + ", but that cell only comes up when the partner's tip is done, assumed at "
+                + RouteValidator.sec(partner.timeSec) + ", and a cell that faces down must not be launched into (G417). The"
+                + " WAIT_FOR_TIP at step " + (waitIndex + 1) + " gives up at " + RouteValidator.sec(wait.endSec())
+                + ", before the tip (its give-up time is " + RouteValidator.sec(((Step.WaitForTip) wait.step).giveUpSec())
+                + "), so the robot would skip this volley: raise the give-up time to at least "
+                + RouteValidator.sec(partner.timeSec) + " or plan the route for a later tip";
     }
 
     // ---- WAIT_FOR_TIP and the first-tip assumption ----------------------------------------------------------
@@ -149,11 +170,20 @@ final class TipRules {
                     + " write the route with partnerTipsFirst()"));
             return;
         }
+        double giveUp = ((Step.WaitForTip) info.step).giveUpSec();
         if (!Double.isNaN(info.tipWaitSec) && info.endSec() < info.tipWaitSec - EPS) {
             out.add(warn(info.index, Rule.TIP_ASSUMPTION, RouteValidator.describe(info) + ": gives up at "
                     + RouteValidator.sec(info.endSec()) + ", before the partner's tip assumed at " + RouteValidator.sec(info.tipWaitSec)
-                    + "; the cell it waits for is still facing down then. Raise the timeout to at least "
-                    + RouteValidator.sec(info.tipWaitSec - info.startSec)));
+                    + "; the cell it waits for is still facing down then. Raise the give-up time to at least "
+                    + RouteValidator.sec(info.tipWaitSec)));
+        }
+        double latest = a.latestGiveUpSec(info);
+        if (giveUp > latest + EPS) {
+            out.add(warn(info.index, Rule.TIP_ASSUMPTION, RouteValidator.describe(info) + ": gives up at "
+                    + RouteValidator.sec(giveUp) + ", but the steps after it take " + RouteValidator.sec(a.totalSeconds() - info.endSec())
+                    + " and the route must be over by " + RouteValidator.sec(RouteAnalysis.timeBudgetSec())
+                    + ", so waiting any later than " + RouteValidator.sec(latest) + " would run past the AUTO limit. Set the"
+                    + " give-up time to " + RouteValidator.sec(latest) + " or less"));
         }
     }
 
@@ -161,6 +191,7 @@ final class TipRules {
         if (!a.partnerTipAssumed()) {
             return;
         }
+        checkSlack(a, out);
         if (a.partnerTipVoided()) {
             for (RouteAnalysis.TipEvent e : a.tipEvents()) {
                 if (!e.byPartner) {
@@ -173,6 +204,36 @@ final class TipRules {
                 }
             }
         }
+    }
+
+    /**
+     * A route that waits for the partner's tip works only if the tip is not too late. The slack is how late it may be
+     * beyond the assumed time ({@link RouteAnalysis#partnerTipSlackSec()}); a small one is a WARN, so the drive team knows
+     * the route needs a partner that is about as fast as agreed.
+     */
+    private static void checkSlack(RouteAnalysis a, List<Issue> out) {
+        int waitIndex = -1;
+        for (RouteAnalysis.StepInfo info : a.steps()) {
+            if (info.step instanceof Step.WaitForTip) {
+                waitIndex = info.index;
+                break;
+            }
+        }
+        double slack = a.partnerTipSlackSec();
+        if (waitIndex < 0 || Double.isNaN(slack) || Double.isInfinite(slack) || slack >= BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC) {
+            return;
+        }
+        RouteAnalysis.StepInfo wait = a.step(waitIndex);
+        double giveUp = ((Step.WaitForTip) wait.step).giveUpSec();
+        String why = giveUp <= a.latestGiveUpSec(wait) ? "the WAIT_FOR_TIP gives up at " + RouteValidator.sec(giveUp)
+                : "the steps after the wait take " + RouteValidator.sec(a.totalSeconds() - wait.endSec()) + " and the route must be over by "
+                + RouteValidator.sec(RouteAnalysis.timeBudgetSec());
+        out.add(warn(waitIndex, Rule.TIP_ASSUMPTION, RouteValidator.describe(wait) + ": the partner's tip is assumed at "
+                + RouteValidator.sec(a.partnerTipSec()) + ", but the latest tip this route can still use is "
+                + RouteValidator.sec(a.latestPartnerTipSec()) + " (" + why + "): " + String.format(Locale.ROOT, "%.1f", slack)
+                + " s of slack, less than the " + RouteValidator.sec(BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC)
+                + " a slower partner needs. The route only works with a partner that is about as fast as assumed; give up later,"
+                + " or make the steps after the wait shorter"));
     }
 
     // ---- G409: do not stand where the tipped cell spills ----------------------------------------------------

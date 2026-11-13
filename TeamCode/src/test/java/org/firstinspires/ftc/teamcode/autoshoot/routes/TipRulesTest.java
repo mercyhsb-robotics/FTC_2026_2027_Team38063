@@ -100,8 +100,12 @@ public class TipRulesTest {
 
     @Test
     public void waitingForTheTipAndThenShootingTheRearCellIsClean() {
-        List<Issue> l = validate(partnerRear().waitForTip(30).shootUp(REAR_X, REAR_Y, 90, 4));
+        // give up at 20 s: the tip is assumed at 12 s (8 s of slack) and the volley after it needs about 6 s, so the
+        // route is over by about 18 s, well inside the 28 s budget
+        List<Issue> l = validate(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4));
         assertTrue("no findings expected, got " + l, l.isEmpty());
+        // the same with the cell named instead of "the UP cell"
+        assertTrue(validate(partnerRear().waitForTip(20).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4)).isEmpty());
     }
 
     @Test
@@ -126,7 +130,9 @@ public class TipRulesTest {
         assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
         assertTrue(issue.message, issue.message.contains("WAIT_FOR_TIP at step 2"));
-        assertTrue(issue.message, issue.message.contains("raise the timeout"));
+        assertTrue(issue.message, issue.message.contains("gives up at 3.0 s"));
+        assertTrue(issue.message, issue.message.contains("raise the give-up time"));
+        assertTrue("the robot would skip the volley", issue.message.contains("skip this volley"));
         // and the wait itself is reported: it gives up before the tip
         Issue wait = first(l, Rule.TIP_ASSUMPTION, Severity.WARN);
         assertEquals(1, wait.stepIndex);
@@ -135,11 +141,46 @@ public class TipRulesTest {
     }
 
     @Test
-    public void aShootThatStartsAfterTheTipTimeNeedsNoWaitStepBecauseTheCellIsUpByThen() {
-        // a plain 13 s WAIT is no WAIT_FOR_TIP, but the shoot starts after the assumed tip (12 s), so the cell is UP
+    public void aShootAtTheCellThatComesUpNeedsAWaitForTipEvenAfterTheAssumedTipTime() {
+        // A plain 13 s WAIT is no WAIT_FOR_TIP. The shoot starts after the assumed tip (12 s), so by the CLOCK the cell is
+        // up, but partner teams tip at different times and the robot must not guess: only its camera may let it shoot.
         List<Issue> l = validate(partnerRear().waitSeconds(TIP_SEC + 1.0).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4));
+        assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
+        assertEquals("the shoot is step 3", 2, issue.stepIndex);
+        assertTrue(issue.message, issue.message.contains("no WAIT_FOR_TIP before it"));
+        assertTrue(issue.message, issue.message.contains("camera"));
+        assertTrue(issue.message, issue.message.contains("never because a time has passed"));
+        assertFalse(RouteValidator.isRunnable(l));
+        // "the UP cell" is the same cell by then, so shootUp is just as wrong
+        List<Issue> up = validate(partnerRear().waitSeconds(TIP_SEC + 1.0).shootUp(REAR_X, REAR_Y, 90, 4));
+        assertEquals(up.toString(), 1, count(up, Rule.SHOOT_TARGET, Severity.ERROR));
+        // the same route with a WAIT_FOR_TIP instead of the plain wait is fine
+        assertEquals(0, count(validate(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.SHOOT_TARGET, Severity.ERROR));
+    }
+
+    @Test
+    public void aWaitForTipAfterTheShootDoesNotCountBecauseItComesTooLate() {
+        List<Issue> l = validate(partnerRear().shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4).waitForTip(20));
+        assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        assertEquals(1, first(l, Rule.SHOOT_TARGET, Severity.ERROR).stepIndex);
+    }
+
+    @Test
+    public void everyShootAtTheComingUpCellNeedsAWaitNotOnlyTheFirst() {
+        // one WAIT_FOR_TIP before the first volley covers the later volleys too: the cell stays up after it
+        List<Issue> l = validate(partnerRear().waitForTip(18).shootUp(REAR_X, REAR_Y, 90, 4)
+                .intakeFlower(48, 141.6, 48, 133, 90, 4).shootUp(REAR_X, REAR_Y, 90, 4));
         assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
-        assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.WARN));
+    }
+
+    @Test
+    public void aRouteThatShootsTheFirstTipItselfNeedsNoWait() {
+        // SELF: no partner tip, so no wait: the second volley goes into the cell that came up with OUR tip (the robot
+        // is camera-gated on the real field anyway, but the plan has no outside event to wait for)
+        List<Issue> l = validate(AutoRoute.builder("self").start(58, 9.2, -90).shootUp(4).shootUp(4));
+        assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        assertEquals(0, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
     }
 
     @Test
@@ -176,8 +217,90 @@ public class TipRulesTest {
         assertTrue(issue.message, issue.message.contains("WE shoot the first tip"));
         assertEquals("only a warning: the step does nothing", 0, count(self, Rule.TIP_ASSUMPTION, Severity.ERROR));
         // the same wait in a partner route is what it is for
-        List<Issue> partner = validate(AutoRoute.builder("partner").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(30));
+        List<Issue> partner = validate(AutoRoute.builder("partner").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(20));
         assertEquals(partner.toString(), 0, count(partner, Rule.TIP_ASSUMPTION, Severity.WARN));
+    }
+
+    // ---- the give-up time and the slack of a partner route ------------------------------------------------
+
+    @Test
+    public void aGiveUpTimeLaterThanTheRestOfTheRouteCanAffordIsAWarningThatNamesTheLatestOne() {
+        // the volley after the wait takes about 6 s, the route must be over by 28 s: waiting until 25 s could overrun
+        List<Issue> l = validate(partnerRear().waitForTip(25).shootUp(REAR_X, REAR_Y, 90, 4));
+        List<Issue> late = new ArrayList<Issue>();
+        for (Issue i : l) {
+            if (i.rule == Rule.TIP_ASSUMPTION && i.message.contains("run past the AUTO limit")) {
+                late.add(i);
+            }
+        }
+        assertEquals(l.toString(), 1, late.size());
+        assertEquals(Severity.WARN, late.get(0).severity);
+        assertEquals(1, late.get(0).stepIndex);
+        assertTrue(late.get(0).message, late.get(0).message.contains("gives up at 25.0 s"));
+        // and the message says which time would be fine: the same number the analysis reports
+        RouteAnalysis a = partnerRear().waitForTip(25).shootUp(REAR_X, REAR_Y, 90, 4).build().analyze();
+        double latest = a.latestGiveUpSec(a.step(1));
+        assertTrue(late.get(0).message, late.get(0).message.contains(String.format(java.util.Locale.ROOT, "%.1f s", latest)));
+        assertEquals("only a warning: the robot cuts the wait there by itself", 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        // giving up at exactly the latest time is fine
+        List<Issue> ok = validate(partnerRear().waitForTip(Math.floor(latest * 10) / 10).shootUp(REAR_X, REAR_Y, 90, 4));
+        assertEquals(ok.toString(), 0, count(ok, Rule.TIP_ASSUMPTION, Severity.WARN));
+    }
+
+    @Test
+    public void aPartnerRouteWithLittleSlackIsAWarning() {
+        // gives up at 13 s: the tip is assumed at 12 s, so a partner that is 1 s slower already breaks the route
+        List<Issue> l = validate(partnerRear().waitForTip(13).shootUp(REAR_X, REAR_Y, 90, 4));
+        assertEquals(l.toString(), 1, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
+        Issue issue = first(l, Rule.TIP_ASSUMPTION, Severity.WARN);
+        assertEquals("on the WAIT_FOR_TIP", 1, issue.stepIndex);
+        assertTrue(issue.message, issue.message.contains("latest tip this route can still use is 13.0 s"));
+        assertTrue(issue.message, issue.message.contains("1.0 s of slack"));
+        assertTrue(issue.message, issue.message.contains("the WAIT_FOR_TIP gives up at 13.0 s"));
+        assertEquals("a warning, not an error: it works with the assumed tip", 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        // zero slack: the wait gives up at the very moment of the assumed tip
+        List<Issue> zero = validate(partnerRear().waitForTip(TIP_SEC).shootUp(REAR_X, REAR_Y, 90, 4));
+        assertEquals(zero.toString(), 1, count(zero, Rule.TIP_ASSUMPTION, Severity.WARN));
+        assertTrue(first(zero, Rule.TIP_ASSUMPTION, Severity.WARN).message.contains("0.0 s of slack"));
+    }
+
+    @Test
+    public void theSlackWarningStartsExactlyBelowTheMinimum() {
+        double min = BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC;
+        // enough slack: give up exactly `min` seconds after the assumed tip
+        assertEquals(0, count(validate(partnerRear().waitForTip(TIP_SEC + min).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
+                Severity.WARN));
+        // a quarter of a second less is too little
+        assertEquals(1, count(validate(partnerRear().waitForTip(TIP_SEC + min - 0.25).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
+                Severity.WARN));
+    }
+
+    @Test
+    public void aSlowRouteAfterTheWaitUsesUpTheSlackBecauseTheAutoLimitComesFirst() {
+        // After the tip the route fires 4, fetches 4 from the rear FLOWER and fires again: about 20 s of work. The wait may
+        // give up as late as 20 s, but the work after it only fits if the tip comes by about 8 s, which the assumed 12 s
+        // misses: no slack at all, whatever the give-up time says.
+        AutoRoute.Builder slow = partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)
+                .intakeFlower(48, 141.6, 48, 133, 90, 4).shootUp(REAR_X, REAR_Y, 90, 4);
+        List<Issue> l = validate(slow);
+        RouteAnalysis a = slow.build().analyze();
+        assertTrue("the budget, not the give-up time, is the limit: " + a.latestPartnerTipSec(), a.latestPartnerTipSec() < 20.0);
+        boolean sawSlack = false;
+        for (Issue i : l) {
+            if (i.rule == Rule.TIP_ASSUMPTION && i.message.contains("of slack")) {
+                sawSlack = true;
+                assertTrue(i.message, i.message.contains("the steps after the wait take"));
+            }
+        }
+        assertTrue(l.toString(), sawSlack);
+    }
+
+    @Test
+    public void aPartnerRouteThatDoesNotDependOnTheTipHasNothingToWarnAbout() {
+        // it just walks off the rear wall and never shoots at the cell that comes up: any partner time is fine
+        List<Issue> l = validate(partnerRear().driveConstant(61.5, 120, 90));
+        assertEquals(l.toString(), 0, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
+        assertEquals(0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
     }
 
     @Test
@@ -214,7 +337,7 @@ public class TipRulesTest {
         // y = 28: the footprint reaches y 36.9, nine inches short of the zone; and the rear robot is on the other side
         assertEquals(0, count(validate(AutoRoute.builder("clear").start(58, 9.2, -90).partnerTipsFirst()
                 .driveConstant(58, 28, -90).waitSeconds(15)), Rule.SPILL_G409, Severity.ERROR));
-        assertEquals(0, count(validate(partnerRear().waitForTip(30).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.SPILL_G409,
+        assertEquals(0, count(validate(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.SPILL_G409,
                 Severity.ERROR));
     }
 

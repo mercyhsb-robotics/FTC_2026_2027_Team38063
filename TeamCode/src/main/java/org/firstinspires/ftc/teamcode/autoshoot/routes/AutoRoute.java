@@ -382,12 +382,17 @@ public final class AutoRoute {
         }
 
         /**
-         * Stand still until the HIVE cell the next volley is aimed at is UP, for at most {@code timeoutSeconds}. Use it
-         * in a route that assumes {@link #partnerTipsFirst()}: that cell only comes up after the partner's tip, and
-         * launching into a cell that faces down is a G417 violation.
+         * Stand still until the camera has seen the HIVE tip, and give up at {@code giveUpSec} on the route clock (seconds
+         * since the start of AUTO: {@code waitForTip(22.0)} means "stop waiting at 22 s"). Put it before the first volley at
+         * the cell that comes up with the partner's tip, in a route that assumes {@link #partnerTipsFirst()}: that cell only
+         * comes up after the tip, launching into a cell that faces down is a G417 violation, and a SHOOT at that cell
+         * without a WAIT_FOR_TIP before it is an ERROR in the checker, whatever the clock says (partner teams tip at
+         * different times, so the robot shoots after it SEES the tip, never at a time). If the deadline passes first, the
+         * robot skips the volleys that need the tip and goes on with LEAVE and PARK. Pick the latest time that still lets
+         * the rest of the route finish: the checker tells you ({@link RouteAnalysis#latestGiveUpSec}).
          */
-        public Builder waitForTip(double timeoutSeconds) {
-            steps.add(new Step.WaitForTip(timeoutSeconds, ""));
+        public Builder waitForTip(double giveUpSec) {
+            steps.add(new Step.WaitForTip(giveUpSec, ""));
             return this;
         }
 

@@ -69,8 +69,9 @@ public final class RouteAnalysis {
         /** SHOOT: POLLEN of this route that are already in the targeted cell when the volley starts (0 for a cell that is DOWN). */
         public final int pollenInCellBefore;
         /**
-         * WAIT_FOR_TIP: the route time in seconds of the partner's tip that the step waits for; NaN when there is no
-         * tip to wait for (a route that assumes SELF, or the HIVE has tipped already). Else NaN.
+         * WAIT_FOR_TIP: the route time in seconds at which the partner's tip is ASSUMED to happen (it is only a planning
+         * guess: the robot goes on when its camera sees the tip); NaN when there is no tip to wait for (a route that
+         * assumes SELF, or the HIVE has tipped already). Else NaN.
          */
         public final double tipWaitSec;
 
@@ -190,13 +191,15 @@ public final class RouteAnalysis {
     private final int tips;
     private final List<TipEvent> tipEvents;
     private final boolean partnerTipVoided;
+    private final double partnerTipSec;
     private final boolean leave;
     private final boolean park;
     private final double parkOverlapIn;
 
     private RouteAnalysis(AutoRoute route, AllianceField field, TimingModel timing, List<StepInfo> infos, double totalSeconds,
-                          int pollenGained, int pollenShot, int tips, Hive hive) {
+                          int pollenGained, int pollenShot, int tips, Hive hive, double partnerTipSec) {
         this.route = route;
+        this.partnerTipSec = partnerTipSec;
         this.field = field;
         this.timing = timing;
         this.infos = Collections.unmodifiableList(infos);
@@ -224,6 +227,19 @@ public final class RouteAnalysis {
     }
 
     public static RouteAnalysis of(AutoRoute route, FieldModel model, TimingModel timing) {
+        return of(route, model, timing, route.partnerTipSec());
+    }
+
+    /**
+     * A "what if": the route played through with the partner's tip at {@code partnerTipSec} instead of the assumed
+     * {@code Auto.PARTNER_FIRST_TIP_DONE_SEC} (NaN: nobody tips the HIVE by itself). The numbers for "how late may the
+     * partner be?" ({@link #latestPartnerTipSec()}) are checked against this in the tests.
+     */
+    public static RouteAnalysis ofWithPartnerTipAt(AutoRoute route, double partnerTipSec) {
+        return of(route, new FieldModel(), new TimingModel(), partnerTipSec);
+    }
+
+    private static RouteAnalysis of(AutoRoute route, FieldModel model, TimingModel timing, double partnerTipSec) {
         Alliance alliance = route.alliance();
         AllianceField field = new AllianceField(model, alliance);
         List<StepInfo> out = new ArrayList<StepInfo>();
@@ -232,7 +248,7 @@ public final class RouteAnalysis {
         double t = 0.0;
         int held = BioBuzzConstants.Auto.PRELOAD_POLLEN;
         // The HIVE: which cell is UP, what it holds, and the partner's tip if the route assumes one.
-        Hive hive = new Hive(field.initialUpSide(), route.partnerTipSec());
+        Hive hive = new Hive(field.initialUpSide(), partnerTipSec);
         int gained = 0;
         int shot = 0;
         int tips = 0;
@@ -373,7 +389,7 @@ public final class RouteAnalysis {
                     // Wait for the partner's tip if one is still to come; with nothing to wait for the cell is UP
                     // already and the wait takes no time.
                     tipWaitSec = hive.partnerPending ? hive.partnerSec : Double.NaN;
-                    duration = timing.waitForTipSeconds(t, tipWaitSec, ((Step.WaitForTip) step).timeoutSeconds());
+                    duration = timing.waitForTipSeconds(t, tipWaitSec, ((Step.WaitForTip) step).giveUpSec());
                     break;
                 }
                 case PARK: {
@@ -395,7 +411,7 @@ public final class RouteAnalysis {
         }
         // A partner tip that is assumed after the route has ended still happens (the robot stands where it ended).
         hive.advanceTo(Double.POSITIVE_INFINITY);
-        return new RouteAnalysis(route, field, timing, out, t, gained, shot, tips, hive);
+        return new RouteAnalysis(route, field, timing, out, t, gained, shot, tips, hive, partnerTipSec);
     }
 
     private static DrivePath approachOrNull(Pose2 from, Pose2 to) {
@@ -527,12 +543,84 @@ public final class RouteAnalysis {
 
     /** True if the route assumes the alliance partner shoots the first tip ({@link FirstTip#PARTNER}). */
     public boolean partnerTipAssumed() {
-        return route.firstTip() == FirstTip.PARTNER;
+        return !Double.isNaN(partnerTipSec);
     }
 
     /** Route time in seconds at which the partner's tip is assumed to be done; NaN if the route assumes SELF. */
     public double partnerTipSec() {
-        return route.partnerTipSec();
+        return partnerTipSec;
+    }
+
+    /** The last moment, on the route clock, by which the route must be over: the AUTO limit minus the safety margin. */
+    public static double timeBudgetSec() {
+        return BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC;
+    }
+
+    /**
+     * WAIT_FOR_TIP: the latest route time, in seconds, at which the robot may stop waiting and still do the rest of
+     * the route inside {@link #timeBudgetSec()}: the budget minus what the steps after the wait take. A give-up time
+     * later than this could make the route overrun the AUTO limit. NaN for any other step.
+     */
+    public double latestGiveUpSec(StepInfo wait) {
+        if (!(wait.step instanceof Step.WaitForTip)) {
+            return Double.NaN;
+        }
+        return timeBudgetSec() - (totalSeconds - wait.endSec());
+    }
+
+    /**
+     * The latest time, in seconds on the route clock, at which the partner's tip may happen so that this route still
+     * does everything it plans: the robot has not given up waiting yet, and the whole route (LEAVE and PARK after the
+     * volleys included) still ends inside {@link #timeBudgetSec()}. It is how much a slow partner can be tolerated.
+     *
+     * <p>Why a formula and not a search: the steps after a WAIT_FOR_TIP take the same time whenever the tip comes, and
+     * the wait ends at the tip (or at its give-up time), so a tip at T ends the route at {@code max(wait start, T) +
+     * the time of the rest}. That is within the budget until T = budget - rest, and the robot gives up at the
+     * deadline of the wait. The smaller of the two is the answer.
+     *
+     * <p>{@code +infinity}: the route does not depend on the partner's tip at all (no volley at the cell that comes up,
+     * no wait for it), or our own volley tipped the HIVE first. NaN: the route does not assume a partner tip. A route
+     * with a volley at the cell that comes up but no WAIT_FOR_TIP before it (that is an ERROR in the checker) can only
+     * cope with a tip before the volley starts, so the answer is that start time.
+     */
+    public double latestPartnerTipSec() {
+        if (!partnerTipAssumed()) {
+            return Double.NaN;
+        }
+        TipEvent partner = null;
+        for (TipEvent e : tipEvents) {
+            if (e.byPartner) {
+                partner = e;
+            }
+        }
+        if (partner == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+        StepInfo wait = null;
+        StepInfo dependent = null;
+        for (StepInfo info : infos) {
+            if (wait == null && info.step instanceof Step.WaitForTip) {
+                wait = info;
+            }
+            if (dependent == null && info.step instanceof Step.Shoot && info.targetSide == partner.newUpSide) {
+                dependent = info;
+            }
+        }
+        if (wait == null) {
+            return dependent == null ? Double.POSITIVE_INFINITY : dependent.launchSec;
+        }
+        double giveUp = ((Step.WaitForTip) wait.step).giveUpSec();
+        return Math.min(giveUp, latestGiveUpSec(wait));
+    }
+
+    /**
+     * Seconds of slack the route has: the latest partner tip that still works minus the assumed one. Large is robust
+     * (a slow partner is fine), small means the route only works with a quick partner, below zero means it does not
+     * even work with the assumed time. {@code +infinity} if the route does not depend on the partner's tip; NaN for a
+     * route that does not assume one.
+     */
+    public double partnerTipSlackSec() {
+        return latestPartnerTipSec() - partnerTipSec;
     }
 
     /**

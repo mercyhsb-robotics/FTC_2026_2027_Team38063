@@ -275,12 +275,132 @@ public class RouteAnalysisTest {
     }
 
     @Test
-    public void waitForTipGivesUpAtItsTimeout() {
+    public void waitForTipGivesUpAtItsDeadlineOnTheRouteClock() {
         RouteAnalysis a = AutoRoute.builder("wft").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(2.0).build().analyze();
         RouteAnalysis.StepInfo wait = a.step(1);
         assertEquals(2.0, wait.durationSec, EPS);
         assertEquals("the tip is still to come when the wait gives up", Side.AUDIENCE, wait.upSideAfter);
         assertEquals("it still knows when the tip is due", PARTNER_SEC, wait.tipWaitSec, EPS);
+        // the number is a time ON THE CLOCK, not a length: after 3 s of other waiting, "give up at 5" is only 2 s more
+        RouteAnalysis later = AutoRoute.builder("wft2").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(3.0).waitForTip(5.0)
+                .build().analyze();
+        assertEquals(3.0, later.step(2).startSec, EPS);
+        assertEquals(2.0, later.step(2).durationSec, EPS);
+        assertEquals(5.0, later.step(2).endSec(), EPS);
+        // a deadline that has passed already means no waiting at all
+        RouteAnalysis passed = AutoRoute.builder("wft3").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(8.0).waitForTip(5.0)
+                .build().analyze();
+        assertEquals(0.0, passed.step(2).durationSec, EPS);
+    }
+
+    // ---- how late may the partner be? ---------------------------------------------------------------------------
+
+    private static final double BUDGET = BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC;
+
+    /** Wait for the tip (give up at the given time) and fire 4 POLLEN from a pose beside the start: about 6 s of work. */
+    private static AutoRoute.Builder waitThenFire(double giveUpSec) {
+        return AutoRoute.builder("wf").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(giveUpSec).shootUp(62.0, 132.5, 90, 4);
+    }
+
+    @Test
+    public void theBudgetIsTheAutoLimitMinusTheSafetyMargin() {
+        assertEquals(28.0, RouteAnalysis.timeBudgetSec(), EPS);
+    }
+
+    @Test
+    public void theLatestGiveUpTimeIsTheBudgetMinusWhatTheRestOfTheRouteTakes() {
+        RouteAnalysis a = waitThenFire(20.0).build().analyze();
+        RouteAnalysis.StepInfo wait = a.step(1);
+        double rest = a.totalSeconds() - wait.endSec();
+        assertTrue("the volley takes a few seconds: " + rest, rest > 5.0 && rest < 8.0);
+        assertEquals(BUDGET - rest, a.latestGiveUpSec(wait), EPS);
+        assertTrue("only a WAIT_FOR_TIP has one", Double.isNaN(a.latestGiveUpSec(a.step(2))));
+        // a longer route after the wait leaves less time to wait
+        RouteAnalysis longer = waitThenFire(20.0).waitSeconds(4.0).build().analyze();
+        assertEquals(a.latestGiveUpSec(wait) - 4.0, longer.latestGiveUpSec(longer.step(1)), EPS);
+    }
+
+    @Test
+    public void theLatestPartnerTipIsTheGiveUpTimeWhenThatComesFirst() {
+        RouteAnalysis a = waitThenFire(18.0).build().analyze();
+        assertEquals(18.0, a.latestPartnerTipSec(), EPS);
+        assertEquals("slack = latest minus assumed", 18.0 - PARTNER_SEC, a.partnerTipSlackSec(), EPS);
+        assertEquals(PARTNER_SEC, a.partnerTipSec(), EPS);
+    }
+
+    @Test
+    public void theLatestPartnerTipIsTheTimeBudgetWhenTheGiveUpTimeIsLater() {
+        // giving up at 28 s is later than the rest of the route allows: the budget is the limit
+        RouteAnalysis a = waitThenFire(28.0).build().analyze();
+        double expected = a.latestGiveUpSec(a.step(1));
+        assertTrue(expected < 28.0);
+        assertEquals(expected, a.latestPartnerTipSec(), EPS);
+        assertEquals(expected - PARTNER_SEC, a.partnerTipSlackSec(), EPS);
+    }
+
+    @Test
+    public void theLatestPartnerTipIsReallyTheLastOneForWhichTheWholeRouteStillWorks() {
+        // Check the formula against the simulation itself: put the partner's tip at the latest time, then 0.3 s later.
+        for (double giveUp : new double[] {15.0, 18.0, 28.0}) {
+            AutoRoute route = waitThenFire(giveUp).build();
+            double latest = route.analyze().latestPartnerTipSec();
+            // at the latest time: the wait ends at the tip, the volley follows it and the route ends inside the budget
+            RouteAnalysis atLatest = RouteAnalysis.ofWithPartnerTipAt(route, latest);
+            assertTrue("giveUp " + giveUp, atLatest.totalSeconds() <= BUDGET + 1e-6);
+            RouteAnalysis.StepInfo shoot = atLatest.step(2);
+            assertTrue(shoot.targetWasUp);
+            assertTrue("the volley starts at or after the tip", shoot.launchSec >= latest - 1e-6);
+            // 0.3 s later it does not: the robot gives up waiting (the volley would go into a cell that faces down), or the route
+            // runs past the budget
+            RouteAnalysis tooLate = RouteAnalysis.ofWithPartnerTipAt(route, latest + 0.3);
+            boolean gaveUp = tooLate.step(1).endSec() < latest + 0.3 - 1e-9;
+            boolean overran = tooLate.totalSeconds() > BUDGET + 1e-6;
+            assertTrue("giveUp " + giveUp + ": " + tooLate.totalSeconds(), gaveUp || overran);
+        }
+    }
+
+    @Test
+    public void aTipEarlierThanAssumedNeverCostsTimeBeyondTheWait() {
+        // the earliest possible partner tip (before the route starts waiting) just removes the wait
+        AutoRoute route = waitThenFire(20.0).build();
+        RouteAnalysis early = RouteAnalysis.ofWithPartnerTipAt(route, 0.5);
+        RouteAnalysis assumed = route.analyze();
+        assertTrue(early.totalSeconds() < assumed.totalSeconds());
+        assertEquals(0.5, early.step(1).endSec(), EPS);
+        assertEquals("the volley itself takes as long as before", assumed.step(2).durationSec, early.step(2).durationSec, EPS);
+    }
+
+    @Test
+    public void aRouteThatDoesNotDependOnThePartnersTipHasNoLatestTime() {
+        // it never shoots at the cell that comes up and never waits for it: any partner time is fine
+        RouteAnalysis walk = AutoRoute.builder("walk").start(61.5, 135.1, 90).partnerTipsFirst().driveConstant(61.5, 120, 90).build()
+                .analyze();
+        assertEquals(Double.POSITIVE_INFINITY, walk.latestPartnerTipSec(), 0.0);
+        assertEquals(Double.POSITIVE_INFINITY, walk.partnerTipSlackSec(), 0.0);
+        // our own tip came first: the partner is not needed any more
+        RouteAnalysis own = AutoRoute.builder("own").start(58, 9.2, -90).partnerTipsFirst().shootUp(4).waitSeconds(5).build().analyze();
+        assertTrue(own.partnerTipVoided());
+        assertEquals(Double.POSITIVE_INFINITY, own.latestPartnerTipSec(), 0.0);
+        // a route that shoots the first tip itself has no partner tip to be late
+        RouteAnalysis self = AutoRoute.builder("self").start(58, 9.2, -90).shootUp(4).build().analyze();
+        assertTrue(Double.isNaN(self.latestPartnerTipSec()));
+        assertTrue(Double.isNaN(self.partnerTipSlackSec()));
+    }
+
+    @Test
+    public void withoutAWaitTheLatestTipIsTheMomentTheVolleyStarts() {
+        // (the checker calls such a route an ERROR; the number is still defined: the tip must be done when the volley starts)
+        RouteAnalysis a = AutoRoute.builder("nowait").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(13.0)
+                .shootUp(62.0, 132.5, 90, 4).build().analyze();
+        assertEquals(a.step(2).launchSec, a.latestPartnerTipSec(), EPS);
+    }
+
+    @Test
+    public void theLatestTipOfARouteWithALongTailIsBelowTheAssumedTimeAndTheSlackIsNegative() {
+        // 4, fetch 4 from the rear FLOWER, 4 again: about 18 s of work after the wait, the assumed tip at 12 s is too late
+        RouteAnalysis a = waitThenFire(20.0).intakeFlower(48, 141.6, 48, 133, 90, 4).shootUp(62.0, 132.5, 90, 4).build().analyze();
+        assertTrue(a.latestPartnerTipSec() < PARTNER_SEC);
+        assertTrue(a.partnerTipSlackSec() < 0.0);
     }
 
     @Test

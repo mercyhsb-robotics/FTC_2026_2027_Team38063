@@ -128,14 +128,16 @@ public final class TimingModel {
     }
 
     /**
-     * How long a WAIT_FOR_TIP lasts when it starts at {@code nowSec} and the tip it waits for happens at
-     * {@code tipSec}: until the tip (0 if it has already happened), but never longer than the timeout. If there is no
-     * tip to wait for ({@code tipSec} is NaN) the cell is already UP and the robot does not wait at all.
+     * How long a WAIT_FOR_TIP lasts when it starts at {@code nowSec}, the tip it waits for happens at {@code tipSec}
+     * and the robot gives up at {@code giveUpSec} (all three on the route clock): until the tip (0 if it has happened
+     * already), but never past the give-up time. If there is no tip to wait for ({@code tipSec} is NaN) the cell is UP
+     * already and the robot does not wait at all.
      */
-    public double waitForTipSeconds(double nowSec, double tipSec, double timeoutSec) {
+    public double waitForTipSeconds(double nowSec, double tipSec, double giveUpSec) {
         if (Double.isNaN(tipSec)) {
             return 0.0;
         }
-        return Math.min(timeoutSec, Math.max(0.0, tipSec - nowSec));
+        double endSec = Math.min(giveUpSec, Math.max(nowSec, tipSec));
+        return Math.max(0.0, endSec - nowSec);
     }
 }

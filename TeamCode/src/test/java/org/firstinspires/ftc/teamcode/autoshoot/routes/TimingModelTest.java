@@ -133,11 +133,13 @@ public class TimingModelTest {
     }
 
     @Test
-    public void aWaitForTipLastsUntilTheTipButNeverBeyondItsTimeout() {
+    public void aWaitForTipLastsUntilTheTipButNeverBeyondItsGiveUpTimeOnTheRouteClock() {
         // the tip is at 12 s: starting at 3 s the wait is 9 s...
         assertEquals(9.0, model.waitForTipSeconds(3.0, 12.0, 30.0), EPS);
-        // ...a timeout shorter than that caps it...
-        assertEquals(4.0, model.waitForTipSeconds(3.0, 12.0, 4.0), EPS);
+        // ...a give-up time of 7 s (a point on the route clock, not a length) ends it after 4 s...
+        assertEquals(4.0, model.waitForTipSeconds(3.0, 12.0, 7.0), EPS);
+        // ...a give-up time that has passed already means no waiting at all, never a negative time...
+        assertEquals(0.0, model.waitForTipSeconds(15.0, 20.0, 10.0), EPS);
         // ...a tip that is already over costs nothing...
         assertEquals(0.0, model.waitForTipSeconds(15.0, 12.0, 30.0), EPS);
         assertEquals(0.0, model.waitForTipSeconds(12.0, 12.0, 30.0), EPS);
