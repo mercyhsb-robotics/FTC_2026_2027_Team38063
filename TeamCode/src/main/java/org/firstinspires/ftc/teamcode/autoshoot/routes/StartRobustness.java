@@ -248,6 +248,25 @@ public final class StartRobustness {
         return new Report(start, errorsOf(validator, home), RouteAnalysis.of(home, model, timing).totalSeconds(), cases);
     }
 
+    /**
+     * The quick yes or no of {@link #check}: True if the route is valid from the start and from every way the robot can be set down off it. It stops at the first
+     * ERROR it meets, so it is much faster than {@link #check} for a start that fails; the search for the best start asks it for every candidate. Use {@link #check}
+     * for the report.
+     */
+    public static boolean passes(RouteTemplate template, Pose2 start, Alliance alliance, TimingModel timing, double marginIn, double marginDeg) {
+        FieldModel model = new FieldModel();
+        RouteValidator validator = new RouteValidator(model, timing);
+        if (validator.firstError(template.build(start)) != null) {
+            return false;
+        }
+        for (Move move : moves(new AllianceField(model, alliance), start, marginIn, marginDeg)) {
+            if (validator.firstError(template.build(move.start)) != null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static List<Issue> errorsOf(RouteValidator validator, AutoRoute route) {
         List<Issue> out = new ArrayList<Issue>();
         for (Issue i : validator.validate(route)) {

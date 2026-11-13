@@ -162,6 +162,7 @@ public final class ConstantsCheck {
         checkTipStop(r, BioBuzzConstants.Auto.BALL_FLIGHT_SEC, BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC, BioBuzzConstants.Auto.TIME_PER_SHOT_SEC);
         checkStartSearch(r, BioBuzzConstants.Auto.START_SEARCH_STEP_IN, BioBuzzConstants.Auto.START_SEARCH_HEADING_STEP_DEG);
         checkStartPlacementMargin(r, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_IN, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_DEG);
+        checkStartSearchLimits(r, BioBuzzConstants.Auto.START_SEARCH_MAX_VALIDATIONS, BioBuzzConstants.Auto.START_SEARCH_TIE_SEC);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -361,6 +362,19 @@ public final class ConstantsCheck {
         if (marginIn > 3.0 || marginDeg > 15.0) {
             r.warnings.add("Auto.START_PLACEMENT_MARGIN_IN (" + marginIn + " in) or START_PLACEMENT_MARGIN_DEG (" + marginDeg + " degrees) is so large that almost no"
                     + " start passes the placement check; a person places a robot to about 1 in and 3 degrees.");
+        }
+    }
+
+    /**
+     * The limits of the search for the best start: it checks at least one start with the full validator ({@code maxValidations} is 1 or more), and two starts
+     * whose times differ by less than {@code tieSec} count as equal (0 or more; 0 means only exactly equal times tie).
+     */
+    static void checkStartSearchLimits(Report r, int maxValidations, double tieSec) {
+        if (maxValidations < 1) {
+            r.errors.add("Auto.START_SEARCH_MAX_VALIDATIONS (" + maxValidations + ") must be at least 1: it is how many starts the search checks with the full validator.");
+        }
+        if (!(tieSec >= 0.0)) {
+            r.errors.add("Auto.START_SEARCH_TIE_SEC (" + tieSec + " s) cannot be negative: it is how close two route times must be for the search to call them a tie.");
         }
     }
 

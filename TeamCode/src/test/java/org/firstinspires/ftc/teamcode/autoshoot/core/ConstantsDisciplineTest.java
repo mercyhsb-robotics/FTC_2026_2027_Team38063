@@ -158,7 +158,7 @@ public class ConstantsDisciplineTest {
      * tip rules, the geometry of the field and of the FLOWER wiggle) is logic and is scanned.
      */
     private static final Set<String> ROUTE_DATA_FILES = new HashSet<String>(Arrays.asList(
-            "RouteCatalog.java", "SelfTipRoutes.java", "PartnerTipRoutes.java"));
+            "RouteCatalog.java", "SelfTipRoutes.java", "PartnerTipRoutes.java", "StartShortcuts.java"));
 
     /**
      * Files that make decisions or command hardware: no tunable number may be written into them. These are every .java
@@ -192,7 +192,9 @@ public class ConstantsDisciplineTest {
      * Expected: the validator, the simulation, the timing model, the tip rules, the sweep and the field geometry of autoshoot/routes are in it
      *     (and so is the geometry of the FLOWER wiggle that was always there); the route data files are not.
      * Why: HARD RULE 1 says every package that holds logic is scanned. Only 6 of the 27 files of autoshoot/routes were, so a number hidden in
-     *     RouteValidator (a margin, a threshold) would have passed every test. This fails if the scan is narrowed to a list again.
+     *     RouteValidator (a margin, a threshold) would have passed every test. This fails if the scan is narrowed to a list again. The start-pose
+     *     search (StartRules, StartPoseSearch, StartRobustness, Wall, RouteTemplate) is logic and scanned; StartShortcuts is route data (the legs of
+     *     the routes it tries are poses an author types in) and is not.
      */
     @Test
     public void everyLogicFileOfTheRoutesPackageIsScannedAndOnlyTheRouteDataIsNot() {
@@ -204,7 +206,8 @@ public class ConstantsDisciplineTest {
         }
         for (String logic : new String[]{"RouteValidator.java", "RouteAnalysis.java", "TimingModel.java", "TipRules.java", "TipModel.java", "Sweep.java",
                 "AllianceField.java", "DrivePath.java", "AutoRoute.java", "Step.java", "FlowerWiggle.java", "FlowerWiggleSequence.java", "FlowerPress.java",
-                "WheelChoice.java", "PressRules.java", "LegSweeps.java"}) {
+                "WheelChoice.java", "PressRules.java", "LegSweeps.java", "StartRules.java", "StartPoseSearch.java", "StartRobustness.java", "Wall.java",
+                "RouteTemplate.java"}) {
             assertTrue(logic + " must be scanned; scanned: " + scanned, scanned.contains(logic));
         }
         for (String data : ROUTE_DATA_FILES) {

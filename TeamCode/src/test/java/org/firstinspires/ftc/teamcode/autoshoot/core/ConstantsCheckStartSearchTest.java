@@ -55,4 +55,29 @@ public class ConstantsCheckStartSearchTest {
         assertTrue(r.warnings.get(0), r.warnings.get(0).contains("START_SEARCH_HEADING_STEP_DEG"));
         assertFalse("the whole INIT check of the shipped constants stays clean", ConstantsCheck.run().warnings.toString().contains("START_SEARCH"));
     }
+
+    private static ConstantsCheck.Report limits(int maxValidations, double tieSec) {
+        ConstantsCheck.Report r = new ConstantsCheck.Report();
+        ConstantsCheck.checkStartSearchLimits(r, maxValidations, tieSec);
+        return r;
+    }
+
+    /** Situation: the shipped limits of the search for the best start, and 1 check with a tie of exactly 0. Expected: accepted. */
+    @Test
+    public void theShippedLimitsAreAccepted() {
+        ConstantsCheck.Report shipped = limits(BioBuzzConstants.Auto.START_SEARCH_MAX_VALIDATIONS, BioBuzzConstants.Auto.START_SEARCH_TIE_SEC);
+        assertTrue(shipped.errors.toString(), shipped.errors.isEmpty());
+        assertTrue(limits(1, 0.0).errors.isEmpty());
+    }
+
+    /** Situation: 0 checks allowed, and a negative tie. Expected: an ERROR that names the constant (the search could never accept a start, or would sort by nonsense). */
+    @Test
+    public void limitsThatBreakTheSearchAreErrors() {
+        ConstantsCheck.Report none = limits(0, 0.001);
+        assertEquals(none.errors.toString(), 1, none.errors.size());
+        assertTrue(none.errors.get(0), none.errors.get(0).contains("START_SEARCH_MAX_VALIDATIONS"));
+        ConstantsCheck.Report negative = limits(10, -0.5);
+        assertEquals(negative.errors.toString(), 1, negative.errors.size());
+        assertTrue(negative.errors.get(0), negative.errors.get(0).contains("START_SEARCH_TIE_SEC"));
+    }
 }

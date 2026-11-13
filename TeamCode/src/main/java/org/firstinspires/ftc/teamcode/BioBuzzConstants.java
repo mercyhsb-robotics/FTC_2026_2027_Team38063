@@ -522,6 +522,17 @@ public final class BioBuzzConstants {
          */
         public static final double START_PLACEMENT_MARGIN_DEG = 3.0;
         /**
+         * TUNE: the search for the best start looks at the legal starts from the fastest route to the slowest and checks each with the full route validator and the
+         * placement margin (which costs a few milliseconds each), stopping at the first that passes. It gives up after this many such checks, so a route that no start
+         * can make valid (for example one that is too long for the 30 s whatever the start) cannot make the search run for minutes.
+         */
+        public static final int START_SEARCH_MAX_VALIDATIONS = 3000;
+        /**
+         * TUNE: two starts whose routes differ by less than this many seconds count as equally fast, and the search then prefers the one that is easier to place
+         * (a robot straight at a wall before a robot turned at an odd angle). The estimate is a plan, good to much more than a millisecond, so this only breaks ties.
+         */
+        public static final double START_SEARCH_TIE_SEC = 0.001;
+        /**
          * TUNE: how far (inches) any part of the robot may overlap a field wall before the validator reports it.
          * Touching a wall is legal; pushing into it is not. This tiny value only absorbs rounding in the numbers a
          * route is written with, so it is NOT permission to clip a wall. It is the same for every step: the start,
