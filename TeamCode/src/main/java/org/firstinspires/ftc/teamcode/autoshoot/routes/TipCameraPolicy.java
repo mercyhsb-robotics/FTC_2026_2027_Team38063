@@ -78,7 +78,7 @@ public final class TipCameraPolicy {
     }
 
     /** What is wrong with the camera, in plain words for a first-year student. */
-    static String reason(VisionFrame.Status camera) {
+    public static String reason(VisionFrame.Status camera) {
         switch (camera) {
             case NOT_CONNECTED:
                 return "the Control Hub cannot reach the Limelight (check its cable and power, and the name in the robot configuration)";
