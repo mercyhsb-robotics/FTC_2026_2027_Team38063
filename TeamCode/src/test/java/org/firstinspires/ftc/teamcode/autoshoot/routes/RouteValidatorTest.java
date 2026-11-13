@@ -301,13 +301,13 @@ public class RouteValidatorTest {
 
     @Test
     public void firingPollenTheRobotDoesNotHoldIsAnError() {
-        // (the 4 pre-loads tip the HIVE, so the second volley goes to the other cell: that move has findings of its own)
-        List<Issue> none = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4).shootUp(1));
+        // (the REAR cell faces down at the start, so these volleys have findings of their own: they are not what this test judges)
+        List<Issue> none = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootSide(Side.REAR, 4).shootSide(Side.REAR, 1));
         assertEquals(1, count(none, Rule.CAPACITY_G407, Severity.ERROR));
         assertEquals(2, first(none, Rule.CAPACITY_G407).stepIndex);
         assertTrue(first(none, Rule.CAPACITY_G407).message.contains("holds none"));
 
-        // (5 POLLEN into a cell that tips on the 4th also fires one past the tip: that is its own G417 finding)
+        // (5 POLLEN are more than the 4 the robot holds, whatever the cell does)
         List<Issue> tooMany = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(5));
         assertEquals(1, count(tooMany, Rule.CAPACITY_G407, Severity.ERROR));
         assertTrue(first(tooMany, Rule.CAPACITY_G407).message.contains("only 4"));
@@ -315,12 +315,12 @@ public class RouteValidatorTest {
 
     @Test
     public void aFullCycleStaysWithinCapacity() {
-        // shoot 4, take 4 from the GARDEN, shoot 4: never more than 4 held
+        // shoot 4 (the HIVE tips on the 3rd and the 4th stays in the robot), take 3 from the GARDEN, shoot 4: never more than 4 held
         AutoRoute.Builder b = AutoRoute.builder("x").start(58, FRONT, -90)
                 .shootUp(4)
                 .driveConstant(9, 18, -90)
                 .driveConstant(9, FRONT + 0.8, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4)
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 3)
                 .shootUp(4);
         assertEquals(0, count(validate(b), Rule.CAPACITY_G407, Severity.ERROR));
     }

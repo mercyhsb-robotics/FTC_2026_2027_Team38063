@@ -45,6 +45,8 @@ public final class Issue {
         SPILL_G409("G409", "stay clear of the cell that tips"),
         /** Design rule: a route that says who shoots the first tip must be consistent with it. */
         TIP_ASSUMPTION("-", "first-tip assumption"),
+        /** FIRST's calibration and Q&A QA46: a HIVE drifts, so a route plans one POLLEN more than the minimum that tips a cell. */
+        TIP_MARGIN("QA46", "plan a spare POLLEN for a HIVE that drifts"),
         /** Design rule: an explicit pose should be where the route already is. */
         IMPLICIT_MOVE("-", "pose reached by an unplanned move");
 

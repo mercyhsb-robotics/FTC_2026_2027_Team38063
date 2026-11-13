@@ -71,11 +71,12 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       from where the robot is gets a WARN: add a DRIVE so the path is planned and checked.</li>
  *   <li><b>HIVE tips, G417 and G409.</b> A SHOOT must aim at a cell that faces UP when the POLLEN leave (a WARN for
  *       a cell that is DOWN; in a route that assumes the partner shoots the first tip, a SHOOT at the cell that comes
- *       up with the partner's tip is an ERROR unless a WAIT_FOR_TIP before it lasts until that tip, because the robot
- *       shoots only after its camera has SEEN the cell UP), a volley must not go on firing after the tip, and for
- *       {@code TIP_SPILL_CLEAR_SEC} after every tip the robot stays out of the spill zone of the cell that tipped. A
- *       partner route with little slack (the latest partner tip that still works is close to the assumed one) gets a
- *       WARN. These live in {@link TipRules}.</li>
+ *       up with the partner's tip is an ERROR unless a WAIT_FOR_TIP before it lasts until that tip is confirmed (the tip plus
+ *       the settle time the camera needs), because the robot shoots only after its camera has SEEN the cell UP), a timed
+ *       volley that goes on firing after the tip is a WARN, a tip with no POLLEN to spare is a WARN (QA46: plan one POLLEN more
+ *       than FIRST's calibration needs), and for {@code TIP_SPILL_CLEAR_SEC} after every tip the robot stays out of the spill
+ *       zone of the cell that tipped. A partner route with little slack (the latest partner tip that still works is close to
+ *       the assumed one) gets a WARN. These live in {@link TipRules}.</li>
  * </ol>
  */
 public final class RouteValidator {

@@ -5,7 +5,8 @@ import java.util.List;
 
 /**
  * The autonomous routes that assume OUR robot shoots the first tip of the HIVE ({@link FirstTip#SELF}): the 4
- * pre-loads, together with the 3 NECTAR already in the UP cell, tip it (one volley is enough, see {@link TipModel}),
+ * pre-loads, together with the 3 NECTAR already in the UP cell, tip it (the 3rd POLLEN tips it and the 4th is the spare, see
+ * {@link TipModel}),
  * and the rest of the route is planned from there. These routes work whatever the alliance partner's auto does with
  * our HIVE, as long as it does not shoot into it first.
  *

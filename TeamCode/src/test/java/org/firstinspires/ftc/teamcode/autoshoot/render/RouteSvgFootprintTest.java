@@ -125,7 +125,7 @@ public class RouteSvgFootprintTest {
         Pose2 lineUp = FlowerPress.idealLineUp(red, 0, wheel);
         return AutoRoute.builder("flower").title("FLOWER press-in").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
                 .driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees()).label("to the FLOWER")
-                .intakeFlower(2.4, 48, wheel, 4).build();
+                .intakeFlower(2.4, 48, wheel, 3).build();
     }
 
     // ---- the two tones -----------------------------------------------------------------------------
@@ -311,7 +311,7 @@ public class RouteSvgFootprintTest {
         Pose2 lineUp = FlowerPress.idealLineUp(red, 0, IntakeWheel.LEFT);
         AutoRoute r = AutoRoute.builder("warn").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
                 .driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees())
-                .intakeFlower(2.4, 48, IntakeWheel.LEFT, 4).retreat(2.0).build();
+                .intakeFlower(2.4, 48, IntakeWheel.LEFT, 3).retreat(2.0).build();
         boolean warnAtIntake = false;
         for (Issue i : RouteValidator.check(r)) {
             if (i.stepIndex == 3) {

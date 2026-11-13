@@ -23,6 +23,9 @@ public class TipRulesTest {
     /** The robot's center of rotation is this far (9.77 in) from a wall its FRONT edge is touching; see RobotShape. */
     private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double TIP_SEC = BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC;
+    /** The camera must see the tipped cell steady this long before the robot calls the HIVE fully tipped. */
+    private static final double SETTLE = BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC;
+    private static final String CONFIRMED = String.format(java.util.Locale.ROOT, "%.1f s", TIP_SEC + SETTLE);
 
     /** Validates for RED and for its BLUE half turn; both must give the same findings. */
     private static List<Issue> validate(AutoRoute.Builder b) {
@@ -71,32 +74,103 @@ public class TipRulesTest {
     private static final double REAR_X = 61.5;
     private static final double REAR_Y = 130.0;
 
-    // ---- G417: POLLEN fired after the tip ---------------------------------------------------------------
+    // ---- the volley that tips: stops at the tip, spare, and the timed volley that cannot stop ---------------------
 
     @Test
-    public void aVolleyThatKeepsFiringAfterTheTipIsAnError() {
-        // 2 POLLEN, take 2 back from the floor, then fire 4: the 2nd of those 4 is the tip, the other 2 would go into
-        // a cell that is already tipping down
+    public void aCameraGatedVolleyThatIsBiggerThanTheTipNeedsIsFineBecauseItStopsAtTheTip() {
+        // 2 POLLEN, take 2 back from the floor, then fire 4: the 1st POLLEN of those 4 is the tip and the feeder stops there
         List<Issue> l = validate(AutoRoute.builder("late").start(58, FRONT, -90)
                 .shootUp(2).intakeFloor(60, 30, BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, 30, -90, 2).shootUp(4));
-        assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
-        Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
-        assertEquals("the second volley is step 4", 3, issue.stepIndex);
-        assertTrue(issue.message, issue.message.contains("tips with POLLEN 2 of the 4"));
-        assertTrue(issue.message, issue.message.contains("the last 2"));
+        assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.WARN));
+        assertEquals("3 of the 4 are spare", 0, count(l, Rule.TIP_MARGIN, Severity.WARN));
+    }
+
+    @Test
+    public void aTimedVolleyThatKeepsFiringAfterTheTipIsAWarning() {
+        // an old-style volley that feeds for a fixed 6 s whatever happens: the 3rd of its 4 POLLEN tips the HIVE (3 NECTAR + 3
+        // POLLEN) and the 4th would go into a cell that is already tipping down
+        List<Issue> l = validate(AutoRoute.builder("timed").start(58, FRONT, -90).shootUp(4).launchSeconds(6.0));
+        assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.WARN));
+        assertEquals("QA12 allows adding to a HIVE that moves, so a WARN and not an ERROR", 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        Issue issue = first(l, Rule.SHOOT_TARGET, Severity.WARN);
+        assertEquals("the volley is step 2", 1, issue.stepIndex);
+        assertTrue(issue.message, issue.message.contains("TIMED"));
+        assertTrue(issue.message, issue.message.contains("tips with POLLEN 3 of the 4"));
+        assertTrue(issue.message, issue.message.contains("the last 1 would be launched into a cell that is already tipping down"));
+        assertTrue(issue.message, issue.message.contains("QA12"));
         assertTrue(issue.message, issue.message.contains("G417"));
+        assertTrue(issue.message, issue.message.contains("a cell tips at 8 POLLEN-equivalents"));
+        // the same volley without the fixed time is gated by the camera: nothing to say
+        assertEquals(0, count(validate(AutoRoute.builder("gated").start(58, FRONT, -90).shootUp(4)), Rule.SHOOT_TARGET, Severity.WARN));
+        // and a timed volley of exactly the 3 that tip fires nothing after the tip
+        assertEquals(0, count(validate(AutoRoute.builder("exact").start(58, FRONT, -90).shootUp(3).launchSeconds(5.0)), Rule.SHOOT_TARGET,
+                Severity.WARN));
     }
 
     @Test
     public void aVolleyWhoseLastPollenIsTheTipIsFine() {
-        // 4 at once: the 4th POLLEN tips, nothing is fired after it
+        // 4 at once: the 3rd POLLEN tips and the 4th is the spare
         assertEquals(0, count(validate(AutoRoute.builder("one").start(58, FRONT, -90).shootUp(4)), Rule.SHOOT_TARGET, Severity.ERROR));
-        // 2 + 2 into the same cell: the last POLLEN of the second volley tips
-        assertEquals(0, count(validate(AutoRoute.builder("two").start(58, FRONT, -90).shootUp(2).shootUp(2)), Rule.SHOOT_TARGET,
+        // 2 + 1 into the same cell: the last POLLEN of the second volley tips
+        assertEquals(0, count(validate(AutoRoute.builder("two").start(58, FRONT, -90).shootUp(2).shootUp(1)), Rule.SHOOT_TARGET,
                 Severity.ERROR));
-        // 3 POLLEN never reach the tip: nothing to complain about either
-        assertEquals(0, count(validate(AutoRoute.builder("three").start(58, FRONT, -90).shootUp(3)), Rule.SHOOT_TARGET,
+        // 2 POLLEN never reach the tip: nothing to complain about either
+        assertEquals(0, count(validate(AutoRoute.builder("three").start(58, FRONT, -90).shootUp(2)), Rule.SHOOT_TARGET,
                 Severity.ERROR));
+    }
+
+    // ---- the planning margin: a tip with no POLLEN to spare ---------------------------------------------------------
+
+    @Test
+    public void aFirstTipWithExactlyThreePollenHasNoSpareAndIsAWarning() {
+        // 3 NECTAR + 3 POLLEN tip the cell on a calibrated field, but a field that needs one more would not tip
+        List<Issue> l = validate(AutoRoute.builder("exact").start(58, FRONT, -90).shootUp(3));
+        assertEquals(l.toString(), 1, count(l, Rule.TIP_MARGIN, Severity.WARN));
+        Issue issue = first(l, Rule.TIP_MARGIN, Severity.WARN);
+        assertEquals(1, issue.stepIndex);
+        assertTrue(issue.message, issue.message.contains("puts 3 POLLEN into the AUDIENCE cell, exactly the 3 that tip it"));
+        assertTrue(issue.message, issue.message.contains("no spare"));
+        assertTrue(issue.message, issue.message.contains("QA46"));
+        assertTrue(issue.message, issue.message.contains("Plan 4 POLLEN"));
+        assertEquals("only a warning: it tips on a calibrated field", 0, count(l, Rule.TIP_MARGIN, Severity.ERROR));
+        assertTrue(RouteValidator.isRunnable(l));
+    }
+
+    @Test
+    public void aFirstTipWithTheFourPreloadsHasOneSpareAndNoWarning() {
+        // the route that fires the 4 pre-loads at the up cell: 3 tip it, 1 is spare
+        List<Issue> l = validate(AutoRoute.builder("preloads").start(58, FRONT, -90).shootUp(4));
+        assertEquals(l.toString(), 0, count(l, Rule.TIP_MARGIN, Severity.WARN));
+        assertEquals(1, AutoRoute.builder("p").start(58, FRONT, -90).shootUp(4).build().analyze().minimumTipSpare());
+    }
+
+    @Test
+    public void aSecondTipWithExactlyEightPollenHasNoSpareAndPlanningNineIsClean() {
+        // after our own tip the rear cell is empty: 4 + 4 are exactly the 8 that tip it
+        List<Issue> tight = validate(AutoRoute.builder("tight").start(58, FRONT, -90).shootUp(4)
+                .shootSide(Side.REAR, 4).shootSide(Side.REAR, 4));
+        List<Issue> margin = new ArrayList<Issue>();
+        for (Issue i : tight) {
+            if (i.rule == Rule.TIP_MARGIN) {
+                margin.add(i);
+            }
+        }
+        assertEquals(tight.toString(), 1, margin.size());
+        assertEquals("on the volley that tips the second HIVE", 3, margin.get(0).stepIndex);
+        assertTrue(margin.get(0).message, margin.get(0).message.contains("puts 8 POLLEN into the REAR cell, exactly the 8 that tip it"));
+        assertTrue(margin.get(0).message, margin.get(0).message.contains("Plan 9 POLLEN"));
+        // 4 + 3 + 2 puts 9 into it: the 8th tips it and the 9th is the spare
+        List<Issue> nine = validate(AutoRoute.builder("nine").start(58, FRONT, -90).shootUp(4)
+                .shootSide(Side.REAR, 4).shootSide(Side.REAR, 3).shootSide(Side.REAR, 2));
+        assertEquals(nine.toString(), 0, count(nine, Rule.TIP_MARGIN, Severity.WARN));
+    }
+
+    @Test
+    public void thePartnersOwnTipIsNotOurSpareToWorryAbout() {
+        // a route that only waits for the partner's tip tips nothing itself: the margin rule has nothing to judge
+        List<Issue> l = validate(partnerRear().waitForTip(20));
+        assertEquals(l.toString(), 0, count(l, Rule.TIP_MARGIN, Severity.WARN));
     }
 
     // ---- G417: the partner's tip and the cell that comes up ---------------------------------------------
@@ -134,13 +208,29 @@ public class TipRulesTest {
         Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
         assertTrue(issue.message, issue.message.contains("WAIT_FOR_TIP at step 2"));
         assertTrue(issue.message, issue.message.contains("gives up at 3.0 s"));
-        assertTrue(issue.message, issue.message.contains("raise the give-up time"));
+        assertTrue(issue.message, issue.message.contains("raise the give-up time to at least " + CONFIRMED));
         assertTrue("the robot would skip the volley", issue.message.contains("skip this volley"));
-        // and the wait itself is reported: it gives up before the tip
+        // and the wait itself is reported: it gives up before the tip is confirmed
         Issue wait = first(l, Rule.TIP_ASSUMPTION, Severity.WARN);
         assertEquals(1, wait.stepIndex);
         assertTrue(wait.message, wait.message.contains("gives up"));
-        assertTrue(wait.message, wait.message.contains("at least " + String.format(java.util.Locale.ROOT, "%.1f s", TIP_SEC)));
+        assertTrue(wait.message, wait.message.contains("at least " + CONFIRMED));
+    }
+
+    @Test
+    public void aWaitThatEndsAtTheTipButBeforeTheCameraHasSeenItSteadyIsStillAnError() {
+        // The settle time is required: a wait that gives up exactly at the assumed tip (12 s) ends 0.5 s before the camera can have
+        // seen the cell steady, so the robot would go on to a cell it has not confirmed. Without the settle time in the model this
+        // route would be clean.
+        List<Issue> l = validate(partnerRear().waitForTip(TIP_SEC).shootUp(REAR_X, REAR_Y, 90, 4));
+        assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+        Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
+        assertTrue(issue.message, issue.message.contains("confirmed"));
+        assertTrue(issue.message, issue.message.contains("the camera must see the cell steady first"));
+        assertTrue(issue.message, issue.message.contains(CONFIRMED));
+        // one settle time later it is fine
+        assertEquals(0, count(validate(partnerRear().waitForTip(TIP_SEC + SETTLE).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.SHOOT_TARGET,
+                Severity.ERROR));
     }
 
     @Test
@@ -257,12 +347,12 @@ public class TipRulesTest {
         assertEquals(l.toString(), 1, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
         Issue issue = first(l, Rule.TIP_ASSUMPTION, Severity.WARN);
         assertEquals("on the WAIT_FOR_TIP", 1, issue.stepIndex);
-        assertTrue(issue.message, issue.message.contains("latest tip this route can still use is 13.0 s"));
-        assertTrue(issue.message, issue.message.contains("1.0 s of slack"));
+        assertTrue(issue.message, issue.message.contains("latest tip this route can still use is 12.5 s"));
+        assertTrue(issue.message, issue.message.contains("0.5 s of slack"));
         assertTrue(issue.message, issue.message.contains("the WAIT_FOR_TIP gives up at 13.0 s"));
         assertEquals("a warning, not an error: it works with the assumed tip", 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
-        // zero slack: the wait gives up at the very moment of the assumed tip
-        List<Issue> zero = validate(partnerRear().waitForTip(TIP_SEC).shootUp(REAR_X, REAR_Y, 90, 4));
+        // zero slack: the wait gives up at the very moment the assumed tip is confirmed
+        List<Issue> zero = validate(partnerRear().waitForTip(TIP_SEC + SETTLE).shootUp(REAR_X, REAR_Y, 90, 4));
         assertEquals(zero.toString(), 1, count(zero, Rule.TIP_ASSUMPTION, Severity.WARN));
         assertTrue(first(zero, Rule.TIP_ASSUMPTION, Severity.WARN).message.contains("0.0 s of slack"));
     }
@@ -270,11 +360,11 @@ public class TipRulesTest {
     @Test
     public void theSlackWarningStartsExactlyBelowTheMinimum() {
         double min = BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC;
-        // enough slack: give up exactly `min` seconds after the assumed tip
-        assertEquals(0, count(validate(partnerRear().waitForTip(TIP_SEC + min).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
+        // enough slack: the latest tip is exactly `min` seconds after the assumed one, so the wait may give up the settle time later
+        assertEquals(0, count(validate(partnerRear().waitForTip(TIP_SEC + SETTLE + min).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
                 Severity.WARN));
         // a quarter of a second less is too little
-        assertEquals(1, count(validate(partnerRear().waitForTip(TIP_SEC + min - 0.25).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
+        assertEquals(1, count(validate(partnerRear().waitForTip(TIP_SEC + SETTLE + min - 0.25).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
                 Severity.WARN));
     }
 

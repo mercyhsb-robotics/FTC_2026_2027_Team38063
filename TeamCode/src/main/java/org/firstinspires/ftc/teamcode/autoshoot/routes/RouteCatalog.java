@@ -23,7 +23,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * are copied from their source, including the headings that Pedro ignores for reverse-tangent legs.
  * They are NOT improved here, so the validator reports their real problems honestly. The last two are
  * small demonstration routes that pass the validator. Every route here assumes that OUR robot shoots the first
- * tip of the HIVE (the 3 NECTAR staged in the UP cell make one volley of 4 POLLEN enough).
+ * tip of the HIVE: the 3 NECTAR staged in the UP cell mean the 3rd POLLEN tips it (FIRST's calibration, see
+ * {@link TipModel}), so the 4 pre-loads tip it with 1 spare, and a volley that tips stops there and keeps the rest.
  *
  * <p><b>Where the robot stands at the start.</b> A pose is the robot's CENTER OF ROTATION, which is not the middle of
  * its 17.80 x 17.80 in outline: the front edge is 9.77 in ahead of it, the back edge 8.03 in behind it
@@ -79,7 +80,9 @@ public final class RouteCatalog {
                 .title("Red B1: shoot, then drive up the left side to the LOADING ZONE")
                 .description("Conversion of RedAlliance_B1.java. Starts in tile B1, turns to -115 deg and fires the 4 "
                         + "pre-loads at the UP cell, waits for the launcher, then drives backwards up the left corridor "
-                        + "to (35.8, 90) and sideways to (12, 90), ending partly in the red LOADING ZONE.")
+                        + "to (35.8, 90) and sideways to (12, 90), ending partly in the red LOADING ZONE. The staged NECTAR plus the "
+                        + "3rd POLLEN tip the HIVE (4 pre-loads, 1 spare), but the old OpMode feeds for a fixed time and cannot stop, "
+                        + "so its 4th POLLEN goes into a cell that is already tipping: the validator says so.")
                 .startTile("B1")
                 .start(35.0, 9.2, -90)
                     .note("The OpMode's number, copied. The robot's center of rotation is 9.2 in from the audience wall, but its "
@@ -109,7 +112,9 @@ public final class RouteCatalog {
                 .title("Red C1: shoot, then drive past the HIVE to the LOADING ZONE")
                 .description("Conversion of RedAlliance_C1.java. Starts in tile C1 with the back toward the UP cell, "
                         + "fires the 4 pre-loads, waits, then drives (58, 9.2) -> (62, 118.1) -> (58, 118.1) -> (12, 118.1), "
-                        + "all backwards. The first leg is a straight line through the HIVE footprint.")
+                        + "all backwards. The first leg is a straight line through the HIVE footprint. The staged NECTAR plus the "
+                        + "3rd POLLEN tip the HIVE (4 pre-loads, 1 spare), but the old OpMode feeds for a fixed time and cannot stop, "
+                        + "so its 4th POLLEN goes into a cell that is already tipping: the validator says so.")
                 .startTile("C1")
                 .start(58.0, 9.2, -90)
                     .note("The OpMode's number, copied. The center of rotation is 9.2 in from the audience wall but the front edge is "
@@ -158,15 +163,19 @@ public final class RouteCatalog {
                 .title("Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE")
                 .description("Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver "
                         + "picks, then drives out through the left corridor (x < 43, clear of the HIVE frame keep-out) and "
-                        + "parks deep inside the red LOADING ZONE. The 4 POLLEN land on top of the NECTAR that already "
-                        + "sit in the UP cell and tip the HIVE, so the route claims LEAVE 3 + PARK 5 + our TIP 20.")
+                        + "parks deep inside the red LOADING ZONE. The 3 NECTAR already in the UP cell plus the 3rd POLLEN tip "
+                        + "the HIVE (FIRST's calibration), so the 4 pre-loads tip it with 1 spare: the volley stops at the tip "
+                        + "and the 4th POLLEN stays in the robot, and a HIVE that needs one more POLLEN still tips. The route "
+                        + "claims LEAVE 3 + PARK 5 + our TIP 20: it parks standing about 4 in off the red wall, because a robot that "
+                        + "touches ANY wall at the end of AUTO, the one inside the LOADING ZONE too, loses its LEAVE (QA21).")
                 .startTile("C1")
                 .start(58.0, FRONT_ON_WALL_IN, -90)
                     .note("Front edge ON the audience wall (the center of rotation is " + FRONT_ON_WALL_IN + " in out). Place the robot with the "
                             + "wheel tips touching the wall and the middle of the robot over tile C1.")
                 .shootUp(4)
                     .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose. "
-                            + "The staged NECTAR in the cell plus these 4 POLLEN tip the HIVE: one volley is enough for the first tip.")
+                            + "The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE: one volley is the first tip, and the 4th "
+                            + "pre-load is the spare (it stays in the robot if the HIVE tips on the 3rd).")
                 .driveConstant(30.0, 45.0, -90.0).label("to corridor").via(30.0, 24.0)
                     .note("A curve: slides sideways away from the wall (the robot keeps its front toward the audience wall, because at the "
                             + "nominal shooting pose its center is only 12.1 in from the wall and a robot that turns on the spot there swings "
@@ -180,24 +189,28 @@ public final class RouteCatalog {
 
         routes.add(AutoRoute.builder(GARDEN_CYCLE)
                 .title("Garden cycle: shoot 4 to tip the HIVE, take the 4 GARDEN POLLEN, step off the wall")
-                .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the NECTAR already in that "
-                        + "cell they tip the HIVE (+20). After a tip the UP cell is on the OTHER side of the HIVE, about "
-                        + "111 in away around it, and it holds no NECTAR, so a second volley of 4 there would not tip it "
-                        + "(that needs 8 POLLEN). So the route does not shoot again: it sweeps up the 4 POLLEN of the red "
-                        + "GARDEN along the audience wall to carry into TELEOP and steps off the wall. LEAVE 3 + our TIP 20.")
+                .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the 3 NECTAR already in that "
+                        + "cell the 3rd POLLEN tips the HIVE (+20) and the 4th pre-load stays in the robot as the spare. After a "
+                        + "tip the UP cell is on the OTHER side of the HIVE, about 111 in away around it, and it holds no NECTAR, "
+                        + "so it needs 8 POLLEN (plan 9): far more than this route can carry there. So the route does not shoot "
+                        + "again: it sweeps up 3 of the 4 POLLEN of the red GARDEN along the audience wall (the robot holds 1 "
+                        + "spare + 3 = 4, the most it may hold, G407) to carry into TELEOP and steps off the wall. LEAVE 3 + our "
+                        + "TIP 20.")
                 .startTile("B1")
                 .start(35.0, FRONT_ON_WALL_IN, -90)
                     .note("Front edge ON the audience wall (the center of rotation is " + FRONT_ON_WALL_IN + " in out). Place the robot with the "
                             + "wheel tips touching the wall and the middle of the robot over tile B1.")
                 .shootUp(4)
-                    .note("AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The staged "
-                            + "NECTAR plus these 4 POLLEN tip the HIVE, and the REAR cell is the UP one from now on.")
+                    .note("AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged "
+                            + "NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load stays in the robot; the REAR cell "
+                            + "is the UP one from now on.")
                 .driveConstant(9.0, 18.0, -90).label("to GARDEN")
                     .note("Slides along the audience wall with the intake still facing it.")
                 .driveConstant(9.0, FRONT_ON_WALL_IN + 0.8, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
-                .intakeGarden(5.7, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 4)
-                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot now holds 4 for TELEOP.")
+                .intakeGarden(5.7, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 3)
+                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 1 (the spare "
+                            + "pre-load) and takes 3, so it carries 4 into TELEOP, the most it may hold (G407).")
                 .driveConstant(20.0, 24.0, -90).label("off the wall")
                     .note("Ends with the whole footprint more than 1.5 in off every wall: LEAVE.")
                 .build());

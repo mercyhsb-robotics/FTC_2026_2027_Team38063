@@ -231,10 +231,13 @@ public final class RouteGallery {
         h.append("A FLOWER is emptied by pressing ONE flat wheel into its bottom POLLEN: the arrow shows that straight press-in and the dotted arrow the straight retreat. ");
         h.append("Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>\n");
         h.append("<p id=\"tip-rule\" class=\"muted\">How a HIVE tips: ").append(esc(TipModel.explainRule())).append(" Every route says who shoots the first tip: ")
-                .append("<code>").append(esc(FirstTip.SELF.summary(0.0))).append("</code> (our 4 pre-loads are the first tip) or <code>")
+                .append("<code>").append(esc(FirstTip.SELF.summary(0.0))).append("</code> (our pre-loads are the first tip: ")
+                .append(TipModel.firstTipPollen()).append(" of the ").append(BioBuzzConstants.Auto.PRELOAD_POLLEN).append(" tip it) or <code>")
                 .append(esc(FirstTip.PARTNER.summary(BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC)))
-                .append("</code> (the alliance partner's volley is the first tip and our robot goes to the other side). The partner's ")
-                .append(BioBuzzConstants.Auto.TIP_POINTS).append(" points are shown but never counted in the points of our robot.</p>\n");
+                .append("</code> (the alliance partner's volley is the first tip and our robot goes to the other side; the HIVE belongs to the alliance, so the partner's launches count for it). The partner's ")
+                .append(BioBuzzConstants.Auto.TIP_POINTS).append(" points are shown but never counted in the points of our robot. ")
+                .append("The robot goes on after a partner's tip only when its camera has SEEN the tipped cell steady for ")
+                .append(seconds(BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC)).append(", never because a time has passed.</p>\n");
         h.append("</header>\n<main>\n");
 
         // ---- summary table
@@ -305,7 +308,7 @@ public final class RouteGallery {
         row(h, "POLLEN", "hold " + BioBuzzConstants.Auto.PRELOAD_POLLEN + " at the start, +" + a.pollenGained() + " taken, -"
                 + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")");
         row(h, "Our HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (the first needs " + TipModel.firstTipPollen()
-                + " POLLEN into the UP cell, each later one " + TipModel.laterTipPollen() + ")"));
+                + " POLLEN into the UP cell, each later one " + TipModel.laterTipPollen() + "; " + esc(spareText(a)) + ")"));
         row(h, "Ends", "LEAVE " + (a.leave() ? "yes" : "no") + ", PARK " + (a.park() ? "yes, " + inches(a.parkOverlapIn()) + " inside the LOADING ZONE" : "no")
                 + ", at " + esc(pose(a.endPose())));
         row(h, "Validator", statusHtml(e));
@@ -356,7 +359,9 @@ public final class RouteGallery {
                 h.append("<li class=\"tipline partner\">The partner's assumed tip at ").append(seconds(tip.timeSec)).append(": the ")
                         .append(tip.releasingSide).append(" cell tips down and spills, the ").append(tip.newUpSide)
                         .append(" cell comes up with no NECTAR in it, so our robot needs ").append(TipModel.laterTipPollen())
-                        .append(" POLLEN there for the next tip. These ").append(BioBuzzConstants.Auto.TIP_POINTS)
+                        .append(" POLLEN there for the next tip (plan ").append(TipModel.planningPollen(0))
+                        .append(": a real field drifts). The robot sees it confirmed ").append(seconds(a.tipSettleSec()))
+                        .append(" after the tip, at ").append(seconds(a.partnerTipConfirmedSec())).append(". These ").append(BioBuzzConstants.Auto.TIP_POINTS)
                         .append(" points are the alliance's, not ours.</li>\n");
             }
         }
@@ -376,7 +381,8 @@ public final class RouteGallery {
             if (info.targetWasUp) {
                 h.append(esc(TipModel.explainVolley(info.nectarInCellBefore, info.pollenInCellBefore, count)));
                 if (info.firedAfterTip > 0) {
-                    h.append("; the last ").append(info.firedAfterTip).append(" POLLEN would go into a cell that is already tipping down");
+                    h.append("; this volley is TIMED and cannot stop, so the last ").append(info.firedAfterTip)
+                            .append(" POLLEN would go into a cell that is already tipping down");
                 }
             } else {
                 h.append("fires ").append(count).append(" POLLEN at the ").append(info.targetSide)
@@ -438,6 +444,19 @@ public final class RouteGallery {
         String d = info.step.describe();
         String kind = info.step.kind().name();
         return d.startsWith(kind + " ") ? d.substring(kind.length() + 1) : d;
+    }
+
+    /**
+     * How much spare the route's own tips have, in words: the smallest spare of its tipping volleys. "no spare" is the case
+     * the validator WARNs about (a field that needs one more POLLEN than FIRST's calibration would not tip).
+     */
+    private static String spareText(RouteAnalysis a) {
+        int spare = a.minimumTipSpare();
+        if (spare < 0) {
+            return "no tip, so no spare";
+        }
+        return spare == 0 ? "NO spare: exactly the minimum, a field that needs one more POLLEN would not tip"
+                : spare + " POLLEN to spare, so a field that needs " + spare + " more still tips";
     }
 
     /** Short: the latest partner tip that still works, for the summary table. */

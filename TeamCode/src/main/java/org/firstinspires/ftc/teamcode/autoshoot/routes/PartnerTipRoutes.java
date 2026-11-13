@@ -7,7 +7,7 @@ import java.util.List;
  * The autonomous routes that assume the alliance PARTNER shoots the first tip of the HIVE ({@link FirstTip#PARTNER}):
  * the HIVE tips by itself at {@code Auto.PARTNER_FIRST_TIP_DONE_SEC} and the OTHER cell comes up, so our robot goes to
  * that side of the HIVE (for the red alliance the REAR side) and shoots there. That cell holds no NECTAR, so our own
- * tip needs 8 POLLEN: two volleys of 4, with a fetch from a FLOWER in between.
+ * tip needs 8 POLLEN (plan 9, see {@link TipModel}): two volleys of 4 and a spare, with a fetch from a FLOWER in between.
  *
  * <p>To add a route, write ONE entry in {@link #routes()} that starts with {@code partnerTipsFirst()}, uses
  * {@code waitForTip(giveUpSec)} before the first shot at the cell that comes up, and stays out of the spill zone of

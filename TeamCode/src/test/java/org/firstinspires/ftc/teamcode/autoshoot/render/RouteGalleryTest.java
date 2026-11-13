@@ -204,11 +204,13 @@ public class RouteGalleryTest {
         assertEquals("6", rowValue(garden, "Steps"));
         assertTrue(rowValue(garden, "Estimated time"), rowValue(garden, "Estimated time").contains("placeholder"));
         assertEquals("23 = LEAVE 3 + PARK 0 + our HIVE TIP 20", rowValue(garden, "Our AUTO points"));
-        assertEquals("hold 4 at the start, +4 taken, -4 fired, 4 at the end (balance 0)", rowValue(garden, "POLLEN"));
-        assertEquals("1 (the first needs 4 POLLEN into the UP cell, each later one 8)", rowValue(garden, "Our HIVE TIPs"));
+        assertEquals("the volley stops at the tip and keeps the spare: 3 fired, 1 kept + 3 taken = 4 at the end",
+                "hold 4 at the start, +3 taken, -3 fired, 4 at the end (balance 0)", rowValue(garden, "POLLEN"));
+        assertEquals("1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)",
+                rowValue(garden, "Our HIVE TIPs"));
         assertEquals("no findings", rowValue(garden, "Validator"));
         Element c1 = section(page, "red_c1");
-        assertEquals("3 ERROR", rowValue(c1, "Validator"));
+        assertEquals("3 ERROR, 1 WARN", rowValue(c1, "Validator"));
         assertTrue(rowValue(c1, "Ends"), rowValue(c1, "Ends").startsWith("LEAVE yes, PARK yes"));
     }
 
@@ -265,13 +267,14 @@ public class RouteGalleryTest {
         Element partner = section(page, "partner_rear");
         // gives up at 20 s, the tip is assumed at 12 s: 8 s of slack
         String slack = rowValue(partner, "Latest partner tip that works");
-        assertTrue(slack, slack.startsWith("20.0 s is the latest partner tip the route can still use, 8.0 s of slack after the assumed 12.0 s."));
+        // the wait may give up at 20 s, and the camera needs the settle time after the tip: 19.5 s, 7.5 s of slack
+        assertTrue(slack, slack.startsWith("19.5 s is the latest partner tip the route can still use, 7.5 s of slack after the assumed 12.0 s."));
         assertTrue(slack, slack.contains("skips the volleys that need the tip"));
         // the summary table repeats the number next to the assumption
         boolean inSummary = false;
         for (Element row : withClass(page, "tr", "summary-row")) {
             if (row.getAttribute("data-route").equals("partner_rear")) {
-                inSummary = row.getTextContent().contains("latest tip that works: 20.0 s");
+                inSummary = row.getTextContent().contains("latest tip that works: 19.5 s");
             }
         }
         assertTrue("the summary row of the partner route carries the latest tip", inSummary);
@@ -303,10 +306,10 @@ public class RouteGalleryTest {
                 .partnerTipsFirst().driveConstant(61.5, 120, 90).build();
         Document page = parse(RouteGallery.indexHtml(java.util.Arrays.asList(tight, broken, free)));
         String tightText = rowValue(section(page, "tight"), "Latest partner tip that works");
-        assertTrue(tightText, tightText.contains("1.0 s of slack"));
+        assertTrue(tightText, tightText.contains("0.5 s of slack"));
         assertTrue(tightText, tightText.contains("less than 3.0 s"));
         String brokenText = rowValue(section(page, "broken"), "Latest partner tip that works");
-        assertTrue(brokenText, brokenText.contains("2.0 s BEFORE the assumed 12.0 s"));
+        assertTrue(brokenText, brokenText.contains("2.5 s BEFORE the assumed 12.0 s"));
         assertTrue(brokenText, brokenText.contains("does not work with the assumed tip time"));
         String freeText = rowValue(section(page, "free"), "Latest partner tip that works");
         assertTrue(freeText, freeText.startsWith("any time"));
@@ -328,31 +331,63 @@ public class RouteGalleryTest {
     @Test
     public void theTipArithmeticIsWorkedOutInPlainWordsPerVolley() throws Exception {
         Document page = parse(RouteGallery.indexHtml(catalogAndPartner()));
-        // the rule once, at the top of the page
-        boolean ruleShown = false;
+        // the rule once, at the top of the page: FIRST's calibration, not the team's old guess
+        String rule = "";
         for (Element p : all(page, "p")) {
-            ruleShown |= p.getTextContent().contains("A HIVE cell tips when NECTAR x 8 + POLLEN x 5 reaches 40");
+            if (p.getTextContent().contains("A HIVE cell tips when")) {
+                rule = p.getTextContent();
+            }
         }
-        assertTrue("the rule is explained on the page", ruleShown);
-        // our pre-loads are the first tip: 3 NECTAR + 4 POLLEN
+        assertTrue("the rule is explained on the page: " + rule, rule.contains("A HIVE cell tips when its POLLEN plus 5/3 POLLEN for every NECTAR add up to 8 POLLEN-equivalents"));
+        assertTrue(rule, rule.contains("the FIRST tip needs only 3 POLLEN"));
+        assertTrue(rule, rule.contains("each LATER tip needs 8 POLLEN"));
+        assertTrue(rule, rule.contains("our pre-loads are the first tip: 3 of the 4 tip it"));
+        assertTrue(rule, rule.contains("the partner's launches count for it"));
+        assertTrue(rule, rule.contains("SEEN the tipped cell steady for 0.5 s, never because a time has passed"));
+        assertFalse("the old team figure is gone", rule.contains("5 NECTAR, or 8 POLLEN"));
+        // our pre-loads are the first tip: 3 NECTAR + the 3rd POLLEN, the 4th is the spare
         List<Element> garden = withClass(section(page, "garden_cycle"), "li", "tipline");
         assertEquals(1, garden.size());
-        assertEquals("Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley adds 4: 3 x 8 + 4 x 5 = 44, at least 40, so the HIVE"
-                + " tips.", garden.get(0).getTextContent());
+        assertEquals("Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents,"
+                + " the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the volley stops there; the last 1 stays in the robot as the spare.",
+                garden.get(0).getTextContent());
         // the partner family: the partner's tip, then our volley into the empty cell that came up
         List<Element> partner = withClass(section(page, "partner_rear"), "li", "tipline");
         assertEquals(2, partner.size());
-        assertTrue(partner.get(0).getTextContent(), partner.get(0).getTextContent().contains("partner's assumed tip at 12.0 s"));
-        assertTrue(partner.get(0).getTextContent(), partner.get(0).getTextContent().contains("the REAR cell comes up with no NECTAR"));
+        String partnerTip = partner.get(0).getTextContent();
+        assertTrue(partnerTip, partnerTip.contains("partner's assumed tip at 12.0 s"));
+        assertTrue(partnerTip, partnerTip.contains("the REAR cell comes up with no NECTAR"));
+        assertTrue(partnerTip, partnerTip.contains("our robot needs 8 POLLEN there for the next tip (plan 9: a real field drifts)"));
+        assertTrue(partnerTip, partnerTip.contains("The robot sees it confirmed 0.5 s after the tip, at 12.5 s."));
         assertTrue(partner.get(1).getTextContent(), partner.get(1).getTextContent().contains("0 NECTAR and 0 POLLEN"));
-        assertTrue(partner.get(1).getTextContent(), partner.get(1).getTextContent().contains("0 x 8 + 4 x 5 = 20, short of 40, so no tip yet"));
+        assertTrue(partner.get(1).getTextContent(), partner.get(1).getTextContent().contains("0 NECTAR x 5/3 + 4 POLLEN = 4 POLLEN-equivalents, short of the 8 that tip a cell, so no tip yet"));
         // a route without a volley says so
         assertTrue(withClass(section(page, "red_leave_park"), "li", "tipline").get(0).getTextContent().contains("launches no POLLEN"));
-        // three POLLEN do not tip the first HIVE
-        AutoRoute three = AutoRoute.builder("three").title("Three").description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(3).build();
-        String text = withClass(section(parse(RouteGallery.indexHtml(Collections.singletonList(three))), "three"), "li", "tipline").get(0)
+        // two POLLEN do not tip the first HIVE (3 NECTAR + 2 POLLEN = 7 POLLEN-equivalents, one short)
+        AutoRoute two = AutoRoute.builder("two").title("Two").description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(2).build();
+        String text = withClass(section(parse(RouteGallery.indexHtml(Collections.singletonList(two))), "two"), "li", "tipline").get(0)
                 .getTextContent();
-        assertTrue(text, text.contains("3 x 8 + 3 x 5 = 39, short of 40, so no tip yet (1 more POLLEN"));
+        assertTrue(text, text.contains("3 NECTAR x 5/3 + 2 POLLEN = 7 POLLEN-equivalents, short of the 8 that tip a cell, so no tip yet (1 more POLLEN"));
+    }
+
+    @Test
+    public void theSpareOfEveryRouteIsSaidInWordsAndNoSpareIsSaidLoudly() throws Exception {
+        AutoRoute exact = AutoRoute.builder("exact").title("Exact").description("d").startTile("C1")
+                .start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(3).build();
+        AutoRoute none = AutoRoute.builder("none").title("None").description("d").startTile("C1")
+                .start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(2).build();
+        Document page = parse(RouteGallery.indexHtml(java.util.Arrays.asList(exact, none)));
+        String tight = rowValue(section(page, "exact"), "Our HIVE TIPs");
+        assertTrue(tight, tight.contains("NO spare: exactly the minimum, a field that needs one more POLLEN would not tip"));
+        // ...and the validator says it too, as a WARN of the planning-margin rule
+        String findings = section(page, "exact").getTextContent();
+        assertTrue(findings, findings.contains("plan a spare POLLEN for a HIVE that drifts"));
+        assertTrue(findings, findings.contains("Plan 4 POLLEN"));
+        // a route that does not tip has no spare to talk about
+        assertEquals("0", rowValue(section(page, "none"), "Our HIVE TIPs"));
+        // the real catalog routes that tip carry their spare
+        Document catalog = parse(RouteGallery.indexHtml(RouteCatalog.all()));
+        assertTrue(rowValue(section(catalog, "wall_shoot_park"), "Our HIVE TIPs").contains("1 POLLEN to spare"));
     }
 
     @Test
@@ -375,7 +410,8 @@ public class RouteGalleryTest {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         Element b1 = section(page, "red_b1");
         List<Element> issues = withClass(b1, "li", "issue");
-        assertEquals("5 ERRORs and 1 WARN (the shallow-PARK WARN went away when the CAD moved the LOADING ZONE)", 6, issues.size());
+        assertEquals("5 ERRORs and 2 WARNs (the shallow-PARK WARN went away when the CAD moved the LOADING ZONE; the timed volley's 4th POLLEN is a WARN)",
+                7, issues.size());
         int errors = 0;
         for (Element i : issues) {
             errors += i.getAttribute("data-severity").equals("ERROR") ? 1 : 0;
@@ -478,7 +514,7 @@ public class RouteGalleryTest {
             assertTrue(new File(dir, r.id() + "_red.svg").isFile());
             assertTrue(new File(dir, r.id() + "_blue.svg").isFile());
         }
-        assertTrue(out, out.contains("5 ERROR, 1 WARN"));
+        assertTrue(out, out.contains("5 ERROR, 2 WARN"));
         assertTrue(out, out.contains("no findings"));
         // every route line says who is assumed to shoot the first tip
         assertTrue(out, out.contains("1st tip"));

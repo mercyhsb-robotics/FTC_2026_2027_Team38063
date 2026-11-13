@@ -246,6 +246,11 @@ public final class ConstantsCheck {
                 BioBuzzConstants.Field.HIVE_PIVOT_Z_IN, BioBuzzConstants.Field.HIVE_TIP_ANGLE_DEG, BioBuzzConstants.Field.CELL_TILT_DEG,
                 BioBuzzConstants.Field.TAG_ROW_BEHIND_CELL_FRONT_IN, BioBuzzConstants.Field.CLUSTER_ORIGIN_ABOVE_STICKER_IN);
 
+        // ---- the HIVE tip arithmetic must reproduce FIRST's own calibration table
+        checkTipModel(r, BioBuzzConstants.Auto.NECTAR_STAGED_IN_UP_CELL, BioBuzzConstants.Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR,
+                BioBuzzConstants.Auto.NECTAR_POLLEN_EQUIVALENT_DENOMINATOR, BioBuzzConstants.Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD,
+                BioBuzzConstants.Auto.TIP_PLANNING_MARGIN_POLLEN, BioBuzzConstants.Auto.PRELOAD_POLLEN);
+
         // ---- the field model must hold together
         // Build the field from the constants and make sure every aim point is on the field; this catches a typo in
         // the HIVE geometry (for example a wrong sign or a missing digit) before the planner trusts it.
@@ -265,6 +270,68 @@ public final class ConstantsCheck {
             r.errors.add("Field geometry is invalid: " + e.getMessage());
         }
         return r;
+    }
+
+    // FIRST's own calibration of every HIVE cell (Event Field Setup Guide V1.0 section 12.3, Field Acceptance Checklist 2.3 to 2.6, Field
+    // Mitigation Guide Appendix A): an EMPTY cell tips with the 8th POLLEN and not with 7, and a cell holding the 3 staged NECTAR tips with
+    // the 3rd POLLEN and not with 2. They are facts of the field, not tuning, so they are written here as the reference the tip constants
+    // are checked against.
+    private static final int OFFICIAL_STAGED_NECTAR = 3;
+    private static final int OFFICIAL_EMPTY_CELL_NO_TIP_POLLEN = 7;
+    private static final int OFFICIAL_EMPTY_CELL_TIP_POLLEN = 8;
+    private static final int OFFICIAL_STAGED_CELL_NO_TIP_POLLEN = 2;
+    private static final int OFFICIAL_STAGED_CELL_TIP_POLLEN = 3;
+
+    /**
+     * The tip arithmetic of the route planner must agree with FIRST's calibration: with {@code staged} NECTAR a cell tips with 3 POLLEN and
+     * not with 2, and an empty cell tips with 8 POLLEN and not with 7. One NECTAR counts as {@code numerator / denominator} POLLEN and a
+     * cell tips at {@code threshold} POLLEN-equivalents (whole numbers: {@code nectar x numerator + pollen x denominator >= threshold x
+     * denominator}, the same test as {@code TipModel.tips} of the route planner, which this class may not call because the planner depends
+     * on this package and not the other way round). {@code margin} is the spare POLLEN a route plans beyond the minimum and
+     * {@code preloads} the POLLEN the robot starts with.
+     *
+     * <p>Why: the planner decides from these numbers which routes tip the HIVE and how many POLLEN a route must fetch. A weight that
+     * does not reproduce the table (for example the old 1/5 + 1/8 rule, which said 3 NECTAR + 3 POLLEN do not tip) would make every
+     * route's points and POLLEN plan wrong, and nothing else would notice.
+     */
+    static void checkTipModel(Report r, int staged, int numerator, int denominator, int threshold, int margin, int preloads) {
+        if (numerator <= 0 || denominator <= 0 || threshold <= 0) {
+            r.errors.add("Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR / DENOMINATOR and TIP_POLLEN_EQUIVALENT_THRESHOLD must be positive whole numbers"
+                    + " (a NECTAR counts numerator / denominator POLLEN, a cell tips at threshold POLLEN).");
+            return;
+        }
+        if (staged != OFFICIAL_STAGED_NECTAR) {
+            r.errors.add("Auto.NECTAR_STAGED_IN_UP_CELL (" + staged + ") must be " + OFFICIAL_STAGED_NECTAR
+                    + ": the manual (Fig 10-2) puts 3 NECTAR in the UP cell of each HIVE, and FIRST's tip table is written for them.");
+        }
+        String weight = "NECTAR = " + numerator + "/" + denominator + " POLLEN, a cell tips at " + threshold + " POLLEN-equivalents";
+        if (cellTips(0, OFFICIAL_EMPTY_CELL_NO_TIP_POLLEN, numerator, denominator, threshold)) {
+            r.errors.add("The tip constants (" + weight + ") say that " + OFFICIAL_EMPTY_CELL_NO_TIP_POLLEN
+                    + " POLLEN tip an empty HIVE cell, but FIRST's field calibration says they do not (the 8th POLLEN tips it).");
+        }
+        if (!cellTips(0, OFFICIAL_EMPTY_CELL_TIP_POLLEN, numerator, denominator, threshold)) {
+            r.errors.add("The tip constants (" + weight + ") say that " + OFFICIAL_EMPTY_CELL_TIP_POLLEN
+                    + " POLLEN do not tip an empty HIVE cell, but FIRST's field calibration says they do.");
+        }
+        if (cellTips(OFFICIAL_STAGED_NECTAR, OFFICIAL_STAGED_CELL_NO_TIP_POLLEN, numerator, denominator, threshold)) {
+            r.errors.add("The tip constants (" + weight + ") say that 3 NECTAR + " + OFFICIAL_STAGED_CELL_NO_TIP_POLLEN
+                    + " POLLEN tip a HIVE cell, but FIRST's field calibration says they do not (the 3rd POLLEN tips it).");
+        }
+        if (!cellTips(OFFICIAL_STAGED_NECTAR, OFFICIAL_STAGED_CELL_TIP_POLLEN, numerator, denominator, threshold)) {
+            r.errors.add("The tip constants (" + weight + ") say that 3 NECTAR + " + OFFICIAL_STAGED_CELL_TIP_POLLEN
+                    + " POLLEN do not tip a HIVE cell, but FIRST's field calibration says they do (the first tip needs only 3 POLLEN).");
+        }
+        if (margin < 0) {
+            r.errors.add("Auto.TIP_PLANNING_MARGIN_POLLEN (" + margin + ") cannot be negative: it is the spare POLLEN beyond the minimum.");
+        } else if (OFFICIAL_STAGED_CELL_TIP_POLLEN + margin > preloads) {
+            r.warnings.add("Auto.TIP_PLANNING_MARGIN_POLLEN (" + margin + ") asks for " + (OFFICIAL_STAGED_CELL_TIP_POLLEN + margin)
+                    + " POLLEN into the first cell, more than the " + preloads + " pre-loads: no route can have that spare on the first tip.");
+        }
+    }
+
+    /** The same test as {@code TipModel.tips}: whole numbers only, so a sum of exactly the threshold is never lost to rounding. */
+    private static boolean cellTips(int nectar, int pollen, int numerator, int denominator, int threshold) {
+        return nectar * numerator + pollen * denominator >= threshold * denominator;
     }
 
     /**

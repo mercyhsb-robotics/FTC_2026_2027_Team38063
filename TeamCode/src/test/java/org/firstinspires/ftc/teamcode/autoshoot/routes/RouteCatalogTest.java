@@ -341,7 +341,10 @@ public class RouteCatalogTest {
         // turns toward the HIVE a couple of degrees: 0.9 in)
         assertEquals(1, count(l, Rule.START_G304, Severity.ERROR));
         assertEquals(1, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
-        assertEquals(3, l.size());
+        // and the old OpMode feeds for a fixed 5 s: the HIVE tips on the 3rd of its 4 POLLEN and the 4th goes into a cell that is
+        // already tipping down (a WARN: QA12 allows it, G417 does not like it)
+        assertEquals(1, count(l, Rule.SHOOT_TARGET, Severity.WARN));
+        assertEquals(4, l.size());
         assertFalse(RouteValidator.isRunnable(l));
     }
 
@@ -427,8 +430,9 @@ public class RouteCatalogTest {
         AutoRoute r = RouteCatalog.byId("wall_shoot_park");
         assertEquals("C1", r.startTile());
         RouteAnalysis a = r.analyze();
-        assertEquals(4, a.pollenShot());
-        assertEquals("3 staged NECTAR + the 4 pre-loads: one volley is the first tip", 1, a.tips());
+        assertEquals("the volley stops at the tip, on the 3rd POLLEN", 3, a.pollenShot());
+        assertEquals("3 staged NECTAR + the 3rd of the 4 pre-loads: one volley is the first tip", 1, a.tips());
+        assertEquals("the 4th pre-load is the spare", 1, a.minimumTipSpare());
         assertTrue(a.park());
         assertTrue(a.leave());
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
@@ -450,9 +454,9 @@ public class RouteCatalogTest {
         assertEquals("B1", r.startTile());
         RouteAnalysis a = r.analyze();
         // one volley only: after the tip the UP cell is on the far side of the HIVE and holds no NECTAR, so a second
-        // volley of 4 there would not tip it (it needs 8)
-        assertEquals(4, a.pollenShot());
-        assertEquals(4, a.pollenGained());
+        // volley of 4 there would not tip it (it needs 8). The first volley fires 3 and keeps the spare, so 3 GARDEN POLLEN fit.
+        assertEquals(3, a.pollenShot());
+        assertEquals(3, a.pollenGained());
         assertEquals(1, a.tips());
         assertEquals(Side.REAR, a.step(1).upSideAfter);
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.TIP_POINTS, r.claimablePoints());

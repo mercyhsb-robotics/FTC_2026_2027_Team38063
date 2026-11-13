@@ -28,6 +28,13 @@ public final class TimingModel {
         public double timePerShotSec = BioBuzzConstants.Auto.TIME_PER_SHOT_SEC;
         /** Fraction of the cruise speed for the final approach to a FLOWER and for the retreat from it. */
         public double flowerSpeedFraction = BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION;
+        /**
+         * How long the camera must have seen the tipped cell's tags steadily before the robot believes the HIVE has FULLY
+         * tipped and goes on ({@code Vision.HIVE_STABLE_SEEN_SEC}). A tip is complete only when the damper touches the frame,
+         * and launching at a HIVE that is still rocking can spoil it (G417), so a WAIT_FOR_TIP never ends at the instant of
+         * the tip but this long after it.
+         */
+        public double tipSettleSec = BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC;
     }
 
     private static final double TINY = 1e-9;
@@ -129,10 +136,20 @@ public final class TimingModel {
 
     /** Aim and spin-up plus one feed time per POLLEN, or the step's fixed duration. */
     public double shootSeconds(Step.Shoot step) {
+        return shootSeconds(step, step.count());
+    }
+
+    /**
+     * How long a volley takes when it fires only {@code shots} of the POLLEN it plans (a volley that tips the HIVE stops
+     * at the tip and keeps the rest): the aim and spin-up plus one feed time per POLLEN actually fired. A volley with a
+     * fixed duration (an old OpMode that feeds for a set time) is spread evenly over its POLLEN, so the n-th one leaves
+     * {@code n / count} of the way through it.
+     */
+    public double shootSeconds(Step.Shoot step, int shots) {
         if (step.hasFixedSeconds()) {
-            return step.fixedSeconds();
+            return step.fixedSeconds() * shots / step.count();
         }
-        return p.aimSpinUpSec + step.count() * p.timePerShotSec;
+        return p.aimSpinUpSec + shots * p.timePerShotSec;
     }
 
     public double waitSeconds(Step.Wait step) {
@@ -140,16 +157,27 @@ public final class TimingModel {
     }
 
     /**
-     * How long a WAIT_FOR_TIP lasts when it starts at {@code nowSec}, the tip it waits for happens at {@code tipSec}
-     * and the robot gives up at {@code giveUpSec} (all three on the route clock): until the tip (0 if it has happened
-     * already), but never past the give-up time. If there is no tip to wait for ({@code tipSec} is NaN) the cell is UP
-     * already and the robot does not wait at all.
+     * How long a WAIT_FOR_TIP lasts when it starts at {@code nowSec}, the tip it waits for is complete at {@code tipSec}
+     * and the robot gives up at {@code giveUpSec} (all three on the route clock). The robot goes on only when its camera
+     * has SEEN the tipped cell steadily for {@code tipSettleSec} (a HIVE that is still rocking must not be shot at, G417),
+     * so the wait lasts until {@code tipSec + tipSettleSec} (0 if that is already past), but never past the give-up time.
+     * If there is no tip to wait for ({@code tipSec} is NaN) the cell is UP already and the robot does not wait at all.
      */
     public double waitForTipSeconds(double nowSec, double tipSec, double giveUpSec) {
         if (Double.isNaN(tipSec)) {
             return 0.0;
         }
-        double endSec = Math.min(giveUpSec, Math.max(nowSec, tipSec));
+        double endSec = Math.min(giveUpSec, Math.max(nowSec, confirmedAtSec(tipSec)));
         return Math.max(0.0, endSec - nowSec);
+    }
+
+    /** The route time at which the camera has confirmed a tip that is complete at {@code tipSec}: the tip plus the settle time. */
+    public double confirmedAtSec(double tipSec) {
+        return tipSec + p.tipSettleSec;
+    }
+
+    /** The settle time the camera needs before it calls a tipped HIVE fully tipped, in seconds. */
+    public double tipSettleSec() {
+        return p.tipSettleSec;
     }
 }

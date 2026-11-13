@@ -127,15 +127,41 @@ public final class BioBuzzConstants {
          */
         public static final int NECTAR_STAGED_IN_UP_CELL = 3;
         /**
-         * VERIFY: the team's figure for tipping a HIVE cell with NECTAR alone: 5 NECTAR. The manual gives no
-         * tip threshold at all, so this and {@link #POLLEN_TIP_THRESHOLD} are the team's figures. A cell tips
-         * when {@code nectar / NECTAR_TIP_THRESHOLD + pollen / POLLEN_TIP_THRESHOLD >= 1}: every NECTAR is worth
-         * 1/5 of a tip and every POLLEN 1/8 of a tip, so 5 NECTAR, or 8 POLLEN, or a mix tips it. The code
-         * multiplies the whole inequality out so it uses whole numbers only (see TipModel).
+         * VERIFY (FIRST's own field documents: the Event Field Setup Guide section 12.3, the Field Acceptance Checklist
+         * and the Field Mitigation Guide, NOT the game manual, which gives no number): every HIVE cell is calibrated so
+         * that an EMPTY cell tips with the 8th POLLEN (7 do not) and a cell holding the 3 staged NECTAR tips with the
+         * 3rd POLLEN (2 do not). To plan with those two facts the code counts every POLLEN as 1 and every NECTAR as
+         * a little more than 1 POLLEN, and a cell tips when the total reaches {@link #TIP_POLLEN_EQUIVALENT_THRESHOLD}.
+         * The weight is the fraction {@code NECTAR_POLLEN_EQUIVALENT_NUMERATOR / NECTAR_POLLEN_EQUIVALENT_DENOMINATOR}
+         * = 5/3 = 1.667 POLLEN per NECTAR, kept as two whole numbers so the arithmetic is exact (a rounded decimal such as
+         * 1.66 would make 3 NECTAR + 3 POLLEN come out as 7.98 and "not tip", the opposite of FIRST's table; see
+         * TipModel). Any weight from 1.667 up to (not
+         * including) 2.0 agrees with the two official facts; 5/3 also says "5 NECTAR tip, 4 NECTAR do not", which is the
+         * team's rule of thumb (AndyMark's weights, 0.091 lb and 0.055 lb, give 1.65 the same way). Weigh your own balls.
          */
-        public static final int NECTAR_TIP_THRESHOLD = 5;
-        /** VERIFY: the team's figure for tipping a cell with POLLEN alone: 8 POLLEN (two volleys of 4). See {@link #NECTAR_TIP_THRESHOLD}. */
-        public static final int POLLEN_TIP_THRESHOLD = 8;
+        public static final int NECTAR_POLLEN_EQUIVALENT_NUMERATOR = 5;
+        /** VERIFY: the bottom of the fraction of {@link #NECTAR_POLLEN_EQUIVALENT_NUMERATOR}. */
+        public static final int NECTAR_POLLEN_EQUIVALENT_DENOMINATOR = 3;
+        /**
+         * VERIFY: that fraction as a decimal (5/3 = 1.667 POLLEN per NECTAR), only for sentences and checks that want to
+         * print it. The tip arithmetic never uses it: it uses the two whole numbers above.
+         */
+        public static final double NECTAR_POLLEN_EQUIVALENT =
+                (double) NECTAR_POLLEN_EQUIVALENT_NUMERATOR / NECTAR_POLLEN_EQUIVALENT_DENOMINATOR;
+        /**
+         * VERIFY (FIRST's calibration, see {@link #NECTAR_POLLEN_EQUIVALENT_NUMERATOR}): a cell tips when its POLLEN plus
+         * {@link #NECTAR_POLLEN_EQUIVALENT} per NECTAR add up to this many POLLEN: 8 POLLEN tip an empty cell, 7 do not.
+         * With the 3 staged NECTAR (5 POLLEN-equivalents) the 3rd POLLEN tips the cell.
+         */
+        public static final int TIP_POLLEN_EQUIVALENT_THRESHOLD = 8;
+        /**
+         * TUNE: how many POLLEN more than the minimum a route should plan to put into a cell it wants to tip. A real field
+         * drifts: FIRST's own Q&amp;A (QA46) tells of a HIVE that needed 9 POLLEN instead of 8 after 8 to 10 matches. A
+         * route that puts in exactly the minimum has no spare and gets a WARN; with a spare of 1 a field that is one POLLEN
+         * stiffer still tips. A volley that tips earlier stops there, and the spare stays in the robot (it is not launched at
+         * a cell that is already tipping down).
+         */
+        public static final int TIP_PLANNING_MARGIN_POLLEN = 1;
         /**
          * VERIFY: for a route that assumes the alliance PARTNER shoots the first tip (FirstTip.PARTNER): the route
          * time, in seconds from the start of AUTO, at which that tip is assumed to be DONE, so the other HIVE cell is
@@ -383,7 +409,14 @@ public final class BioBuzzConstants {
          * every DRIVE leg (marked wall-contact or not), every INTAKE, the PARK pose and the end pose.
          */
         public static final double FIELD_BOUNDS_TOLERANCE_IN = 0.1;
-        /** TUNE (field report 3.3): LEAVE needs the whole footprint at least this far off every wall. */
+        /**
+         * TUNE (FIRST's Q&amp;A answer QA21 and manual 10.5.4): LEAVE is judged at the END of AUTO and is lost by a robot that
+         * touches ANY perimeter wall then, also the wall inside the LOADING ZONE: a robot that parks there touching the wall
+         * keeps its PARK (5) but not its LEAVE (3). So the whole footprint must end at least this many inches off every wall.
+         * Touching is not enough, and a field is only accurate to about 1 in. To claim both LEAVE and PARK end in the LOADING
+         * ZONE standing this far off its wall (the zone is 11 in deep, a 17.8 in robot overlaps it by 9 in or more that way).
+         * Only the robot counts: a POLLEN squeezed between the robot and the wall does not make the robot "touch" it (QA47).
+         */
         public static final double LEAVE_WALL_MARGIN_IN = 1.5;
         /** TUNE (manual Fig 10-7, field tolerance +/- 1 in): a PARK overlapping the zone by less than this is a WARN. */
         public static final double PARK_MIN_OVERLAP_IN = 3.0;

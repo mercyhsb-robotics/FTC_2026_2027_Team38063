@@ -99,6 +99,18 @@ public class TimingModelTest {
     }
 
     @Test
+    public void aVolleyThatStopsAtTheTipOnlyPaysForThePollenItFires() {
+        // a camera-gated volley of 4 at the cell that holds the staged NECTAR tips on the 3rd POLLEN and stops there
+        Step.Shoot four = (Step.Shoot) AutoRoute.builder("a").start(0, 0, 0).shootUp(4).build().step(1);
+        assertEquals(BioBuzzConstants.Auto.AIM_SPINUP_SEC + 3 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, model.shootSeconds(four, 3), EPS);
+        assertEquals("all of them is the whole step", model.shootSeconds(four), model.shootSeconds(four, 4), EPS);
+        // a timed volley is spread evenly over its POLLEN: the 3rd of 4 leaves three quarters of the way through
+        Step.Shoot fixed = four.withFixedSeconds(8.0);
+        assertEquals(6.0, model.shootSeconds(fixed, 3), EPS);
+        assertEquals(8.0, model.shootSeconds(fixed, 4), EPS);
+    }
+
+    @Test
     public void intakeAndWaitCostTheirData() {
         Step.Intake in = (Step.Intake) AutoRoute.builder("a").start(0, 0, 0)
                 .intake(IntakeSource.GARDEN, 5, 1.4, 9, 9.7, -90, 3.25, 4).build().step(1);
@@ -133,18 +145,33 @@ public class TimingModelTest {
     }
 
     @Test
-    public void aWaitForTipLastsUntilTheTipButNeverBeyondItsGiveUpTimeOnTheRouteClock() {
-        // the tip is at 12 s: starting at 3 s the wait is 9 s...
-        assertEquals(9.0, model.waitForTipSeconds(3.0, 12.0, 30.0), EPS);
+    public void aWaitForTipLastsUntilTheTipIsConfirmedButNeverBeyondItsGiveUpTimeOnTheRouteClock() {
+        double settle = model.tipSettleSec();
+        assertEquals("the settle time is the one the camera tracker uses", BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC, settle, 0.0);
+        assertTrue(settle > 0.0);
+        // the tip is at 12 s: starting at 3 s the wait lasts until the camera has seen the cell steady for the settle time...
+        assertEquals(9.0 + settle, model.waitForTipSeconds(3.0, 12.0, 30.0), EPS);
+        assertEquals(12.0 + settle, model.confirmedAtSec(12.0), EPS);
         // ...a give-up time of 7 s (a point on the route clock, not a length) ends it after 4 s...
         assertEquals(4.0, model.waitForTipSeconds(3.0, 12.0, 7.0), EPS);
+        // ...a give-up time that falls inside the settle time cuts the wait too: the tip is not confirmed yet, so the volley is skipped...
+        assertEquals(9.0 + settle / 2.0, model.waitForTipSeconds(3.0, 12.0, 12.0 + settle / 2.0), EPS);
         // ...a give-up time that has passed already means no waiting at all, never a negative time...
         assertEquals(0.0, model.waitForTipSeconds(15.0, 20.0, 10.0), EPS);
-        // ...a tip that is already over costs nothing...
+        // ...a tip that has been confirmed already costs nothing...
         assertEquals(0.0, model.waitForTipSeconds(15.0, 12.0, 30.0), EPS);
-        assertEquals(0.0, model.waitForTipSeconds(12.0, 12.0, 30.0), EPS);
+        assertEquals(0.0, model.waitForTipSeconds(12.0 + settle, 12.0, 30.0), EPS);
+        // ...but one that is over and not yet settled still costs the rest of the settle time
+        assertEquals(settle / 2.0, model.waitForTipSeconds(12.0 + settle / 2.0, 12.0, 30.0), EPS);
         // ...and with no tip to wait for (NaN) the cell is UP already: no waiting
         assertEquals(0.0, model.waitForTipSeconds(3.0, Double.NaN, 30.0), EPS);
+    }
+
+    @Test
+    public void aLongerSettleTimeMakesTheWaitLonger() {
+        TimingModel.Params slow = new TimingModel.Params();
+        slow.tipSettleSec = 2.0;
+        assertEquals(11.0, new TimingModel(slow).waitForTipSeconds(3.0, 12.0, 30.0), EPS);
     }
 
     @Test

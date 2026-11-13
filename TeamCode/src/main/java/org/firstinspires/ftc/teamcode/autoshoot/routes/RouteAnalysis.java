@@ -63,10 +63,23 @@ public final class RouteAnalysis {
         /** SHOOT that tipped the HIVE: route time in seconds of the POLLEN that tipped it; NaN otherwise. */
         public final double tipSec;
         /**
-         * SHOOT that tipped the HIVE: POLLEN of the same volley that are still fired AFTER the tip, i.e. into a
-         * cell that is already tipping down (0 when the last POLLEN of the volley is the one that tips).
+         * SHOOT that tipped the HIVE: POLLEN of the same volley that are still launched AFTER the tip, i.e. into a cell that
+         * is already tipping down. A volley that is gated by the camera (the normal one) stops at the tip and keeps the rest,
+         * so this is 0 for it; only a TIMED volley (an old OpMode that feeds for a fixed time) cannot stop and fires them
+         * all. 0 when the last POLLEN of the volley is the one that tips.
          */
         public final int firedAfterTip;
+        /**
+         * SHOOT that tipped the HIVE: how many POLLEN of this volley the cell needed (the one that tips it is the
+         * {@code tipNeeded}-th); 0 for a volley that did not tip. The POLLEN of earlier volleys into the same cell count.
+         */
+        public final int tipNeeded;
+        /**
+         * SHOOT that tipped the HIVE: how many POLLEN the volley plans beyond what the cell needed, the route's SPARE (a
+         * field that is stiffer by that many POLLEN still tips). The camera-gated volley keeps the spare in the robot. 0
+         * means the plan has exactly the minimum; 0 also for a volley that did not tip.
+         */
+        public final int tipSpare;
         /** SHOOT: NECTAR sitting in the targeted cell when the volley starts (3 in the starting UP cell, else 0). */
         public final int nectarInCellBefore;
         /** SHOOT: POLLEN of this route that are already in the targeted cell when the volley starts (0 for a cell that is DOWN). */
@@ -90,7 +103,7 @@ public final class RouteAnalysis {
                  Side targetSide, boolean targetWasUp, Pose2 shootPose, boolean shootPoseIsNominal, boolean tipped,
                  int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits,
                  double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore, double tipWaitSec,
-                 int pollenInCellBefore) {
+                 int pollenInCellBefore, int tipNeeded, int tipSpare) {
             this.index = index;
             this.step = step;
             this.from = from;
@@ -115,6 +128,8 @@ public final class RouteAnalysis {
             this.launchSec = launchSec;
             this.tipSec = tipSec;
             this.firedAfterTip = firedAfterTip;
+            this.tipNeeded = tipNeeded;
+            this.tipSpare = tipSpare;
             this.nectarInCellBefore = nectarInCellBefore;
             this.tipWaitSec = tipWaitSec;
             this.pollenInCellBefore = pollenInCellBefore;
@@ -285,6 +300,8 @@ public final class RouteAnalysis {
             double launchSec = Double.NaN;
             double tipSec = Double.NaN;
             int firedAfterTip = 0;
+            int tipNeeded = 0;
+            int tipSpare = 0;
             int nectarBefore = 0;
             int pollenBeforeInCell = 0;
             double tipWaitSec = Double.NaN;
@@ -354,7 +371,6 @@ public final class RouteAnalysis {
                     approach = approachOrNull(from, to);
                     double approachSec = approach == null ? 0.0 : timing.moveSeconds(from, to);
                     double shootSec = timing.shootSeconds(sh);
-                    duration = approachSec + shootSec;
                     launchSec = t + approachSec;
                     // Whether that cell is still UP when the first POLLEN leaves decides if the launch is legal (G417):
                     // the partner's tip may happen while the robot is still driving to the pose.
@@ -362,20 +378,30 @@ public final class RouteAnalysis {
                     targetWasUp = targetSide == hive.up;
                     nectarBefore = targetWasUp ? hive.nectar : 0;
                     pollenBeforeInCell = targetWasUp ? hive.pollen : 0;
-                    held -= sh.count();
-                    shot += sh.count();
+                    int fired = sh.count();
                     if (targetWasUp) {
                         // How many POLLEN of THIS volley does the cell need? (see TipModel for the arithmetic.) At
                         // least 1: a cell cannot tip before something is launched into it.
                         int needed = Math.max(1, TipModel.pollenStillNeeded(hive.nectar, hive.pollen));
-                        // The POLLEN leave one every timePerShot; the tip happens when the needed one lands.
-                        double wouldTipAt = launchSec + shootSec * needed / sh.count();
+                        // The POLLEN leave one every timePerShot after the aim and spin-up; the tip happens when the
+                        // needed one lands.
+                        double wouldTipAt = launchSec + timing.shootSeconds(sh, needed);
                         boolean partnerFirst = hive.partnerPending && hive.partnerSec <= wouldTipAt;
                         if (sh.count() >= needed && !partnerFirst) {
                             tipped = true;
                             tips++;
                             tipSec = wouldTipAt;
-                            firedAfterTip = sh.count() - needed;
+                            tipNeeded = needed;
+                            tipSpare = sh.count() - needed;
+                            if (sh.hasFixedSeconds()) {
+                                // A timed volley cannot stop: it goes on launching into the cell that is tipping down.
+                                firedAfterTip = tipSpare;
+                            } else {
+                                // A camera-gated volley stops the moment the camera sees the tip (the cell's tags vanish and
+                                // the feeder pauses, G417), so only the needed POLLEN leave and the spare stays in the robot.
+                                fired = needed;
+                                shootSec = timing.shootSeconds(sh, needed);
+                            }
                             hive.events.add(new TipEvent(tipSec, hive.up, hive.up.opposite(), false, i));
                             if (hive.partnerPending) {
                                 // we tipped the HIVE before the partner did: the partner's tip is no longer coming
@@ -387,6 +413,9 @@ public final class RouteAnalysis {
                             hive.pollen += sh.count();
                         }
                     }
+                    duration = approachSec + shootSec;
+                    held -= fired;
+                    shot += fired;
                     break;
                 }
                 case WAIT:
@@ -412,7 +441,7 @@ public final class RouteAnalysis {
             hive.advanceTo(t + duration);
             out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, hive.up,
                     targetSide, targetWasUp, shootPose, nominal, tipped, hive.pollen, sourceName, sourceLeft, offLimits,
-                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell));
+                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell, tipNeeded, tipSpare));
             t += duration;
             pose = to;
         }
@@ -533,11 +562,27 @@ public final class RouteAnalysis {
 
     /**
      * Number of HIVE TIPs the route's own volleys cause (the alliance partner's assumed tip is NOT among them, see
-     * {@link #partnerTips()}). A cell tips by the weighted rule of {@link TipModel}: the first tip needs one volley of
-     * 4 POLLEN (the 3 staged NECTAR help), every later tip needs 8 POLLEN into the cell that came up.
+     * {@link #partnerTips()}). A cell tips by the rule of {@link TipModel} (FIRST's calibration): the first tip needs 3
+     * POLLEN (the 3 staged NECTAR count as 5 POLLEN-equivalents), every later tip needs 8 POLLEN into the cell that came up.
      */
     public int tips() {
         return tips;
+    }
+
+    /**
+     * The smallest spare of the route's own tips: for every volley that tips the HIVE, how many POLLEN it plans beyond the
+     * minimum ({@link StepInfo#tipSpare}); the smallest of them, because the route is only as safe as its tightest tip.
+     * 0 means a tip with exactly the minimum (a field that needs one more POLLEN would not tip, the validator WARNs); -1
+     * if the route tips nothing itself.
+     */
+    public int minimumTipSpare() {
+        int smallest = -1;
+        for (StepInfo info : infos) {
+            if (info.tipped && (smallest < 0 || info.tipSpare < smallest)) {
+                smallest = info.tipSpare;
+            }
+        }
+        return smallest;
     }
 
     /**
@@ -556,6 +601,24 @@ public final class RouteAnalysis {
     /** Route time in seconds at which the partner's tip is assumed to be done; NaN if the route assumes SELF. */
     public double partnerTipSec() {
         return partnerTipSec;
+    }
+
+    /**
+     * How long, in seconds, the camera must see the tipped cell's tags steadily before the robot calls the HIVE FULLY tipped
+     * ({@code Vision.HIVE_STABLE_SEEN_SEC}). A tip is complete only when the damper touches the frame, and launching at a
+     * HIVE that is still rocking can spoil it (G417), so the robot goes on this long AFTER the tip, never at it.
+     */
+    public double tipSettleSec() {
+        return timing.tipSettleSec();
+    }
+
+    /**
+     * Route time in seconds at which the robot would be SURE the partner's tip is done: the assumed tip plus the settle
+     * time. This, not the tip itself, is when a WAIT_FOR_TIP ends and the first volley at the cell that comes up may start.
+     * NaN if the route assumes SELF.
+     */
+    public double partnerTipConfirmedSec() {
+        return Double.isNaN(partnerTipSec) ? Double.NaN : timing.confirmedAtSec(partnerTipSec);
     }
 
     /** The last moment, on the route clock, by which the route must be over: the AUTO limit minus the safety margin. */
@@ -581,9 +644,10 @@ public final class RouteAnalysis {
      * volleys included) still ends inside {@link #timeBudgetSec()}. It is how much a slow partner can be tolerated.
      *
      * <p>Why a formula and not a search: the steps after a WAIT_FOR_TIP take the same time whenever the tip comes, and
-     * the wait ends at the tip (or at its give-up time), so a tip at T ends the route at {@code max(wait start, T) +
-     * the time of the rest}. That is within the budget until T = budget - rest, and the robot gives up at the
-     * deadline of the wait. The smaller of the two is the answer.
+     * the wait ends when the camera has seen the tip steadily for the settle time ({@link #tipSettleSec()}) or at its
+     * give-up time, so a tip at T ends the route at {@code max(wait start, T + settle) + the time of the rest}. That is
+     * within the budget until T + settle = budget - rest, and the robot gives up at the deadline of the wait. The
+     * smaller of the two, minus the settle time, is the answer.
      *
      * <p>{@code +infinity}: the route does not depend on the partner's tip at all (no volley at the cell that comes up,
      * no wait for it), or our own volley tipped the HIVE first. NaN: the route does not assume a partner tip. A route
@@ -614,10 +678,10 @@ public final class RouteAnalysis {
             }
         }
         if (wait == null) {
-            return dependent == null ? Double.POSITIVE_INFINITY : dependent.launchSec;
+            return dependent == null ? Double.POSITIVE_INFINITY : dependent.launchSec - timing.tipSettleSec();
         }
         double giveUp = ((Step.WaitForTip) wait.step).giveUpSec();
-        return Math.min(giveUp, latestGiveUpSec(wait));
+        return Math.min(giveUp, latestGiveUpSec(wait)) - timing.tipSettleSec();
     }
 
     /**

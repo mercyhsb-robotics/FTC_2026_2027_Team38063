@@ -440,7 +440,7 @@ public class RouteSvgRendererTest {
         assertFalse(ring.getAttribute("stroke-dasharray").isEmpty());
         boolean label = false;
         for (Element t : withClass(byId(d, "route"), "text", "step-label")) {
-            label |= t.getTextContent().equals("INTAKE GARDEN +4");
+            label |= t.getTextContent().equals("INTAKE GARDEN +3");
         }
         assertTrue(label);
     }
@@ -500,8 +500,8 @@ public class RouteSvgRendererTest {
         assertTrue(metrics, metrics.contains("LEAVE 3"));
         assertTrue(metrics, metrics.contains("HIVE TIP 20"));
         String pollen = byId(d, "footer-pollen").getTextContent();
-        assertTrue(pollen, pollen.contains("+4 taken"));
-        assertTrue(pollen, pollen.contains("-4 fired"));
+        assertTrue(pollen, pollen.contains("+3 taken"));
+        assertTrue(pollen, pollen.contains("-3 fired"));
         assertTrue(pollen, pollen.contains("balance 0"));
         assertTrue(pollen, pollen.contains("no findings"));
         assertNotNull(byId(d, "legend"));
@@ -525,10 +525,10 @@ public class RouteSvgRendererTest {
         }
         // a partner route also says how late the partner may tip: it gives up waiting at 20 s, the rest needs about 6 s
         String partnerSub = byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED)), "subtitle").getTextContent();
-        assertTrue(partnerSub, partnerSub.contains("first tip: partner tips first, assumed at 12.0 s; latest that works 20.0 s"));
+        assertTrue(partnerSub, partnerSub.contains("first tip: partner tips first, assumed at 12.0 s; latest that works 19.5 s"));
         // the description for screen readers carries it too
         assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.BLUE)), "svg-desc").getTextContent()
-                .contains("First tip: partner tips first, assumed at 12.0 s; latest that works 20.0 s."));
+                .contains("First tip: partner tips first, assumed at 12.0 s; latest that works 19.5 s."));
         // a partner route that never shoots at the cell that comes up does not depend on the time at all
         AutoRoute independent = AutoRoute.builder("partner_walk").title("t").startTile("C6").start(61.5, BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst()
                 .driveConstant(61.5, 120, 90).build();

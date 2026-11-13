@@ -405,7 +405,7 @@ public class RouteSvgLayoutTest {
     @Test
     public void intakeLabelsNameTheSourceAndTheCount() throws Exception {
         List<String> labels = stepLabels(render("garden_cycle", Alliance.BLUE));
-        assertTrue(labels.toString(), labels.contains("INTAKE GARDEN +4"));
+        assertTrue(labels.toString(), labels.contains("INTAKE GARDEN +3"));
         AutoRoute flower = AutoRoute.builder("f").title("Flower").startTile("A3").start(BioBuzzConstants.Robot.FRONT_EXTENT_IN, 61.5, 180)
                 .shootUp(4)
                 .driveConstant(13.5, 62, 180).driveConstant(13.5, 48, 180)

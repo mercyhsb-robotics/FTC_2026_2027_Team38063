@@ -19,15 +19,22 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *
  * <p>The rules (manual numbers):
  * <ul>
- *   <li><b>G417, a volley that is too big.</b> The simulation says on which POLLEN of a volley the HIVE tips. A cell
- *       that is tipping down must not be launched into, so POLLEN that would still be fired after the tip is an
- *       ERROR: fire fewer POLLEN in that volley.</li>
+ *   <li><b>The tip arithmetic and the spare ({@link TipModel}).</b> The simulation says on which POLLEN of a volley the
+ *       HIVE tips (FIRST's calibration: 3 POLLEN for the cell that holds the 3 staged NECTAR, 8 for an empty cell). A
+ *       volley that tips with POLLEN to spare is normal: the camera sees the tip, the feeder stops and the spare stays in
+ *       the robot. A route that puts in exactly the minimum has no spare, and a field that drifts (QA46: one needed 9
+ *       instead of 8) would not tip: WARN.</li>
+ *   <li><b>G417, a timed volley that is too big.</b> A volley that feeds for a fixed time (an old OpMode) cannot stop when
+ *       the camera sees the tip. POLLEN that such a volley would still launch after the tip go into a cell that is
+ *       tipping down: WARN (QA12 allows adding to a moving HIVE, but G417 allows launching only into an upward-facing
+ *       CELL and a launch at a rocking HIVE can spoil the tip).</li>
  *   <li><b>G417, launching into a cell that faces down.</b> Only an upward-facing cell may be launched into. A SHOOT at
  *       a cell that is DOWN when the first POLLEN leaves is a WARN, except in a route that assumes the PARTNER shoots
  *       the first tip. There the cell that comes UP with the partner's tip is special, because partner teams tip at
  *       different times and the robot must not guess: every SHOOT at that cell needs a WAIT_FOR_TIP before it, even
  *       one that starts after the assumed tip time (a time never lets the robot shoot, only its camera does), and the
- *       wait must last until the tip (an ERROR otherwise). A volley that is still firing at the old cell when the
+ *       wait must last until the tip is CONFIRMED: the tip plus the settle time the camera needs to see the cell steady
+ *       ({@code Vision.HIVE_STABLE_SEEN_SEC}), an ERROR otherwise. A volley that is still firing at the old cell when the
  *       partner's tip happens is a WARN.</li>
  *   <li><b>G409, the spill.</b> When a HIVE tips, the cell that was UP tips down and everything in it falls out of its
  *       opening onto the floor on that side of the HIVE: its 3 staged NECTAR (if it is the first tip) and the POLLEN
@@ -58,6 +65,7 @@ final class TipRules {
     static void check(RouteAnalysis a, List<Issue> out) {
         for (RouteAnalysis.StepInfo info : a.steps()) {
             checkVolleyAfterTip(info, out);
+            checkSpare(info, out);
             checkTarget(a, info, out);
             checkWaitForTip(a, info, out);
         }
@@ -84,20 +92,48 @@ final class TipRules {
         return null;
     }
 
-    // ---- G417: a volley that goes on after the tip -----------------------------------------------------------
+    // ---- G417: a TIMED volley that goes on after the tip ------------------------------------------------------
 
+    /**
+     * Only a timed volley can launch POLLEN after the tip: the camera-gated volley stops when the cell's tags vanish and
+     * keeps the rest (see {@link RouteAnalysis.StepInfo#firedAfterTip}).
+     */
     private static void checkVolleyAfterTip(RouteAnalysis.StepInfo info, List<Issue> out) {
         if (!(info.step instanceof Step.Shoot) || !info.tipped || info.firedAfterTip <= 0) {
             return;
         }
         int count = ((Step.Shoot) info.step).count();
-        int needed = count - info.firedAfterTip;
-        out.add(error(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": the HIVE tips with POLLEN "
-                + needed + " of the " + count + " (" + info.nectarInCellBefore + " NECTAR in the cell, "
-                + BioBuzzConstants.Auto.NECTAR_TIP_THRESHOLD + " NECTAR or " + BioBuzzConstants.Auto.POLLEN_TIP_THRESHOLD
-                + " POLLEN tip it), so the last " + info.firedAfterTip + " would be launched into a cell that is already"
-                + " tipping down; launching into a cell that does not face up is a G417 violation. Fire only " + needed
-                + " at this cell"));
+        out.add(warn(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": this volley is TIMED (it feeds for "
+                + RouteValidator.sec(((Step.Shoot) info.step).fixedSeconds()) + " whatever happens, it cannot stop when the camera sees the tip) and the HIVE tips with POLLEN "
+                + info.tipNeeded + " of the " + count + " (" + info.nectarInCellBefore + " NECTAR in the cell; "
+                + TipModel.ruleShort() + "), so the last "
+                + info.firedAfterTip + " would be launched into a cell that is already tipping down. FIRST's Q&A QA12 lets you add elements to a HIVE"
+                + " that is moving, but G417 allows launching only into an upward-facing CELL and a launch at a rocking HIVE can spoil the tip."
+                + " Drop launchSeconds() so the volley is gated by the camera (it stops at the tip and keeps the spare), or fire only "
+                + info.tipNeeded));
+    }
+
+    // ---- the spare: plan one POLLEN more than the minimum ------------------------------------------------------
+
+    /**
+     * A volley of OUR route that tips the HIVE with no POLLEN to spare plans exactly the minimum: on a field that needs one
+     * more (FIRST's Q&A QA46: a HIVE that needed 9 POLLEN instead of 8 after 8 to 10 matches) it would not tip. WARN, and
+     * the message says what to plan.
+     */
+    private static void checkSpare(RouteAnalysis.StepInfo info, List<Issue> out) {
+        if (!(info.step instanceof Step.Shoot) || !info.tipped || info.tipSpare >= BioBuzzConstants.Auto.TIP_PLANNING_MARGIN_POLLEN) {
+            return;
+        }
+        int count = ((Step.Shoot) info.step).count();
+        int planned = info.pollenInCellBefore + count;
+        int minimum = TipModel.minimumPollen(info.nectarInCellBefore);
+        int wanted = TipModel.planningPollen(info.nectarInCellBefore);
+        out.add(warn(info.index, Rule.TIP_MARGIN, RouteValidator.describe(info) + ": the route puts " + planned + " POLLEN into the "
+                + info.targetSide + " cell, exactly the " + minimum + " that tip it (" + info.nectarInCellBefore + " NECTAR in the cell), with "
+                + "no spare. A field drifts: FIRST's Q&A QA46 tells of a HIVE that needed 9 POLLEN instead of 8, and on such a field this "
+                + "route would not tip. Plan " + wanted + " POLLEN (a spare of " + BioBuzzConstants.Auto.TIP_PLANNING_MARGIN_POLLEN
+                + ", Auto.TIP_PLANNING_MARGIN_POLLEN)" + (info.pollenBefore < wanted - info.pollenInCellBefore
+                ? "; the robot holds only " + info.pollenBefore + " here, so fetch more before this volley" : "")));
     }
 
     // ---- G417: the target cell must face up when the POLLEN leave -----------------------------------------------
@@ -111,9 +147,11 @@ final class TipRules {
             // The cell that only comes UP when the partner's tip is done. The robot must SEE it up before it shoots: a
             // time never decides, because partner teams tip at different times.
             int waitIndex = lastWaitBefore(a, info.index);
+            // The wait must last until the tip is CONFIRMED: the tip plus the time the camera needs to see the cell steady.
+            double confirmed = a.partnerTipConfirmedSec();
             if (waitIndex < 0) {
                 out.add(error(info.index, Rule.SHOOT_TARGET, noWaitMessage(info, partner)));
-            } else if (a.step(waitIndex).endSec() < partner.timeSec - EPS || info.launchSec < partner.timeSec - EPS) {
+            } else if (a.step(waitIndex).endSec() < confirmed - EPS || info.launchSec < confirmed - EPS) {
                 out.add(error(info.index, Rule.SHOOT_TARGET, waitEndsTooEarlyMessage(a, info, partner, waitIndex)));
             }
             return;
@@ -157,11 +195,13 @@ final class TipRules {
         RouteAnalysis.StepInfo wait = a.step(waitIndex);
         return RouteValidator.describe(info) + ": launches into the " + info.targetSide + " cell at "
                 + RouteValidator.sec(info.launchSec) + ", but that cell only comes up when the partner's tip is done, assumed at "
-                + RouteValidator.sec(partner.timeSec) + ", and a cell that faces down must not be launched into (G417). The"
+                + RouteValidator.sec(partner.timeSec) + " and confirmed " + RouteValidator.sec(a.tipSettleSec())
+                + " later (the camera must see the cell steady first), at " + RouteValidator.sec(a.partnerTipConfirmedSec())
+                + ", and a cell that faces down must not be launched into (G417). The"
                 + " WAIT_FOR_TIP at step " + (waitIndex + 1) + " gives up at " + RouteValidator.sec(wait.endSec())
-                + ", before the tip (its give-up time is " + RouteValidator.sec(((Step.WaitForTip) wait.step).giveUpSec())
+                + ", before the tip is confirmed (its give-up time is " + RouteValidator.sec(((Step.WaitForTip) wait.step).giveUpSec())
                 + "), so the robot would skip this volley: raise the give-up time to at least "
-                + RouteValidator.sec(partner.timeSec) + " or plan the route for a later tip";
+                + RouteValidator.sec(a.partnerTipConfirmedSec()) + " or plan the route for a later tip";
     }
 
     // ---- WAIT_FOR_TIP and the first-tip assumption ----------------------------------------------------------
@@ -177,11 +217,12 @@ final class TipRules {
             return;
         }
         double giveUp = ((Step.WaitForTip) info.step).giveUpSec();
-        if (!Double.isNaN(info.tipWaitSec) && info.endSec() < info.tipWaitSec - EPS) {
+        if (!Double.isNaN(info.tipWaitSec) && info.endSec() < a.partnerTipConfirmedSec() - EPS) {
             out.add(warn(info.index, Rule.TIP_ASSUMPTION, RouteValidator.describe(info) + ": gives up at "
                     + RouteValidator.sec(info.endSec()) + ", before the partner's tip assumed at " + RouteValidator.sec(info.tipWaitSec)
-                    + "; the cell it waits for is still facing down then. Raise the give-up time to at least "
-                    + RouteValidator.sec(info.tipWaitSec)));
+                    + " is confirmed (the camera needs " + RouteValidator.sec(a.tipSettleSec()) + " of a steady view after the tip, so "
+                    + RouteValidator.sec(a.partnerTipConfirmedSec()) + " at the earliest); the cell it waits for is not known to be up then."
+                    + " Raise the give-up time to at least " + RouteValidator.sec(a.partnerTipConfirmedSec())));
         }
         double latest = a.latestGiveUpSec(info);
         if (giveUp > latest + EPS) {

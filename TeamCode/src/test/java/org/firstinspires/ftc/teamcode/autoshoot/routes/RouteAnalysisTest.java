@@ -20,6 +20,8 @@ public class RouteAnalysisTest {
     /** The robot's center of rotation is this far (9.77 in) from a wall its FRONT edge is touching; see RobotShape. */
     private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double EPS = 1e-9;
+    /** How long the camera must see a tipped cell steady before the robot calls the HIVE fully tipped. */
+    private static final double SETTLE = BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC;
 
     /** C1 start, shoot the pre-loads, drive up the left corridor and park in the red LOADING ZONE. */
     static AutoRoute.Builder corridorPark() {
@@ -37,13 +39,13 @@ public class RouteAnalysisTest {
         RouteAnalysis a = corridorPark().build().analyze();
         assertTrue(a.leave());
         assertTrue(a.park());
-        // the 4 pre-loads on top of the 3 staged NECTAR are the first tip
+        // the 3rd of the 4 pre-loads, on top of the 3 staged NECTAR, is the first tip; the volley stops there and keeps the 4th
         assertEquals(1, a.tips());
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
                 a.points());
-        assertEquals(-4, a.pollenBalance());
-        assertEquals(0, a.pollenEnd());
-        assertEquals(4, a.pollenShot());
+        assertEquals(-3, a.pollenBalance());
+        assertEquals("the spare pre-load stays in the hopper", 1, a.pollenEnd());
+        assertEquals(3, a.pollenShot());
         assertEquals(0, a.pollenGained());
         assertTrue(a.parkOverlapIn() > 7.0);
     }
@@ -81,10 +83,10 @@ public class RouteAnalysisTest {
         assertTrue(a.totalSeconds() > 5 && a.totalSeconds() < 25);
     }
 
-    // ---- the HIVE tip: staged NECTAR make the first tip one volley of 4 POLLEN --------------------------------
+    // ---- the HIVE tip: the staged NECTAR make the first tip need only 3 POLLEN (FIRST's calibration) -------------
 
     @Test
-    public void oneVolleyOfFourPollenTipsTheFirstHiveBecauseOfTheStagedNectar() {
+    public void aVolleyOfFourTipsTheFirstHiveOnItsThirdPollenAndKeepsTheFourthAsTheSpare() {
         RouteAnalysis a = AutoRoute.builder("tip").start(35, FRONT, -90).shootUp(4).build().analyze();
         assertEquals(1, a.tips());
         assertEquals(BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
@@ -95,32 +97,48 @@ public class RouteAnalysisTest {
         assertTrue(shoot.tipped);
         assertEquals("the UP cell is on the other side after the tip", Side.REAR, shoot.upSideAfter);
         assertEquals("the counter starts again after a tip", 0, shoot.pollenInCellAfter);
-        assertEquals("the last POLLEN of the volley is the one that tips", shoot.endSec(), shoot.tipSec, 1e-9);
-        assertEquals(0, shoot.firedAfterTip);
+        assertEquals("the volley stops at the tip: it ends the moment the 3rd POLLEN lands", shoot.endSec(), shoot.tipSec, 1e-9);
+        assertEquals("the tip comes after the aim and spin-up and three feeds", shoot.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC
+                + 3 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, shoot.tipSec, 1e-9);
+        assertEquals("3 POLLEN tip the cell that holds the staged NECTAR", 3, shoot.tipNeeded);
+        assertEquals("one pre-load is spare", 1, shoot.tipSpare);
+        assertEquals("a camera-gated volley launches nothing after the tip", 0, shoot.firedAfterTip);
+        assertEquals("only the 3 that were needed left the robot", 3, shoot.pollenBefore - shoot.pollenAfter);
+        assertEquals(1, shoot.pollenAfter);
+        assertEquals(1, a.minimumTipSpare());
     }
 
     @Test
-    public void threePollenDoNotTipTheFirstHiveButFourDoEvenWhenTheyComeInTwoVolleys() {
-        // 3 NECTAR + 3 POLLEN = 3 x 8 + 3 x 5 = 39, one short of 40: no tip
+    public void threePollenTipTheFirstHiveAndTwoDoNotEvenWhenTheyComeInTwoVolleys() {
+        // 3 NECTAR + 3 POLLEN = 3 x 5 + 3 x 3 = 24 thirds, the 24 that tip a cell (FIRST: the 3rd POLLEN tips it)
         RouteAnalysis three = AutoRoute.builder("three").start(35, FRONT, -90).shootUp(3).build().analyze();
-        assertEquals(0, three.tips());
-        assertFalse(three.step(1).tipped);
-        assertEquals(3, three.step(1).pollenInCellAfter);
-        assertEquals(Side.AUDIENCE, three.step(1).upSideAfter);
-        assertTrue(Double.isNaN(three.step(1).tipSec));
-        // the POLLEN of two volleys into the same cell add up: 3 + 1 = 4 tips
-        RouteAnalysis split = AutoRoute.builder("split").start(35, FRONT, -90).shootUp(3).shootUp(1).build().analyze();
+        assertEquals(1, three.tips());
+        assertTrue(three.step(1).tipped);
+        assertEquals("3 of 3: exactly the minimum, no spare", 0, three.step(1).tipSpare);
+        assertEquals(0, three.minimumTipSpare());
+        assertEquals(Side.REAR, three.step(1).upSideAfter);
+        // 3 NECTAR + 2 POLLEN = 21 thirds, one POLLEN short: no tip (the case the old weighted rule got wrong the other way round)
+        RouteAnalysis two = AutoRoute.builder("two").start(35, FRONT, -90).shootUp(2).build().analyze();
+        assertEquals(0, two.tips());
+        assertFalse(two.step(1).tipped);
+        assertEquals(2, two.step(1).pollenInCellAfter);
+        assertEquals(Side.AUDIENCE, two.step(1).upSideAfter);
+        assertTrue(Double.isNaN(two.step(1).tipSec));
+        assertEquals("no tip, so no spare to report", -1, two.minimumTipSpare());
+        // the POLLEN of two volleys into the same cell add up: 2 + 1 = 3 tips
+        RouteAnalysis split = AutoRoute.builder("split").start(35, FRONT, -90).shootUp(2).shootUp(1).build().analyze();
         assertEquals(1, split.tips());
         assertFalse(split.step(1).tipped);
         assertTrue(split.step(2).tipped);
+        assertEquals(1, split.step(2).tipNeeded);
         assertEquals(0, split.step(2).pollenInCellAfter);
     }
 
     @Test
     public void theSecondTipNeedsEightPollenBecauseTheNewUpCellHoldsNoNectar() {
         AutoRoute r = AutoRoute.builder("second").start(35, FRONT, -90)
-                .shootUp(4)                                          // tip 1: 3 NECTAR + 4 POLLEN
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
+                .shootUp(4)                                          // tip 1: 3 NECTAR + the 3rd POLLEN, the 4th stays in the robot
+                .intakeFlower(2.4, 48, 13.5, 48, 180, 3)             // 1 + 3 = 4 in the robot
                 .shootUp(4)                                          // 4 POLLEN into the empty REAR cell: not enough
                 .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
                 .shootUp(4)                                          // 8 POLLEN in total: tip 2
@@ -139,20 +157,55 @@ public class RouteAnalysisTest {
         assertEquals(Side.AUDIENCE, full.upSideAfter);
         assertEquals(2, a.tips());
         assertEquals(2 * BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
+        assertEquals("the second tip needed the 4 of this volley on top of the 4 already in the cell", 4, full.tipNeeded);
+        assertEquals("8 POLLEN is exactly the minimum for an empty cell: no spare", 0, full.tipSpare);
+        assertEquals("the first tip has one spare, the second none: the route is as safe as its tightest tip", 0, a.minimumTipSpare());
     }
 
     @Test
-    public void aVolleyThatIsBiggerThanTheTipNeedsFiresItsLastPollenAfterTheTip() {
-        // 2 POLLEN: 3 x 8 + 2 x 5 = 34, not yet. Then a volley of 4: the 2nd POLLEN of it makes 4 in the cell and tips.
+    public void nineIntoAnEmptyCellLeavesOneSpare() {
+        // 4 + 3 + 2: the 8th POLLEN tips an empty cell, the 9th is the spare for a field that is one POLLEN stiffer
+        RouteAnalysis a = AutoRoute.builder("nine").start(35, FRONT, -90)
+                .shootUp(4).shootSide(Side.REAR, 4).shootSide(Side.REAR, 3).shootSide(Side.REAR, 2).build().analyze();
+        assertTrue("the first tip", a.step(1).tipped);
+        assertFalse("4 POLLEN in the empty rear cell", a.step(2).tipped);
+        assertFalse("7 POLLEN: one short", a.step(3).tipped);
+        assertTrue("the 8th POLLEN tips it", a.step(4).tipped);
+        assertEquals(1, a.step(4).tipNeeded);
+        assertEquals("9 planned into the cell: 1 spare", 1, a.step(4).tipSpare);
+        assertEquals(2, a.tips());
+    }
+
+    @Test
+    public void aCameraGatedVolleyThatIsBiggerThanTheTipNeedsStopsAtTheTipAndKeepsTheRest() {
+        // 2 POLLEN: 3 NECTAR + 2 POLLEN = 21 thirds, not yet. Then a volley of 4: the 1st POLLEN of it makes 3 in the cell and tips.
         AutoRoute r = AutoRoute.builder("late").start(35, FRONT, -90)
                 .shootUp(2).intakeFloor(40, 30, 38, 30, 0, 2).shootUp(4).build();
         RouteAnalysis.StepInfo volley = r.analyze().step(3);
         assertTrue(volley.tipped);
-        assertEquals(2, volley.firedAfterTip);
-        // the tip is half way through the volley's firing, not at its end
-        double firing = volley.endSec() - volley.launchSec;
-        assertEquals(volley.launchSec + firing * 2 / 4, volley.tipSec, 1e-9);
-        assertTrue(volley.tipSec < volley.endSec());
+        assertEquals(1, volley.tipNeeded);
+        assertEquals("3 of the 4 are the spare", 3, volley.tipSpare);
+        assertEquals("the camera sees the tip, the feeder stops: nothing is launched into the tipping cell", 0, volley.firedAfterTip);
+        assertEquals("one POLLEN left the robot, three stayed", 1, volley.pollenBefore - volley.pollenAfter);
+        // the tip is when the 1st POLLEN lands, and the volley ends there
+        assertEquals(volley.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC + BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, volley.tipSec, 1e-9);
+        assertEquals(volley.tipSec, volley.endSec(), 1e-9);
+    }
+
+    @Test
+    public void aTimedVolleyCannotStopAndLaunchesItsLastPollenAfterTheTip() {
+        // an old OpMode feeds for a fixed 8 s whatever happens: the 3rd of its 4 POLLEN tips the HIVE and the 4th goes into a cell
+        // that is already tipping down
+        AutoRoute r = AutoRoute.builder("timed").start(35, FRONT, -90).shootUp(35, FRONT, -90, 4).launchSeconds(8.0).build();
+        RouteAnalysis.StepInfo volley = r.analyze().step(1);
+        assertTrue(volley.tipped);
+        assertEquals(3, volley.tipNeeded);
+        assertEquals(1, volley.tipSpare);
+        assertEquals("the 4th is launched after the tip", 1, volley.firedAfterTip);
+        assertEquals("all 4 left the robot", 4, volley.pollenBefore - volley.pollenAfter);
+        // the POLLEN leave at an even pace: the 3rd of 4 leaves three quarters of the way through the 8 s
+        assertEquals(volley.launchSec + 8.0 * 3 / 4, volley.tipSec, 1e-9);
+        assertEquals("the volley lasts its fixed 8 s", volley.launchSec + 8.0, volley.endSec(), 1e-9);
     }
 
     @Test
@@ -184,11 +237,11 @@ public class RouteAnalysisTest {
 
     @Test
     public void eachVolleyRemembersWhatItsCellHeldBeforeItStarted() {
-        // 3 POLLEN, then 1 more at the same cell: the second volley starts with 3 POLLEN of ours already in it
-        RouteAnalysis split = AutoRoute.builder("split").start(35, FRONT, -90).shootUp(3).shootUp(1).build().analyze();
+        // 2 POLLEN, then 1 more at the same cell: the second volley starts with 2 POLLEN of ours already in it
+        RouteAnalysis split = AutoRoute.builder("split").start(35, FRONT, -90).shootUp(2).shootUp(1).build().analyze();
         assertEquals(0, split.step(1).pollenInCellBefore);
         assertEquals(3, split.step(1).nectarInCellBefore);
-        assertEquals(3, split.step(2).pollenInCellBefore);
+        assertEquals(2, split.step(2).pollenInCellBefore);
         assertEquals(3, split.step(2).nectarInCellBefore);
         // after the tip the other cell starts empty: no NECTAR and no POLLEN of ours
         RouteAnalysis tipped = AutoRoute.builder("tipped").start(35, FRONT, -90).shootUp(4).shootUp(2).build().analyze();
@@ -270,12 +323,29 @@ public class RouteAnalysisTest {
                 .waitSeconds(3.0).waitForTip(30.0).build().analyze();
         RouteAnalysis.StepInfo wait = a.step(2);
         assertEquals(3.0, wait.startSec, EPS);
-        assertEquals("until the tip at 12 s", PARTNER_SEC - 3.0, wait.durationSec, EPS);
-        assertEquals(PARTNER_SEC, wait.endSec(), EPS);
-        assertEquals(PARTNER_SEC, wait.tipWaitSec, EPS);
+        assertEquals("until the tip at 12 s has been seen steady for the settle time", PARTNER_SEC + SETTLE - 3.0, wait.durationSec, EPS);
+        assertEquals(PARTNER_SEC + SETTLE, wait.endSec(), EPS);
+        assertEquals("the step still knows when the tip itself is due", PARTNER_SEC, wait.tipWaitSec, EPS);
         assertEquals(Side.AUDIENCE, wait.upSideBefore);
         assertEquals("the other cell is up when the wait ends", Side.REAR, wait.upSideAfter);
-        assertEquals(PARTNER_SEC, a.totalSeconds(), EPS);
+        assertEquals(PARTNER_SEC + SETTLE, a.totalSeconds(), EPS);
+        assertEquals(PARTNER_SEC + SETTLE, a.partnerTipConfirmedSec(), EPS);
+        assertEquals(SETTLE, a.tipSettleSec(), EPS);
+    }
+
+    @Test
+    public void theSettleTimeIsRequiredBeforeTheRobotGoesOn() {
+        // Without the settle time the robot would go on at the very moment of the tip, while the HIVE is still rocking (a TIP is
+        // complete only when the damper touches the frame, and launching at a rocking HIVE can spoil it, G417).
+        assertTrue("the settle time is a real, positive time", SETTLE > 0.0);
+        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst()
+                .waitForTip(30.0).build().analyze();
+        assertTrue("the wait does not end at the tip", a.step(1).endSec() > PARTNER_SEC + EPS);
+        assertEquals(PARTNER_SEC + SETTLE, a.step(1).endSec(), EPS);
+        // the same settle time is the constant the camera tracker uses for "seen steadily"
+        assertEquals(BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC, a.tipSettleSec(), 0.0);
+        // a self route has no partner tip to confirm
+        assertTrue(Double.isNaN(AutoRoute.builder("self").start(58, FRONT, -90).shootUp(4).build().analyze().partnerTipConfirmedSec()));
     }
 
     @Test
@@ -327,8 +397,8 @@ public class RouteAnalysisTest {
     @Test
     public void theLatestPartnerTipIsTheGiveUpTimeWhenThatComesFirst() {
         RouteAnalysis a = waitThenFire(18.0).build().analyze();
-        assertEquals(18.0, a.latestPartnerTipSec(), EPS);
-        assertEquals("slack = latest minus assumed", 18.0 - PARTNER_SEC, a.partnerTipSlackSec(), EPS);
+        assertEquals("the wait gives up at 18 s, and the camera needs the settle time after the tip", 18.0 - SETTLE, a.latestPartnerTipSec(), EPS);
+        assertEquals("slack = latest minus assumed", 18.0 - SETTLE - PARTNER_SEC, a.partnerTipSlackSec(), EPS);
         assertEquals(PARTNER_SEC, a.partnerTipSec(), EPS);
     }
 
@@ -336,7 +406,7 @@ public class RouteAnalysisTest {
     public void theLatestPartnerTipIsTheTimeBudgetWhenTheGiveUpTimeIsLater() {
         // giving up at 28 s is later than the rest of the route allows: the budget is the limit
         RouteAnalysis a = waitThenFire(28.0).build().analyze();
-        double expected = a.latestGiveUpSec(a.step(1));
+        double expected = a.latestGiveUpSec(a.step(1)) - SETTLE;
         assertTrue(expected < 28.0);
         assertEquals(expected, a.latestPartnerTipSec(), EPS);
         assertEquals(expected - PARTNER_SEC, a.partnerTipSlackSec(), EPS);
@@ -353,11 +423,11 @@ public class RouteAnalysisTest {
             assertTrue("giveUp " + giveUp, atLatest.totalSeconds() <= BUDGET + 1e-6);
             RouteAnalysis.StepInfo shoot = atLatest.step(2);
             assertTrue(shoot.targetWasUp);
-            assertTrue("the volley starts at or after the tip", shoot.launchSec >= latest - 1e-6);
+            assertTrue("the volley starts at or after the CONFIRMED tip", shoot.launchSec >= latest + SETTLE - 1e-6);
             // 0.3 s later it does not: the robot gives up waiting (the volley would go into a cell that faces down), or the route
             // runs past the budget
             RouteAnalysis tooLate = RouteAnalysis.ofWithPartnerTipAt(route, latest + 0.3);
-            boolean gaveUp = tooLate.step(1).endSec() < latest + 0.3 - 1e-9;
+            boolean gaveUp = tooLate.step(1).endSec() < latest + 0.3 + SETTLE - 1e-9;
             boolean overran = tooLate.totalSeconds() > BUDGET + 1e-6;
             assertTrue("giveUp " + giveUp + ": " + tooLate.totalSeconds(), gaveUp || overran);
         }
@@ -370,7 +440,7 @@ public class RouteAnalysisTest {
         RouteAnalysis early = RouteAnalysis.ofWithPartnerTipAt(route, 0.5);
         RouteAnalysis assumed = route.analyze();
         assertTrue(early.totalSeconds() < assumed.totalSeconds());
-        assertEquals(0.5, early.step(1).endSec(), EPS);
+        assertEquals("the wait ends when the early tip has been seen steady", 0.5 + SETTLE, early.step(1).endSec(), EPS);
         assertEquals("the volley itself takes as long as before", assumed.step(2).durationSec, early.step(2).durationSec, EPS);
     }
 
@@ -396,7 +466,8 @@ public class RouteAnalysisTest {
         // (the checker calls such a route an ERROR; the number is still defined: the tip must be done when the volley starts)
         RouteAnalysis a = AutoRoute.builder("nowait").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitSeconds(13.0)
                 .shootUp(61.5, 130.0, 90, 4).build().analyze();
-        assertEquals(a.step(2).launchSec, a.latestPartnerTipSec(), EPS);
+        assertEquals("the tip must be confirmed (done plus the settle time) when the volley starts", a.step(2).launchSec - SETTLE,
+                a.latestPartnerTipSec(), EPS);
     }
 
     @Test
@@ -486,6 +557,7 @@ public class RouteAnalysisTest {
         assertFalse("4 POLLEN into the empty rear cell are not enough", a.step(2).tipped);
         assertEquals(0, a.step(2).nectarInCellBefore);
         assertTrue(a.step(4).tipped);
+        assertEquals("4 + 4 into an empty cell is exactly the 8 that tip it: no spare", 0, a.step(4).tipSpare);
         assertEquals(1, a.tips());
         assertEquals(1, a.partnerTips());
         assertEquals("our points: only our own tip", BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());

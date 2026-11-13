@@ -53,7 +53,8 @@ public class FlowerPressTest {
     // ---- helpers -------------------------------------------------------------------------------------
 
     private static AutoRoute.Builder base() {
-        // 4 pre-loads fired first, so that a FLOWER INTAKE of 4 is legal; the drive to the FLOWER is not what these tests judge
+        // The 4 pre-loads are fired first: the volley tips the HIVE on the 3rd POLLEN and keeps the 4th (the spare), so the robot
+        // holds 1 and a FLOWER INTAKE of 3 is legal; the drive to the FLOWER is not what these tests judge
         return AutoRoute.builder("press").start(35, FRONT, -90).shootUp(4);
     }
 
@@ -61,7 +62,7 @@ public class FlowerPressTest {
     private static AutoRoute lineUpRoute(int flower, IntakeWheel wheel, Pose2 lineUp) {
         Point2 c = RED.flowerCenter(flower);
         return base().driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees())
-                .intakeFlower(c.x, c.y, lineUp.x, lineUp.y, lineUp.headingDegrees(), wheel, 4).build();
+                .intakeFlower(c.x, c.y, lineUp.x, lineUp.y, lineUp.headingDegrees(), wheel, 3).build();
     }
 
     private static final int INTAKE = 3;
@@ -246,7 +247,7 @@ public class FlowerPressTest {
             for (IntakeWheel w : IntakeWheel.values()) {
                 Point2 c = RED.flowerCenter(f);
                 AutoRoute r = base().driveConstant(ideal(f, w).x, ideal(f, w).y, ideal(f, w).headingDegrees())
-                        .intakeFlower(c.x, c.y, w, 4).build();
+                        .intakeFlower(c.x, c.y, w, 3).build();
                 Step.Intake step = (Step.Intake) r.step(INTAKE);
                 assertEquals(w, step.wheel());
                 assertEquals(ideal(f, w).x, step.robotPose().x, EPS);
@@ -256,7 +257,7 @@ public class FlowerPressTest {
         }
         // the six-number form names no wheel: it is the one whose middle is nearer the FLOWER's center line
         Pose2 l = ideal(0, IntakeWheel.RIGHT);
-        AutoRoute r = base().driveConstant(l.x, l.y, l.headingDegrees()).intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), 4).build();
+        AutoRoute r = base().driveConstant(l.x, l.y, l.headingDegrees()).intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), 3).build();
         assertEquals(IntakeWheel.RIGHT, ((Step.Intake) r.step(INTAKE)).wheel());
     }
 
@@ -389,7 +390,7 @@ public class FlowerPressTest {
         Pose2 inside = FlowerPress.poseWithWheelOnCenterLine(RED, 0, IntakeWheel.LEFT, 1.0);
         AutoRoute r = AutoRoute.builder("x").start(35, FRONT, -90).shootUp(4)
                 .driveConstant(inside.x, inside.y, inside.headingDegrees())
-                .intakeFlower(2.4, 48, inside.x, inside.y, inside.headingDegrees(), IntakeWheel.LEFT, 4).build();
+                .intakeFlower(2.4, 48, inside.x, inside.y, inside.headingDegrees(), IntakeWheel.LEFT, 3).build();
         List<Issue> all = RouteValidator.check(r);
         boolean driveInPlate = false;
         for (Issue i : all) {
@@ -402,7 +403,7 @@ public class FlowerPressTest {
     public void aShortRetreatIsOnlyAWarning() {
         Pose2 l = ideal(0, IntakeWheel.LEFT);
         AutoRoute r = base().driveConstant(l.x, l.y, l.headingDegrees())
-                .intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), IntakeWheel.LEFT, 4).retreat(2.0).build();
+                .intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), IntakeWheel.LEFT, 3).retreat(2.0).build();
         List<Issue> issues = intakeIssues(r);
         assertEquals(issues.toString(), 1, issues.size());
         assertEquals(Severity.WARN, issues.get(0).severity);
@@ -411,7 +412,7 @@ public class FlowerPressTest {
         assertEquals(2.0, press(r).retreatLengthIn, EPS);
         // a full retreat has no finding
         assertTrue(intakeIssues(base().driveConstant(l.x, l.y, l.headingDegrees())
-                .intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), IntakeWheel.LEFT, 4).build()).isEmpty());
+                .intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), IntakeWheel.LEFT, 3).build()).isEmpty());
     }
 
     // ---- I2 / I3: wheels too short, the whole plate is no longer exempt -------------------------------------------
@@ -463,7 +464,7 @@ public class FlowerPressTest {
         // pressing FLOWER 1 must not be an excuse to enter FLOWER 2: the exemption is for the targeted plate only
         Pose2 tipInsideOther = FlowerPress.poseWithWheelOnCenterLine(RED, 1, IntakeWheel.LEFT, RED.flowerPressStopLineIn());
         AutoRoute r = base().driveConstant(tipInsideOther.x, tipInsideOther.y, tipInsideOther.headingDegrees())
-                .intakeFlower(2.4, 48, IntakeWheel.LEFT, 4).build();
+                .intakeFlower(2.4, 48, IntakeWheel.LEFT, 3).build();
         List<Issue> drive = onStep(RouteValidator.check(r), 2);
         assertTrue(drive.toString(), count(drive, Rule.FLOWER_KEEPOUT, Severity.ERROR) >= 1);
     }
@@ -496,7 +497,7 @@ public class FlowerPressTest {
     public void theRouteAfterAFlowerStartsFromTheRetreatPose() {
         Pose2 l = ideal(0, IntakeWheel.LEFT);
         AutoRoute r = base().driveConstant(l.x, l.y, l.headingDegrees())
-                .intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), IntakeWheel.LEFT, 4)
+                .intakeFlower(2.4, 48, l.x, l.y, l.headingDegrees(), IntakeWheel.LEFT, 3)
                 .driveConstant(30, 70, 180).build();
         RouteAnalysis a = r.analyze();
         assertEquals(press(r).retreat.x, a.step(INTAKE + 1).from.x, EPS);
