@@ -36,7 +36,9 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       released by a tipped HIVE until it has touched something else (rules.verified.md, G409 p109). So for
  *       {@code TIP_SPILL_CLEAR_SEC} after every tip, ours and the partner's, the robot footprint must stay out of
  *       the spill zone: that cell's plan footprint grown by {@code TIP_SPILL_MARGIN_IN}. The other cell's side of the
- *       HIVE is not in the zone; it is where a robot waiting for the partner's tip stands. ERROR.</li>
+ *       HIVE is not in the zone; it is where a robot waiting for the partner's tip stands. ERROR. (This is the
+ *       planning version, with times. On the robot the same rule is "stay out until the camera has confirmed the tip,
+ *       plus {@code TIP_SPILL_CLEAR_SEC}", because the real time of the partner's tip is not known.)</li>
  *   <li><b>The assumption must hold.</b> WARN: a WAIT_FOR_TIP in a route that assumes we shoot the first tip (there is
  *       nothing to wait for); a WAIT_FOR_TIP that gives up before the tip it waits for, or later than the rest of the
  *       route can afford; our own volley tipping the HIVE before the partner's assumed tip (the route then does not

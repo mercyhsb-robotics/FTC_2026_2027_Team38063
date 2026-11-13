@@ -148,7 +148,8 @@ public final class BioBuzzConstants {
          * NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE.
          * G409 says a robot may not catch or deflect what a tipped HIVE releases, so for this many seconds after a
          * tip the robot footprint must stay out of that cell's spill zone (see TIP_SPILL_MARGIN_IN). 3 s is a first
-         * guess for the balls to land and stop rolling: watch a real tip and replace it.
+         * guess for the balls to land and stop rolling: watch a real tip and replace it. The route checker counts it from
+         * the planned tip time; the robot itself counts it from the moment its camera has confirmed the tip.
          */
         public static final double TIP_SPILL_CLEAR_SEC = 3.0;
         /**

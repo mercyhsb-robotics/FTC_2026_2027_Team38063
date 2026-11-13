@@ -284,6 +284,15 @@ public class RouteGalleryTest {
     }
 
     @Test
+    public void everyPartnerRouteOfTheCatalogShowsItsSlackInTheGallery() throws Exception {
+        Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
+        for (AutoRoute r : RouteCatalog.all()) {
+            boolean hasRow = section(page, r.id()).getTextContent().contains("Latest partner tip that works");
+            assertEquals(r.id(), r.firstTip() == org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip.PARTNER, hasRow);
+        }
+    }
+
+    @Test
     public void theSlackTextSaysWhenARouteHasLittleOrNoSlackOrDoesNotDependOnThePartner() throws Exception {
         AutoRoute tight = AutoRoute.builder("tight").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
                 .partnerTipsFirst().waitForTip(13).shootUp(62.0, 132.5, 90, 4).build();

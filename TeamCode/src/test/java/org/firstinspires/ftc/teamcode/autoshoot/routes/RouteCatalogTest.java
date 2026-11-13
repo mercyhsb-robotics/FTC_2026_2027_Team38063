@@ -93,6 +93,39 @@ public class RouteCatalogTest {
     }
 
     @Test
+    public void noRouteOfTheCatalogBreaksTheTipRulesForEitherAlliance() {
+        // G417 (a shot at a cell that is not UP, a volley that goes on after the tip, a shot at the partner's cell without
+        // waiting for the camera to see it up) and G409 (standing where the tipped cell spills): an ERROR of these rules is
+        // a route that cannot be run as written. The routes of the two family files are checked the day they are added.
+        for (AutoRoute r : RouteCatalog.all()) {
+            for (Alliance a : Alliance.values()) {
+                List<Issue> l = RouteValidator.check(r.forAlliance(a));
+                assertEquals(r.id() + " " + a + ": " + l, 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+                assertEquals(r.id() + " " + a + ": " + l, 0, count(l, Rule.SPILL_G409, Severity.ERROR));
+            }
+        }
+    }
+
+    @Test
+    public void everyPartnerRouteOfTheCatalogHasAMeasurableSlackAndWaitsForTheTipBeforeShootingAtIt() {
+        for (AutoRoute r : RouteCatalog.all()) {
+            RouteAnalysis a = r.analyze();
+            if (r.firstTip() != FirstTip.PARTNER) {
+                assertTrue(r.id(), Double.isNaN(a.latestPartnerTipSec()));
+                continue;
+            }
+            assertFalse(r.id() + " has a latest partner tip", Double.isNaN(a.latestPartnerTipSec()));
+            // a partner route that fires at the cell that comes up must hold a WAIT_FOR_TIP (the validator says so too)
+            boolean waits = false;
+            for (int i = 0; i < r.size(); i++) {
+                waits |= r.step(i).kind() == StepKind.WAIT_FOR_TIP;
+            }
+            boolean dependsOnTip = !Double.isInfinite(a.latestPartnerTipSec());
+            assertTrue(r.id() + ": a route that depends on the partner's tip waits for it", !dependsOnTip || waits);
+        }
+    }
+
+    @Test
     public void aRouteInTheWrongFamilyFileIsReportedByName() {
         AutoRoute self = AutoRoute.builder("shoots_itself").start(58, 9.2, -90).waitSeconds(1).build();
         AutoRoute partner = AutoRoute.builder("waits_for_partner").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(1).build();
