@@ -200,7 +200,7 @@
 <polygon class="arrowhead" points="285.9,711.82 280.9,701.82 290.9,701.82" fill="#c62828"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
-<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.4 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn.</title>
+<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.4 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn. The model charges the flat 5 s only: the OpMode first waits for the flywheel to reach speed (waitUntil isAtTargetRpm, about 1.9 s in the model&apos;s own numbers), so the real tip and finish times are about that much later than shown.</title>
 <polygon class="outline error" points="304.01,729.91 338.61,655.71 264.41,621.1 229.8,695.31" fill="#f9a825" fill-opacity="0.3" stroke="#f9a825" stroke-width="3.4" stroke-linejoin="round"/>
 <polygon class="chassis" points="309.26,718.66 338.61,655.71 264.41,621.1 235.05,684.05" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="304.01" y1="729.91" x2="229.8" y2="695.31" stroke="#2e7d32" stroke-width="4.5"/>
@@ -236,7 +236,7 @@
 <text x="285.9" y="675.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
-<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.4 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn.</title>
+<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.4 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn. The model charges the flat 5 s only: the OpMode first waits for the flywheel to reach speed (waitUntil isAtTargetRpm, about 1.9 s in the model&apos;s own numbers), so the real tip and finish times are about that much later than shown.</title>
 <circle cx="299.33" cy="658.45" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="299.33" y="662.25" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>

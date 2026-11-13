@@ -178,7 +178,7 @@
 <polygon class="arrowhead" points="391.35,658.42 383.8,663.22 382.98,655.26" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it.</title>
+<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
 <path class="leg" d="M 391.35 658.42 L 166.3 631.4" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="278.82,644.91 289.35,641.14 288.16,651.07" fill="#c62828"/>
 <polygon class="arrowhead" points="166.3,631.4 176.82,627.63 175.63,637.56" fill="#c62828"/>
@@ -226,7 +226,7 @@
 <polygon class="arrowhead" points="391.35,465.08 396.35,475.08 386.35,475.08" fill="#c62828"/>
 </g>
 <g class="intake" data-step="5" data-source="GARDEN">
-<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 10.2 to 12.7 s) - The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
+<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 10.2 to 12.7 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
 <polygon class="outline" points="207.24,710.52 207.24,628.64 125.36,628.64 125.36,710.52" fill="#c62828" fill-opacity="0.07" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
 <polygon class="chassis" points="207.24,698.1 207.24,628.64 125.36,628.64 125.36,698.1" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="207.24" y1="710.52" x2="125.36" y2="710.52" stroke="#2e7d32" stroke-width="4.5"/>
@@ -266,7 +266,7 @@
 <text x="391.35" y="662.22" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it.</title>
+<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
 <circle cx="278.82" cy="644.91" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="278.82" y="648.71" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
@@ -276,7 +276,7 @@
 <text x="166.3" y="652.29" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="INTAKE">
-<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 10.2 to 12.7 s) - The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
+<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 10.2 to 12.7 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
 <circle cx="185.3" cy="665.58" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="185.3" y="669.38" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
