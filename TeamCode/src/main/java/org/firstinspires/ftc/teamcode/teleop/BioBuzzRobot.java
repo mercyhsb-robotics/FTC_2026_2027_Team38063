@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.ClusterView;
 import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.HiveTracker;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.PoseCorrector;
 import org.firstinspires.ftc.teamcode.autoshoot.core.PoseStore;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ScoringPlanner;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ShotTable;
@@ -72,6 +73,7 @@ public class BioBuzzRobot extends OpMode {
     private Alliance alliance = Alliance.RED;
     private HiveTracker tracker;
     private AutoShootController controller;
+    private PoseCorrector corrector;
 
     // ---- state
     private long startNanos;
@@ -128,6 +130,7 @@ public class BioBuzzRobot extends OpMode {
 
         analyzer = new ClusterAnalyzer(field, ClusterAnalyzer.Config.fromConstants());
         planner = new ScoringPlanner(field, ScoringPlanner.Config.fromConstants(table));
+        corrector = new PoseCorrector(PoseCorrector.Config.fromConstants());
 
         PoseStore.Snapshot snap = PoseStore.load(System.nanoTime(), BioBuzzConstants.Controls.POSE_CARRYOVER_MAX_AGE_SEC);
         if (snap != null) {
@@ -217,6 +220,7 @@ public class BioBuzzRobot extends OpMode {
                 : Collections.<ClusterView>emptyList();
         if (pose != null) {
             tracker.update(now, frame, views, HiveTracker.sideOf(pose, field));
+            pose = correctDrift(now, pose, frame, views);
         }
         lastFrame = frame;
         lastViews = views;
@@ -278,6 +282,26 @@ public class BioBuzzRobot extends OpMode {
 
         // 5. Report.
         report(out, pose);
+    }
+
+    /**
+     * Lets a good sighting of the HIVE tags nudge the odometry position back toward the truth (see
+     * {@link PoseCorrector}). Skipped while a ball is being fed, so the robot never shifts in the middle of a shot.
+     *
+     * @return the pose to use for the rest of this loop (the corrected one if the position was moved)
+     */
+    private Pose2 correctDrift(double now, Pose2 pose, VisionFrame frame, List<ClusterView> views) {
+        if (controller != null && controller.state() == AutoShootController.State.FEED) {
+            return pose;
+        }
+        PoseCorrector.Correction fix = corrector.update(now, pose, drive.speedInPerSec(), drive.omegaRadPerSec(),
+                frame, views);
+        if (fix == null) {
+            return pose;
+        }
+        Pose2 corrected = new Pose2(pose.x + fix.dx, pose.y + fix.dy, pose.heading);   // heading stays with the gyro
+        drive.setPose(corrected);
+        return corrected;
     }
 
     /** {forward, strafe, turn, translation stick magnitude}: forward/strafe/turn are ready for the drive. */
@@ -388,6 +412,7 @@ public class BioBuzzRobot extends OpMode {
                 + (lastViews.isEmpty() ? "" : "  " + lastViews.get(0)));
         if (pose != null) {
             telemetry.addData("Pose", pose + "  [" + poseSource + "]");
+            telemetry.addData("Drift correction", corrector.status());
         }
     }
 
