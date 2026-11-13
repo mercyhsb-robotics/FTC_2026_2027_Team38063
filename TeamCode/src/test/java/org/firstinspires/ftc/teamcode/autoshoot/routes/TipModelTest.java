@@ -166,6 +166,20 @@ public class TipModelTest {
     }
 
     @Test
+    public void aTimedVolleyIsWorkedOutAsOneThatCannotStop() {
+        // a volley that feeds for a fixed time fires all 4 POLLEN: the 4th goes into a cell that is already tipping down
+        String timed = TipModel.explainVolley(3, 0, 4, false);
+        assertTrue(timed, timed.contains("so the HIVE tips on POLLEN 3 of the 4; this volley is TIMED and cannot stop, so the last 1 goes into a cell that is already tipping down"));
+        assertFalse(timed, timed.contains("stays in the robot"));
+        // two POLLEN too many: "go", not "goes"
+        assertTrue(TipModel.explainVolley(0, 6, 4, false).contains("the last 2 go into a cell that is already tipping down"));
+        // with no spare there is nothing to say about the end of the volley, stopping or not
+        assertEquals(TipModel.explainVolley(3, 0, 3, true), TipModel.explainVolley(3, 0, 3, false));
+        // the three-argument form is the camera-gated volley
+        assertEquals(TipModel.explainVolley(3, 0, 4, true), TipModel.explainVolley(3, 0, 4));
+    }
+
+    @Test
     public void thePollenEquivalentsAreWrittenExactly() {
         assertEquals("24 thirds", "8", TipModel.equivalentsText(3, 3));
         assertEquals("23 thirds", "7 2/3", TipModel.equivalentsText(1, 6));

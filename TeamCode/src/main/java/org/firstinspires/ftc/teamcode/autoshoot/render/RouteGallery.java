@@ -387,11 +387,8 @@ public final class RouteGallery {
             h.append("<li class=\"tipline volley\" data-step=\"").append(info.index + 1).append("\">Step ").append(info.index + 1)
                     .append(": ");
             if (info.targetWasUp) {
-                h.append(esc(TipModel.explainVolley(info.nectarInCellBefore, info.pollenInCellBefore, count)));
-                if (info.firedAfterTip > 0) {
-                    h.append("; this volley is TIMED and cannot stop, so the last ").append(info.firedAfterTip)
-                            .append(" POLLEN would go into a cell that is already tipping down");
-                }
+                h.append(esc(TipModel.explainVolley(info.nectarInCellBefore, info.pollenInCellBefore, count,
+                        !((Step.Shoot) info.step).hasFixedSeconds())));
             } else {
                 h.append("fires ").append(count).append(" POLLEN at the ").append(info.targetSide)
                         .append(" cell, which faces down when they leave, so they count for nothing");

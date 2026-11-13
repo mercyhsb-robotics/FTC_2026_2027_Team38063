@@ -371,6 +371,17 @@ public class RouteGalleryTest {
     }
 
     @Test
+    public void theTimedVolleysOfTheOldOpModesAreWorkedOutAsOnesThatCannotStop() throws Exception {
+        Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
+        String b1 = withClass(section(page, "red_b1"), "li", "tipline").get(0).getTextContent();
+        assertTrue(b1, b1.contains("so the HIVE tips on POLLEN 3 of the 4; this volley is TIMED and cannot stop, so the last 1 goes into a cell that is already tipping down."));
+        assertFalse(b1, b1.contains("stays in the robot"));
+        // a camera-gated volley keeps its spare
+        String wall = withClass(section(page, "wall_shoot_park"), "li", "tipline").get(0).getTextContent();
+        assertTrue(wall, wall.contains("the volley stops there; the last 1 stays in the robot as the spare"));
+    }
+
+    @Test
     public void theSpareOfEveryRouteIsSaidInWordsAndNoSpareIsSaidLoudly() throws Exception {
         AutoRoute exact = AutoRoute.builder("exact").title("Exact").description("d").startTile("C1")
                 .start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(3).build();

@@ -138,6 +138,15 @@ public final class TipModel {
      * stays in the robot as the spare"}.
      */
     public static String explainVolley(int nectar, int pollenBefore, int count) {
+        return explainVolley(nectar, pollenBefore, count, true);
+    }
+
+    /**
+     * The same, for a volley that may not be able to stop at the tip: a volley gated by the camera ({@code stopsAtTip}) keeps the
+     * POLLEN it did not need, a TIMED one (an old OpMode that feeds for a fixed time) fires them all, into a cell that is already
+     * tipping down.
+     */
+    public static String explainVolley(int nectar, int pollenBefore, int count, boolean stopsAtTip) {
         int threshold = BioBuzzConstants.Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD;
         int pollenAfter = pollenBefore + count;
         StringBuilder s = new StringBuilder();
@@ -150,9 +159,12 @@ public final class TipModel {
                     .append(equivalentsText(nectar, onTheTip)).append(" POLLEN-equivalents, the ").append(threshold)
                     .append(" that tip a cell, so the HIVE tips on POLLEN ").append(needed).append(" of the ").append(count);
             int spare = count - needed;
-            if (spare > 0) {
+            if (spare > 0 && stopsAtTip) {
                 s.append(" and the volley stops there; the last ").append(spare).append(" stay").append(spare == 1 ? "s" : "")
                         .append(" in the robot as the spare");
+            } else if (spare > 0) {
+                s.append("; this volley is TIMED and cannot stop, so the last ").append(spare).append(spare == 1 ? " goes" : " go")
+                        .append(" into a cell that is already tipping down");
             } else {
                 s.append(": NO spare, a field that needs one more POLLEN would not tip");
             }
