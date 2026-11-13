@@ -80,7 +80,7 @@ public final class PartnerTipRoutes {
 
         routes.add(AutoRoute.builder(PARTNER_REAR_SHOOT_PARK)
                 .partnerTipsFirst()
-                .title("Standard: start turned in the rear corner, wait beside the cell that comes up, shoot 4 into it, park")
+                .title("Standard: start turned in a corner, wait beside the cell that comes up, shoot 4 into it, park")
                 .description("Assumes the alliance PARTNER shoots the first tip (assumed done at 12 s, agree the real time with the partner team). The robot starts "
                         + "TURNED in a corner of its own half, on the wall behind the cell that comes up with the partner's tip (for RED that is the rear wall, for BLUE "
                         + "the audience wall), with its back (the shooter) toward that cell, and WAITS: it never shoots because a time has passed, only after its camera "
@@ -162,7 +162,7 @@ public final class PartnerTipRoutes {
 
     private static void addRoutesFromEveryStart(List<AutoRoute> routes) {
         // ---- Safe -------------------------------------------------------------------------------------------------------------------------
-        routes.add(make(SAFE_REAR_WALL_B6, "Safe: start straight on the rear wall left of the FLOWER, roll to the cell, wait, shoot 4, park",
+        routes.add(make(SAFE_REAR_WALL_B6, "Safe: start straight on the wall behind the cell, beside the FLOWER, roll to the cell, wait, shoot 4, park",
                 "WHY THIS START: a plain, straight placement. The robot stands on the rear wall in tile B6, left of the rear-wall FLOWER, front edge on the wall and "
                         + "facing it. Nothing is turned, so it is the easiest start to measure and place, and it keeps the 1 in and 3 degree placement margin.",
                 "WE DO: 1) drive off the wall, past the FLOWER and into a straight shooting pose on the rear wall just right of it, while the partner shoots; "
@@ -188,7 +188,7 @@ public final class PartnerTipRoutes {
                     }
                 }));
 
-        routes.add(make(SAFE_RED_CORNER_A6, "Safe: start in the red-wall corner by the rear wall, roll to the cell, wait, shoot 4, park",
+        routes.add(make(SAFE_RED_CORNER_A6, "Safe: start in the corner behind the cell, roll to the cell, wait, shoot 4, park",
                 "WHY THIS START: it keeps the robot out of the middle of the rear side. It stands with its LEFT side on the red wall in tile A6, in the corner behind the "
                         + "LOADING ZONE, facing the rear wall, so a partner or a third robot that sets up near the rear cell is not in its way, and the wall is a long straight "
                         + "edge to square the robot against.",
@@ -217,7 +217,7 @@ public final class PartnerTipRoutes {
                 }));
 
         // ---- Standard ---------------------------------------------------------------------------------------------------------------------
-        routes.add(make(STANDARD_RED_WALL_A4, "Standard: start on the red wall below the LOADING ZONE, go up the corridor, wait, shoot 4, park",
+        routes.add(make(STANDARD_RED_WALL_A4, "Standard: start on the side wall just below the LOADING ZONE, go up the corridor, wait, shoot 4, park",
                 "WHY THIS START: the robot sets up on the red wall in tile A4, just below the LOADING ZONE, with its left side on the wall and facing the rear wall. It is a short, "
                         + "straight run up the left corridor to the rear side, and it leaves the audience wall free for the partner's shooting position.",
                 "WE DO: 1) drive straight up the left corridor, then east along the rear side to a shooting pose on the rear wall right of the FLOWER, while the partner shoots; "
@@ -242,7 +242,7 @@ public final class PartnerTipRoutes {
                     }
                 }));
 
-        routes.add(make(STANDARD_RED_WALL_A2, "Standard: start on the red wall below the left FLOWER, go up the corridor, wait, shoot 4, park",
+        routes.add(make(STANDARD_RED_WALL_A2, "Standard: start on the side wall below its FLOWER, go up the corridor, wait, shoot 4, park",
                 "WHY THIS START: the robot sets up on the red wall in tile A2, below the red-wall FLOWER, with its left side on the wall, so the drive team can square it against the "
                         + "wall they use for every other start and it is as far as it can be from the rear side where a partner might also be. The drive up the corridor is the longest of "
                         + "the red-wall starts, and the wait hides all of it.",
@@ -269,7 +269,7 @@ public final class PartnerTipRoutes {
                     }
                 }));
 
-        routes.add(make(STANDARD_B1_CORRIDOR, "Standard: start in B1 like the old autos, go up the left corridor, wait, shoot 4, park",
+        routes.add(make(STANDARD_B1_CORRIDOR, "Standard: start where RedAlliance_B1 does, go up the side corridor, wait, shoot 4, park",
                 "WHY THIS START: the usual one. The robot stands in tile B1 with its FRONT edge on the audience wall, exactly as in RedAlliance_B1 and the TeleOp default, so nobody "
                         + "learns a new placement. It goes the long way round the HIVE (up the left corridor) while the partner shoots.",
                 "WE DO: 1) drive back-first up the left corridor, turn around at the top and go east to the shooting pose on the rear wall, while the partner shoots; "
@@ -294,7 +294,7 @@ public final class PartnerTipRoutes {
                     }
                 }));
 
-        routes.add(make(STANDARD_C1_CORRIDOR, "Standard: start in C1 like the old autos, slide left, go up the corridor, wait, shoot 4, park",
+        routes.add(make(STANDARD_C1_CORRIDOR, "Standard: start where RedAlliance_C1 does, slide over, go up the side corridor, wait, shoot 4, park",
                 "WHY THIS START: the other usual one. The robot stands in tile C1, in line with the HIVE, with its FRONT edge on the audience wall, as in RedAlliance_C1. "
                         + "It first slides left, because the straight line up the field is the HIVE, then goes up the left corridor. Use it when B1 is taken by the partner.",
                 "WE DO: 1) slide left to the corridor, drive back-first up it, turn around at the top and go east to the in-line shooting pose, while the partner shoots; "
@@ -320,7 +320,7 @@ public final class PartnerTipRoutes {
                     }
                 }));
 
-        routes.add(make(STANDARD_B1_BACK_FIRST, "Standard: start in B1 with the BACK on the audience wall, drive straight up the corridor, wait, shoot 4, park",
+        routes.add(make(STANDARD_B1_BACK_FIRST, "Standard: start where RedAlliance_B1 does but turned round, drive straight up the side corridor, wait, shoot 4, park",
                 "WHY THIS START: the same tile as the old autos, but turned the other way round: the robot's back is on the audience wall and it faces the rear wall already, so it "
                         + "drives forward up the corridor and arrives with the heading it needs. No turn is needed anywhere. Placement is also easy (a straight robot on a wall).",
                 "WE DO: 1) drive forward up the left corridor and east along the rear side to the shooting pose, while the partner shoots; 2) wait there until the camera has seen "
@@ -346,7 +346,7 @@ public final class PartnerTipRoutes {
                 }));
 
         // ---- Aggressive -------------------------------------------------------------------------------------------------------------------
-        routes.add(make(AGGRESSIVE_REAR_EDGE, "Aggressive: start as near the cell as the placement margin allows, shoot from the left of the axis, park by the shortest way",
+        routes.add(make(AGGRESSIVE_REAR_EDGE, "Aggressive: start as near the cell as the placement margin allows, shoot from beside its axis, park by the shortest way",
                 "WHY THIS START: it is the closest straight start to the cell that still keeps the 1 in and 3 degree placement margin, on the rear wall, as near the rear FLOWER as a robot placed by hand can safely stand. The "
                         + "robot is therefore ready sooner than from any other straight start in these routes, which matters for a partner that tips EARLY. It then shoots from 10 degrees "
                         + "left of the cell's axis (inside the 20 degree cone), the point of the allowed shots nearest the LOADING ZONE, so the way out is the shortest too.",

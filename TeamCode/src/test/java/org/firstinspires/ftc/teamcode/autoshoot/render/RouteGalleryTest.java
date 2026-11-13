@@ -281,9 +281,16 @@ public class RouteGalleryTest {
         assertTrue("the summary row of the partner route carries the latest tip", inSummary);
         // routes that shoot the first tip themselves have no such row
         assertFalse(section(page, "garden_cycle").getTextContent().contains("Latest partner tip"));
+        // (the partner routes: this test's own and every one of the catalog, which are written with partnerTipsFirst())
+        java.util.Set<String> partnerIds = new java.util.HashSet<String>();
+        partnerIds.add("partner_rear");
+        for (AutoRoute r : RouteCatalog.all()) {
+            if (r.firstTip() == org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip.PARTNER) {
+                partnerIds.add(r.id());
+            }
+        }
         for (Element row : withClass(page, "tr", "summary-row")) {
-            // (the two partner routes: this test's own and the one of the catalog)
-            if (!row.getAttribute("data-route").equals("partner_rear") && !row.getAttribute("data-route").equals("partner_rear_shoot_park")) {
+            if (!partnerIds.contains(row.getAttribute("data-route"))) {
                 assertFalse(row.getTextContent(), row.getTextContent().contains("latest tip that works"));
             }
         }
