@@ -256,6 +256,24 @@ public final class ConstantsCheck {
                 }
             }
         }
+        // The park button must be a button nothing else uses, and the park settings must fit the zone and each other.
+        java.util.List<Button> taken = new ArrayList<Button>(Arrays.asList(BioBuzzConstants.Controls.SHOOT_BUTTON,
+                BioBuzzConstants.Controls.TOGGLE_HIVE_BUTTON, BioBuzzConstants.Controls.RESET_POSE_BUTTON,
+                BioBuzzConstants.Controls.ALLIANCE_RED_BUTTON, BioBuzzConstants.Controls.ALLIANCE_BLUE_BUTTON,
+                BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON));
+        java.util.List<String> takenBy = new ArrayList<String>(Arrays.asList("Controls.SHOOT_BUTTON", "Controls.TOGGLE_HIVE_BUTTON",
+                "Controls.RESET_POSE_BUTTON", "Controls.ALLIANCE_RED_BUTTON", "Controls.ALLIANCE_BLUE_BUTTON", "Controls.UNJAM_INDEXER_BUTTON",
+                "Controls.UNJAM_SHOOTER_BUTTON"));
+        for (Button fixed : BioBuzzConstants.Controls.FIXED_MANUAL_BUTTONS) {
+            taken.add(fixed);
+            takenBy.add("a fixed manual control in BioBuzzRobot (intake, launch or feeder)");
+        }
+        checkParkButton(r, BioBuzzConstants.Controls.PARK_BUTTON, taken.toArray(new Button[0]), takenBy.toArray(new String[0]));
+        checkParkSettings(r, BioBuzzConstants.Park.MIN_OVERLAP_IN, BioBuzzConstants.Auto.PARK_MIN_OVERLAP_IN, BioBuzzConstants.Park.ARRIVE_IN,
+                BioBuzzConstants.Park.ARRIVE_DEG, BioBuzzConstants.Park.ARRIVE_SPEED_IN_S, BioBuzzConstants.Park.GRID_STEP_IN,
+                BioBuzzConstants.Park.HEADING_STEP_DEG, BioBuzzConstants.Park.MAX_ROUTE_CHECKS,
+                BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MAX_IN - BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MIN_IN,
+                BioBuzzConstants.AutoShoot.WALL_CLEARANCE_IN);
         // The direction signs only flip a direction, so each must be exactly +1 or -1 (never 0 or 2).
         double[] signs = {BioBuzzConstants.Controls.MANUAL_FORWARD_SIGN, BioBuzzConstants.Controls.MANUAL_STRAFE_SIGN,
                 BioBuzzConstants.Controls.MANUAL_TURN_SIGN};
@@ -428,6 +446,48 @@ public final class ConstantsCheck {
         }
         if (!(tieSec >= 0.0)) {
             r.errors.add("Auto.START_SEARCH_TIE_SEC (" + tieSec + " s) cannot be negative: it is how close two route times must be for the search to call them a tie.");
+        }
+    }
+
+    /**
+     * The park button must not be any other button of the TeleOp: two jobs on one button fire together (holding park would also shoot, clear
+     * a jam, reset the position ...). {@code others[i]} is a button already in use and {@code names[i]} says by what, so the message can name it.
+     */
+    static void checkParkButton(Report r, Button park, Button[] others, String[] names) {
+        for (int i = 0; i < others.length; i++) {
+            if (park == others[i]) {
+                r.errors.add("Controls.PARK_BUTTON (" + park + ") is also used by " + names[i] + ": pick a button nothing else uses, or the robot would"
+                        + " park and do that job at the same time.");
+            }
+        }
+    }
+
+    /**
+     * The park assist settings must fit each other and the zone: the robot has to be able to reach the overlap it aims for ({@code minOverlap}
+     * must be less than the zone depth minus the wall clearance), a robot that stops {@code arriveIn} short of its spot must still overlap by
+     * the validator's safe minimum ({@code safeOverlap}), and every step and limit must be positive, or the assist could never find or finish a park.
+     */
+    static void checkParkSettings(Report r, double minOverlap, double safeOverlap, double arriveIn, double arriveDeg, double arriveSpeed,
+                                  double gridStep, double headingStep, int maxChecks, double zoneDepth, double wallClearance) {
+        if (!(minOverlap > 0.0) || !(safeOverlap > 0.0)) {
+            r.errors.add("Park.MIN_OVERLAP_IN (" + minOverlap + ") and Auto.PARK_MIN_OVERLAP_IN (" + safeOverlap + ") must be above 0: they say how deep"
+                    + " the robot must reach into the LOADING ZONE.");
+        }
+        if (!(arriveIn > 0.0) || !(arriveDeg > 0.0) || !(arriveSpeed > 0.0)) {
+            r.errors.add("Park.ARRIVE_IN, ARRIVE_DEG and ARRIVE_SPEED_IN_S must be above 0 (they are how close, how well turned and how slow the robot"
+                    + " must be to count as parked).");
+        }
+        if (!(gridStep > 0.0) || !(headingStep > 0.0) || headingStep > Math.toDegrees(Angles.TWO_PI) || maxChecks < 1) {
+            r.errors.add("Park.GRID_STEP_IN and HEADING_STEP_DEG must be above 0 (the heading step at most one turn) and Park.MAX_ROUTE_CHECKS at least 1:"
+                    + " they decide which park spots are tried.");
+        }
+        if (minOverlap < safeOverlap + arriveIn) {
+            r.errors.add("Park.MIN_OVERLAP_IN (" + minOverlap + " in) must be at least Auto.PARK_MIN_OVERLAP_IN (" + safeOverlap + " in) plus Park.ARRIVE_IN ("
+                    + arriveIn + " in): the robot may stop that far short of its spot and must still count as parked.");
+        }
+        if (minOverlap > zoneDepth - wallClearance) {
+            r.errors.add("Park.MIN_OVERLAP_IN (" + minOverlap + " in) is more than the LOADING ZONE is deep (" + zoneDepth + " in) minus the wall clearance ("
+                    + wallClearance + " in): the robot could never stand that deep in the zone, so the assist would never find a park spot.");
         }
     }
 
