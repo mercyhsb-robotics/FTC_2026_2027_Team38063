@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 /**
  * {@link RobotShape}: where the robot's edges lie around its center of rotation. The numbers to remember: the front edge is
- * 9.77 in from the center of rotation, the back edge 8.03 in, each side edge 8.90 in (together 17.80 x 17.80 in).
+ * 9.77 in from the center of rotation, the back edge 8.03 in, each side edge 8.81 in (together 17.80 x 17.62 in). The tests take the numbers from BioBuzzConstants, so a new measurement does not break them.
  *
  * <p>Words used: <b>center of rotation</b> is the point the robot spins about, the position Pedro reports; <b>reach toward a
  * direction</b> is how far the outline extends from that point in a direction on the field while the robot faces some way.
@@ -64,16 +64,19 @@ public class RobotShapeTest {
 
     /**
      * Situation: the circumscribed radius and the smallest extent of the real robot.
-     * Expected: the farthest corner is a FRONT corner, hypot(9.77, 8.90) = 13.22 in (not the 12.59 in of a centered square); the
+     * Expected: the farthest corner is a FRONT corner, hypot(front, side) = 13.16 in (not the 12.52 in of a centered rectangle); the
      *     nearest edge is the back, 8.03 in.
      */
     @Test
     public void theReachIsTheFarthestCornerAndTheSmallestExtentIsTheBack() {
         RobotShape s = RobotShape.fromConstants();
-        assertEquals(Math.hypot(9.77, 8.90), s.reachIn(), EPS);
-        assertEquals(13.216, s.reachIn(), 0.001);
-        assertTrue(s.reachIn() > Math.hypot(8.9, 8.9) + 0.5);
-        assertEquals(8.03, s.smallestExtentIn(), EPS);
+        double front = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+        double rear = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+        double side = Math.max(BioBuzzConstants.Robot.LEFT_EXTENT_IN, BioBuzzConstants.Robot.RIGHT_EXTENT_IN);
+        assertTrue("the front is the long end", front > rear);
+        assertEquals(Math.hypot(front, side), s.reachIn(), EPS);
+        assertTrue(s.reachIn() > Math.hypot(BioBuzzConstants.Robot.LENGTH_IN / 2.0, BioBuzzConstants.Robot.WIDTH_IN / 2.0) + 0.5);
+        assertEquals(rear, s.smallestExtentIn(), EPS);
         // an independent brute force over the four corners
         double far = 0.0;
         for (double f : new double[] {s.frontIn(), -s.rearIn()}) {
@@ -92,16 +95,21 @@ public class RobotShapeTest {
     public void theReachTowardAWallIsTheEdgeThatFacesIt() {
         RobotShape s = RobotShape.fromConstants();
         double toAudienceWall = Math.toRadians(-90);     // the audience wall is at y = 0, in the direction -90 degrees
-        assertEquals("facing the wall: the front", 9.77, s.reachTowardIn(Math.toRadians(-90), toAudienceWall), EPS);
-        assertEquals("facing away from it: the back", 8.03, s.reachTowardIn(Math.toRadians(90), toAudienceWall), EPS);
-        assertEquals("sideways: a side", 8.90, s.reachTowardIn(Math.toRadians(0), toAudienceWall), EPS);
-        assertEquals("sideways the other way: the other side", 8.90, s.reachTowardIn(Math.toRadians(180), toAudienceWall), EPS);
+        double front = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+        double rear = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+        double left = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
+        double right = BioBuzzConstants.Robot.RIGHT_EXTENT_IN;
+        // facing 0 degrees (toward +x) with the wall at -y: the robot's RIGHT side is toward the wall; facing 180 the LEFT side is
+        assertEquals("facing the wall: the front", front, s.reachTowardIn(Math.toRadians(-90), toAudienceWall), EPS);
+        assertEquals("facing away from it: the back", rear, s.reachTowardIn(Math.toRadians(90), toAudienceWall), EPS);
+        assertEquals("sideways: a side", right, s.reachTowardIn(Math.toRadians(0), toAudienceWall), EPS);
+        assertEquals("sideways the other way: the other side", left, s.reachTowardIn(Math.toRadians(180), toAudienceWall), EPS);
         // the same four facings against the red wall (x = 0, direction 180 degrees)
         double toRedWall = Math.PI;
-        assertEquals(9.77, s.reachTowardIn(Math.PI, toRedWall), EPS);
-        assertEquals(8.03, s.reachTowardIn(0.0, toRedWall), EPS);
-        assertEquals(8.90, s.reachTowardIn(Math.PI / 2.0, toRedWall), EPS);
-        assertEquals(8.90, s.reachTowardIn(-Math.PI / 2.0, toRedWall), EPS);
+        assertEquals(front, s.reachTowardIn(Math.PI, toRedWall), EPS);
+        assertEquals(rear, s.reachTowardIn(0.0, toRedWall), EPS);
+        assertEquals(left, s.reachTowardIn(Math.PI / 2.0, toRedWall), EPS);
+        assertEquals(right, s.reachTowardIn(-Math.PI / 2.0, toRedWall), EPS);
     }
 
     /**
@@ -130,9 +138,11 @@ public class RobotShapeTest {
 
     @Test
     public void equalShapesAreEqualAndDifferentOnesAreNot() {
-        assertEquals(RobotShape.fromConstants(), new RobotShape(9.77, 8.03, 8.9, 8.9));
-        assertEquals(RobotShape.fromConstants().hashCode(), new RobotShape(9.77, 8.03, 8.9, 8.9).hashCode());
-        assertFalse(RobotShape.fromConstants().equals(RobotShape.centered(17.8, 17.8)));
-        assertTrue(RobotShape.fromConstants().toString(), RobotShape.fromConstants().toString().contains("front 9.77 in"));
+        RobotShape same = new RobotShape(BioBuzzConstants.Robot.FRONT_EXTENT_IN, BioBuzzConstants.Robot.REAR_EXTENT_IN,
+                BioBuzzConstants.Robot.LEFT_EXTENT_IN, BioBuzzConstants.Robot.RIGHT_EXTENT_IN);
+        assertEquals(RobotShape.fromConstants(), same);
+        assertEquals(RobotShape.fromConstants().hashCode(), same.hashCode());
+        assertFalse(RobotShape.fromConstants().equals(RobotShape.centered(BioBuzzConstants.Robot.LENGTH_IN, BioBuzzConstants.Robot.WIDTH_IN)));
+        assertTrue(RobotShape.fromConstants().toString(), RobotShape.fromConstants().toString().contains(String.format(java.util.Locale.ROOT, "front %.2f in", BioBuzzConstants.Robot.FRONT_EXTENT_IN)));
     }
 }

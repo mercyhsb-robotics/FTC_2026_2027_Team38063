@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autoshoot.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -14,33 +15,26 @@ import org.junit.Test;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 /**
- * The team's one MEASURED shot: with the robot's FRONT pressed against the audience wall and in line with the HIVE, the ball
- * leaves 37.7 in from the aim point of the UP cell and the POLLEN passes through the center of the opening to slightly above
- * it at about 1200 ticks per second. That is a PHYSICAL measurement of where the robot stood, so the shot-table row {37.7, 1200}
- * is kept exactly as measured. What can change is the MODEL's idea of the same situation, because the model's range comes from
- * the field numbers: where the aim point is, how far the center of rotation is from the wall and where the ball leaves the robot.
+ * The ANCHOR SHOT: the one place where the team saw the shot work. With the robot's FRONT pressed against the audience wall and in line
+ * with the HIVE, the POLLEN passes through the center of the opening to slightly above it at about 1200 ticks per second.
  *
- * <p>How it works: no robot. The pose of that situation is built from the real extents (the center of rotation is the front
- * extent, 9.77 in, from the wall because the FRONT edge touches it), the model computes the range from the ball exit to the aim
- * point, and the test prints it and compares it with the 37.7 in that was measured.
+ * <p><b>The distance of that spot was NOT measured with a tape.</b> The model COMPUTES it from the field and the robot: the aim point of the
+ * UP cell is 54.156 in from the audience wall (the official CAD), the center of rotation is the front extent (9.77 in) from the wall because the
+ * FRONT edge touches it, and the ball leaves the robot 5.38 in behind the center of rotation (measured), so the ball exit is 9.77 + 5.38 = 15.15 in
+ * from the wall and the range is 54.156 - 15.15 = 39.006 in. The shot-table row {39.0, 1200}, {@code AutoShoot.PREFERRED_RANGE_IN} and
+ * {@code Shooter.TUNER_START_RANGE_IN} all follow that computed range: this test fails if somebody moves the ball exit (a new measurement) and
+ * forgets to move them.
  *
- * <p><b>What the official CAD changed.</b> With the old 144 in field the aim point was 55.52 in from the audience wall and the
- * model agreed with the measurement (55.52 - 17.80 = 37.72 in). The CAD puts the field walls 1.326 in nearer the field center
- * on every side, so the aim point is 54.156 in from the wall, and the model's range for the same physical shot is
- * 54.156 - 17.80 = <b>36.36 in, 1.34 in shorter</b> than the measurement. Either the tape measure measured something slightly
- * different (for example from a different point of the cell), or the ball leaves the robot farther forward than the 8.03 in
- * behind the center of rotation that the constants say: the robot CAD suggests 6.58 in, which would give 37.8 in. The row of the
- * table is not changed. The robot-day guide (docs/START_HERE.md) says to re-measure; this test makes sure that, as long as the two differ by more
- * than 1 in, the checklist and the constants say so.
+ * <p>Because the range is computed, the guide (docs/START_HERE.md) and the Javadoc of the shot table both tell the team to check it: "re-measure the
+ * distance from the ball exit to the cell opening center with a tape", and to check the row with the Shooter Tuner. This test makes sure both keep
+ * saying so, and that neither calls the number "measured" or quotes the old 37.7 in.
  *
- * <p>Words used: <b>ball exit</b> is where the POLLEN leaves the shooter (8.03 in behind the center of rotation for now); <b>aim
- * point</b> is the center of the UP cell's opening; <b>range</b> is the horizontal distance between the two.
+ * <p>Words used: <b>ball exit</b> is where the POLLEN leaves the shooter (5.38 in behind the center of rotation, 0.16 in right of the center line);
+ * <b>aim point</b> is the center of the UP cell's opening; <b>range</b> is the horizontal distance between the two.
  */
-public class MeasuredAnchorShotTest {
-    /** The wording the checklist and the constants must contain while the model and the measurement disagree by more than 1 in. */
+public class AnchorShotTest {
+    /** The wording the checklist and the constants must contain: the team checks the computed anchor distance with a tape. */
     private static final String REMEASURE = "re-measure the distance from the ball exit to the cell opening center with a tape";
-    /** How far the model may differ from the measurement before the docs must say so (inches). */
-    private static final double DOCUMENT_ABOVE_IN = 1.0;
 
     private final FieldModel field = new FieldModel();
     private final ShotTable table = ShotTable.fromConstants();
@@ -50,7 +44,7 @@ public class MeasuredAnchorShotTest {
         return field.cell(Alliance.RED, Side.AUDIENCE);
     }
 
-    /** The robot with its front edge on the audience wall, in line with the HIVE axis, facing the wall. */
+    /** The robot with its front edge on the audience wall, its middle over the HIVE axis, facing the wall. */
     private Pose2 anchorPose() {
         return new Pose2(cell().axisX, Footprint.frontExtentIn(), -Math.PI / 2.0);
     }
@@ -61,96 +55,119 @@ public class MeasuredAnchorShotTest {
                 cell.originX, cell.originY);
     }
 
+    /** The row of the shot table that is the anchor: the one nearest to the model's range. */
+    private double[] anchorRow() {
+        double[] best = null;
+        for (double[] row : BioBuzzConstants.Shooter.SHOT_TABLE) {
+            if (best == null || Math.abs(row[0] - modelRange()) < Math.abs(best[0] - modelRange())) {
+                best = row;
+            }
+        }
+        return best;
+    }
+
     /**
-     * Situation: the measured anchor situation (front on the wall, in line with the HIVE), worked out with the CAD field numbers.
-     * Expected: the model's range is aim point minus a whole robot length (the ball exit is 9.77 + 8.03 = 17.80 in from the
-     *     wall): 54.156 - 17.80 = 36.356 in. The shooter is exactly in line and aimed, and the shot table gives about 1191 ticks
-     *     per second there (the row {37.7, 1200} is the measurement). The test prints the numbers.
-     * Why: it is the one place where the model meets a physical measurement. If a field or robot number moves, the printed
-     *     line shows by how much the model's picture of the shot moved.
+     * Situation: the anchor situation (front on the wall, in line with the HIVE), worked out with the CAD field numbers and the measured ball exit.
+     * Expected: the ball exit is the front extent plus its distance behind the center of rotation from the wall, the range is the aim point minus
+     *     that (39.0 in), the aim is off by the sideways offset of the ball only (a fraction of a degree), and the shot table gives about 1200 ticks
+     *     per second there. The test prints the numbers.
+     * Why: it is the one place where the model meets what the team saw. If a field or robot number moves, the printed line shows by how much the
+     *     model's picture of the shot moved.
      */
     @Test
-    public void theModelsRangeForTheMeasuredWallShotFollowsFromTheCadNumbers() {
+    public void theModelsRangeForTheAnchorSpotFollowsFromTheFieldAndRobotNumbers() {
         Pose2 pose = anchorPose();
         CellSpec cell = cell();
         double range = modelRange();
         double exitY = ShotGeometry.launchY(pose, BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN);
         System.out.println(String.format(Locale.ROOT,
-                "ANCHOR SHOT with the CAD field: front on the audience wall (center of rotation %.2f in from it), in line with the HIVE"
-                        + " axis x = %.3f; ball exit %.2f in from the wall at %.2f in behind the center; aim point (%.3f, %.3f);"
-                        + " model range = %.2f in (measured 37.7 in, difference %.2f in); shot table at that range = %.0f ticks per second (measured about 1200)",
-                pose.y, pose.x, exitY, -BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, cell.originX, cell.originY, range,
-                range - 37.7, table.velocityAt(range)));
-        assertEquals("the ball exit is a whole robot length from the wall", BioBuzzConstants.Robot.LENGTH_IN, exitY, 1e-9);
-        assertEquals("range = aim point minus the exit distance", cell.originY - exitY, range, 1e-9);
+                "ANCHOR SHOT with the CAD field: front on the audience wall (center of rotation %.2f in from it), robot middle over the HIVE"
+                        + " axis x = %.3f; ball exit %.2f in from the wall at %.2f in behind the center and %.2f in left of it; aim point (%.3f, %.3f);"
+                        + " model range = %.3f in; shot table at that range = %.0f ticks per second (seen: about 1200)",
+                pose.y, pose.x, exitY, -BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN,
+                cell.originX, cell.originY, range, table.velocityAt(range)));
+        assertEquals("the ball exit is the front extent plus its distance behind the center of rotation from the wall",
+                BioBuzzConstants.Robot.FRONT_EXTENT_IN - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, exitY, 1e-9);
         assertEquals("the CAD aim point is 54.156 in from the wall", 54.156, cell.originY, 1e-6);
-        assertEquals("range from the ball exit to the aim point", 36.356, range, 0.001);
-        assertEquals("in line with the HIVE", 0.0, Math.toDegrees(ShotGeometry.azimuthOffAxis(pose, BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN,
-                BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, cell)), 1e-6);
-        assertEquals("aimed", 0.0, Math.toDegrees(ShotGeometry.aimError(pose, BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN,
-                BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, cell.originX, cell.originY)), 1e-6);
+        assertEquals("range = aim point minus the exit distance (the ball is a hair off the axis: 0.16 in)", cell.originY - exitY, range, 0.01);
+        assertEquals("the range the model works out for the anchor spot", 39.0, range, 0.05);
+        // the ball leaves a hair to one side of the robot's middle, so the shooter is off the HIVE axis by that much and no more
+        double hair = Math.toDegrees(Math.atan2(Math.abs(BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN), range));
+        assertEquals("off the HIVE axis only by the sideways offset of the ball", hair,
+                Math.abs(Math.toDegrees(ShotGeometry.azimuthOffAxis(pose, BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN,
+                        BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, cell))), 1e-3);
+        double aim = Math.abs(Math.toDegrees(ShotGeometry.aimError(pose, BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN,
+                BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, cell.originX, cell.originY)));
+        assertEquals("aimed, but for the sideways offset of the ball", hair, aim, 1e-3);
+        assertTrue("that hair is inside the aim tolerance", aim < BioBuzzConstants.Auto.SHOOT_AIM_TOLERANCE_DEG);
         assertEquals(1200.0, table.velocityAt(range), 15.0);
     }
 
     /**
-     * Situation: the same situation worked out with the OLD numbers (the 144 in field with the aim point 55.52 in from the wall
-     *     and the center of rotation in the middle of the robot: 8.9 in from the wall, ball exit 8.9 in behind it).
-     * Expected: the old model gave 37.72 in, the measurement. The CAD aim point is 1.364 in nearer the wall than the old one,
-     *     and that is the whole difference to the new model range.
-     * Why: it shows where the 1.34 in comes from: the field frame, not the robot or the planner.
+     * Situation: the same robot pose worked out with the ball exit of the goBILDA drawing (the rear edge of the robot, 8.03 in behind the center of
+     *     rotation) and with the ball exit the team measured (5.38 in behind it).
+     * Expected: the measured exit is 2.65 in nearer the front of the robot, so for the same robot pose the ball is 2.65 in FARTHER from the HIVE.
+     * Why: it shows where the change of range comes from (the real shooter, not the field or the planner), and it is the number by which every
+     *     shooting pose of every route had to move closer to the HIVE.
      */
     @Test
-    public void theWholeDifferenceToTheOldModelIsTheMovedAimPoint() {
-        double oldAimY = 55.52;
-        double oldRange = ShotGeometry.rangeTo(new Pose2(cell().axisX, 8.9, -Math.PI / 2.0), -8.9, 0.0, cell().axisX, oldAimY);
-        assertEquals("the old model agreed with the measurement", 37.72, oldRange, 0.001);
-        assertEquals("the CAD moved the aim point 1.364 in toward the wall", 1.364, oldAimY - cell().originY, 0.001);
-        assertEquals(oldRange - (oldAimY - cell().originY), modelRange(), 1e-9);
+    public void theMeasuredExitIsNearerTheFrontThanTheDrawingsAndThatMovesTheRange() {
+        CellSpec cell = cell();
+        double drawingRange = ShotGeometry.rangeTo(anchorPose(), -BioBuzzConstants.Robot.REAR_EXTENT_IN, BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN,
+                cell.originX, cell.originY);
+        assertEquals(BioBuzzConstants.Robot.REAR_EXTENT_IN + BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, modelRange() - drawingRange, 0.01);
+        assertEquals("2.65 in nearer the front", 2.65, modelRange() - drawingRange, 0.01);
     }
 
     /**
-     * Situation: the shot table, which carries the anchor row.
-     * Expected: the row {37.7, 1200} is still there (it is a physical measurement, kept as it is), and the one measured range is
-     *     the table's own anchor and the planner's preferred range.
+     * Situation: the shot table, which carries the anchor row, and the two other numbers that name the anchor range.
+     * Expected: one row of the table is the model's range for the anchor spot (to a twentieth of an inch) at the speed the team saw, 1200 ticks per
+     *     second, and the planner's preferred range and the Shooter Tuner's start range are that same row's range.
      */
     @Test
-    public void theAnchorRowOfTheShotTableIsKept() {
-        boolean found = false;
-        for (double[] row : BioBuzzConstants.Shooter.SHOT_TABLE) {
-            found |= Math.abs(row[0] - 37.7) < 1e-9 && Math.abs(row[1] - 1200.0) < 1e-9;
-        }
-        assertTrue("the measured row {37.7, 1200} must stay in the table", found);
-        assertEquals(37.7, BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN, 1e-9);
-        assertEquals(37.7, BioBuzzConstants.Shooter.TUNER_START_RANGE_IN, 1e-9);
+    public void theAnchorRowOfTheShotTableFollowsTheModelsRange() {
+        double[] row = anchorRow();
+        assertEquals("the anchor row is the model's range for the anchor spot", modelRange(), row[0], 0.05);
+        assertEquals("at the speed the team saw work", 1200.0, row[1], 1e-9);
+        assertEquals(row[0], BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN, 1e-9);
+        assertEquals(row[0], BioBuzzConstants.Shooter.TUNER_START_RANGE_IN, 1e-9);
     }
 
     /**
-     * Situation: the model's range for the anchor situation compared with the measured 37.7 in.
-     * Expected: if they differ by more than 1 in, the robot-day guide AND the Javadoc of the shot table in BioBuzzConstants both
-     *     tell the team to "re-measure the distance from the ball exit to the cell opening center with a tape".
-     * Why: a disagreement between the model and the one measurement must never be left unsaid, and the table row must not be
-     *     changed silently to hide it. (If the launch point is measured and the two agree again, this test asks for nothing.)
+     * Situation: the standoff band of the route validator, and the anchor spot.
+     * Expected: the spot is inside the band [SHOOT_STANDOFF_MIN_IN, SHOOT_STANDOFF_MAX_IN].
+     * Why: the wall limits how far the robot can stand from the HIVE, so the band must reach the one place where the team saw the shot work, or the
+     *     validator would reject the start of every route that shoots from it.
      */
     @Test
-    public void aDisagreementOfMoreThanAnInchIsSaidInTheChecklistAndTheConstants() throws IOException {
-        double difference = Math.abs(modelRange() - 37.7);
-        if (difference <= DOCUMENT_ABOVE_IN) {
-            return;
-        }
-        String checklist = read("docs/START_HERE.md");
-        assertTrue("docs/START_HERE.md must say '" + REMEASURE + "' (the model's range differs by " + difference + " in)",
-                flat(checklist).contains(REMEASURE));
-        String constants = read("TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzConstants.java");
-        assertTrue("the Javadoc of Shooter.SHOT_TABLE must say '" + REMEASURE + "'", flat(constants).contains(REMEASURE));
+    public void theStandoffBandReachesTheAnchorSpot() {
+        double range = modelRange();
+        assertTrue("range " + range, range >= BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN && range <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
+    }
+
+    /**
+     * Situation: the robot-day guide and the Javadoc of the shot table are read as text.
+     * Expected: both say "re-measure the distance from the ball exit to the cell opening center with a tape", and neither quotes the old 37.7 in.
+     * Why: the anchor distance is computed, never measured, so the team must be told to check it; a number that the guide still calls
+     *     "measured" (37.7 in) would send them to trust it.
+     */
+    @Test
+    public void theChecklistAndTheConstantsTellTheTeamToCheckTheComputedAnchorWithATape() throws IOException {
+        String checklist = flat(read("docs/START_HERE.md"));
+        assertTrue("docs/START_HERE.md must say '" + REMEASURE + "'", checklist.contains(REMEASURE));
+        String constants = flat(read("TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzConstants.java"));
+        assertTrue("the Javadoc of Shooter.SHOT_TABLE must say '" + REMEASURE + "'", constants.contains(REMEASURE));
+        assertFalse("the guide must not quote the old 37.7 in", checklist.contains("37.7"));
+        assertFalse("the constants must not quote the old 37.7 in", constants.contains("37.7"));
     }
 
     /**
      * Situation: the planner is asked, from the anchor pose, where to stand for the audience cell.
-     * Expected: it stays within 2.5 in of where it is (the measured spot) and chooses a range within 1.5 in of the model's range
-     *     for the measured spot, never a pose that puts the front edge through the wall.
+     * Expected: it stays within 2.5 in of where it is and chooses a range within 1.5 in of the model's range for the spot, never a pose that puts
+     *     the front edge through the wall.
      */
     @Test
-    public void theTeleOpPlannerKeepsTheMeasuredSpotAsItsAnswerWithinTheWallClearance() {
+    public void theTeleOpPlannerKeepsTheAnchorSpotAsItsAnswerWithinTheWallClearance() {
         ScoringPlanner planner = new ScoringPlanner(field, ScoringPlanner.Config.fromConstants(table));
         ScoringPlanner.Solution s = planner.solve(anchorPose(), cell());
         assertTrue(s.toString(), s.ok());

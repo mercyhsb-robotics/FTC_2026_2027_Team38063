@@ -65,10 +65,12 @@ public class FootprintShapesTest {
             far = Math.max(far, Footprint.of(p).corner(i).distanceTo(new Point2(p.x, p.y)));
         }
         assertEquals(far, Footprint.circumscribedRadiusIn(), 1e-9);
-        // the position is NOT the middle of the robot: the farthest corner is a FRONT one, hypot(9.77, 8.90) = 13.22 in, not the
-        // 12.59 in of a 17.80 in square centered on the position
-        assertEquals(Math.hypot(9.77, 8.90), far, 1e-9);
-        assertTrue(far > 13.2);
+        // the position is NOT the middle of the robot: the farthest corner is a FRONT one, hypot(front, side) = 13.16 in, not the
+        // 12.52 in of a rectangle of the same size centered on the position
+        double side = Math.max(Footprint.leftExtentIn(), Footprint.rightExtentIn());
+        assertTrue("the front is the long end", Footprint.frontExtentIn() > Footprint.rearExtentIn());
+        assertEquals(Math.hypot(Footprint.frontExtentIn(), side), far, 1e-9);
+        assertTrue(far > Math.hypot(BioBuzzConstants.Robot.LENGTH_IN / 2.0, BioBuzzConstants.Robot.WIDTH_IN / 2.0) + 0.5);
         Footprint[] parts = {Footprint.chassis(p), Footprint.wheelDisc(p, IntakeWheel.LEFT), Footprint.wheelDisc(p, IntakeWheel.RIGHT)};
         for (Footprint part : parts) {
             for (int i = 0; i < 4; i++) {

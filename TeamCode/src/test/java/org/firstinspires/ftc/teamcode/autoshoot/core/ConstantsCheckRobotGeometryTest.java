@@ -53,6 +53,7 @@ public class ConstantsCheckRobotGeometryTest {
         assertTrue(r.warnings.toString(), r.warnings.isEmpty());
         ConstantsCheck.Report all = ConstantsCheck.run();
         assertTrue(all.errors.toString(), all.ok());
+        // the robot (17.62 x 17.80 in) fits the 18 in start cube of rule R102, so the INIT check has nothing to say about its size
         assertTrue(all.warnings.toString(), all.warnings.isEmpty());
     }
 
@@ -87,12 +88,16 @@ public class ConstantsCheckRobotGeometryTest {
 
     @Test
     public void leftPlusRightThatDisagreesWithTheWidthIsAnError() {
-        ConstantsCheck.Report r = edges(null, null, 8.9, 9.4, null, null, null, null, null);
+        // a right edge half an inch too far out: the two sides then add up to half an inch more than the width
+        double wrongRight = Math.round((SIDE + 0.5) * 100.0) / 100.0;
+        ConstantsCheck.Report r = edges(null, null, SIDE, wrongRight, null, null, null, null, null);
         assertEquals(r.errors.toString(), 1, r.errors.size());
         String m = r.errors.get(0);
-        assertTrue(m, m.contains("LEFT_EXTENT_IN (8.9)") && m.contains("RIGHT_EXTENT_IN (9.4)") && m.contains("WIDTH_IN is 17.8"));
-        // an off-center robot that is still 17.8 wide is fine: 9.4 + 8.4
-        assertTrue(edges(null, null, 9.4, 8.4, null, null, null, null, null).errors.isEmpty());
+        assertTrue(m, m.contains("LEFT_EXTENT_IN (" + SIDE + ")") && m.contains("RIGHT_EXTENT_IN (" + wrongRight + ")")
+                && m.contains(String.format(java.util.Locale.ROOT, "WIDTH_IN is %.2f", BioBuzzConstants.Robot.WIDTH_IN)));
+        // an off-center robot that has the same width is fine: the center of rotation 0.4 in off the middle, the two sides still add up to it
+        double wide = BioBuzzConstants.Robot.WIDTH_IN;
+        assertTrue(edges(null, null, SIDE + 0.4, wide - (SIDE + 0.4), null, null, null, null, null).errors.isEmpty());
     }
 
     @Test

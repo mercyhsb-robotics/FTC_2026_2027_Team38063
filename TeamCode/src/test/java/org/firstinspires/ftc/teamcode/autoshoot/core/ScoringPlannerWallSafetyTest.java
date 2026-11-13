@@ -46,7 +46,7 @@ public class ScoringPlannerWallSafetyTest {
     private final ShotTable table = ShotTable.fromConstants();
     private final ScoringPlanner.Config cfg = ScoringPlanner.Config.fromConstants(table);
     private final ScoringPlanner planner = new ScoringPlanner(field, cfg);
-    /** Where the robot's edges lie around its center of rotation (front 9.77 in, rear 8.03 in, sides 8.90 in). */
+    /** Where the robot's edges lie around its center of rotation (front 9.77 in, rear 8.03 in, sides 8.81 in). */
     private final RobotShape robot = cfg.robot;
     /** How much overlap the referee forgives: the planner's own tolerance plus a rounding hair. */
     private final double tol = BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN + 1e-6;
@@ -239,16 +239,17 @@ public class ScoringPlannerWallSafetyTest {
 
     /**
      * Situation: the TeleOp default start (the center of tile C1: x 58.924, y 9.77, facing -90, front against the audience
-     *     wall) and the measured anchor shot (front against the wall, exactly in line with the HIVE), each asking for
+     *     wall) and the anchor shot (front against the wall, exactly in line with the HIVE), each asking for
      *     the RED audience cell, which is the cell that is up at the start of the match.
      * Expected: both plan, both with no turn window and no detour (the robot only needs to settle a few inches), the
-     *     travel is under 2.5 in, the range is the measured 37.7 in or a little shorter (never longer than the wall
-     *     allows, never more than 2.5 in short of it), and the slow referee finds nothing clipped.
-     * Why: the new check must not break the one shot the team has measured, or the start every TeleOp match begins from.
+     *     travel is under 2.5 in, the range is the wall's range (the aim point minus the distance of the ball exit from the wall, 39.0 in)
+     *     or a little shorter (never longer than the wall allows, never more than 2.5 in short of it), and the slow referee finds
+     *     nothing clipped.
+     * Why: the new check must not break the anchor shot the team saw work, or the start every TeleOp match begins from.
      *     A robot that is already facing the way it will shoot has no turn to hide, so it must not be sent on a detour.
      */
     @Test
-    public void theDefaultStartAndTheMeasuredAnchorShotPlanWithoutAnyRepair() {
+    public void theDefaultStartAndTheAnchorShotPlanWithoutAnyRepair() {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 defaultStart = Pose2.ofDegrees(BioBuzzConstants.Controls.DEFAULT_START_X_IN,
                 BioBuzzConstants.Controls.DEFAULT_START_Y_IN, BioBuzzConstants.Controls.DEFAULT_START_HEADING_DEG);
@@ -259,8 +260,10 @@ public class ScoringPlannerWallSafetyTest {
             assertEquals("no turn window needed from " + start, 0.0, s.turnHoldIn, 1e-9);
             assertEquals("no turn window needed from " + start, 0.0, s.turnSettleIn, 1e-9);
             assertTrue("travel " + s.travelIn, s.travelIn < 2.5);
-            // The audience wall limits the range to 37.7 in; the planner searches in 1 in steps and keeps off the wall.
-            assertTrue("range " + s.rangeIn, s.rangeIn <= 37.7 + 0.05 && s.rangeIn >= 37.7 - 2.5);
+            // The audience wall limits the range to the aim point minus the ball exit's distance from the wall (front extent plus the
+            // exit's distance behind the center of rotation); the planner searches in 1 in steps and keeps off the wall.
+            double wallRange = cell.originY - (robot.frontIn() - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN);
+            assertTrue("range " + s.rangeIn + " against the wall's " + wallRange, s.rangeIn <= wallRange + 0.05 && s.rangeIn >= wallRange - 2.5);
             assertNull("clipped: " + clip(start, s), clip(start, s));
         }
     }

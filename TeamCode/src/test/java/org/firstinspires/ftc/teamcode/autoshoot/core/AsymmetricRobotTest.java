@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 /**
  * The robot is NOT centered on its position (its center of rotation): the front edge is 9.77 in from it, the back edge 8.03
- * in, each side 8.90 in. This class checks that every piece of geometry that decides "does the robot fit here?" uses those four
+ * in, each side 8.81 in (the numbers come from BioBuzzConstants). This class checks that every piece of geometry that decides "does the robot fit here?" uses those four
  * numbers: {@link Footprint}, {@link RouteSweep} and {@link ScoringPlanner} (its standing check and its wall limit).
  *
  * <p>How it works: no robot. Poses are built so the outline touches a wall (or sits a known gap off it) for every one of the four
@@ -44,7 +44,7 @@ public class AsymmetricRobotTest {
 
     /**
      * Situation: the robot touching the audience wall (y = 0) facing each of the four directions.
-     * Expected: the center of rotation is 9.77 in from the wall facing the wall, 8.03 in facing away, 8.90 in sideways (either way).
+     * Expected: the center of rotation is 9.77 in from the wall facing the wall, 8.03 in facing away, 8.81 in sideways (either way).
      *     The rear wall (y = Field.SIZE_IN) gives the same numbers from the other side.
      */
     @Test
@@ -71,7 +71,7 @@ public class AsymmetricRobotTest {
     /**
      * Situation: 12 headings (every 30 degrees) at every wall (three places each), every corner, touching and 0.3 in too close.
      * Expected: the referee says the touching outline pokes through nothing (0 in) and the 0.3 in version pokes 0.3 in, and
-     *     {@link Footprint#signedOvershoot} says the same; the first facing the wall front-first is 0.87 in farther out than the
+     *     {@link Footprint#signedOvershoot} says the same; the first facing the wall front-first is 1.74 in farther out than the
      *     back-first one.
      */
     @Test
@@ -138,8 +138,8 @@ public class AsymmetricRobotTest {
      * Situation: the planner is asked for the in-line audience-cell shot with a range band wide enough and a fine enough step that
      *     the wall is the only limit.
      * Expected: it stands with its FRONT edge on the wall clearance: the center of rotation 9.77 + 0.25 = 10.02 in from the wall,
-     *     and the ball exit 18.05 in from it, so (aim point 54.16 in from the wall) 36.11 in from the aim point.
-     * Negative twin: told the robot is a centered 17.8 in square (front 8.9 in) but still given the real ball exit, the same planner
+     *     and the ball exit 5.38 in farther out (15.40 in from the wall), so (aim point 54.16 in from the wall) 38.76 in from the aim point.
+     * Negative twin: told the robot is a centered rectangle (front half the length, 8.9 in) but still given the real ball exit, the same planner
      *     would stand 0.87 in closer to the wall (9.15 in), which puts the real front edge 0.87 in through it.
      */
     @Test
@@ -147,22 +147,23 @@ public class AsymmetricRobotTest {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         ScoringPlanner.Config c = ScoringPlanner.Config.fromConstants(ShotTable.fromConstants());
         c.rangeMinIn = 34.0;
-        c.rangeMaxIn = 40.0;
+        c.rangeMaxIn = 42.0;
         c.rangeStepIn = 0.01;
         c.coneHalfAngleDeg = 0.0;
-        c.preferredRangeIn = 39.0;                      // farther than the wall allows, so the wall is what limits the range
+        c.preferredRangeIn = 42.0;                      // farther than the wall allows, so the wall is what limits the range
         c.rangeCostPerIn = 100.0;                       // and being short of it costs far more than any driving, so the planner goes to the limit
         Pose2 start = new Pose2(cell.axisX, FRONT, -Math.PI / 2.0);
         ScoringPlanner.Solution s = new ScoringPlanner(field, c).solve(start, cell);
         assertTrue(s.toString(), s.ok());
         assertEquals("center of rotation 9.77 + 0.25 in from the wall", FRONT + c.wallClearanceIn, s.pose.y, 0.02);
-        assertEquals("ball exit 8.03 in farther out", FRONT + c.wallClearanceIn + REAR, ShotGeometry.launchY(s.pose, c.launchForwardIn, c.launchLeftIn), 0.02);
-        assertEquals(cell.originY - (FRONT + c.wallClearanceIn + REAR), s.rangeIn, 0.02);
+        double exitBehind = -BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN;           // the measured ball exit, 5.38 in behind the center of rotation
+        assertEquals("ball exit " + exitBehind + " in farther out", FRONT + c.wallClearanceIn + exitBehind, ShotGeometry.launchY(s.pose, c.launchForwardIn, c.launchLeftIn), 0.02);
+        assertEquals(cell.originY - (FRONT + c.wallClearanceIn + exitBehind), s.rangeIn, 0.02);
         assertEquals(-90.0, s.pose.headingDegrees(), 1e-6);
         // the real front edge is exactly on the clearance
         assertEquals(c.wallClearanceIn, Footprint.of(s.pose).bounds().minY, 0.02);
 
-        // the old assumption (a centered robot, front edge 8.9 in from the center) with the real ball exit
+        // the old assumption (a centered robot, front edge half the length from the center) with the real ball exit
         ScoringPlanner.Config centered = ScoringPlanner.Config.fromConstants(ShotTable.fromConstants());
         centered.rangeMinIn = c.rangeMinIn;
         centered.rangeMaxIn = c.rangeMaxIn;
@@ -173,7 +174,7 @@ public class AsymmetricRobotTest {
         centered.robot = RobotShape.centered(BioBuzzConstants.Robot.LENGTH_IN, BioBuzzConstants.Robot.WIDTH_IN);
         ScoringPlanner.Solution wrong = new ScoringPlanner(field, centered).solve(start, cell);
         assertTrue(wrong.ok());
-        assertEquals("the centered planner stands 0.87 in too close to the wall", s.pose.y - (FRONT - 8.9), wrong.pose.y, 0.02);
+        assertEquals("the centered planner stands 0.87 in too close to the wall", s.pose.y - (FRONT - BioBuzzConstants.Robot.LENGTH_IN / 2.0), wrong.pose.y, 0.02);
         double realFrontEdge = Footprint.of(wrong.pose).bounds().minY;
         assertTrue("with the real extents that pose would put the front edge " + (-realFrontEdge) + " in through the wall", realFrontEdge < -0.5);
     }
@@ -225,17 +226,17 @@ public class AsymmetricRobotTest {
 
     /**
      * Situation: the robot spinning in place at a distance from the audience wall.
-     * Expected: it may turn freely only when its center of rotation is at least the circumscribed radius (13.22 in, a FRONT corner)
-     *     from the wall plus the clearance; one inch closer it cannot. The referee finds the real spin clips by more than
+     * Expected: it may turn freely only when its center of rotation is at least the circumscribed radius (13.16 in, a FRONT corner:
+     *     hypot(9.77, 8.81)) from the wall plus the clearance; one inch closer it cannot. The referee finds the real spin clips by more than
      *     the tolerance there and does not at that distance.
-     * Why: spinning sweeps the farthest corner around a circle of 13.22 in, not the 12.59 in of a centered square.
+     * Why: spinning sweeps the farthest corner around a circle of 13.16 in, not the 12.52 in of a centered rectangle.
      */
     @Test
     public void spinningInPlaceNeedsTheFullCircumscribedRadiusFromAWall() {
         RouteSweep sweep = sweepWith(cfg.wallClearanceIn);
         double r = sweep.reachIn();
         assertEquals(ROBOT.reachIn(), r, EPS);
-        assertEquals(13.216, r, 0.001);
+        assertEquals(Math.hypot(Math.max(FRONT, REAR), Math.max(ROBOT.leftIn(), ROBOT.rightIn())), r, 0.001);      // the farthest corner: a front one
         double x = 60.0;
         assertTrue(sweep.anyHeadingIsSafeAt(x, r + cfg.wallClearanceIn + 0.01));
         assertFalse(sweep.anyHeadingIsSafeAt(x, r + cfg.wallClearanceIn - 0.01));
@@ -243,8 +244,8 @@ public class AsymmetricRobotTest {
         double tol = BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN;
         assertTrue(spinPoke(x, r + 0.01) <= 1e-9);
         assertTrue("a spin one inch too close pokes " + spinPoke(x, r - 1.0), spinPoke(x, r - 1.0) > 0.9 - tol);
-        // with the old centered numbers the radius would be 12.59 in and the spin 0.6 in short of the real room
-        assertTrue(Math.hypot(8.9, 8.9) < r - 0.5);
+        // with the centered numbers (half the length, half the width) the radius would be 12.52 in and the spin 0.6 in short of the real room
+        assertTrue(Math.hypot(BioBuzzConstants.Robot.LENGTH_IN / 2.0, BioBuzzConstants.Robot.WIDTH_IN / 2.0) < r - 0.5);
     }
 
     private double spinPoke(double x, double y) {

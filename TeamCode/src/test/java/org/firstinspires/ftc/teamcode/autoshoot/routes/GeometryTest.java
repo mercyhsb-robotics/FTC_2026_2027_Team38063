@@ -23,7 +23,7 @@ import org.junit.Test;
 public class GeometryTest {
     private static final double EPS = 1e-6;
     /**
-     * Where the robot's outline lies around its center of rotation (the pose): 9.77 in ahead, 8.03 in behind, 8.90 in to each
+     * Where the robot's outline lies around its center of rotation (the pose): 9.77 in ahead, 8.03 in behind, 8.81 in to each
      * side. The robot is NOT centered on its pose.
      */
     private static final double F = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
@@ -96,14 +96,13 @@ public class GeometryTest {
     public void overshootAndInsideRectAreMeasuredFromTheBoundingBox() {
         Rect field = new Rect(0, BioBuzzConstants.Field.SIZE_IN, 0, BioBuzzConstants.Field.SIZE_IN);
         Footprint out = Footprint.of(Pose2.ofDegrees(35, 9.2, -115));
-        // heading -115 at y = 9.2 (the old B1 shooting pose): the rotated robot reaches 9.77 * cos 25 + 8.90 * sin 25 = 12.62 in
-        // toward the audience wall from its center (the front-left corner leads), so 3.42 in through it
+        // heading -115 at y = 9.2 (the old B1 shooting pose): the rotated robot reaches 9.77 * cos 25 + 8.81 * sin 25 = 12.58 in
+        // toward the audience wall from its center (the front-left corner leads), so 3.38 in through it
         double reach = F * Math.cos(Math.toRadians(25)) + S * Math.sin(Math.toRadians(25));
-        assertEquals(3.416, reach - 9.2, 0.001);
         assertEquals(reach - 9.2, out.overshootOutside(field), EPS);
         assertFalse(out.insideRect(field, 0.1));
-        assertFalse(out.insideRect(field, 3.3));
-        assertTrue(out.insideRect(field, 3.5));
+        assertFalse(out.insideRect(field, reach - 9.2 - 0.1));
+        assertTrue(out.insideRect(field, reach - 9.2 + 0.1));
         assertTrue(Footprint.of(Pose2.ofDegrees(BioBuzzConstants.Field.CENTER_IN, BioBuzzConstants.Field.CENTER_IN, 33)).insideRect(field, 0));
     }
 
@@ -111,13 +110,12 @@ public class GeometryTest {
     public void clippedBoundsGivesTheOverlapWithARectangle() {
         Rect zone = new Rect(0, 11, 96, 120);
         // B1 park (12, 90, 0): the robot spans x 3.97..21.77 (rear edge 8.03 behind the pose, front 9.77 ahead) and y 81.1..98.9,
-        // so 7.03 in of it is inside the zone in x (0..11) and 2.9 in in y (96..120)
+        // so 7.03 in of it is inside the zone in x (0..11) and 2.8 in in y (96..120)
         Rect c = Footprint.of(Pose2.ofDegrees(12, 90, 0)).clippedBounds(zone);
         assertNotNull(c);
         assertEquals(11.0 - (12.0 - B), c.maxX - c.minX, EPS);
         assertEquals(7.03, c.maxX - c.minX, EPS);
         assertEquals(90.0 + S - 96.0, c.maxY - c.minY, EPS);
-        assertEquals(2.9, c.maxY - c.minY, EPS);
         // far away -> null
         assertNull(Footprint.of(Pose2.ofDegrees(60, 60, 0)).clippedBounds(zone));
         // merely touching -> null (the rear edge on the zone's far side)
@@ -145,10 +143,12 @@ public class GeometryTest {
     public void theLaunchPointIsAtTheBackOfTheRobot() {
         // front edge on the audience wall: the position is 9.77 in from it
         Point2 l = ShotGeometry.launchPoint(Pose2.ofDegrees(58, F, -90));
-        // back of the robot faces +y at heading -90: the launch point is 8.03 in toward +y, i.e. the rear edge, 17.8 in from the wall
-        assertEquals(58.0, l.x, EPS);
-        assertEquals(F + 8.03, l.y, EPS);
-        assertEquals("the ball leaves the rear edge, a whole robot length from the wall", BioBuzzConstants.Robot.LENGTH_IN, l.y, EPS);
+        // back of the robot faces +y at heading -90: the launch point is 5.38 in toward +y, 2.65 in in front of the rear edge
+        double behind = -BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN;
+        assertEquals("a hair right of the center line (facing -90 the robot's left is +x)", 58.0 + BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, l.x, EPS);
+        assertEquals(F + behind, l.y, EPS);
+        assertEquals("the ball leaves 2.65 in in front of the rear edge", BioBuzzConstants.Robot.LENGTH_IN - 2.65, l.y, 0.01);
+        assertTrue("on the robot", behind < B);
     }
 
     @Test
@@ -156,11 +156,13 @@ public class GeometryTest {
         CellSpec aud = model.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 c1 = Pose2.ofDegrees(58, F, -90);
         double d = ShotGeometry.standoff(c1, aud);
-        // the ball exit is a whole robot length from the wall, and the robot stands 0.076 in off the HIVE axis (x 58 against 57.924)
-        assertEquals(Math.hypot(58.0 - aud.originX, aud.originY - BioBuzzConstants.Robot.LENGTH_IN), d, EPS);
-        assertEquals(36.36, d, 0.01);
+        // the ball exit is the front extent plus 5.38 in from the wall, and the robot stands 0.076 in off the HIVE axis (x 58 against 57.924)
+        double exitX = 58.0 + BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN;
+        double exitY = F - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN;
+        assertEquals(Math.hypot(exitX - aud.originX, aud.originY - exitY), d, EPS);
+        assertEquals("39.0 in: the anchor range, a hair more", BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN, d, 0.05);
         assertTrue(d >= BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN && d <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
-        assertEquals(0.12, Math.toDegrees(ShotGeometry.aimError(c1, aud)), 0.05);
+        assertEquals(Math.toDegrees(Math.atan2(Math.abs(exitX - aud.originX), aud.originY - exitY)), Math.toDegrees(ShotGeometry.aimError(c1, aud)), 1e-6);
         assertTrue(ShotGeometry.onOpeningSide(c1, aud));
     }
 
@@ -168,10 +170,9 @@ public class GeometryTest {
     public void b1HoldPoseIsAimedAtTheCellButFartherThanTheStandoffBand() {
         CellSpec aud = model.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 b1 = Pose2.ofDegrees(35, F, -115);
-        // the back of the robot is turned toward the cell (heading -115), so the ball exit is 8.03 in out along that direction
+        // the back of the robot is turned toward the cell (heading -115), so the ball exit is 5.38 in out along that direction
         Point2 exit = ShotGeometry.launchPoint(b1);
         assertEquals(Math.hypot(aud.originX - exit.x, aud.originY - exit.y), ShotGeometry.standoff(b1, aud), EPS);
-        assertEquals(41.93, ShotGeometry.standoff(b1, aud), 0.01);
         assertTrue(ShotGeometry.standoff(b1, aud) > BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
         assertTrue(Math.toDegrees(ShotGeometry.aimError(b1, aud)) < 5.0);
     }
@@ -189,10 +190,12 @@ public class GeometryTest {
                 assertEquals(cell.facingHeading, p.heading, EPS);
             }
         }
-        // red audience cell: robot south of the HIVE, heading -90, center of rotation 13.5 in from the wall (the ball exit 8.03 in behind it)
+        // red audience cell: robot south of the HIVE, heading -90, center of rotation 14.8 in from the wall (the ball exit 5.38 in behind it); the
+        // ball leaves a hair to the right of the robot's middle (facing -90 that is toward -x), so the middle of the robot is that hair to +x of the axis
         Pose2 red = ShotGeometry.nominalPose(model.cell(Alliance.RED, Side.AUDIENCE));
-        assertEquals(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, red.x, EPS);
-        assertEquals(model.cell(Alliance.RED, Side.AUDIENCE).originY - BioBuzzConstants.Auto.SHOOT_STANDOFF_NOMINAL_IN - B, red.y, 1e-6);
+        assertEquals(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN - BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, red.x, EPS);
+        assertEquals(model.cell(Alliance.RED, Side.AUDIENCE).originY - BioBuzzConstants.Auto.SHOOT_STANDOFF_NOMINAL_IN
+                + BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, red.y, 1e-6);
         assertEquals(-90.0, red.headingDegrees(), EPS);
     }
 

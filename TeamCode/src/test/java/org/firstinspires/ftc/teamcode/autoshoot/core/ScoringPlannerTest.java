@@ -12,6 +12,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+
 /**
  * Checks where the robot decides to stand when you hold the shoot button: {@link ShotGeometry} (distances and angles
  * between the robot, its ball exit and the aim point), {@link PathPlanner} (a route around obstacles) and
@@ -74,8 +76,8 @@ public class ScoringPlannerTest {
     /**
      * Situation: the robot at the C1 autonomous start (58, 9.77) facing -90 degrees (front edge on the audience wall), with
      *     the RED audience cell as the target.
-     * Expected: the range from the ball exit to the aim point is about 36.36 in (the ball exit is 17.80 in from the wall,
-     *     so 54.156 - 17.80 = 36.356 in straight up, plus 0.076 in sideways: x = 58 against the HIVE axis 57.924), and the
+     * Expected: the range from the ball exit to the aim point is about 39.01 in (the ball exit is 9.77 + 5.38 = 15.15 in from the wall,
+     *     so 54.156 - 15.15 = 39.006 in straight up, plus 0.076 in sideways: x = 58 against the HIVE axis 57.924), and the
      *     shooter is within 3.5 degrees of pointing at it.
      * Why: the shooter is on the back, so aiming means heading = bearing + half a turn. Getting that wrong would aim
      *     every shot 180 degrees away. Tolerance: 0.05 in on the range; 3.5 degrees is a loose limit (C1 is almost on
@@ -87,9 +89,10 @@ public class ScoringPlannerTest {
         Pose2 c1 = c1Start();
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         double range = ShotGeometry.rangeTo(c1, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
-        double exitY = c1.y - cfg.launchForwardIn;             // the ball exit, a whole robot length from the wall
-        assertEquals(Math.hypot(c1.x - cell.originX, cell.originY - exitY), range, EPS);
-        assertEquals(36.36, range, 0.05);                      // 0.076 in off the axis, ball exit 17.80 in from the wall
+        double exitY = c1.y - cfg.launchForwardIn;             // the ball exit: the front extent plus its distance behind the center of rotation
+        double exitX = c1.x + cfg.launchLeftIn;                // facing -90 degrees the robot's left is +x
+        assertEquals(Math.hypot(exitX - cell.originX, cell.originY - exitY), range, EPS);
+        assertEquals(cell.originY - exitY, range, 0.05);       // 0.076 in off the axis hardly changes it
         double err = Math.toDegrees(ShotGeometry.aimError(c1, cfg.launchForwardIn, cfg.launchLeftIn,
                 cell.originX, cell.originY));
         assertTrue("C1 is nearly in line: " + err, Math.abs(err) < 3.5);
@@ -344,7 +347,7 @@ public class ScoringPlannerTest {
      */
     @Test
     public void aRangeBandBeyondWhatTheWallAllowsHasNoFeasiblePose() {
-        // The audience wall limits the shooter to about 37.7 in from the cell aim point; a 45-60 in band cannot be reached.
+        // The audience wall limits the shooter to about 39 in from the cell aim point; a 45-60 in band cannot be reached.
         ScoringPlanner.Config far = ScoringPlanner.Config.fromConstants(table);
         far.rangeMinIn = 45.0;
         far.rangeMaxIn = 60.0;
@@ -357,15 +360,14 @@ public class ScoringPlannerTest {
     /**
      * Situation: ranges from 36 to 60 in are allowed, but only in line with the opening (cone of 0 degrees), starting
      *     from C1.
-     * Expected: a pose is found, but its range is under 38 in.
-     * Why: this shows the limit comes from the geometry (the wall), not just from the shot table. The 38 in bound is
-     *     the 37.7 in figure rounded up; the planner searches ranges in 1 in steps.
+     * Expected: a pose is found, but its range is not longer than the wall allows (39.0 in).
+     * Why: this shows the limit comes from the geometry (the wall), not just from the shot table. The bound is the aim point
+     *     minus the distance of the ball exit from the wall; the planner searches ranges in 1 in steps.
      */
     @Test
     public void theWallLimitOnRangeMatchesTheVerifiedGeometry() {
-        // With the ball exit at the rear face and the robot against the audience wall the exit is 17.8 in from
-        // the wall, so the farthest in-line range is 54.156 - 17.8 = 36.4 in with the CAD aim point (it was 37.7 in with the old
-        // 144 in field, where the aim point was 55.52 in out; see MeasuredAnchorShotTest).
+        // With the measured ball exit (5.38 in behind the center of rotation) and the robot against the audience wall the exit is
+        // 9.77 + 5.38 = 15.15 in from the wall, so the farthest in-line range is 54.156 - 15.15 = 39.0 in (see AnchorShotTest).
         ScoringPlanner.Config wide = ScoringPlanner.Config.fromConstants(table);
         wide.rangeMinIn = 36.0;
         wide.rangeMaxIn = 60.0;
@@ -373,30 +375,33 @@ public class ScoringPlannerTest {
         ScoringPlanner p = new ScoringPlanner(field, wide);
         ScoringPlanner.Solution s = p.solve(c1Start(), field.cell(Alliance.RED, Side.AUDIENCE));
         assertTrue(s.ok());
-        assertTrue("range " + s.rangeIn, s.rangeIn < 38.0);
+        CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
+        double wallRange = cell.originY - (Footprint.frontExtentIn() - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN);
+        assertTrue("range " + s.rangeIn + " against the wall's " + wallRange, s.rangeIn <= wallRange + 0.05);
     }
 
     /**
-     * The team's one measured good shot: robot front against the audience wall, in line with the HIVE. The shot table is
-     * anchored at its measured range, 37.7 in (see MeasuredAnchorShotTest for how the CAD field numbers make the MODEL
-     * say 36.36 in for the same place, 1.34 in short of the measurement, and what the checklist says about it).
+     * The anchor shot, where the team saw a good shot: robot front against the audience wall, in line with the HIVE. The shot
+     * table is anchored at the range the MODEL computes for that spot, 39.0 in (see AnchorShotTest).
      *
      * Situation: the robot with its front against the audience wall and exactly in line with the RED audience cell.
-     * Expected: the model's range is 36.356 in (the CAD aim point 54.156 in from the wall minus the 17.80 in of the ball
-     *     exit) and the shot table still gives 1200 tps at its anchor row, 37.7 in; the shooter is exactly in line (0
-     *     degrees off the opening's center line); from there the planner moves under 2.5 in and picks a range within 1.1
+     * Expected: the model's range is 39.006 in (the CAD aim point 54.156 in from the wall minus the 15.15 in of the ball
+     *     exit) and the shot table gives 1200 tps at its anchor row, 39.0 in; the shooter is exactly in line (0
+     *     degrees off the opening's center line, but for the 0.16 in the ball sits right of the robot's middle); from there the planner moves under 2.5 in and picks a range within 1.1
      *     in of the wall one.
      * Why: the planner tries ranges in 1 in steps and keeps the robot a small WALL_CLEARANCE_IN off the wall, so it
      *     lands a little short of the wall range instead of exactly on it. That is why the range tolerance is 1.1 in.
      */
     @Test
-    public void theRobotFrontAgainstTheWallInLineIsTheMeasuredAnchorShot() {
+    public void theRobotFrontAgainstTheWallInLineIsTheAnchorShot() {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 wallShot = new Pose2(cell.axisX, cfg.robot.frontIn(), -Math.PI / 2.0);
         double range = ShotGeometry.rangeTo(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
-        assertEquals(36.356, range, 0.05);
-        assertEquals(1200.0, table.velocityAt(37.7), EPS);
-        assertEquals(0.0, Math.toDegrees(ShotGeometry.azimuthOffAxis(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell)), 1e-6);
+        assertEquals(cell.originY - (cfg.robot.frontIn() - cfg.launchForwardIn), range, 0.01);        // 0.16 in sideways hardly changes it
+        assertEquals("the model's range for the anchor spot is the anchor row", BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN, range, 0.05);
+        assertEquals(1200.0, table.velocityAt(BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN), EPS);
+        // the middle of the robot is on the axis; the ball leaves 0.16 in to one side of it, which is a quarter of a degree at 39 in
+        assertEquals(Math.toDegrees(Math.atan2(Math.abs(cfg.launchLeftIn), range)), Math.abs(Math.toDegrees(ShotGeometry.azimuthOffAxis(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell))), 1e-3);
         // Starting there, the planner has nothing to do but a few inches of settling.
         ScoringPlanner.Solution s = planner.solve(wallShot, cell);
         assertTrue(s.ok());
@@ -407,7 +412,7 @@ public class ScoringPlannerTest {
     /**
      * Situation: the axis-aligned box (the rectangle lined up with the field's x and y axes) that just contains the real
      *     robot, for a robot standing at (60, 50) and turned different amounts. The robot is NOT centered on its position
-     *     (its center of rotation): its edges are 9.77 in ahead, 8.03 in behind and 8.90 in to each side.
+     *     (its center of rotation): its edges are 9.77 in ahead, 8.03 in behind and 8.81 in to each side.
      * Expected: facing -90 degrees (front toward the audience wall, -y) the box reaches 9.77 in below the position and
      *     8.03 in above it; facing +90 it is the other way round; facing 0 it reaches 9.77 in toward +x. At 30 degrees the
      *     box equals the extremes of the four corners worked out by hand, and it is wider than the upright 17.8 in.
@@ -419,23 +424,27 @@ public class ScoringPlannerTest {
     public void footprintBoxIsNotCenteredOnThePositionAndGrowsWhenTheRobotIsTurned() {
         RobotShape robot = cfg.robot;
         Rect down = ShotGeometry.footprint(new Pose2(60, 50, -Math.PI / 2.0), robot);
-        assertEquals(50 - 9.77, down.minY, EPS);
-        assertEquals(50 + 8.03, down.maxY, EPS);
-        assertEquals(60 - 8.90, down.minX, EPS);
-        assertEquals(60 + 8.90, down.maxX, EPS);
+        double front = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+        double rear = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+        double left = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
+        double right = BioBuzzConstants.Robot.RIGHT_EXTENT_IN;
+        assertEquals(50 - front, down.minY, EPS);
+        assertEquals(50 + rear, down.maxY, EPS);
+        assertEquals(60 - right, down.minX, EPS);
+        assertEquals(60 + left, down.maxX, EPS);
         Rect up = ShotGeometry.footprint(new Pose2(60, 50, Math.PI / 2.0), robot);
-        assertEquals(50 - 8.03, up.minY, EPS);
-        assertEquals(50 + 9.77, up.maxY, EPS);
+        assertEquals(50 - rear, up.minY, EPS);
+        assertEquals(50 + front, up.maxY, EPS);
         Rect ahead = ShotGeometry.footprint(new Pose2(60, 50, 0.0), robot);
-        assertEquals(60 - 8.03, ahead.minX, EPS);
-        assertEquals(60 + 9.77, ahead.maxX, EPS);
+        assertEquals(60 - rear, ahead.minX, EPS);
+        assertEquals(60 + front, ahead.maxX, EPS);
         // turned 30 degrees: the four corners, worked out by hand
         double h = Math.toRadians(30);
         double minX = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY;
         double minY = Double.POSITIVE_INFINITY;
         double maxY = Double.NEGATIVE_INFINITY;
-        for (double[] c : new double[][] {{9.77, 8.9}, {-8.03, 8.9}, {-8.03, -8.9}, {9.77, -8.9}}) {
+        for (double[] c : new double[][] {{front, left}, {-rear, left}, {-rear, -right}, {front, -right}}) {
             double x = 60 + c[0] * Math.cos(h) - c[1] * Math.sin(h);
             double y = 50 + c[0] * Math.sin(h) + c[1] * Math.cos(h);
             minX = Math.min(minX, x);
@@ -448,6 +457,6 @@ public class ScoringPlannerTest {
         assertEquals(maxX, turned.maxX, EPS);
         assertEquals(minY, turned.minY, EPS);
         assertEquals(maxY, turned.maxY, EPS);
-        assertTrue("a turned robot needs a bigger box", turned.maxX - turned.minX > 17.8 + 1.0);
+        assertTrue("a turned robot needs a bigger box", turned.maxX - turned.minX > Math.max(robot.lengthIn(), robot.widthIn()) + 1.0);
     }
 }
