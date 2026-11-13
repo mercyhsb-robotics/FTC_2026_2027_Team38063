@@ -41,8 +41,9 @@ public class Launcher {
 
     // The speed last commanded, in ticks per second (0 = flywheel off). Not the measured speed: see velocity().
     private double targetTps;
-    // True while the feeder has been told to run, in EITHER direction (it does not remember which one).
-    private boolean feederOn;
+    // The power last given to the feeder: positive = forward (toward the flywheel), negative = backward, 0 = stopped.
+    // Remembering the power (not just on/off) is what lets setFeederOn(true) turn a backward feeder around.
+    private double feederPower;
     // System.nanoTime() (nanoseconds) when targetTps last changed; used by secondsSinceTargetChange().
     private long targetSetAtNanos;
 
@@ -79,7 +80,7 @@ public class Launcher {
                 ? CRServo.Direction.REVERSE : CRServo.Direction.FORWARD);
         feeder.setPower(0.0);
         targetTps = 0.0;
-        feederOn = false;
+        feederPower = 0.0;
         targetSetAtNanos = System.nanoTime();
     }
 
@@ -123,39 +124,40 @@ public class Launcher {
     // -------------------------------------------------------------------------------------- feeder
 
     /**
-     * Runs the feeder forward at the configured power, or stops it. Does nothing if the feeder is already in that
-     * on/off state. Note: it compares only on/off, not direction, so it will not turn a feeder that is running
-     * backward (feederReverse) around to forward; call feederForward() or feederStop() for that.
+     * Runs the feeder forward at the configured power, or stops it. Does nothing if the feeder is already doing that
+     * (so it is safe to call every loop). A feeder that is running backward (feederReverse) is turned around to
+     * forward, or stopped, as asked.
      */
     public void setFeederOn(boolean on) {
-        if (on == feederOn) {
+        double wanted = on ? BioBuzzConstants.Shooter.FEEDER_FORWARD_POWER : 0.0;
+        if (wanted == feederPower) {
             return;
         }
-        feederOn = on;
-        feeder.setPower(on ? BioBuzzConstants.Shooter.FEEDER_FORWARD_POWER : 0.0);
+        feederPower = wanted;
+        feeder.setPower(wanted);
     }
 
     /** Runs the feeder forward (pushing a POLLEN into the flywheel) at FEEDER_FORWARD_POWER, whatever it was doing. */
     public void feederForward() {
-        feederOn = true;
-        feeder.setPower(BioBuzzConstants.Shooter.FEEDER_FORWARD_POWER);
+        feederPower = BioBuzzConstants.Shooter.FEEDER_FORWARD_POWER;
+        feeder.setPower(feederPower);
     }
 
     /** Runs the feeder backwards to clear a jam. */
     public void feederReverse() {
-        feederOn = true;
-        feeder.setPower(-BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER);
+        feederPower = -BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER;
+        feeder.setPower(feederPower);
     }
 
     /** Stops the feeder. */
     public void feederStop() {
-        feederOn = false;
+        feederPower = 0.0;
         feeder.setPower(0.0);
     }
 
     /** True if the feeder has been told to run (in either direction). */
     public boolean feederRunning() {
-        return feederOn;
+        return feederPower != 0.0;
     }
 
     // ------------------------------------------------------------------- simple (manual / autonomous) use
