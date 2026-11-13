@@ -279,38 +279,51 @@ public final class BioBuzzConstants {
         /**
          * TUNE (G417 / G409 design guard): extra clearance, in inches, kept on EVERY side of the HIVE frame footprint.
          * The validator's keep-out is the whole frame footprint (x 45.94 to 95.41, y 51.20 to 90.15) grown by this much.
+         * (A route step that says {@code allowUnderHive} is checked against the exact solid instead, see {@link #HIVE_LANE_MARGIN_IN}.)
          *
-         * <p><b>What the 12.13 in tall robot can actually hit</b> (audit of field_layout.verified.md 2.1 and 2.1b):
+         * <p><b>What the 12.13 in tall robot can actually hit</b> (the official CAD, measured and checked a second time):
          * <ul>
-         *   <li>The only things of the HIVE below the robot's height are in the FRAME: two base rails on the floor along y,
-         *       at x about 47.3 to 49.3 and 94.7 to 96.7, and four legs that lean inward from the corners of those rails
-         *       up to the apexes above the HIVE axes (x 59.25 and 84.75, 43.95 in up). A leg is only 12.13 in high
-         *       where it is about 3.3 in in from the rail. A robot that stays out of the keep-out can touch neither a
-         *       rail nor a leg; one that drives into the frame hits a rail first.</li>
-         *   <li>The crossbar is 43.95 in up and the lowest point of any CELL is 30.6 in up (an UP cell's is about 46.6
-         *       in). The tallest part of the robot is 12.13 in (13.0 in with the camera), so no CELL, and no cell that
-         *       is swinging up or down, can touch it.</li>
-         *   <li>A DOWN cell hangs out past the frame footprint by up to 5.4 in (red rear cell: y up to 96.9, the frame ends at
-         *       91.47), but only at 30.6 in up or higher, so a robot passes UNDER that overhang. That is why the overhang is
-         *       not part of the keep-out. Standing under it is not forbidden by this check.</li>
-         *   <li>Nothing else on the field is lower than the robot except the FLOWER plates (4.75 in deep, handled
-         *       separately) and the loose POLLEN.</li>
+         *   <li>The only things of the HIVE below the robot's height are in the FRAME: two foot bars on the floor along y (1.98 in wide,
+         *       2.15 in tall, x 45.94 to 47.92 and 93.42 to 95.41) and the four legs that lean inward from their ends. A leg is only 12.13
+         *       in high where it has moved about 3.2 in in along x and 5.2 in along y, so below the robot's height the legs are two short
+         *       stubs at each end of each bar, reaching in to x 50.61 (and 90.73). Nothing else of the HIVE is lower than 30.65 in.</li>
+         *   <li>The crossbar is 40.95 in up and the lowest point of any CELL is 30.652 in up (an UP cell's is 43.96 in). The tallest part
+         *       of the robot is 12.13 in (13.0 in with the camera), so no CELL, and no cell that is swinging up or down, can touch it.</li>
+         *   <li>A DOWN cell hangs out past the frame footprint by up to 5.66 in (red rear cell: y up to 95.80, the frame ends at 90.15),
+         *       but only at 35.5 in up or higher, so a robot passes UNDER that overhang. That is why the overhang is not part of the
+         *       keep-out.</li>
+         *   <li>Nothing else on the field is lower than the robot except the FLOWER plates (5.033 in from the wall, handled separately)
+         *       and the loose POLLEN.</li>
          * </ul>
          *
-         * <p><b>Why the keep-out is the whole footprint and not just the rails.</b> There is an open window under the
-         * HIVE between the legs (a 17.80 in wide robot clears the legs from about x = 59.5 to 84.5 at its height), but
-         * the leg geometry was read off drawings (about +/- 1.5 in) and nobody has measured the real frame, G409 says a robot
-         * must not stand where a tipping HIVE drops things, and a wrong guess costs a match. So ANY gap under or inside
-         * the frame is treated as SOLID and a route never goes through it. (The only way to drive under it would be to
-         * measure the real frame first and then write a new rule.)
+         * <p><b>The lane.</b> Between the feet the plan is open: 45.5 in wide between the bars and 40.1 in wide where the leg stubs narrow
+         * it (x 50.6 to 90.7), so a 17.80 in wide robot has about 11 in to spare on each side. A robot that is 12 to 13 in tall can
+         * therefore drive north-south UNDER the HIVE. That saves a trip of about 20 in around it (see docs/AUTOS.md), but it is a design
+         * choice, not a default: G409 says a robot may not catch what a tipped HIVE releases and G417 forbids launching into a cell that is
+         * tipping, and a robot under a tipping HIVE is exactly where nobody wants to be. So the default keep-out below treats the WHOLE
+         * footprint as solid, a route may use the lane only with its own flag ({@code allowUnderHive}), and the checker WARNs for a route that
+         * is under the HIVE while the HIVE could still tip, i.e. before the camera has confirmed it at rest.
          *
-         * <p><b>Why 3.0 in.</b> The frame as measured in the plan view of the field report reaches up to 0.63 in beyond the
-         * nominal 49.46 x 38.95 in footprint (rail thickness and figure error), and the field is only good to about
-         * +/- 1 in; 3.0 in covers both with about 1.4 in left for odometry drift and the robot's own stopping error. The
-         * test HiveKeepOutTest checks that this is a superset of the footprint and of that measured envelope, edge by edge and
-         * corner by corner.
+         * <p><b>Why 3.0 in.</b> The frame measured in the CAD reaches at most 0.03 in beyond the foot bars at floor level (bolt heads, caps),
+         * and a real field is only good to about +/- 1 in; 3.0 in covers both with about 2 in left for odometry drift and the robot's own
+         * stopping error. The test HiveKeepOutTest checks that this is a superset of the footprint and of that measured envelope, edge by edge
+         * and corner by corner.
          */
         public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
+        /**
+         * TUNE: the height, in inches, below which a part of the HIVE counts as an obstacle for the robot: the tallest point of the robot, with
+         * its camera (12.13 in tall, 13.0 in with the Limelight on top). The exact HIVE solid is everything of the HIVE lower than this: the foot
+         * bars and the stubs of the legs, which are a little longer for a taller robot (the legs lean inward as they climb). Must stay below
+         * {@code Field.HIVE_LOWEST_CELL_POINT_IN}: the solid has no cells in it.
+         */
+        public static final double HIVE_SOLID_HEIGHT_IN = 13.0;
+        /**
+         * TUNE (G409 / G417 design guard for a step that is allowed under the HIVE): the clearance, in inches, the robot keeps on BOTH sides to
+         * the foot bars and the leg stubs while it drives along the lane between them. The lane is 40.1 in wide where the stubs narrow it, the
+         * robot 17.80 in, so 3.0 in on each side leaves about 8 in of freedom to steer. It is the same size as the margin around the whole
+         * footprint on purpose: a robot is never closer to the HIVE under it than beside it.
+         */
+        public static final double HIVE_LANE_MARGIN_IN = 3.0;
         /**
          * TUNE: extra clearance kept around a FLOWER plate (the plate itself is {@code Field.FLOWER_PLATE_*}) by every part
          * of the robot, except the one flat wheel that is pressing into that FLOWER's POLLEN.
@@ -675,6 +688,15 @@ public final class BioBuzzConstants {
 
         /** TUNE: extra clearance kept between the robot and the HIVE frame / FLOWERS, beyond the robot's own size. */
         public static final double KEEPOUT_MARGIN_IN = 1.5;
+        /**
+         * TUNE (default false: G409 / G417 caution): may the planner drive UNDER the HIVE, along the lane between its two foot bars? A robot
+         * 12 to 13 in tall fits under it (the cells are 30.65 in up), and the way from the audience side to the rear side is about 20 in shorter
+         * that way than around the frame (see docs/AUTOS.md). The price is being under a HIVE that can tip: the camera-confirmed rest of the HIVE
+         * is not known to the planner, which is why this is off. With it on, the planner treats only the foot bars and the leg stubs as solid
+         * (the exact shape, grown by {@link #KEEPOUT_MARGIN_IN} and the robot's reach) and falls back to the way around when the lane
+         * cannot be driven safely. Route steps choose per step with {@code allowUnderHive()}; this flag is for the TeleOp planner.
+         */
+        public static final boolean ALLOW_UNDER_HIVE = false;
         /** TUNE: how close to a perimeter wall the edge of the robot may be placed (0 = touching). */
         public static final double WALL_CLEARANCE_IN = 0.25;
 
@@ -1029,6 +1051,46 @@ public final class BioBuzzConstants {
         public static final double HIVE_FRAME_WIDTH_X_IN = 49.466;
         /** FIXED (CAD; manual 9.6.1 says 38.95): ... and 38.944 in deep along y, centered on the field center. */
         public static final double HIVE_FRAME_DEPTH_Y_IN = 38.944;
+
+        // ---- the exact solid of the HIVE below a robot's height (official CAD) ----------------------------------------------------
+        // Everything of the HIVE that a robot 12 to 13 in tall can touch is the FRAME: two foot bars on the floor and four legs that lean
+        // inward from the ends of the bars up to the cells' axle. The cells themselves are 30.65 in up or higher and the crossbar 40.95 in,
+        // so they pass over the robot. Between the two feet the floor is open: a lane the robot may drive along (north-south) if the HIVE
+        // cannot tip while it is there. See core/HiveSolid for how these numbers make the shape, and docs/AUTOS.md for the lane.
+
+        /**
+         * FIXED (CAD, the two foot bars, sheet metal 1.983 in wide, 38.944 in long, 2.148 in tall): half the distance between the INNER faces
+         * of the two bars, 22.75 in. The bars' outer faces are {@code HIVE_FRAME_WIDTH_X_IN / 2} = 24.733 in from the center line. The bars are
+         * a 2.15 in high step: the chassis has 0.94 in of ground clearance, so a robot cannot drive across one, only along between them.
+         */
+        public static final double HIVE_FOOT_BAR_INNER_HALF_GAP_IN = 22.75;
+        /** FIXED (CAD): the foot bars are 2.148 in tall. */
+        public static final double HIVE_FOOT_BAR_HEIGHT_IN = 2.148;
+        /**
+         * FIXED (CAD, the tube that is the leg: 45.75 in long, 1.19 x 1.00 in, leaning 27.7 degrees from vertical): where the middle of a leg
+         * stands on its foot bar, measured from the HIVE center: 23.811 in along x and 18.561 in along y (a leg at each of the four ends of the
+         * two bars) ...
+         */
+        public static final double HIVE_LEG_FOOT_HALF_SPAN_X_IN = 23.811;
+        /** FIXED (CAD): ... the y part of that, ... */
+        public static final double HIVE_LEG_FOOT_HALF_SPAN_Y_IN = 18.561;
+        /** FIXED (CAD): ... at this height above the floor (the leg starts on top of the foot cap), ... */
+        public static final double HIVE_LEG_FOOT_Z_IN = 0.533;
+        /**
+         * FIXED (CAD; a second derivation gave 0.2777, the first report 0.273): ... and the middle of the leg moves this many inches TOWARD the
+         * HIVE center along x for every inch it climbs ...
+         */
+        public static final double HIVE_LEG_LEAN_X_PER_Z = 0.2777;
+        /** FIXED (CAD): ... and this many inches toward the center along y (so the legs of the two ends converge on the cell axles). */
+        public static final double HIVE_LEG_LEAN_Y_PER_Z = 0.4452;
+        /**
+         * FIXED (CAD, fitted so that the plan "shadow" of everything below 12.13 in reproduces the measured one to 0.02 in: stub tips at
+         * x 50.61 and y 57.82 / 83.53, in the wall-corner frame): half the width of a leg as seen from above, 0.55 in. The tube is 1.19 x 1.00 in,
+         * and a leaning tube looks a little wider from above.
+         */
+        public static final double HIVE_LEG_HALF_WIDTH_IN = 0.55;
+        /** FIXED (CAD): the lowest point of any cell, the rim of a cell that is DOWN, is 30.652 in above the floor. The solid model has no cells, so it is only valid for a robot that stays below this. */
+        public static final double HIVE_LOWEST_CELL_POINT_IN = 30.652;
 
         /**
          * FIXED (manual Fig 9-10 and the CAD, which measures 25.500 in): the distance between the axes of the two HIVEs, 25.5 in.

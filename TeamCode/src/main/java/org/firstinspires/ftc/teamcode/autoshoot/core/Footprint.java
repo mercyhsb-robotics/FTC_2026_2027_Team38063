@@ -275,6 +275,20 @@ public final class Footprint {
         return nearest;
     }
 
+    /** The footprint as a convex polygon (its four corners), for comparing it with shapes that are not plain boxes. */
+    public ConvexPolygon asPolygon() {
+        return ConvexPolygon.of(xs[0], ys[0], xs[1], ys[1], xs[2], ys[2], xs[3], ys[3]);
+    }
+
+    /**
+     * The signed gap between the footprint and a convex polygon, with the same meaning as {@link #signedGap(Rect)}: POSITIVE = that many
+     * inches apart (the true shortest distance), 0 = just touching, NEGATIVE = overlapping, and how deep. It is how the exact HIVE solid
+     * (the foot bars and the slanted leg stubs, see {@link HiveSolid}) is told apart from the lane between its feet.
+     */
+    public double signedGap(ConvexPolygon p) {
+        return asPolygon().signedGap(p);
+    }
+
     /**
      * The bounding box of the part of the footprint that lies inside the rectangle (convex polygon
      * clipping), or null if they do not overlap.

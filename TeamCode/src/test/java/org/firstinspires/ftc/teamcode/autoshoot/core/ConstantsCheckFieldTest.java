@@ -81,6 +81,35 @@ public class ConstantsCheckFieldTest {
     }
 
     /**
+     * Situation: the HIVE solid height and lane margin: the shipped ones; a height below the robot's tallest part (12.0 in against 13.0 with
+     *     the camera); a height at the lowest cell (30.7 in); a lane margin of 12 in that leaves no room for a 17.80 in robot in the 40.1 in lane.
+     * Expected: the shipped values give nothing; the first two are ERRORs naming Auto.HIVE_SOLID_HEIGHT_IN; the last is a WARN about the lane.
+     */
+    @Test
+    public void theHiveSolidHeightAndLaneMarginMustFit() {
+        double tallest = Math.max(BioBuzzConstants.Robot.HEIGHT_IN, BioBuzzConstants.Vision.CAMERA_HEIGHT_IN);
+        ConstantsCheck.Report ok = new ConstantsCheck.Report();
+        ConstantsCheck.checkHiveSolid(ok, BioBuzzConstants.Auto.HIVE_SOLID_HEIGHT_IN, tallest, BioBuzzConstants.Field.HIVE_LOWEST_CELL_POINT_IN,
+                BioBuzzConstants.Auto.HIVE_LANE_MARGIN_IN, BioBuzzConstants.Robot.WIDTH_IN);
+        assertTrue(ok.errors.toString() + ok.warnings, ok.errors.isEmpty() && ok.warnings.isEmpty());
+        ConstantsCheck.Report low = new ConstantsCheck.Report();
+        ConstantsCheck.checkHiveSolid(low, 12.0, tallest, BioBuzzConstants.Field.HIVE_LOWEST_CELL_POINT_IN, BioBuzzConstants.Auto.HIVE_LANE_MARGIN_IN,
+                BioBuzzConstants.Robot.WIDTH_IN);
+        assertEquals(low.errors.toString(), 1, low.errors.size());
+        assertTrue(low.errors.get(0), low.errors.get(0).contains("HIVE_SOLID_HEIGHT_IN"));
+        ConstantsCheck.Report high = new ConstantsCheck.Report();
+        ConstantsCheck.checkHiveSolid(high, 30.7, tallest, BioBuzzConstants.Field.HIVE_LOWEST_CELL_POINT_IN, BioBuzzConstants.Auto.HIVE_LANE_MARGIN_IN,
+                BioBuzzConstants.Robot.WIDTH_IN);
+        assertEquals(high.errors.toString(), 1, high.errors.size());
+        ConstantsCheck.Report tight = new ConstantsCheck.Report();
+        ConstantsCheck.checkHiveSolid(tight, BioBuzzConstants.Auto.HIVE_SOLID_HEIGHT_IN, tallest, BioBuzzConstants.Field.HIVE_LOWEST_CELL_POINT_IN,
+                12.0, BioBuzzConstants.Robot.WIDTH_IN);
+        assertTrue(tight.errors.isEmpty());
+        assertEquals(tight.warnings.toString(), 1, tight.warnings.size());
+        assertTrue(tight.warnings.get(0), tight.warnings.get(0).contains("allowUnderHive"));
+    }
+
+    /**
      * Situation: a FLOWER center typed at 2.4 in from the wall (the manual's old figure) instead of the CAD's 2.634 in, and a
      *     LOADING ZONE whose near edge is the CAD tape (0.574 in off the wall) instead of the wall.
      * Expected: one ERROR for the FLOWER and one for the zone.

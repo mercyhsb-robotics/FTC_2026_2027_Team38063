@@ -238,6 +238,8 @@ public final class ConstantsCheck {
                 BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MIN_IN, BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MAX_IN,
                 BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MIN_IN, BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MAX_IN);
 
+        checkHiveSolid(r, BioBuzzConstants.Auto.HIVE_SOLID_HEIGHT_IN, Math.max(BioBuzzConstants.Robot.HEIGHT_IN, BioBuzzConstants.Vision.CAMERA_HEIGHT_IN),
+                BioBuzzConstants.Field.HIVE_LOWEST_CELL_POINT_IN, BioBuzzConstants.Auto.HIVE_LANE_MARGIN_IN, BioBuzzConstants.Robot.WIDTH_IN);
         checkClusterGeometry(r, BioBuzzConstants.Field.UP_CELL_TAG_ROW_OUT_IN, BioBuzzConstants.Field.UP_CELL_TAG_ROW_Z_IN,
                 BioBuzzConstants.Field.UP_CELL_ORIGIN_OUT_IN, BioBuzzConstants.Field.UP_CELL_ORIGIN_Z_IN,
                 BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_OUT_IN, BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_Z_IN,
@@ -320,6 +322,29 @@ public final class ConstantsCheck {
         if (Math.abs(zoneXMin) > tolerance || zoneXMax <= zoneXMin || zoneXMax >= center || zoneYMin < 0 || zoneYMax <= zoneYMin || zoneYMax > size) {
             r.errors.add("The red LOADING ZONE (Auto.RED_LOADING_ZONE_*: x " + zoneXMin + " to " + zoneXMax + ", y " + zoneYMin + " to " + zoneYMax
                     + ") must touch the red wall (x = 0), lie on the red half and inside the field.");
+        }
+    }
+
+    /**
+     * The exact HIVE solid is only right for a robot that is at least as tall as its tallest part (so no leg stub is missing) and lower
+     * than the lowest cell (the solid has no cells in it); and the lane between the feet must be wide enough for the robot plus the lane margin
+     * on both sides, or a route that is allowed under the HIVE could never fit (a WARN: the default routes never go there).
+     */
+    static void checkHiveSolid(Report r, double solidHeight, double robotTallest, double lowestCell, double laneMargin, double robotWidth) {
+        if (solidHeight < robotTallest) {
+            r.errors.add("Auto.HIVE_SOLID_HEIGHT_IN (" + solidHeight + " in) is lower than the tallest part of the robot (" + robotTallest
+                    + " in, the camera included): the legs of the HIVE would look shorter than the robot can reach them.");
+        }
+        if (solidHeight >= lowestCell) {
+            r.errors.add("Auto.HIVE_SOLID_HEIGHT_IN (" + solidHeight + " in) reaches the lowest cell of the HIVE (" + lowestCell
+                    + " in): the exact solid has no cells in it.");
+            return;
+        }
+        double[] lane = HiveSolid.of(0.0, solidHeight).narrowestLane();
+        double room = lane[1] - lane[0] - robotWidth - 2.0 * laneMargin;
+        if (room <= 0.0) {
+            r.warnings.add("The lane under the HIVE (" + String.format(Locale.ROOT, "%.1f", lane[1] - lane[0]) + " in) is not wide enough for the robot ("
+                    + robotWidth + " in) with Auto.HIVE_LANE_MARGIN_IN (" + laneMargin + " in) on both sides: no route may use allowUnderHive.");
         }
     }
 

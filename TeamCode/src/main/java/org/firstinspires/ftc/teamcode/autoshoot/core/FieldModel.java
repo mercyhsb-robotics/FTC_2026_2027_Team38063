@@ -35,6 +35,8 @@ public final class FieldModel {
     public static final class Params {
         /** Side length of the square field. */
         public double size = BioBuzzConstants.Field.SIZE_IN;
+        /** How tall the robot is for the HIVE solid: parts of the HIVE higher than this do not count (see {@link HiveSolid}). */
+        public double hiveSolidHeight = BioBuzzConstants.Auto.HIVE_SOLID_HEIGHT_IN;
         /** Width of the HIVE frame along x. */
         public double frameWidthX = BioBuzzConstants.Field.HIVE_FRAME_WIDTH_X_IN;
         /** Depth of the HIVE frame along y. */
@@ -75,6 +77,7 @@ public final class FieldModel {
     private final CellSpec[][] cells = new CellSpec[2][2];   // [alliance][side]
     private final Rect fieldRect;
     private final Rect hiveFrame;
+    private final HiveSolid hiveSolid;
     private final List<Rect> flowerKeepOuts;
 
     /** The model with the real field numbers from {@link BioBuzzConstants.Field}. */
@@ -109,6 +112,7 @@ public final class FieldModel {
         // The Rect constructor takes (x0, x1, y0, y1): here the whole field, 0..size on both axes.
         fieldRect = new Rect(0, p.size, 0, p.size);
         hiveFrame = Rect.centered(c, c, p.frameWidthX, p.frameDepthY);
+        hiveSolid = HiveSolid.of(c, p.hiveSolidHeight);
 
         List<Rect> flowers = new ArrayList<Rect>();
         for (double[] f : p.flowerCenters) {
@@ -192,14 +196,45 @@ public final class FieldModel {
     }
 
     /**
-     * Every fixed obstacle a drive path must stay out of: the HIVE frame and the four FLOWERS. Returns a new
-     * list each call, so the caller may modify it.
+     * The exact solid of the HIVE below the robot's height: the two foot bars and the four leg stubs, as convex polygons, with the open lane
+     * between them. The footprint box {@link #hiveFrame()} is all of this plus the lane.
+     */
+    public HiveSolid hiveSolid() {
+        return hiveSolid;
+    }
+
+    /**
+     * Every fixed obstacle a drive path must stay out of: the HIVE frame (as one solid box: the lane under it is NOT open) and the four
+     * FLOWERS. Returns a new list each call, so the caller may modify it.
      */
     public List<Rect> hardObstacles() {
+        return hardObstacles(false);
+    }
+
+    /**
+     * As {@link #hardObstacles()}, but with {@code allowUnderHive} the HIVE is not one box: it is the bounding boxes of its exact pieces (the two
+     * foot bars and the four leg stubs), which leaves the lane between the feet open. A box around a piece is a little bigger than the piece, so
+     * this is still safe for planners that can only use boxes; {@link #hardPolygons} gives the exact pieces for the check that follows.
+     */
+    public List<Rect> hardObstacles(boolean allowUnderHive) {
         List<Rect> all = new ArrayList<Rect>();
-        all.add(hiveFrame);
+        if (allowUnderHive) {
+            for (ConvexPolygon piece : hiveSolid.pieces()) {
+                all.add(piece.bounds());
+            }
+        } else {
+            all.add(hiveFrame);
+        }
         all.addAll(flowerKeepOuts);
         return all;
+    }
+
+    /**
+     * The exact HIVE pieces as polygons (the two foot bars and four leg stubs), for the route check that must not mistake the lane for solid
+     * floor. The FLOWER keep-outs are not among them: they are plain boxes, see {@link #flowerKeepOuts()}.
+     */
+    public List<ConvexPolygon> hardPolygons() {
+        return hiveSolid.pieces();
     }
 
     /**
