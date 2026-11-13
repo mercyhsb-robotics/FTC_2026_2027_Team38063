@@ -92,6 +92,16 @@ public final class DrivePath {
         return length;
     }
 
+    /** FACE_POINT only: the field point the robot keeps facing (null for the other heading modes). */
+    public Point2 facePoint() {
+        return facePoint;
+    }
+
+    /** FACE_POINT only: true when the robot's BACK (the shooter), not its front, keeps pointing at {@link #facePoint()}. */
+    public boolean facesWithBack() {
+        return faceWithBack;
+    }
+
     public HeadingMode mode() {
         return mode;
     }
