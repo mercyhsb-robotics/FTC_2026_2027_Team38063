@@ -40,10 +40,14 @@ public final class BioBuzzConstants {
         private Robot() {
         }
 
-        /** FIXED (CAD drawing, tank version): overall length, front to back. ADD: re-measure the mecanum build. */
+        /** FIXED (goBILDA mecanum StarterBot drawing 3200-2627-0004): overall length, front to back, 452 mm. */
         public static final double LENGTH_IN = 17.80;
-        /** FIXED (CAD drawing, tank version): overall width, side to side. ADD: re-measure the mecanum build. */
-        public static final double WIDTH_IN = 16.77;
+        /** FIXED (same drawing): overall width, side to side, 452 mm. The robot is square, so it fits the 18 in start cube (rule R102) with 0.2 in to spare. */
+        public static final double WIDTH_IN = 17.80;
+        /** FIXED (same drawing): height of the tallest part, 308 mm. */
+        public static final double HEIGHT_IN = 12.13;
+        /** FIXED (same drawing): mecanum wheel diameter, 104 mm. */
+        public static final double WHEEL_DIAMETER_IN = 4.09;
 
         /**
          * ADD: where the ball leaves the shooter, measured from the robot's rotation center. The
@@ -53,10 +57,101 @@ public final class BioBuzzConstants {
         /** ADD: sideways offset of the exit from the center line (positive = robot's left). */
         public static final double LAUNCH_POINT_LEFT_IN = 0.0;
 
-        /** ADD: height of the ball exit above the floor (used only for the diagnostic ballistics print-out). */
-        public static final double LAUNCH_HEIGHT_IN = 11.0;
+        /**
+         * VERIFY: height of the ball exit above the floor, used only for the diagnostic ballistics
+         * print-out. 7.89 in is the 200.5 mm launch-deck dimension on the goBILDA side-view drawing;
+         * measure the real exit.
+         */
+        public static final double LAUNCH_HEIGHT_IN = 7.89;
         /** ADD: fixed launch angle above horizontal (CAD). The manual's geometry wants roughly 65-75 deg. */
         public static final double LAUNCH_ANGLE_DEG = 70.0;
+    }
+
+    // =========================================================================================
+    // SHOOTER (single fixed-angle flywheel + a feeder servo that pushes POLLEN into it)
+    // =========================================================================================
+    public static final class Shooter {
+        private Shooter() {
+        }
+
+        /** How the number of POLLEN fired is decided. */
+        public enum ShotCountMode {
+            /** Feed for a fixed time per ball, capped at {@link #MAX_SHOTS_PER_VOLLEY}. Never faults. */
+            TIMED,
+            /** Count the speed dip each ball causes. Stops at the cap; faults if no dip is ever seen. */
+            DIP,
+            /** Count dips AND keep a timeout: stops at the cap or when the timeout expires. Never faults. */
+            HYBRID
+        }
+
+        /** How the feeder follows the flywheel. */
+        public enum FeedMode {
+            /** Once the first ball is released, keep the feeder running until the volley ends. */
+            CONTINUOUS,
+            /** Feeder runs only while the flywheel is inside its speed window, so each ball is fed at full speed. */
+            GATED_PER_BALL
+        }
+
+        /** FIXED (rule G407): a robot may control at most 4 POLLEN, so a volley is at most 4 shots. */
+        public static final int MAX_SHOTS_PER_VOLLEY = 4;
+
+        /**
+         * ADD: flywheel speed in ticks per second for each horizontal distance from the BALL EXIT to
+         * the cell aim point, in inches, sorted by distance. Each row is {distance_in, velocity_tps}.
+         * PLACEHOLDER derived from the team's existing autos (about 1200 tps from 37-45 in); record
+         * the real speed that scores at 3-5 distances with the shooter tuner and replace these rows.
+         */
+        public static final double[][] SHOT_TABLE = {
+                {28.0, 1150.0},
+                {34.0, 1200.0},
+                {40.0, 1250.0},
+                {46.0, 1300.0}};
+
+        /** TUNE: slack on each end of the table when choosing a shooting range, so the planner aims inside it. */
+        public static final double RANGE_MARGIN_IN = 1.5;
+
+        /** VERIFY: apply the PIDF below at init. These are goBILDA's StarterBot values for a 6000 rpm motor (max about 2800 tps). */
+        public static final boolean FLYWHEEL_APPLY_PIDF = true;
+        public static final double FLYWHEEL_PIDF_P = 40.0;
+        public static final double FLYWHEEL_PIDF_I = 0.0;
+        public static final double FLYWHEEL_PIDF_D = 0.0;
+        public static final double FLYWHEEL_PIDF_F = 12.5;
+        /** VERIFY: true = brake when the flywheel is told to stop. False coasts, which is easier on the gearbox. */
+        public static final boolean FLYWHEEL_BRAKE_ON_STOP = false;
+        /** TUNE: speed to hold while idle between volleys, in ticks per second. 0 = stop completely. */
+        public static final double FLYWHEEL_IDLE_TPS = 0.0;
+
+        /** TUNE: the flywheel counts as "at speed" this far BELOW its target (fraction of target). */
+        public static final double AT_SPEED_BELOW_FRAC = 0.06;
+        /** TUNE: ... and this far ABOVE its target. */
+        public static final double AT_SPEED_ABOVE_FRAC = 0.06;
+        /** TUNE: absolute slack in ticks per second added to both ends (covers encoder quantization noise). */
+        public static final double AT_SPEED_FLOOR_TPS = 20.0;
+        /** TUNE: the speed must stay inside the window this long before the shooter is declared ready. */
+        public static final double AT_SPEED_RISE_SEC = 0.10;
+        /** TUNE: ... and must stay outside it this long before it is declared not ready (keep short). */
+        public static final double AT_SPEED_FALL_SEC = 0.03;
+
+        /** VERIFY: feeder servo power while pushing a ball (the team's code uses 0.3; the stock StarterBot uses 1.0). */
+        public static final double FEEDER_FORWARD_POWER = 0.3;
+        /** VERIFY: feeder power when clearing a jam (runs the other way). */
+        public static final double FEEDER_REVERSE_POWER = 0.3;
+        /** VERIFY: set true if "forward" feeds the ball the wrong way. */
+        public static final boolean FEEDER_INVERTED = false;
+
+        public static final ShotCountMode SHOT_COUNT_MODE = ShotCountMode.HYBRID;
+        public static final FeedMode FEED_MODE = FeedMode.GATED_PER_BALL;
+
+        /** TUNE: a ball counts as fired when the speed drops this far below target (fraction of target). Measure with the shooter tuner. */
+        public static final double SHOT_DIP_FRAC = 0.05;
+        /** TUNE: after a counted dip, no second shot is counted for this long. Keep below the time between balls. */
+        public static final double SHOT_REFRACTORY_SEC = 0.15;
+        /** TUNE: seconds the feeder may run per ball in TIMED/HYBRID mode. */
+        public static final double FEED_SECONDS_PER_SHOT = 0.9;
+        /** TUNE: absolute limit for one whole volley in seconds, whatever the count says. */
+        public static final double VOLLEY_MAX_SEC = 5.0;
+        /** TUNE: if no new ball has been seen for this long while feeding, the hopper is empty: finish the volley. */
+        public static final double EMPTY_AFTER_LAST_SHOT_SEC = 1.0;
     }
 
     // =========================================================================================
