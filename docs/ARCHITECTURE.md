@@ -4,14 +4,29 @@
 
 * Each alliance has one HIVE with **two cells**, one on the audience side and one on the far side. Exactly one is
   tipped **UP** (scorable). Launching enough POLLEN into the up cell **tips** the HIVE: the other cell is up next.
-  The team's figures are 5 NECTAR, or 8 POLLEN, or a mix. The match starts with 3 NECTAR already sitting in the
-  up cell, so the **first** tip needs only one volley of 4 POLLEN (3 NECTAR + 4 POLLEN is enough, 3 NECTAR + 3 POLLEN
-  is not). The cell that comes up after a tip has no NECTAR in it, so each later tip needs about 8 POLLEN, two
-  volleys (our assumption: confirm it on the real HIVE).
-* In autonomous the first tip may come from the **alliance partner** instead of from us. Every route in the autonomous
-  catalog states which one it assumes (`FirstTip.SELF` or `FirstTip.PARTNER`, see `docs/AUTOS.md`). A route that
-  assumes the partner waits for the camera to see the other cell tipped UP (the AprilTags on the bottom of the cell in
-  view) before it shoots: a time never lets the robot shoot, and without a camera it skips the volley.
+  **How much it takes is official** (FIRST's Event Field Setup Guide 12.3, Field Acceptance Checklist 2.3 to 2.6 and Field
+  Mitigation Guide, not the game manual): every cell of every field is calibrated so that an **empty cell tips with the 8th
+  POLLEN (7 do not)** and a cell holding the **3 staged NECTAR tips with the 3rd POLLEN (2 do not)**. The code counts a
+  POLLEN as 1 and a NECTAR as 5/3 POLLEN (`Auto.NECTAR_POLLEN_EQUIVALENT_*`) and a cell tips at 8 POLLEN-equivalents
+  (`Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD`), with whole-number arithmetic in thirds (`TipModel`): 3 NECTAR + 3 POLLEN = 24
+  thirds, tips; 3 NECTAR + 2 POLLEN = 21, does not; 7 POLLEN = 21, does not; 8 POLLEN = 24, tips; 5 NECTAR = 25, tips;
+  4 NECTAR = 20, does not. The match starts with 3 NECTAR already sitting in the up cell, so the **first** tip needs only
+  **3 POLLEN** (we carry 4 pre-loads: one is spare). The cell that comes up after a tip is **empty**, so each **later** tip
+  needs **8 POLLEN**. Real fields drift (FIRST's Q&A QA46: one HIVE needed 9 instead of 8 after 8 to 10 matches), so a
+  route plans `Auto.TIP_PLANNING_MARGIN_POLLEN` = 1 POLLEN more than the minimum (4 for the first tip, 9 for a later one)
+  and the validator WARNs for a tip with no spare. A volley that tips stops there (the camera sees the tip), so 4
+  pre-loads at the up cell tip it with 1 spare and leave 1 POLLEN in the hopper, which can take 3 more before the next
+  volley (capacity 4, G407). All of it is VERIFY: check it on the real HIVE.
+* In autonomous the first tip may come from the **alliance partner** instead of from us. A HIVE belongs to the alliance
+  and a TIP is defined only by what the HIVE does, so the partner's launches count for our HIVE (and the 20 points are the
+  alliance's, not ours). Every route in the autonomous catalog states which one it assumes (`FirstTip.SELF` or
+  `FirstTip.PARTNER`, see `docs/AUTOS.md`). A route that assumes the partner waits for the camera to see the other cell
+  tipped UP (the AprilTags on the bottom of the cell in view, steady for `Vision.HIVE_STABLE_SEEN_SEC`) before it shoots:
+  a time never lets the robot shoot, and without a camera it skips the volley (`TipConfirmation`, `TipWait`).
+* **LEAVE** (3) is judged at the end of AUTO and is lost by a robot that touches **any** perimeter wall then, also the
+  wall inside the LOADING ZONE (FIRST's Q&A QA21); a robot that parks there touching the wall keeps its PARK (5) but not
+  its LEAVE. A POLLEN squeezed between the robot and the wall does not count (QA47). To claim both, end in the LOADING ZONE
+  at least `Auto.LEAVE_WALL_MARGIN_IN` off every wall (the zone is 11 in deep, so there is room).
 * The robot's shooter fires out the **back**, so the robot stands on the side its up cell faces, with its back
   toward the HIVE. Standing too far back is limited by the wall: the farthest in-line shot from the audience wall is
   about 36.4 in by the official CAD field (the aim point is 54.16 in from the wall, the ball exit 17.80 in), while the team

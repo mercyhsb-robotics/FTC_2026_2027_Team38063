@@ -106,10 +106,17 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       the leg stubs** at the height of your robot's tallest part, 13 in (CAD 40.1 in at 12.13 in, a little less at 13 in); and push the
       robot up the lane by hand with its camera on: nothing may touch. A robot that touches a foot bar (a 2.15 in step) is stopped
       by it, so test at slow speed first.
-- [ ] The real HIVE: heights of the opening and tag rows, and how many POLLEN tip it. The team's figures: 5 NECTAR,
-      8 POLLEN or a mix, and 3 NECTAR are staged in the up cell at the start, so the first tip needs only 4 POLLEN.
-      Check that, and check how many POLLEN the second tip needs (we assume 8). The TeleOp does not count tips (the
-      camera sees them), but the autonomous route planner does.
+- [ ] The real HIVE: heights of the opening and tag rows, and how many POLLEN tip it. **FIRST's own calibration** (Event
+      Field Setup Guide 12.3, Field Acceptance Checklist 2.3 to 2.6) says an empty cell tips with the **8th POLLEN** (7 do
+      not) and a cell with the **3 staged NECTAR tips with the 3rd POLLEN** (2 do not): the first tip needs only 3 POLLEN, so
+      4 pre-loads tip it with 1 spare, and every later tip needs 8 (the planner plans 9, `Auto.TIP_PLANNING_MARGIN_POLLEN`,
+      because a real field drifts: one needed 9 instead of 8 after 8 to 10 matches, Q&A QA46). Check all of it on the real
+      HIVE, with the 3 NECTAR placed gently at the back of the up cell: tip it with 2 POLLEN then 3, and an empty cell with 7
+      then 8. Weigh a few POLLEN and NECTAR on a kitchen scale (AndyMark lists 0.055 lb and 0.091 lb): one NECTAR counts as
+      5/3 POLLEN in the code (`Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR` / `_DENOMINATOR`, anything from 1.667 up to 2.0
+      agrees with FIRST's table); and see whether 5 NECTAR tip an empty cell and 4 do not. `ConstantsCheck` refuses numbers
+      that contradict FIRST's table. The TeleOp does not count tips (the camera sees them), but the autonomous route planner
+      does.
 - [ ] Watch a real HIVE tip from the side. How many seconds until the NECTAR and POLLEN have landed and stopped
       rolling, and how far from the cell do they end up? The planner keeps the robot out of the tipped cell's spill zone
       for `Auto.TIP_SPILL_CLEAR_SEC` (3 s) and 6 in around the cell (`Auto.TIP_SPILL_MARGIN_IN`): replace both with
@@ -117,7 +124,18 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
 - [ ] Ask the alliance partner team: does their auto shoot the first tip of the HIVE, and how many seconds into AUTO
       is it done? Write the answer into `Auto.PARTNER_FIRST_TIP_DONE_SEC` (12 s is a guess). Then pick the auto that
       matches: the gallery (`docs/autos/index.html`) says for every route whether it assumes "we shoot the first tip" or
-      "partner tips first", and for a partner route it shows how late the partner may tip and the route still works.
+      "partner tips first", and for a partner route it shows how late the partner may tip and the route still works (the
+      latest partner tip and the slack). The partner's launches count for our HIVE (a HIVE belongs to the alliance and the
+      20 points are the alliance's), so a partner that shoots the first tip is legal. The time is only a plan: the robot goes
+      on when its camera has **seen** the other cell UP and steady for `Vision.HIVE_STABLE_SEEN_SEC` (0.5 s), never because a
+      time has passed.
+- [ ] **No camera, no shot.** Unplug the Limelight and start a partner route at INIT: the Auto Route Picker must refuse it
+      with the reason (`TipCameraPolicy`); with the camera back, run it and let a partner (or a person) tip the HIVE at a
+      time you do not tell the robot: it must wait, and shoot only after the tags are steady in view. Then let the HIVE
+      never tip: the robot must give up at its deadline, skip the volley and still do its LEAVE and PARK.
+- [ ] **LEAVE and the wall in the LOADING ZONE** (FIRST's Q&A QA21): park in the LOADING ZONE once touching the wall and once
+      standing `Auto.LEAVE_WALL_MARGIN_IN` (1.5 in) off it, and ask a referee which one counts as LEAVE: a robot that touches
+      any wall at the end of AUTO loses LEAVE, but keeps PARK.
 
 ## D. Limelight — `docs/LIMELIGHT_SETUP.md`
 
@@ -139,7 +157,7 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       choose the alliance with D-pad left/right, START.
 - [ ] Hold D-pad up. Watch the telemetry: `Driving to the scoring pose` → `Aligning` → `Feeding` → `Done: 4 shots`.
 - [ ] Release the button mid-way: the robot must stop and give control back immediately.
-- [ ] Tip the HIVE by hand (or shoot 4 POLLEN on a fresh HIVE, then about 8 for each later tip) and shoot again: it
+- [ ] Tip the HIVE by hand (or shoot 3 POLLEN on a fresh HIVE, then about 8 for each later tip) and shoot again: it
       should drive to the other side.
 - [ ] Repeat for the BLUE alliance.
 - [ ] Drift correction (only after section D agrees within about 1 in): set `Vision.POSE_CORRECTION_ENABLED = true`,

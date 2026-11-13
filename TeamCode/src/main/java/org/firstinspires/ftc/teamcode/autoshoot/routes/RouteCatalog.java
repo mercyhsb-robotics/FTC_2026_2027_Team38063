@@ -188,7 +188,7 @@ public final class RouteCatalog {
                 .build());
 
         routes.add(AutoRoute.builder(GARDEN_CYCLE)
-                .title("Garden cycle: shoot 4 to tip the HIVE, take the 4 GARDEN POLLEN, step off the wall")
+                .title("Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall")
                 .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the 3 NECTAR already in that "
                         + "cell the 3rd POLLEN tips the HIVE (+20) and the 4th pre-load stays in the robot as the spare. After a "
                         + "tip the UP cell is on the OTHER side of the HIVE, about 111 in away around it, and it holds no NECTAR, "
