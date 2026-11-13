@@ -28,17 +28,8 @@ public class Constants {
         c.backRightDirection.set(DcMotorSimple.Direction.FORWARD);
     });
 
-//    public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
-//        c.name.set("pinpoint");
-//        c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-//        c.xPodOffset.set(0.10174839515385667);
-//        c.yPodOffset.set(0.15836214456032582);
-//        c.xPodDirection.set(GoBildaPinpointDriver.EncoderDirection.FORWARD);
-//        c.yPodDirection.set(GoBildaPinpointDriver.EncoderDirection.REVERSED);
-//        c.globalDistanceUnit.set(DistanceUnit.INCH);
-//        c.offsetUnits.set(DistanceUnit.INCH);
-//    });
-
+    // Pinpoint pod offsets (inches) come from the Pedro PinpointTuner. Re-run the tuner after any
+    // change to where the pods are mounted and paste the new numbers here.
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
         c.name.set("pinpoint");
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
