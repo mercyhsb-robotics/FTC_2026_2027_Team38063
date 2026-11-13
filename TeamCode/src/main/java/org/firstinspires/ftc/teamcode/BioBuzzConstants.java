@@ -135,14 +135,19 @@ public final class BioBuzzConstants {
         /**
          * ADD: flywheel speed in ticks per second for each horizontal distance from the BALL EXIT to
          * the cell aim point, in inches, sorted by distance. Each row is {distance_in, velocity_tps}.
-         * PLACEHOLDER derived from the team's existing autos (about 1200 tps from 37-45 in); record
-         * the real speed that scores at 3-5 distances with the shooter tuner and replace these rows.
+         *
+         * <p>ONE MEASURED ANCHOR (team, 2026-11-13): with the robot's FRONT pressed against the audience
+         * wall and in line with the HIVE, the ball exit is 37.7 in from the aim point and the POLLEN
+         * passes through the center to slightly ABOVE the center of the opening, at about the manual
+         * launch speed. That is the row {37.7, 1200}. "Slightly high" means the speed that hits dead
+         * center is probably a little lower. The other rows are PLACEHOLDERS that follow a typical
+         * speed-vs-range slope; record the real speed that scores at 3-5 distances with the shooter
+         * tuner and replace them.
          */
         public static final double[][] SHOT_TABLE = {
-                {28.0, 1150.0},
-                {34.0, 1200.0},
-                {40.0, 1250.0},
-                {46.0, 1300.0}};
+                {30.0, 1150.0},
+                {37.7, 1200.0},
+                {44.0, 1250.0}};
 
         /** TUNE: slack on each end of the table when choosing a shooting range, so the planner aims inside it. */
         public static final double RANGE_MARGIN_IN = 1.5;
@@ -213,8 +218,8 @@ public final class BioBuzzConstants {
         public static final double SHOOT_CONE_STEP_DEG = 2.5;
         /** TUNE: resolution of the search over range. */
         public static final double SHOOT_RANGE_STEP_IN = 1.0;
-        /** TUNE: the range the solver prefers when several poses are equally close (the middle of the measured table). */
-        public static final double PREFERRED_RANGE_IN = 34.0;
+        /** TUNE: the range the solver prefers when several poses are equally close. 37.7 in is the one measured good shot: robot front against the wall, in line with the HIVE. */
+        public static final double PREFERRED_RANGE_IN = 37.7;
 
         /** TUNE: planning cost of turning the robot, in inches of travel per degree. */
         public static final double PLAN_ROTATION_COST_IN_PER_DEG = 0.15;
@@ -413,10 +418,12 @@ public final class BioBuzzConstants {
 
         /**
          * VERIFY: where a RED robot stands at the start of TeleOp if the pose was not carried over from
-         * autonomous (RED frame; BLUE is the half-turn of it): tile C1, against the audience wall, back
-         * toward the HIVE. The robot must really be placed here for odometry to be right.
+         * autonomous (RED frame; BLUE is the half-turn of it): the CENTER of tile C1 (60 in from the red
+         * wall, 0.75 in from the HIVE axis), robot FRONT pressed against the audience wall, back toward the
+         * HIVE. This is also the one measured good shot position (37.7 in from the aim point). The robot must
+         * really be placed here for odometry to be right.
          */
-        public static final double DEFAULT_START_X_IN = 58.0;
+        public static final double DEFAULT_START_X_IN = 60.0;
         public static final double DEFAULT_START_Y_IN = 8.9;
         public static final double DEFAULT_START_HEADING_DEG = -90.0;
         /** TUNE: a pose saved by an earlier OpMode is only trusted if it is newer than this (seconds). */

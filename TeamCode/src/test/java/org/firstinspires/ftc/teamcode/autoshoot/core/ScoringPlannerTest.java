@@ -225,6 +225,25 @@ public class ScoringPlannerTest {
         assertTrue("range " + s.rangeIn, s.rangeIn < 38.0);
     }
 
+    /**
+     * The team's one measured good shot: robot front against the audience wall, in line with the HIVE. The ball
+     * exit is then exactly the verified wall-limit range from the aim point, and the shot table is anchored there.
+     */
+    @Test
+    public void theRobotFrontAgainstTheWallInLineIsTheMeasuredAnchorShot() {
+        CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
+        Pose2 wallShot = new Pose2(cell.axisX, cfg.robotLengthIn / 2.0, -Math.PI / 2.0);
+        double range = ShotGeometry.rangeTo(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
+        assertEquals(37.7, range, 0.05);
+        assertEquals(1200.0, table.velocityAt(37.7), EPS);
+        assertEquals(0.0, Math.toDegrees(ShotGeometry.azimuthOffAxis(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell)), 1e-6);
+        // Starting there, the planner has nothing to do but a few inches of settling.
+        ScoringPlanner.Solution s = planner.solve(wallShot, cell);
+        assertTrue(s.ok());
+        assertTrue("travel " + s.travelIn, s.travelIn < 2.5);   // a robot touching the wall is nudged off it by the wall clearance
+        assertEquals(37.0, s.rangeIn, 1.1);
+    }
+
     @Test
     public void footprintBoxGrowsWhenTheRobotIsTurned() {
         assertEquals(17.8, ShotGeometry.footprintExtentX(17.8, 17.8, Math.toRadians(-90)), 1e-9);
