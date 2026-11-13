@@ -4,7 +4,10 @@
 
 * Each alliance has one HIVE with **two cells**, one on the audience side and one on the far side. Exactly one is
   tipped **UP** (scorable). Launching enough POLLEN into the up cell **tips** the HIVE: the other cell is up next.
-  The team's figure is about 8 POLLEN per tip.
+  The team's figures are 5 NECTAR, or 8 POLLEN, or a mix. The match starts with 3 NECTAR already sitting in the
+  up cell, so the **first** tip needs only one volley of 4 POLLEN (3 NECTAR + 4 POLLEN is enough, 3 NECTAR + 3 POLLEN
+  is not). The cell that comes up after a tip has no NECTAR in it, so each later tip needs about 8 POLLEN, two
+  volleys (our assumption: confirm it on the real HIVE).
 * The robot's shooter fires out the **back**, so the robot stands on the side its up cell faces, with its back
   toward the HIVE. Standing too far back is limited by the wall: the farthest in-line shot from the audience wall is
   37.7 in.
