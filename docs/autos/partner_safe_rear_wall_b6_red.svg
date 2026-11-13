@@ -92,6 +92,7 @@
 <g class="cell cell-down" data-alliance="RED" data-side="REAR">
 <rect x="342.91" y="273.5" width="96.88" height="103.09" fill="#ffffff" fill-opacity="0.35" stroke="#c62828" stroke-width="1.5" stroke-dasharray="5 3"/>
 <text x="391.35" y="328.55" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle">DOWN 30-33</text>
+<text class="cell-cue" x="391.35" y="342.05" font-size="11" font-weight="bold" fill="#c62828" text-anchor="middle">UP after the tip</text>
 </g>
 <g class="cell cell-up" data-alliance="RED" data-side="AUDIENCE">
 <rect x="342.91" y="396.55" width="96.88" height="84.82" fill="#c62828" fill-opacity="0.28" stroke="#c62828" stroke-width="2"/>
