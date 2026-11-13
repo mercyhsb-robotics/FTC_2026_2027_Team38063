@@ -835,3 +835,53 @@ they can never disagree with each other.
 | A unit test says `docs/autos/... is missing` or `... differs from what the code draws now` | You added or renamed a route, or changed a rule, a constant or a text that the page shows, without regenerating: run `tools/render-autos.sh` (or `.bat`) and commit `docs/autos` in the SAME change. The test `RouteGalleryTest.theCommittedGalleryIsExactlyWhatTheCurrentCodeDraws` compares every committed file with a fresh drawing, so a stale page cannot sit next to new code. |
 | A diagram label overlaps something | Labels avoid each other and the step circles, not every line of the field. Open the SVG in a browser and zoom; the step list on the page says what each number is. |
 | The script printed a `Note: ... belongs to no route` | You removed a route. Delete its two old SVG files by hand (the tool never deletes files). |
+
+## Running an auto on the robot
+
+The robot can now drive a route from the catalog. It is the OpMode **Auto Route Picker** (Driver Station, Autonomous list, group "2 Autonomous"). The three old hand-written OpModes (`RedAlliance_B1`, `_C1`, `_LeavePark`) are untouched and still work. This section is how to use the picker and what the robot does; the older passages above that say "there is no route runner yet" describe the time before it existed.
+
+**At INIT** (with gamepad 1; the buttons are in `BioBuzzConstants.Run`):
+
+| Button | What it does |
+|---|---|
+| D-pad up / down | the previous / the next route of the list (the list wraps round) |
+| D-pad left / right | choose the RED / the BLUE alliance (the gamepad light shows it) |
+
+The screen then shows, for the route and alliance you chose: the route and **who tips the HIVE first** (`first tip: ...`), how long it should take and **how many points are ours** (the partner's tip is shown apart and never counted), the **words that say where to put the robot** (measured from the field walls to the robot's EDGES, see "Where to set the robot up"), what the **Limelight** says, how many ERRORs and WARNs the route checker found (the first few are listed), and the values still marked ADD that nobody has measured. Put the robot where it says and press PLAY.
+
+**When the robot refuses to start.** The last line says `REFUSED, WILL NOT START` and why, and after PLAY the robot stays still and shows the reason:
+
+* the route has an **ERROR** from the route checker (it breaks a rule or cannot work), or
+* the route **waits for the HIVE to tip** (a `waitForTip`) and the Limelight is not working: the robot could never see the tip. The message says what is wrong with the camera (cable, power, the name in the robot configuration, the pipeline). A route with only later volleys that depend on its own tip gets a WARNING instead.
+
+At the moment `red_b1`, `red_c1` and `red_leave_park` are refused (their start is through the wall, see "What the validator says about today's autos"), and so is any route whose FLOWER pick-up has an ERROR. `wall_shoot_park`, `garden_cycle` and `partner_rear_shoot_park` can run.
+
+**What the robot does on PLAY** (the code is `autoshoot/run/RouteExecutor`, plain Java; `RouteExecutorSimTest` drives every catalog route that has no ERROR, for both alliances, against a simulated robot, HIVE and camera):
+
+| Step | What the robot does |
+|---|---|
+| START | sets its odometry to the start pose (the robot must really stand there) |
+| DRIVE | turns on the spot to the heading the leg starts with (when that turn is more than `Run.PRE_TURN_MIN_DEG`: that is the turn the checker swept against the walls), then follows the leg: the same line or curve and the same heading rule the checker used, as one Pedro path |
+| SHOOT | moves to the step's pose (if it has one), then fires exactly as when a driver holds the shoot button in TeleOp (`AutoShootController`: pose, camera-confirmed cell, range, aim, flywheel speed) |
+| INTAKE GARDEN / FLOOR | drives to the pose and runs the intake and the corner servos for the dwell; stops when it holds 4 |
+| INTAKE FLOWER | lines up, drives straight in slowly, **wiggles** (the position is held, only the target heading alternates between "straight at the wall" and "turned toward the ball", one cycle per POLLEN) with the wheel the shared choice made, then backs straight out |
+| WAIT | stands still |
+| WAIT_FOR_TIP | stands still until the **camera** has seen the cell UP and steady (`TipWait`), or gives up at its deadline |
+| PARK | drives to the pose and holds it |
+
+**The rules the runner keeps.**
+
+* **The camera decides, never the clock.** A volley at a cell that is UP only because the HIVE has tipped (the partner's tip or ours) starts only after the camera has seen that cell UP for the settle time (`Vision.HIVE_STABLE_SEEN_SEC`). `waitForTip(giveUpSec)` is a deadline on the route clock; the runner uses the earlier of it and the latest time the rest of the route allows (`RouteAnalysis.effectiveGiveUpSec`). When it passes, every volley that needs the tip is skipped and the route goes on with the safe steps (LEAVE, PARK). No camera, no shot, also if the camera dies in the middle of such a volley.
+* **At most 4 POLLEN (G407).** The runner counts what it holds: a FLOWER pick-up stops at 4, a GARDEN or floor pick-up switches the intake off when 4 are in, a volley never fires more than is held.
+* **Fail closed.** A move that does not arrive in time, a turn that never gets there, a volley that faults: the reason is recorded and shown on the screen (`PROBLEM: ...`), that step is given up and the route goes on. A FLOWER turn that never gets there makes the robot turn back, back out and skip the rest of that pick-up.
+* **A clock stops everything** at the end of AUTO (`Run.CLOCK_STOP_SEC`): the drive holds where it is, the flywheel goes to 0, the feeder and the intake switch off.
+* **The pose is saved** when the route is over and when the OpMode stops (`PoseStore`): the TeleOp then starts from where the robot stands, with the same alliance and its belief about which HIVE cell is up.
+
+The screen during the run says which step, what the robot is doing in words, how many POLLEN it holds and how much AUTO is left. Every number the runner uses (tolerances, time-outs, the servo powers, the menu buttons) is in `BioBuzzConstants.Run`.
+
+**What nobody has run on the robot yet** (check these first on the day, in this order):
+
+1. a plain DRIVE route (`wall_shoot_park`): does each leg end where the picture says, and does the turn on the spot at the start of a leg look right? If a leg stops short of its end the runner counts it as arrived after `Run.ARRIVE_LOOSE_STILL_SEC`;
+2. the speed of a slow leg (the straight approach to a FLOWER, `.speed(0.5)`): it is set with Pedro's `maxPathSpeed` for that one path, in inches per second (`Auto.CRUISE_SPEED_IN_PER_SEC` times the fraction). If the robot does not slow down, that setting does not mean what we think;
+3. the corner servo powers (`Run.INTAKE_LEFT_SERVO_POWER`, `Run.INTAKE_RIGHT_SERVO_POWER`): they are the TeleOp trigger powers, check that the wheels pull POLLEN in;
+4. the partner route with the partner: watch the first time the camera confirms the tip, and read the numbers on the screen.
