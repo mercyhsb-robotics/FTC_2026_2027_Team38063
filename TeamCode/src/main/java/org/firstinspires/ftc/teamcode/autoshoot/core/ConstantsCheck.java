@@ -157,6 +157,8 @@ public final class ConstantsCheck {
         // A stick value is 0..1, so a threshold of 0 or less would cancel the drive on stick noise, and more
         // than 1 could never be reached.
         checkReapproachHeading(r, BioBuzzConstants.AutoShoot.REAPPROACH_HEADING_DEG, BioBuzzConstants.AutoShoot.APPROACH_HANDOFF_DEG);
+        checkSpillZone(r, BioBuzzConstants.Auto.TIP_SPILL_REACH_IN, BioBuzzConstants.Auto.DOWN_CELL_PLAN_OUT_FAR_IN,
+                BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN, BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -285,6 +287,22 @@ public final class ConstantsCheck {
     private static final int OFFICIAL_EMPTY_CELL_TIP_POLLEN = 8;
     private static final int OFFICIAL_STAGED_CELL_NO_TIP_POLLEN = 2;
     private static final int OFFICIAL_STAGED_CELL_TIP_POLLEN = 3;
+
+    /**
+     * The G409 spill zone of a tipped cell ({@code AllianceField.spillZone} of the route checker) must be a real zone: it has to reach at least
+     * as far out as the tipped cell itself hangs ({@code downCellFarIn}, the far end of the DOWN cell's footprint measured from the pivot line), because
+     * what falls out lands beyond the cell's own mouth, the margin and the time cannot be negative. A reach that stops short of the cell would put
+     * the zone under the cell and leave the floor where the balls land unguarded, which is the first version's mistake.
+     */
+    static void checkSpillZone(Report r, double reachIn, double downCellFarIn, double marginIn, double clearSec) {
+        if (!(reachIn > downCellFarIn)) {
+            r.errors.add("Auto.TIP_SPILL_REACH_IN (" + reachIn + " in) must be more than the far end of the tipped cell (Auto.DOWN_CELL_PLAN_OUT_FAR_IN, "
+                    + downCellFarIn + " in): what falls out of a tipped cell lands beyond its own mouth, so a zone that stops at the cell guards nothing.");
+        }
+        if (marginIn < 0.0 || clearSec < 0.0) {
+            r.errors.add("Auto.TIP_SPILL_MARGIN_IN (" + marginIn + ") and TIP_SPILL_CLEAR_SEC (" + clearSec + ") cannot be negative.");
+        }
+    }
 
     /**
      * A robot that has just been handed over from APPROACH to ALIGN is up to {@code handoffDeg} off its hold heading. The heading at which ALIGN

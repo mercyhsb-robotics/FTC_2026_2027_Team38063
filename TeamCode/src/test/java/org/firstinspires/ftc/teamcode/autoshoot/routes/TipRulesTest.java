@@ -9,7 +9,12 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
@@ -423,7 +428,8 @@ public class TipRulesTest {
 
     @Test
     public void standingUnderTheAudienceCellWhenThePartnerTipsItIsAnError() {
-        // C1 start, drive to y = 39 (the footprint reaches y 47.0: the BACK edge is 8.03 in behind the center, and the spill zone starts at 52.3 - 6 = 46.3) and wait there
+        // C1 start, drive to y = 39 (the footprint reaches y 47.0: the BACK edge is 8.03 in behind the center) and wait there, in the middle of the spill zone
+        // (y 30.67 to 75.05: from where the tipped cell's base hangs out to where its balls land, 40 in out from the pivot line)
         List<Issue> l = validate(AutoRoute.builder("zone").start(58, FRONT, -90).partnerTipsFirst()
                 .driveConstant(58, 39, -90).waitSeconds(15));
         assertEquals(l.toString(), 1, count(l, Rule.SPILL_G409, Severity.ERROR));
@@ -437,11 +443,106 @@ public class TipRulesTest {
 
     @Test
     public void standingOutsideTheSpillZoneWhenThePartnerTipsIsFine() {
-        // y = 28: the footprint reaches y 36.0, ten inches short of the zone; and the rear robot is on the other side
+        // y = 14.8, the height of the standard shooting pose: the rear edge is at y 22.8, 47.8 in out from the pivot line, past the 40 in the balls reach
+        // (the zone starts at y 30.67); and the rear robot is on the other side
         assertEquals(0, count(validate(AutoRoute.builder("clear").start(58, FRONT, -90).partnerTipsFirst()
-                .driveConstant(58, 28, -90).waitSeconds(15)), Rule.SPILL_G409, Severity.ERROR));
+                .driveConstant(58, 14.8, -90).waitSeconds(15)), Rule.SPILL_G409, Severity.ERROR));
         assertEquals(0, count(validate(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.SPILL_G409,
                 Severity.ERROR));
+    }
+
+    /**
+     * Situation: a robot waits for the partner's tip (assumed at 12 s) facing the audience wall at different heights, its rear edge (8.03 in behind
+     *     its center) toward the HIVE.
+     * Expected: at y = 14.8 and 20 (rear edge 47.8 and 42.6 in out from the pivot line, which is 70.67 - y - 8.03) it is outside the zone; at y = 26, 30, 32
+     *     and 36 (rear edge 36.6 to 26.6 in out) it is INSIDE it: an ERROR of rule G409 and nothing else, in particular NOT the HIVE keep-out (which
+     *     starts 22.5 in out).
+     * Why: the first version of the zone was the cell's footprint plus 6 in, which reaches only 26 in out. The balls of a tipped cell first touch the
+     *     floor 31 to 35 in out (field report hive_tags, section e), so a robot standing at y = 26 to 32, which the old zone called fine, has the balls
+     *     land in front of its rear face, or on it: exactly the catch or deflection that G409 forbids. Here every one of those heights is an error.
+     * Negative twin: the old zone (the cell's footprint grown by TIP_SPILL_MARGIN_IN) does not overlap the footprint at y = 26 to 32, so a check built
+     *     on it would have reported these routes clean.
+     */
+    @Test
+    public void aRobotStandingWhereTheBallsOfTheTippedCellLandIsAnErrorNotJustOneUnderTheCell() {
+        double[] clear = {14.8, 20.0};
+        double[] inLandingBand = {26.0, 30.0, 32.0, 36.0};
+        for (double y : clear) {
+            List<Issue> l = validate(AutoRoute.builder("band").start(58, FRONT, -90).partnerTipsFirst().driveConstant(58, y, -90).waitSeconds(15));
+            assertEquals("y = " + y + ": " + l, 0, count(l, Rule.SPILL_G409, Severity.ERROR));
+        }
+        AllianceField f = new AllianceField(new FieldModel(), Alliance.RED);
+        Rect oldZone = f.cellPlan(Alliance.RED, Side.AUDIENCE, true).inflate(BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN);
+        for (double y : inLandingBand) {
+            List<Issue> l = validate(AutoRoute.builder("band").start(58, FRONT, -90).partnerTipsFirst().driveConstant(58, y, -90).waitSeconds(15));
+            assertEquals("y = " + y + ": " + l, 1, count(l, Rule.SPILL_G409, Severity.ERROR));
+            assertEquals("only the spill rule reports it (the HIVE keep-out starts farther in): " + l, 1, l.size());
+            // the old zone is 26 in out from the pivot line; the footprint's rear edge (y + 8.03) does not reach it at y <= 32 (rear edge y 40.03 < 44.61)
+            if (y <= 32.0) {
+                assertFalse("y = " + y, Footprint.of(new Pose2(58, y, -Math.PI / 2.0)).overlaps(oldZone));
+            }
+        }
+    }
+
+    /**
+     * Situation: the spill zone of the tipped cell, asked for both alliances and both cells.
+     * Expected: for the red AUDIENCE cell x [41.39, 74.45], y [30.67, 75.05] (the cell's width plus the 6 in margin; from 4.4 in past the pivot line to
+     *     TIP_SPILL_REACH_IN, 40 in, out from it); for the red REAR cell the mirror image about the pivot line; blue is the half turn of red; and the
+     *     zone covers the tipped cell's own footprint.
+     */
+    @Test
+    public void theSpillZoneIsTheCellsWidthFromJustPastThePivotLineOutToWhereTheBallsLand() {
+        AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
+        double center = BioBuzzConstants.Field.CENTER_IN;
+        Rect audience = red.spillZone(Alliance.RED, Side.AUDIENCE);
+        assertEquals(41.39, audience.minX, 0.01);
+        assertEquals(74.45, audience.maxX, 0.01);
+        assertEquals(center - BioBuzzConstants.Auto.TIP_SPILL_REACH_IN, audience.minY, 1e-9);
+        assertEquals(30.67, audience.minY, 0.01);
+        assertEquals(75.05, audience.maxY, 0.01);
+        Rect rear = red.spillZone(Alliance.RED, Side.REAR);
+        assertEquals(audience.minX, rear.minX, 1e-9);
+        assertEquals(2.0 * center - audience.maxY, rear.minY, 1e-9);
+        assertEquals(2.0 * center - audience.minY, rear.maxY, 1e-9);
+        Rect blueRear = red.spillZone(Alliance.BLUE, Side.REAR);
+        Rect expectedBlue = audience.rotated180(center, center);
+        assertEquals(expectedBlue.minX, blueRear.minX, 1e-9);
+        assertEquals(expectedBlue.maxX, blueRear.maxX, 1e-9);
+        assertEquals(expectedBlue.minY, blueRear.minY, 1e-9);
+        assertEquals(expectedBlue.maxY, blueRear.maxY, 1e-9);
+        // it covers the cell's own footprint, before and after the tip
+        for (boolean up : new boolean[] {true, false}) {
+            Rect cell = red.cellPlan(Alliance.RED, Side.AUDIENCE, up);
+            assertTrue(up + ": " + cell, audience.minX <= cell.minX && audience.maxX >= cell.maxX && audience.minY <= cell.minY && audience.maxY >= cell.maxY);
+        }
+    }
+
+    /**
+     * Situation: the standard shooting poses a route uses, each held while the cell they just tipped spills: the nominal pose the solver picks (34 in
+     *     from the aim point), the measured anchor shot (front on the audience wall, 37.7 in) and the closest standoff the validator accepts (30 in).
+     * Expected: all of them are OUTSIDE the zone (their rear edge is about 48, 53 and 45 in out); a pose 20 in from the aim point, which the validator
+     *     already calls too close, is inside.
+     * Why: this is the decision the zone had to make, written as a test: the robot's shooter faces the HIVE with its BACK, so the rear edge is what the
+     *     balls would reach. A zone that flagged the standard shot would flag every route; the day-one checklist asks the team to look for the balls
+     *     there, and TIP_SPILL_REACH_IN is the knob if they do reach it. With 40 in no pose of the legal shooting band is in the zone.
+     */
+    @Test
+    public void everyLegalShootingPoseIsOutsideTheSpillZoneAndOneMuchCloserIsInside() {
+        AllianceField f = new AllianceField(new FieldModel(), Alliance.RED);
+        Rect zone = f.spillZone(Alliance.RED, Side.AUDIENCE);
+        CellSpec cell = f.cell(Side.AUDIENCE);
+        Pose2 nominal = f.nominalShootPose(Side.AUDIENCE);
+        assertFalse("nominal pose " + nominal, Footprint.of(nominal).overlaps(zone));
+        double nominalRearOut = BioBuzzConstants.Field.CENTER_IN - Footprint.of(nominal).bounds().maxY;
+        assertTrue("rear edge " + nominalRearOut + " in out", nominalRearOut > BioBuzzConstants.Auto.TIP_SPILL_REACH_IN);
+        // a pose on the HIVE axis facing the audience wall whose ball exit is {standoff} from the aim point: the exit is 6.58 in BEHIND the center of rotation
+        for (double standoff : new double[] {BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN, BioBuzzConstants.Auto.SHOOT_STANDOFF_NOMINAL_IN,
+                BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN, 37.7}) {
+            Pose2 p = new Pose2(cell.originX, cell.originY - standoff + BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, -Math.PI / 2.0);
+            assertFalse("standoff " + standoff + " at " + p, Footprint.of(p).overlaps(zone));
+        }
+        Pose2 tooClose = new Pose2(cell.originX, cell.originY - 20.0 + BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, -Math.PI / 2.0);
+        assertTrue("20 in from the aim point " + tooClose, Footprint.of(tooClose).overlaps(zone));
     }
 
     @Test
@@ -451,7 +552,7 @@ public class TipRulesTest {
         assertEquals(l.toString(), 1, count(l, Rule.SPILL_G409, Severity.ERROR));
         assertEquals("on the last step", 1, first(l, Rule.SPILL_G409, Severity.ERROR).stepIndex);
         assertEquals(0, count(validate(AutoRoute.builder("end2").start(58, FRONT, -90).partnerTipsFirst()
-                .driveConstant(58, 28, -90)), Rule.SPILL_G409, Severity.ERROR));
+                .driveConstant(58, 14.8, -90)), Rule.SPILL_G409, Severity.ERROR));
     }
 
     @Test

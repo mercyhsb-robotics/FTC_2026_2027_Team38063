@@ -44,12 +44,16 @@ public class FlowerPressTest {
 
     // ---- helpers ---------------------------------------------------------------------------------------------------
 
-    /** The 4 pre-loads are fired first (the volley tips the HIVE on the 3rd POLLEN and keeps the 4th), so the robot holds 1 and a FLOWER INTAKE of 3 is legal. The INTAKE is step index 2. */
+    /**
+     * The 4 pre-loads are fired first (the volley tips the HIVE on the 3rd POLLEN and keeps the 4th), so the robot holds 1 and a FLOWER INTAKE of 3 is legal.
+     * It then waits 5 s at the shooting pose for what the tipped cell drops to land (G409: the robot may not drive through the landing band during the
+     * 3.5 s after the tip), and only then goes for the FLOWER. The INTAKE is step index 3.
+     */
     private static AutoRoute.Builder base() {
-        return AutoRoute.builder("press").start(35, FRONT, -90).shootUp(4);
+        return AutoRoute.builder("press").start(35, FRONT, -90).shootUp(4).waitSeconds(5);
     }
 
-    private static final int INTAKE = 2;
+    private static final int INTAKE = 3;
     private static final double[] FLOWER_1 = {BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][1]};
     private static final double[] FLOWER_2 = {BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][1]};
 
@@ -181,7 +185,7 @@ public class FlowerPressTest {
 
     @Test
     public void aGardenOrFloorIntakeHasNoWheelAndIsNotAPickUpAndNeedsItsPose() {
-        AutoRoute garden = AutoRoute.builder("g").start(35, FRONT, -90).shootUp(4).intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4).build();
+        AutoRoute garden = AutoRoute.builder("g").start(35, FRONT, -90).shootUp(4).waitSeconds(5).intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4).build();
         assertNull(((Step.Intake) garden.step(INTAKE)).wheel());
         assertNull(WiggleTestRobot.analyze(garden).step(INTAKE).press);
         try {
@@ -375,7 +379,7 @@ public class FlowerPressTest {
     @Test
     public void onlyAFlowerIntakeNearAFlowerIsAPickUp() {
         // a FLOWER intake whose target is near no FLOWER has nothing to wiggle
-        AutoRoute nothing = AutoRoute.builder("n").start(35, FRONT, -90).shootUp(4).intakeFlower(60, 30, IntakeWheel.LEFT, 1).build();
+        AutoRoute nothing = AutoRoute.builder("n").start(35, FRONT, -90).shootUp(4).waitSeconds(5).intakeFlower(60, 30, IntakeWheel.LEFT, 1).build();
         RouteAnalysis a = WiggleTestRobot.analyze(nothing);
         assertNull(a.step(INTAKE).press);
         assertNull(a.step(INTAKE).choice);

@@ -27,8 +27,9 @@ public class RouteAnalysisTest {
     static AutoRoute.Builder corridorPark() {
         return AutoRoute.builder("corridor_park").start(58, FRONT, -90)
                 .shootUp(4)
-                .driveConstant(30, 30, -90)      // slides sideways with the front toward the wall: at the nominal shooting pose the
-                                                 // center is only 12.1 in from the wall, too close to turn on the spot there
+                .driveConstant(30, 14.8, -90)    // slides sideways along the wall, staying low (the rear edge 47.8 in out is clear of the spill
+                                                 // zone of the tipped cell, which reaches 40 in) with the front toward the wall: at the nominal
+                                                 // shooting pose the center is only 12.1 in from the wall, too close to turn on the spot there
                 .driveReverseTangent(30, 100)
                 .driveLinear(12, 108, 0)
                 .park(12, 108, 0);

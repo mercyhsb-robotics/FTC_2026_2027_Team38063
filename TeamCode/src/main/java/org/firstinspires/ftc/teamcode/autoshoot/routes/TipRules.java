@@ -38,15 +38,19 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       partner's tip happens is a WARN.</li>
  *   <li><b>G409, the spill.</b> When a HIVE tips, the cell that was UP tips down and everything in it falls out of its
  *       opening onto the floor on that side of the HIVE: its 3 staged NECTAR (if it is the first tip) and the POLLEN
- *       launched into it (field_layout.verified.md 2.1 and 5.2: the red audience cell is x [49.25, 69.25],
- *       y [52.3, 69.9] and opens toward the audience wall). G409 says a robot may not catch or deflect an element
- *       released by a tipped HIVE until it has touched something else (rules.verified.md, G409 p109). So for
- *       {@code TIP_SPILL_CLEAR_SEC} after every tip, ours and the partner's, the robot footprint must stay out of
- *       the spill zone: that cell's plan footprint grown by {@code TIP_SPILL_MARGIN_IN}. The other cell's side of the
+ *       launched into it. The cell hangs over the frame and its mouth is about 17 in out from the pivot line and 32 in up, so
+ *       what falls out is thrown outward and first touches the floor 31 to 35 in out from the pivot line
+ *       (the project's own kinematics, field report hive_tags section e; the swing of the cell could carry it farther, up to about 48 in). G409 says a robot may not catch or deflect an
+ *       element released by a tipped HIVE until it has touched something else (rules.verified.md, G409 p109). So for
+ *       {@code TIP_SPILL_CLEAR_SEC} after every tip, ours and the partner's, the robot footprint must stay out of the spill zone,
+ *       {@link AllianceField#spillZone}: the cell's width plus {@code TIP_SPILL_MARGIN_IN} on each side, from the pivot line out to
+ *       {@code TIP_SPILL_REACH_IN}, which is where the balls LAND, not just the cell's own footprint. The other cell's side of the
  *       HIVE is not in the zone; it is where a robot waiting for the partner's tip stands. ERROR. (This is the
  *       planning version, with times: from the tip until the camera has confirmed it (the settle time) plus
  *       {@code TIP_SPILL_CLEAR_SEC}. On the robot the same rule is "stay out until the camera has confirmed the tip,
- *       plus {@code TIP_SPILL_CLEAR_SEC}", because the real time of the partner's tip is not known.)</li>
+ *       plus {@code TIP_SPILL_CLEAR_SEC}", because the real time of the partner's tip is not known.) The standard shooting
+ *       pose (its rear edge about 48 in or more out) is outside the zone ON PURPOSE (see {@code TIP_SPILL_REACH_IN}: day one measures
+ *       whether that is true); a pose closer than that is inside it, and the robot must be on its way out before the tip.</li>
  *   <li><b>G409 / G417, under the HIVE.</b> A DRIVE that is allowed under the HIVE (the lane between the foot bars, see
  *       {@code HiveSolid}) gets a WARN when the robot is over the HIVE frame while the HIVE could still tip: that is, unless the
  *       camera has confirmed it at rest (a WAIT_FOR_TIP has ended before it) and none of our volleys went into it since.</li>
@@ -375,9 +379,8 @@ final class TipRules {
 
     private static void checkSpill(RouteAnalysis a, List<Issue> out) {
         double clear = BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC;
-        double margin = BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN;
         for (RouteAnalysis.TipEvent tip : a.tipEvents()) {
-            Rect zone = a.field().cellPlan(a.field().alliance(), tip.releasingSide, true).inflate(margin);
+            Rect zone = a.field().spillZone(a.field().alliance(), tip.releasingSide);
             double from = tip.timeSec;
             // The robot's own rule counts from the moment its camera has CONFIRMED the tip (the tip plus the settle time), so the
             // plan keeps the robot out for that long too.
@@ -405,8 +408,9 @@ final class TipRules {
         String who = tip.byPartner ? "the partner's assumed tip" : "the HIVE tip of step " + (tip.stepIndex + 1);
         return RouteValidator.describe(info) + ": the robot footprint at " + RouteValidator.pose(at) + " is inside the spill zone of the "
                 + tip.releasingSide + " cell " + zone + " within " + RouteValidator.sec(settle + BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC)
-                + " of " + who + " at " + RouteValidator.sec(tip.timeSec) + "; the cell that tips releases its NECTAR and POLLEN"
-                + " there and a robot may not catch or deflect them (G409). The robot stays out until its camera has confirmed the tip ("
+                + " of " + who + " at " + RouteValidator.sec(tip.timeSec) + "; the cell that tips drops its NECTAR and POLLEN there (they first touch"
+                + " the floor 31 to 35 in out from the HIVE's middle line, and the zone reaches " + String.format(Locale.ROOT, "%.0f", BioBuzzConstants.Auto.TIP_SPILL_REACH_IN)
+                + " in) and a robot may not catch or deflect them (G409). The robot stays out until its camera has confirmed the tip ("
                 + RouteValidator.sec(tip.timeSec + settle) + ") and then " + RouteValidator.sec(BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC)
                 + " more: stay out of the zone until " + String.format(Locale.ROOT, "%.1f s", tip.timeSec + settle + BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
     }

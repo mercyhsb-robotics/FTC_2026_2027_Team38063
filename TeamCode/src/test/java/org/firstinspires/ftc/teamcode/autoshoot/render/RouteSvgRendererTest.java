@@ -402,7 +402,12 @@ public class RouteSvgRendererTest {
 
     @Test
     public void straightLegsAreLinesAndCurvedLegsAreSmoothPaths() throws Exception {
-        Document curved = parse(RouteSvgRenderer.render(RouteCatalog.byId("wall_shoot_park"), Alliance.RED));
+        // a curved leg (a via point) followed by two straight ones
+        AutoRoute curve = AutoRoute.builder("curve").title("Curve").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
+                .driveConstant(30.0, 45.0, -90.0).via(30.0, 24.0)
+                .driveReverseTangent(30.0, 100.0)
+                .driveLinear(12.0, 108.0, 0.0).build();
+        Document curved = parse(RouteSvgRenderer.render(curve, Alliance.RED));
         List<Element> legs = withClass(byId(curved, "route"), "path", "leg");
         assertEquals(3, legs.size());
         assertTrue(legs.get(0).getAttribute("d"), legs.get(0).getAttribute("d").contains(" Q "));

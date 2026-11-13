@@ -29,13 +29,14 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
 public class FlowerCycleCapTest {
     private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double[] FLOWER_1 = {BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][1]};
-    private static final int INTAKE = 2;
+    private static final int INTAKE = 3;
     private static final int ASKED = 3;
     private static final double DT = 0.01;
     private static final double WN = 14.0;                 // natural frequency of the simulated heading loop, rad/s
 
     private static AutoRoute route() {
-        return AutoRoute.builder("cap").start(35, FRONT, -90).shootUp(4).intakeFlower(FLOWER_1[0], FLOWER_1[1], ASKED).build();
+        // (the 5 s wait lets what the tipped cell drops land before the robot leaves, G409)
+        return AutoRoute.builder("cap").start(35, FRONT, -90).shootUp(4).waitSeconds(5).intakeFlower(FLOWER_1[0], FLOWER_1[1], ASKED).build();
     }
 
     private static TimingModel timing(int cyclesPerPollen, int maxCycles) {

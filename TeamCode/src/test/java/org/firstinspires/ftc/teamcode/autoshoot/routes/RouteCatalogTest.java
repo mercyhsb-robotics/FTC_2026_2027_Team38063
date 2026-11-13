@@ -438,9 +438,13 @@ public class RouteCatalogTest {
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
                 r.claimablePoints());
         assertTrue(a.parkOverlapIn() > 7.0);
-        // it uses the curved leg and the left corridor
-        Step.Drive curve = (Step.Drive) r.step(2);
-        assertEquals(1, curve.via().size());
+        // it slides along the wall first, STAYING LOW so that the rear edge is out of the spill zone of the tipped cell (G409), then goes up the left corridor
+        Step.Drive slide = (Step.Drive) r.step(2);
+        assertEquals("a straight slide at the shooting pose's height", 0, slide.via().size());
+        assertEquals(14.8, slide.target().y, 1e-9);
+        double rearEdgeOutIn = BioBuzzConstants.Field.CENTER_IN - (slide.target().y + BioBuzzConstants.Robot.REAR_EXTENT_IN);
+        assertTrue("the rear edge stays beyond the spill reach while the robot is beside the cell: " + rearEdgeOutIn,
+                rearEdgeOutIn > BioBuzzConstants.Auto.TIP_SPILL_REACH_IN);
         for (RouteAnalysis.StepInfo s : a.steps()) {
             double keepOutMinX = a.field().hiveKeepOut().minX;
             assertTrue("never right of the HIVE keep-out (x = " + keepOutMinX + ") in the corridor part",

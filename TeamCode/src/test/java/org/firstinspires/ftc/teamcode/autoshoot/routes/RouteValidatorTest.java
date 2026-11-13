@@ -401,7 +401,7 @@ public class RouteValidatorTest {
     @Test
     public void endingWithTheBodyOverTheCenterLineIsAWarning() {
         AutoRoute.Builder b = AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
-                .driveConstant(30, 30, -90).driveReverseTangent(30, 110).driveConstant(66, 110, 0);
+                .driveConstant(30, 14.8, -90).driveReverseTangent(30, 110).driveConstant(66, 110, 0);
         List<Issue> l = validate(b);
         assertOnly(l, Rule.END_POSE, Severity.WARN);
     }

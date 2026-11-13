@@ -186,17 +186,35 @@ public final class BioBuzzConstants {
          * VERIFY (rule G409): when a HIVE tips, the cell that was UP tips down and everything in it (the staged
          * NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE.
          * G409 says a robot may not catch or deflect what a tipped HIVE releases, so for this many seconds after a
-         * tip the robot footprint must stay out of that cell's spill zone (see TIP_SPILL_MARGIN_IN). 3 s is a first
-         * guess for the balls to land and stop rolling: watch a real tip and replace it. The route checker counts it from
-         * the planned tip time plus the settle time (Vision.HIVE_STABLE_SEEN_SEC); the robot itself counts it from the moment
-         * its camera has confirmed the tip (TipConfirmation.spillClearAtSec).
+         * tip the robot footprint must stay out of that cell's spill zone (see TIP_SPILL_REACH_IN and TIP_SPILL_MARGIN_IN).
+         * 3 s is a first guess for the balls to land and stop rolling: watch a real tip and replace it. The route checker counts
+         * it from the planned tip time plus the settle time (Vision.HIVE_STABLE_SEEN_SEC); the robot itself counts it from the
+         * moment its camera has confirmed the tip (TipConfirmation.spillClearAtSec).
          */
         public static final double TIP_SPILL_CLEAR_SEC = 3.0;
         /**
-         * VERIFY (rule G409): the spill zone is the plan footprint of the cell that tips (a 21.06 in wide box; for the red
-         * audience cell x [47.39, 68.45], y [50.61, 69.05], from the CAD) grown by this much on every side,
-         * because the balls bounce and roll a little after they land. The other cell's side of the HIVE is not part of
-         * it: a robot standing on the far side of the HIVE is clear. 6 in is a guess: POLLEN are 2.8 in balls.
+         * VERIFY (rule G409): how far OUT from the HIVE pivot line (y = Field.CENTER_IN) the spill zone of a tipped cell reaches, inches. This
+         * is WHERE THE BALLS LAND. The tipped cell hangs over the frame and its mouth is about 17 in out and about 32 in above the floor; what
+         * falls out leaves it at 1.1 to 1.5 m/s, 30 degrees below horizontal, so by the project's own kinematics (field report hive_tags,
+         * section e) the FIRST FLOOR CONTACT is 31 to 35 in out from the pivot line (37 in at 1.7 m/s). 40 in is that, plus a ball radius (1.4 in)
+         * and a margin for bounce. The swing of the cell is NOT modelled and could throw things farther: the report keeps 48 in as the far end
+         * of its uncertainty band.
+         *
+         * <p>THE STANDARD SHOOTING POSE IS OUTSIDE THE ZONE, ON PURPOSE. The shooter fires out of the robot's BACK, so the rear edge faces the cell:
+         * at the nominal standoff (34 in from the aim point) it is about 48 in out, at the measured anchor shot (37.7 in) about 53 in. A zone that
+         * reached 48 in would flag every standard shot as standing in the spill; the team has not seen that happen, and the first thing to do on
+         * day one is to look (docs/DAY_ONE_CHECKLIST.md: tip a HIVE and mark where the balls first touch the tiles, and whether any reach the
+         * robot's rear). If they do, raise this number: the standard pose will then be flagged and the team must shoot from farther away or drive
+         * off before the tip. A robot that parks CLOSER than the standard pose (a standoff under about 30 in) is inside the zone and must leave
+         * within TIP_SPILL_CLEAR_SEC.
+         */
+        public static final double TIP_SPILL_REACH_IN = 40.0;
+        /**
+         * VERIFY (rule G409): how much wider than the cell's own plan footprint (a 21.06 in wide box; the red audience cell is x [47.39, 68.45]
+         * from the CAD) the spill zone is, on each side, and how far past the pivot line toward the other cell it starts (the base of the
+         * cell hangs there): the balls spread sideways a little as they fall and bounce. The zone is then x [41.39, 74.45] for the red
+         * audience cell and runs from 4.4 in past the pivot line to TIP_SPILL_REACH_IN. The other cell's side of the HIVE is not part of it: a
+         * robot standing on the far side of the HIVE is clear. 6 in is a guess: POLLEN are 2.8 in balls.
          */
         public static final double TIP_SPILL_MARGIN_IN = 6.0;
         /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */

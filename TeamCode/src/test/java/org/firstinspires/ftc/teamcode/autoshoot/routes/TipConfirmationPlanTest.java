@@ -43,8 +43,11 @@ public class TipConfirmationPlanTest {
     private static final double REAR_X = 61.5;
     private static final double REAR_Y = 130.0;
     private static final double OFF_WALL_Y = 112.0;
-    /** The audience-side cell's spill zone starts at y 44.6 (its plan footprint y 50.6 minus the 6 in margin). */
-    private static final double AT_THE_ZONE_Y = 36.5;
+    /**
+     * The audience-side cell's spill zone starts at y 30.67 (it reaches 40 in out from the pivot line, y 70.67). A robot facing the audience wall has its
+     * REAR edge 8.03 in behind its center, so at y = 22.5 the rear edge is at 30.53, 0.14 in short of the zone, and a step 1 in toward the cell is 0.86 in inside.
+     */
+    private static final double AT_THE_ZONE_Y = 22.5;
 
     private static AutoRoute.Builder partnerRear() {
         return AutoRoute.builder("partner_rear").start(REAR_X, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst();

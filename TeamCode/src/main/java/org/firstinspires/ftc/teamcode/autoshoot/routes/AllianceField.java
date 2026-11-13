@@ -309,6 +309,30 @@ public final class AllianceField {
         return new Rect(axis - half, axis + half, y0, y1);
     }
 
+    /**
+     * The G409 SPILL ZONE of the cell of {@code a}'s HIVE that tips down on {@code side}: the floor where what falls out of it lands, as a box.
+     *
+     * <p>Why it is NOT just the cell's own footprint. The cell tips down and its mouth, about 17 in out from the pivot line and 32 in up, empties onto
+     * the floor; what falls out is thrown outward and first touches the floor 31 to 35 in out from the pivot line (the project's own kinematics,
+     * field report hive_tags section e; perhaps farther, because the cell is still swinging). A zone only a few inches wider than the cell
+     * (the first version: the footprint plus 6 in, 26 in out) misses that landing band completely, and a robot standing in it was reported clean.
+     *
+     * <p>The box: across, the cell's own width plus {@code Auto.TIP_SPILL_MARGIN_IN} on each side; along, from {@code TIP_SPILL_MARGIN_IN} past the
+     * pivot line on the cell's own side of it (the base of the cell hangs there, so a robot in the lane under the HIVE is covered) out to
+     * {@code Auto.TIP_SPILL_REACH_IN} (40 in) from the pivot line. For the red audience cell that is x [41.39, 74.45], y [30.67, 75.05].
+     */
+    public Rect spillZone(Alliance a, Side side) {
+        if (a == Alliance.BLUE) {
+            return spillZone(Alliance.RED, side.opposite()).rotated180(center, center);
+        }
+        double margin = BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN;
+        double axis = BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN;
+        double half = BioBuzzConstants.Field.CELL_PLAN_WIDTH_X_IN / 2.0;
+        double nearOut = BioBuzzConstants.Auto.UP_CELL_PLAN_OUT_NEAR_IN - margin;
+        double farOut = BioBuzzConstants.Auto.TIP_SPILL_REACH_IN;
+        return new Rect(axis - half - margin, axis + half + margin, center + side.ySign() * nearOut, center + side.ySign() * farOut);
+    }
+
     // ---- intake sources ------------------------------------------------------------------------------
 
     /** The nearest FLOWER within the matching radius of the point, or -1. */

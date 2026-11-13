@@ -135,10 +135,13 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       agrees with FIRST's table); and see whether 5 NECTAR tip an empty cell and 4 do not. `ConstantsCheck` refuses numbers
       that contradict FIRST's table. The TeleOp does not count tips (the camera sees them), but the autonomous route planner
       does.
-- [ ] Watch a real HIVE tip from the side. How many seconds until the NECTAR and POLLEN have landed and stopped
-      rolling, and how far from the cell do they end up? The planner keeps the robot out of the tipped cell's spill zone
-      for `Auto.TIP_SPILL_CLEAR_SEC` (3 s) and 6 in around the cell (`Auto.TIP_SPILL_MARGIN_IN`): replace both with
-      what you see (rule G409: a robot may not catch what a tipped HIVE releases).
+- [ ] Watch a real HIVE tip from the side. **Where do the balls land?** Tip a HIVE and mark with tape where the first NECTAR and POLLEN touch the
+      tiles, measured out from the HIVE's middle line (the pivot line, y = 70.7 in), and whether any of them reach the BACK of a robot that stands at
+      the standard shooting pose (the shooter fires out of the back, so the rear edge faces the HIVE). The code believes 31 to 35 in out, and keeps
+      the robot out of a zone that reaches `Auto.TIP_SPILL_REACH_IN` = 40 in out and 6 in either side of the cell
+      (`Auto.TIP_SPILL_MARGIN_IN`); the standard shooting pose (rear edge about 48 in out) is outside it on purpose. If balls reach 48 in or the robot's
+      rear, raise the reach and shoot from farther. Also: how many seconds until everything has landed and stopped rolling? The planner keeps the
+      robot out for `Auto.TIP_SPILL_CLEAR_SEC` (3 s). Replace all three with what you see (rule G409: a robot may not catch what a tipped HIVE releases).
 - [ ] Ask the alliance partner team: does their auto shoot the first tip of the HIVE, and how many seconds into AUTO
       is it done? Write the answer into `Auto.PARTNER_FIRST_TIP_DONE_SEC` (12 s is a guess). Then pick the auto that
       matches: the gallery (`docs/autos/index.html`) says for every route whether it assumes "we shoot the first tip" or

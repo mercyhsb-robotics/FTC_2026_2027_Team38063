@@ -242,11 +242,11 @@ public class RouteSvgFootprintTest {
     @Test
     public void aWarningAloneDoesNotChangeTheOutline() throws Exception {
         // a FLOWER pick-up with a retreat of only 2 in is a WARN at step 3 and nothing else is wrong with that step (for a robot whose wheels reach)
-        AutoRoute r = AutoRoute.builder("warn").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
+        AutoRoute r = AutoRoute.builder("warn").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4).waitSeconds(5)
                 .intakeFlower(2.634, 47.281, IntakeWheel.LEFT, 3).retreat(2.0).build();
         boolean warnAtIntake = false;
         for (Issue i : WiggleTestRobot.check(r)) {
-            if (i.stepIndex == 2) {
+            if (i.stepIndex == 3) {
                 assertFalse("only a WARN at the INTAKE: " + i, i.isError());
                 warnAtIntake = true;
             }

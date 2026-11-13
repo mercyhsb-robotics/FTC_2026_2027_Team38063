@@ -410,12 +410,21 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
   the GARDEN, the FLOWERS) is end-of-match, so our pick-ups from a GARDEN or a FLOWER in AUTO are only for feeding POLLEN into a second tip.
 * **Where the spill falls (G409).** When a HIVE tips, the cell that was UP turns down and everything in it (the 3
   NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE. For the
-  red HIVE the audience cell covers x 47.4 to 68.5 in and y 50.6 to 69.1 in (the CAD hull of the whole cell) and opens toward the audience wall. G409
+  red HIVE the audience cell covers x 47.4 to 68.5 in and y 50.6 to 69.1 in (the CAD hull of the whole cell) and opens toward the audience wall. **The
+  balls do not land under the cell.** Its mouth, about 17 in out from the pivot line (y 70.7) and 32 in up, throws them outward, and by the project's
+  own kinematics (field report, hive_tags section e) the first floor contact is **31 to 35 in out** from the pivot line (37 in at the fastest
+  speed), perhaps farther because the cell is still swinging. G409
   says a robot may not catch or deflect what a tipped HIVE releases, so for `Auto.TIP_SPILL_CLEAR_SEC` (3 s) after
-  the camera has confirmed every tip the robot footprint must stay out of that cell's spill zone: the cell footprint grown by
-  `Auto.TIP_SPILL_MARGIN_IN` (6 in). The other side of the HIVE is clear: that is where a robot waiting for the
-  partner stands. On the real robot the rule is "stay out until the camera has confirmed the tip, plus those 3 s"
-  (`TipConfirmation.spillClearAtSec()`); the checker's time-based version (the tip, the 0.5 s settle time, the 3 s) is for planning only.
+  the camera has confirmed every tip the robot footprint must stay out of that cell's **spill zone**: the cell's width plus
+  `Auto.TIP_SPILL_MARGIN_IN` (6 in) on each side, from 4.4 in past the pivot line out to `Auto.TIP_SPILL_REACH_IN` (40 in: the landing
+  band plus a ball radius and a margin), for the red audience cell x 41.4 to 74.5 in and y 30.7 to 75.1 in. The other side of the HIVE is
+  clear: that is where a robot waiting for the partner stands. On the real robot the rule is "stay out until the camera has confirmed the
+  tip, plus those 3 s" (`TipConfirmation.spillClearAtSec()`); the checker's time-based version (the tip, the 0.5 s settle time, the 3 s) is for planning only.
+  **The shooter fires out of the robot's BACK**, so its rear edge is what faces the landing band. The standard shooting pose is outside the zone on
+  purpose (the rear edge is about 48 in out at the nominal 34 in standoff, 53 in at the measured anchor shot, 45 in at the closest legal
+  standoff, 30 in): a zone that reached 48 in would call every standard shot "standing in the spill". The swing of the cell is not modelled, so
+  day one looks (see the checklist) and `Auto.TIP_SPILL_REACH_IN` is the knob. So after a tip a route must not drive diagonally toward the HIVE: slide
+  along the wall at the height of the shooting pose first (the demonstration routes do), or wait the 3.5 s out.
 * **G402 (AUTO sides).** The foul is disrupting the other alliance (controlling their elements or touching their robot on
   their side); merely crossing the center line is risky, not itself a foul. The validator keeps the stricter rule (the robot
   center stays on the own side), which is a safe choice.
@@ -530,7 +539,7 @@ PARK) after the volley**, so they are done whether or not the tip comes.
   VERIFY) come from FIRST's calibration (see "How a HIVE tips"), not from the manual. `Auto.TIP_PLANNING_MARGIN_POLLEN` = 1 (TUNE) is
   the spare a route plans. `Auto.NECTAR_STAGED_IN_UP_CELL` = 3 is FIXED (Fig 10-2).
 * **The partner numbers** are guesses to be replaced: `Auto.PARTNER_FIRST_TIP_DONE_SEC` = 12 s (VERIFY: agree it with
-  the partner team), `Auto.TIP_SPILL_CLEAR_SEC` = 3 s and `Auto.TIP_SPILL_MARGIN_IN` = 6 in (VERIFY: watch a real tip),
+  the partner team), `Auto.TIP_SPILL_CLEAR_SEC` = 3 s, `Auto.TIP_SPILL_REACH_IN` = 40 in and `Auto.TIP_SPILL_MARGIN_IN` = 6 in (VERIFY: watch a real tip),
   `Auto.PARTNER_TIP_MIN_SLACK_SEC` = 3 s (TUNE). The settle time before the robot believes a tip is complete is
   `Vision.HIVE_STABLE_SEEN_SEC` = 0.5 s (TUNE), the same constant the tracker uses for "tags seen steadily".
 * **Rule limits** (30 s, 4 POLLEN, the 3/5/20 points) are FIXED from the manual. The safety margins (3 in around the

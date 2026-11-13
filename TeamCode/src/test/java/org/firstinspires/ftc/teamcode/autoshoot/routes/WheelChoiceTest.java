@@ -168,11 +168,12 @@ public class WheelChoiceTest {
 
     @Test
     public void theAnalysisTheValidatorAndTheTimingAllUseTheChoiceTheFunctionMakes() {
-        AutoRoute r = AutoRoute.builder("one").start(35, FRONT, -90).shootUp(4).intakeFlower(FLOWER[0], FLOWER[1], 3).build();
+        // (the 5 s wait lets what the tipped cell drops land before the robot leaves, G409)
+        AutoRoute r = AutoRoute.builder("one").start(35, FRONT, -90).shootUp(4).waitSeconds(5).intakeFlower(FLOWER[0], FLOWER[1], 3).build();
         RouteAnalysis a = WiggleTestRobot.analyze(r);
-        RouteAnalysis.StepInfo info = a.step(2);
+        RouteAnalysis.StepInfo info = a.step(3);
         // asking the function with the same inputs gives the same wheel, the same poses and the same time
-        WheelChoice.Choice again = WheelChoice.choose(a.field(), TIMING, (Step.Intake) r.step(2), 0, info.from, WheelChoice.Lookahead.none());
+        WheelChoice.Choice again = WheelChoice.choose(a.field(), TIMING, (Step.Intake) r.step(3), 0, info.from, WheelChoice.Lookahead.none());
         assertEquals(again.wheel(), info.press.wheel);
         assertEquals(again.press().start.x, info.press.start.x, EPS);
         assertEquals(again.press().start.y, info.press.start.y, EPS);
@@ -180,18 +181,18 @@ public class WheelChoiceTest {
         assertEquals(TIMING.flowerSeconds(info.press), info.pickupSec, EPS);
         assertSame("the step's choice is the object whose press the analysis keeps", info.choice.press(), info.press);
         // the validator judges that same wheel: a clean pick-up has no finding, and the timing in the gallery text is the same number
-        assertTrue(onlyStep(WiggleTestRobot.check(r), 2).isEmpty());
+        assertTrue(onlyStep(WiggleTestRobot.check(r), 3).isEmpty());
         assertTrue(info.pickupText(), info.pickupText().contains(String.format(java.util.Locale.ROOT, "%.1f", info.pickupSec)));
     }
 
     @Test
     public void theBlueRouteMakesTheMirroredChoice() {
-        AutoRoute r = AutoRoute.builder("one").start(35, FRONT, -90).shootUp(4).intakeFlower(FLOWER[0], FLOWER[1], 3).build();
+        AutoRoute r = AutoRoute.builder("one").start(35, FRONT, -90).shootUp(4).waitSeconds(5).intakeFlower(FLOWER[0], FLOWER[1], 3).build();
         RouteAnalysis red = WiggleTestRobot.analyze(r);
         RouteAnalysis blue = WiggleTestRobot.analyze(r.forAlliance(Alliance.BLUE));
         // the half turn of the field turns the robot with it: its left wheel stays its left wheel, and the same wheel is the cheaper one
-        assertEquals(red.step(2).press.wheel, blue.step(2).press.wheel);
-        assertEquals(red.step(2).choice.savedSec(), blue.step(2).choice.savedSec(), 1e-9);
+        assertEquals(red.step(3).press.wheel, blue.step(3).press.wheel);
+        assertEquals(red.step(3).choice.savedSec(), blue.step(3).choice.savedSec(), 1e-9);
     }
 
     private static List<Issue> onlyStep(List<Issue> all, int step) {

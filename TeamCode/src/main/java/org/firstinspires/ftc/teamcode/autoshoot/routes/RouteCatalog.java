@@ -176,12 +176,15 @@ public final class RouteCatalog {
                     .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose. "
                             + "The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE: one volley is the first tip, and the 4th "
                             + "pre-load is the spare (it stays in the robot if the HIVE tips on the 3rd).")
-                .driveConstant(30.0, 45.0, -90.0).label("to corridor").via(30.0, 24.0)
-                    .note("A curve: slides sideways away from the wall (the robot keeps its front toward the audience wall, because at the "
-                            + "nominal shooting pose its center is only 12.1 in from the wall and a robot that turns on the spot there swings "
-                            + "a corner 1.1 in through it), then bends up into the corridor.")
+                .driveConstant(30.0, 14.8, -90.0).label("along the wall")
+                    .note("Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose "
+                            + "the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). "
+                            + "Staying low matters for the tip: what falls out of the tipped cell lands up to 40 in out from the HIVE's middle line, "
+                            + "and the robot's rear edge (14.8 + 8.03 = 22.8 in from the wall) is 47.8 in out, so it is clear of the spill (G409) "
+                            + "until it is beside the cell, where it turns up the corridor.")
                 .driveReverseTangent(30.0, 100.0).label("corridor")
-                    .note("Straight up the left corridor, 12.9 in (center to keep-out) clear of the HIVE frame keep-out at x 42.94.")
+                    .note("Straight up the left corridor, backwards (the shooter end first), 12.9 in (center to keep-out) clear of the HIVE frame "
+                            + "keep-out at x 42.94 and clear of the spill zone (x 41.39 and more) beside it.")
                 .driveLinear(12.0, 108.0, 0.0).label("to zone")
                     .note("Turns to face +x while sliding into the zone.")
                 .park(12.0, 108.0, 0.0)
