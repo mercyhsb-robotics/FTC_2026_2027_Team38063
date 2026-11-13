@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 // Elevator is disabled: the robot has no elevator (see mechanisms/elevator/Elevator.java).
 // import org.firstinspires.ftc.teamcode.mechanisms.elevator.Elevator;
 import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
@@ -41,8 +42,8 @@ public class BioBuzzRobot extends OpMode {
         intake.init(hardwareMap);
 
         // Initialize feeders
-        servoLeft = hardwareMap.get(CRServo.class, HardwareMapConstants.LEFT_INTAKE_SERVO);
-        servoRight = hardwareMap.get(CRServo.class, HardwareMapConstants.RIGHT_INTAKE_SERVO);
+        servoLeft = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.LEFT_INTAKE_SERVO);
+        servoRight = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.RIGHT_INTAKE_SERVO);
     }
 
     @Override

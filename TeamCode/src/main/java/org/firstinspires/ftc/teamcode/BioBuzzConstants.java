@@ -34,6 +34,37 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // HARDWARE NAMES (must match the robot configuration on the Driver Station exactly)
+    // =========================================================================================
+    public static final class Hardware {
+        private Hardware() {
+        }
+
+        // Mecanum drive motors. (pedro/Constants.java uses these same names for the Pedro drivetrain.)
+        public static final String FRONT_LEFT_MOTOR = "frontLeft";
+        public static final String BACK_LEFT_MOTOR = "backLeft";
+        public static final String FRONT_RIGHT_MOTOR = "frontRight";
+        public static final String BACK_RIGHT_MOTOR = "backRight";
+
+        /** goBILDA Pinpoint odometry computer (an I2C device). */
+        public static final String PINPOINT = "pinpoint";
+        /** The Control Hub's built-in IMU (used only by the legacy MecanumDrive class). */
+        public static final String IMU = "imu";
+
+        // Launcher: one flywheel motor and one continuous-rotation feeder ("windmill") servo.
+        public static final String FLYWHEEL = "flywheel";
+        public static final String FEEDER = "feeder";
+
+        // Intake: one roller motor and two continuous-rotation servos that pull POLLEN out of corners.
+        public static final String INTAKE_MOTOR = "intakeMotor";
+        public static final String LEFT_INTAKE_SERVO = "servoLeft";
+        public static final String RIGHT_INTAKE_SERVO = "servoRight";
+
+        /** The Limelight 3A (a USB device named in the robot configuration). */
+        public static final String LIMELIGHT = Vision.DEVICE_NAME;
+    }
+
+    // =========================================================================================
     // ROBOT GEOMETRY (the goBILDA StarterBot converted to mecanum)
     // =========================================================================================
     public static final class Robot {
@@ -91,6 +122,11 @@ public final class BioBuzzConstants {
             /** Feeder runs only while the flywheel is inside its speed window, so each ball is fed at full speed. */
             GATED_PER_BALL
         }
+
+        /** TUNE: flywheel speed for the manual launch button and the existing autonomous routines, in ticks per second. */
+        public static final int MANUAL_TARGET_TPS = 1200;
+        /** TUNE: the manual launch feeds only once the flywheel is faster than this, in ticks per second. */
+        public static final int MANUAL_MIN_TPS = 950;
 
         /** FIXED (rule G407): a robot may control at most 4 POLLEN, so a volley is at most 4 shots. */
         public static final int MAX_SHOTS_PER_VOLLEY = 4;

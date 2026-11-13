@@ -18,6 +18,7 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
 
 @Autonomous(name = "RedAlliance_B1", group = "Autonomous")
@@ -110,7 +111,7 @@ RedAlliance_B1 extends LinearOpMode {
 
                 // Step 1: Calculate target RPM and spin up
                 // TODO: calculate the rpm from the AprilTag distance instead of a fixed velocity.
-                instant(() -> launcher.increaseRpm(Launcher.LAUNCHER_TARGET_VELOCITY)),
+                instant(() -> launcher.increaseRpm(BioBuzzConstants.Shooter.MANUAL_TARGET_TPS)),
 
                 // Step 2: Wait until launcher is ready
                 waitUntil(() -> launcher.isAtTargetRpm()),

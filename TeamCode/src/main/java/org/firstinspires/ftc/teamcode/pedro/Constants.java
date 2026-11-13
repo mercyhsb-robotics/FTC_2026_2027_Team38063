@@ -15,13 +15,14 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 public class Constants {
     public static MecanumConfig drivetrainConfig = new MecanumConfig(c -> {
-        c.frontLeftName.set("frontLeft");
-        c.frontRightName.set("frontRight");
-        c.backLeftName.set("backLeft");
-        c.backRightName.set("backRight");
+        c.frontLeftName.set(BioBuzzConstants.Hardware.FRONT_LEFT_MOTOR);
+        c.frontRightName.set(BioBuzzConstants.Hardware.FRONT_RIGHT_MOTOR);
+        c.backLeftName.set(BioBuzzConstants.Hardware.BACK_LEFT_MOTOR);
+        c.backRightName.set(BioBuzzConstants.Hardware.BACK_RIGHT_MOTOR);
         c.frontLeftDirection.set(DcMotorSimple.Direction.REVERSE);
         c.frontRightDirection.set(DcMotorSimple.Direction.FORWARD);
         c.backLeftDirection.set(DcMotorSimple.Direction.REVERSE);
@@ -31,7 +32,7 @@ public class Constants {
     // Pinpoint pod offsets (inches) come from the Pedro PinpointTuner. Re-run the tuner after any
     // change to where the pods are mounted and paste the new numbers here.
     public static PinpointConfig localizerConfig = new PinpointConfig(c -> {
-        c.name.set("pinpoint");
+        c.name.set(BioBuzzConstants.Hardware.PINPOINT);
         c.podType.set(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         c.xPodOffset.set(-0.16720460155817468);
         c.yPodOffset.set(0.03722864342486765);

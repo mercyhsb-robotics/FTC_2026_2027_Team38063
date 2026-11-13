@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.mechanisms.launcher;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+
 @TeleOp
 public class LauncherTest extends OpMode {
     Launcher launcher;
@@ -20,7 +22,7 @@ public class LauncherTest extends OpMode {
         }
 
         if (gamepad1.dpad_up) {
-            launcher.increaseRpm(Launcher.LAUNCHER_TARGET_VELOCITY);
+            launcher.increaseRpm(BioBuzzConstants.Shooter.MANUAL_TARGET_TPS);
         }
 
         if (gamepad1.dpad_down) {

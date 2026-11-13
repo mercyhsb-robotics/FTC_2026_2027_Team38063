@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.mechanisms.intake;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.robots.biobuzz.HardwareMapConstants;
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 public class Intake {
     private DcMotor intakeMotor;
 
     public void init (HardwareMap hardwareMap) {
-        intakeMotor = hardwareMap.get(DcMotor.class, HardwareMapConstants.INTAKE_MOTOR);
+        intakeMotor = hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.INTAKE_MOTOR);
         intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 

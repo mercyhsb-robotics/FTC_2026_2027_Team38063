@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import org.firstinspires.ftc.teamcode.robots.biobuzz.HardwareMapConstants;
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 public class MecanumDrive {
     private DcMotor frontLeftMotor;
@@ -16,10 +16,10 @@ public class MecanumDrive {
     private IMU imu;
 
     public void init (HardwareMap hardwareMap) {
-        frontLeftMotor = hardwareMap.get(DcMotor.class, HardwareMapConstants.FRONT_LEFT_MOTOR);
-        backLeftMotor = hardwareMap.get(DcMotor.class, HardwareMapConstants.BACK_LEFT_MOTOR);
-        frontRightMotor = hardwareMap.get(DcMotor.class, HardwareMapConstants.FRONT_RIGHT_MOTOR);
-        backRightMotor = hardwareMap.get(DcMotor.class, HardwareMapConstants.BACK_RIGHT_MOTOR);
+        frontLeftMotor = hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.FRONT_LEFT_MOTOR);
+        backLeftMotor = hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.BACK_LEFT_MOTOR);
+        frontRightMotor = hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.FRONT_RIGHT_MOTOR);
+        backRightMotor = hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.BACK_RIGHT_MOTOR);
 
         // GoBilda
         frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -37,7 +37,7 @@ public class MecanumDrive {
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        imu = hardwareMap.get(IMU.class, "imu");
+        imu = hardwareMap.get(IMU.class, BioBuzzConstants.Hardware.IMU);
 
         RevHubOrientationOnRobot revOrientation = new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.UP,

@@ -6,7 +6,7 @@
 // starting point for when an elevator is actually built.
 //
 // To re-enable it: delete the opening and closing comment markers, add the two motor names to
-// HardwareMapConstants, and construct/init it in the TeleOp.
+// BioBuzzConstants.Hardware, and construct/init it in the TeleOp.
 
 /*
 package org.firstinspires.ftc.teamcode.mechanisms.elevator;
