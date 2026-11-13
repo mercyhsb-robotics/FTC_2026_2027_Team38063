@@ -177,7 +177,7 @@ public final class AutoRoute {
 
     /**
      * Fluent builder. Step methods add a step; the modifier methods ({@link #via}, {@link #speed},
-     * {@link #label}, {@link #wallContact}, {@link #launchSeconds}, {@link #note}) change the step
+     * {@link #label}, {@link #wallContact}, {@link #allowUnderHive}, {@link #launchSeconds}, {@link #note}) change the step
      * added last. {@link #build()} checks the structure (one START first, sane numbers); whether the
      * route is a good idea on the real field is the job of {@link RouteValidator}.
      */
@@ -314,6 +314,17 @@ public final class AutoRoute {
          */
         public Builder wallContact() {
             return replaceLast(lastDrive("wallContact").withWallContact(true));
+        }
+
+        /**
+         * Lets the DRIVE added last go UNDER the HIVE, along the open lane between its two foot bars (a 12 to 13 in tall robot fits under the
+         * cells; the lane saves about 20 in against going around the frame). Without this flag every leg must stay out of the whole HIVE
+         * footprint (G409 / G417: never be under a HIVE that is tipping). With it the leg is checked against the exact solid, with
+         * {@code Auto.HIVE_LANE_MARGIN_IN} on both sides, and the validator WARNs if the HIVE could still tip while the robot is under it.
+         * Put a {@link #waitForTip} (or a shot you know has not tipped it) before it so the camera has seen the HIVE at rest.
+         */
+        public Builder allowUnderHive() {
+            return replaceLast(lastDrive("allowUnderHive").withAllowUnderHive(true));
         }
 
         // ---- INTAKE ----------------------------------------------------------------------------

@@ -114,9 +114,20 @@ public abstract class Step {
         private final double speedFraction;
         private final String label;
         private final boolean wallContact;
+        private final boolean allowUnderHive;
 
         public Drive(List<Point2> via, Pose2 target, HeadingMode mode, Point2 facePoint, boolean faceWithBack,
                      double speedFraction, String label, boolean wallContact, String note) {
+            this(via, target, mode, facePoint, faceWithBack, speedFraction, label, wallContact, false, note);
+        }
+
+        /**
+         * @param allowUnderHive true if this leg may drive UNDER the HIVE, along the lane between its two foot bars; the validator then checks
+         *                       it against the exact solid (foot bars and leg stubs, with {@code Auto.HIVE_LANE_MARGIN_IN} on both sides)
+         *                       instead of the whole footprint box. See {@link #allowsUnderHive()}.
+         */
+        public Drive(List<Point2> via, Pose2 target, HeadingMode mode, Point2 facePoint, boolean faceWithBack,
+                     double speedFraction, String label, boolean wallContact, boolean allowUnderHive, String note) {
             super(StepKind.DRIVE, note);
             if (target == null || mode == null) {
                 throw new IllegalArgumentException("a DRIVE needs a target pose and a heading mode");
@@ -135,6 +146,7 @@ public abstract class Step {
             this.speedFraction = speedFraction;
             this.label = label == null ? "" : label;
             this.wallContact = wallContact;
+            this.allowUnderHive = allowUnderHive;
         }
 
         /** Bezier control points between the previous end pose and the target (empty = straight line). */
@@ -180,25 +192,41 @@ public abstract class Step {
             return wallContact;
         }
 
+        /**
+         * True if this leg may drive UNDER the HIVE (default false). A robot 12 to 13 in tall fits under the cells (the lowest is 30.65 in up)
+         * and can drive north-south along the open lane between the two foot bars, about 20 in shorter than going around the frame. The
+         * default keeps every route OUT of the whole HIVE footprint (G409 / G417: never be under a HIVE that is tipping). A leg with this
+         * flag is checked against the exact solid instead: the foot bars and the leg stubs, with {@code Auto.HIVE_LANE_MARGIN_IN} to spare on
+         * both sides, and the validator WARNs if the HIVE could still tip while the robot is under it (before the camera has confirmed it at
+         * rest, see {@code TipRules}). The flag changes only the HIVE check of this one leg: walls, FLOWERS and the center line still apply.
+         */
+        public boolean allowsUnderHive() {
+            return allowUnderHive;
+        }
+
         public Drive withVia(List<Point2> newVia) {
-            return new Drive(newVia, target, mode, facePoint, faceWithBack, speedFraction, label, wallContact, note());
+            return new Drive(newVia, target, mode, facePoint, faceWithBack, speedFraction, label, wallContact, allowUnderHive, note());
         }
 
         public Drive withSpeed(double fraction) {
-            return new Drive(via, target, mode, facePoint, faceWithBack, fraction, label, wallContact, note());
+            return new Drive(via, target, mode, facePoint, faceWithBack, fraction, label, wallContact, allowUnderHive, note());
         }
 
         public Drive withLabel(String newLabel) {
-            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, newLabel, wallContact, note());
+            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, newLabel, wallContact, allowUnderHive, note());
         }
 
         public Drive withWallContact(boolean contact) {
-            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, label, contact, note());
+            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, label, contact, allowUnderHive, note());
+        }
+
+        public Drive withAllowUnderHive(boolean allow) {
+            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, label, wallContact, allow, note());
         }
 
         @Override
         public Step withNote(String note) {
-            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, label, wallContact, note);
+            return new Drive(via, target, mode, facePoint, faceWithBack, speedFraction, label, wallContact, allowUnderHive, note);
         }
 
         @Override
@@ -208,7 +236,7 @@ public abstract class Step {
                 v.add(rotate(p, fieldSize));
             }
             return new Drive(v, rotate(target, fieldSize), mode, facePoint == null ? null : rotate(facePoint, fieldSize),
-                    faceWithBack, speedFraction, label, wallContact, note());
+                    faceWithBack, speedFraction, label, wallContact, allowUnderHive, note());
         }
 
         @Override
@@ -216,7 +244,7 @@ public abstract class Step {
             String name = label.isEmpty() ? "" : " " + label;
             String curve = via.isEmpty() ? "" : " curve(" + via.size() + ")";
             return "DRIVE" + name + " " + mode.name().toLowerCase(Locale.ROOT).replace('_', ' ') + curve
-                    + " to " + fmt(target.x) + ", " + fmt(target.y);
+                    + " to " + fmt(target.x) + ", " + fmt(target.y) + (allowUnderHive ? " (may go under the HIVE)" : "");
         }
     }
 

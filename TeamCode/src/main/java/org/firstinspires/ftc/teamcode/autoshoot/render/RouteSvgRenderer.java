@@ -11,6 +11,7 @@ import java.util.Set;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
+import org.firstinspires.ftc.teamcode.autoshoot.core.ConvexPolygon;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
@@ -352,6 +353,18 @@ public final class RouteSvgRenderer {
             w.empty("rect", "id", "hive-keepout", "x", n(sx(keep.minX)), "y", n(sy(keep.maxY)), "width", n(len(keep.maxX - keep.minX)),
                     "height", n(len(keep.maxY - keep.minY)), "fill", "none", "stroke", FRAME_STROKE, "stroke-width", "1",
                     "stroke-dasharray", "2 3");
+            // the exact solid below the robot: the two foot bars and the four leg stubs; the open lane between them is where a leg that
+            // says allowUnderHive may drive
+            w.open("g", "id", "hive-solid");
+            for (ConvexPolygon piece : f.model().hiveSolid().pieces()) {
+                StringBuilder pts = new StringBuilder();
+                for (int i = 0; i < piece.size(); i++) {
+                    pts.append(i == 0 ? "" : " ").append(pt(piece.corner(i).x, piece.corner(i).y));
+                }
+                w.empty("polygon", "class", "hive-foot", "points", pts.toString(), "fill", FRAME_STROKE, "fill-opacity", "0.55", "stroke",
+                        FRAME_STROKE, "stroke-width", "1");
+            }
+            w.close("g");
             w.element("text", "HIVE frame", "x", n(sx(f.model().center())), "y", n(sy(f.model().center()) + 4), "font-size", "10",
                     "fill", MUTED_TEXT, "text-anchor", "middle");
             for (Alliance h : Alliance.values()) {
@@ -927,6 +940,9 @@ public final class RouteSvgRenderer {
                     break;
                 case DRIVE: {
                     String name = ((Step.Drive) step).label();
+                    if (((Step.Drive) step).allowsUnderHive()) {
+                        name = name.isEmpty() ? "UNDER HIVE" : name + " (under HIVE)";
+                    }
                     if (!name.isEmpty()) {
                         label(name, p[0], p[1], true);
                     }

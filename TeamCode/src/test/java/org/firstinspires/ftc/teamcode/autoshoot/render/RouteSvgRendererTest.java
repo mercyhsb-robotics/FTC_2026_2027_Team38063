@@ -163,6 +163,39 @@ public class RouteSvgRendererTest {
 
     // ---- the field ---------------------------------------------------------------------------------
 
+    /**
+     * Situation: any route diagram, and a route with a leg that may go under the HIVE.
+     * Expected: the picture draws the exact HIVE solid (the two foot bars and the four leg stubs, 6 shapes, the bars where the CAD puts them) next
+     *     to the footprint box, and the leg that is allowed under the HIVE says so in its label.
+     */
+    @Test
+    public void theExactHiveSolidIsDrawnAndAnUnderHiveLegSaysSo() throws Exception {
+        Document d = parse(RouteSvgRenderer.render(RouteCatalog.byId("red_b1"), Alliance.RED));
+        List<Element> feet = withClass(byId(d, "hive-solid"), "polygon", "hive-foot");
+        assertEquals(6, feet.size());
+        double[] left = polygonBounds(feet.get(0));
+        // the left foot bar: x 45.941 to 47.924 in the wall-corner frame, y 51.202 to 90.146
+        assertEquals(X0 + 45.941 * S, left[0], 0.02);
+        assertEquals(X0 + 47.924 * S, left[1], 0.02);
+        assertEquals(Y_BOTTOM - 90.146 * S, left[2], 0.02);
+        assertEquals(Y_BOTTOM - 51.202 * S, left[3], 0.02);
+        double bar = left[1] - left[0];
+        for (int i = 2; i < feet.size(); i++) {
+            double[] stub = polygonBounds(feet.get(i));
+            assertTrue("a stub is inside the frame footprint", stub[0] >= left[0] - 0.02 && stub[3] <= left[3] + 0.5 * S);
+            assertTrue("and is smaller than the frame", stub[1] - stub[0] < 50.0 * S);
+        }
+        assertTrue(bar > 0.0);
+        AutoRoute lane = AutoRoute.builder("lane").title("Lane").startTile("C1").start(58.0, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
+                .driveConstant(64.0, 38.0, -90).driveConstant(64.0, 105.0, -90).allowUnderHive().label("the lane").build();
+        Document under = parse(RouteSvgRenderer.render(lane, Alliance.RED));
+        boolean labelled = false;
+        for (Element t : withClass(byId(under, "route"), "text", "step-label")) {
+            labelled |= t.getTextContent().equals("the lane (under HIVE)");
+        }
+        assertTrue(labelled);
+    }
+
     @Test
     public void theFieldHas36TilesFourFlowersTwoGardensTwoLoadingZonesAndTwoHives() throws Exception {
         Document d = parse(RouteSvgRenderer.render(RouteCatalog.byId("red_b1"), Alliance.RED));

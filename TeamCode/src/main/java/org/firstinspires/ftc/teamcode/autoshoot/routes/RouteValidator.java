@@ -9,6 +9,7 @@ import java.util.Locale;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
 import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
+import org.firstinspires.ftc.teamcode.autoshoot.core.HiveSolid;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
@@ -37,7 +38,10 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       than {@code FIELD_BOUNDS_TOLERANCE_IN}, on every step), out of the HIVE frame grown by
  *       {@code HIVE_KEEPOUT_MARGIN_IN}, and out of every FLOWER plate (grown by {@code FLOWER_KEEPOUT_MARGIN_IN}) with
  *       ONE exception: the one flat wheel that presses into the FLOWER an INTAKE step takes POLLEN from may enter that
- *       plate, see the next item.</li>
+ *       plate, see the next item. A DRIVE with {@code allowUnderHive} is the other exception: it is checked against the
+ *       exact HIVE solid (the foot bars and leg stubs, {@link HiveSolid}) with {@code HIVE_LANE_MARGIN_IN} on both sides
+ *       instead of the whole frame, so it may drive along the lane between the feet; {@link TipRules} WARNs when the HIVE
+ *       could still tip while the robot is there.</li>
  *   <li><b>FLOWER press-in, 9.7/G415 ({@link FlowerPress}).</b> A FLOWER INTAKE is a straight approach into the wall,
  *       a dwell and a straight retreat. During those legs the CHASSIS (the footprint without the front
  *       {@code Robot.INTAKE_REACH_IN}, where only the two flat wheels stick out) stays {@code FLOWER_CHASSIS_CLEARANCE_IN}
@@ -257,6 +261,10 @@ public final class RouteValidator {
     private void checkLeg(RouteAnalysis a, RouteAnalysis.StepInfo info, DrivePath leg, String what, FlowerPress press,
                           List<Issue> out) {
         final AllianceField f = a.field();
+        // Only the planned path of a DRIVE that says so may use the lane under the HIVE; the implicit moves to a pose may not.
+        final boolean underHive = info.step instanceof Step.Drive && ((Step.Drive) info.step).allowsUnderHive() && leg == info.path;
+        final HiveSolid solid = f.model().hiveSolid();
+        final double laneMargin = BioBuzzConstants.Auto.HIVE_LANE_MARGIN_IN;
         // A wall may be TOUCHED, never entered: one tolerance for every step, wall-contact legs and GARDEN/FLOWER
         // intakes included (they are not allowed to poke through either).
         final double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
@@ -275,6 +283,10 @@ public final class RouteValidator {
         Sweep.Result hive = Sweep.run(leg, new Sweep.Depth() {
             @Override
             public double at(Pose2 p) {
+                if (underHive) {
+                    // the exact solid: the foot bars and the leg stubs, with the lane margin on both sides (the lane itself is open)
+                    return laneMargin - solid.signedGap(Footprint.of(p)) - EPS;
+                }
                 return -Footprint.of(p).signedGap(hiveKeepOut) - EPS;
             }
         });
@@ -330,10 +342,17 @@ public final class RouteValidator {
                     + in(bounds.worst + fieldTol + EPS) + " (first at " + pose(bounds.firstPose) + "); a robot cannot drive or turn through"
                     + " a wall"));
         }
-        if (hive.broken()) {
+        if (hive.broken() && underHive) {
+            out.add(error(info.index, Rule.HIVE_KEEPOUT, what + ": the robot footprint comes within " + in(laneMargin) + " of the HIVE's foot bars or"
+                    + " leg stubs (it may drive under the HIVE, along the lane between the feet, but it needs " + in(laneMargin)
+                    + " to spare on both sides) from " + in(hive.firstArc) + " to " + in(hive.lastArc) + " along the move, first at "
+                    + pose(hive.firstPose) + "; the lane is " + in(solid.narrowestLane()[1] - solid.narrowestLane()[0]) + " wide where the leg stubs"
+                    + " narrow it, x " + in(solid.narrowestLane()[0]) + " to " + in(solid.narrowestLane()[1])));
+        } else if (hive.broken()) {
             out.add(error(info.index, Rule.HIVE_KEEPOUT, what + ": the robot footprint enters the HIVE frame keep-out ("
                     + "frame + " + in(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN) + ") from "
-                    + in(hive.firstArc) + " to " + in(hive.lastArc) + " along the move, first at " + pose(hive.firstPose)));
+                    + in(hive.firstArc) + " to " + in(hive.lastArc) + " along the move, first at " + pose(hive.firstPose)
+                    + "; a robot is kept out of the whole HIVE unless the DRIVE says allowUnderHive"));
         }
         for (int i = 0; i < flowers.length; i++) {
             if (flowers[i].broken()) {

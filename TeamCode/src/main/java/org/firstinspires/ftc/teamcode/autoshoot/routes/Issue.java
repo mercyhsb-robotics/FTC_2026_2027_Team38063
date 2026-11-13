@@ -19,6 +19,8 @@ public final class Issue {
         FIELD_BOUNDS("9.2/G412", "stay inside the field"),
         /** G417 and G409: keep clear of the HIVE frame. */
         HIVE_KEEPOUT("G417/G409", "keep out of the HIVE frame"),
+        /** G409 and G417: a robot must not be under a HIVE that can still tip (a leg that is allowed under the HIVE is checked for it). */
+        UNDER_HIVE("G409/G417", "do not be under a HIVE that can still tip"),
         /** G304.D and G415/G416: no contact with a FLOWER except to retrieve POLLEN. */
         FLOWER_KEEPOUT("G304.D/G415", "keep out of FLOWER plates"),
         /** 9.7 and G415: taking POLLEN from a FLOWER means pressing the intake wheels into the bottom POLLEN. */

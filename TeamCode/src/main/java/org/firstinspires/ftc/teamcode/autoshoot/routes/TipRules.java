@@ -39,6 +39,9 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       HIVE is not in the zone; it is where a robot waiting for the partner's tip stands. ERROR. (This is the
  *       planning version, with times. On the robot the same rule is "stay out until the camera has confirmed the tip,
  *       plus {@code TIP_SPILL_CLEAR_SEC}", because the real time of the partner's tip is not known.)</li>
+ *   <li><b>G409 / G417, under the HIVE.</b> A DRIVE that is allowed under the HIVE (the lane between the foot bars, see
+ *       {@code HiveSolid}) gets a WARN when the robot is over the HIVE frame while the HIVE could still tip: that is, unless the
+ *       camera has confirmed it at rest (a WAIT_FOR_TIP has ended before it) and none of our volleys went into it since.</li>
  *   <li><b>The assumption must hold.</b> WARN: a WAIT_FOR_TIP in a route that assumes we shoot the first tip (there is
  *       nothing to wait for); a WAIT_FOR_TIP that gives up before the tip it waits for, or later than the rest of the
  *       route can afford; our own volley tipping the HIVE before the partner's assumed tip (the route then does not
@@ -60,6 +63,7 @@ final class TipRules {
         }
         checkPartnerAssumption(a, out);
         checkSpill(a, out);
+        checkUnderTheHive(a, out);
     }
 
     private static Issue error(int step, Rule rule, String message) {
@@ -236,6 +240,56 @@ final class TipRules {
                 + " s of slack, less than the " + RouteValidator.sec(BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC)
                 + " a slower partner needs. The route only works with a partner that is about as fast as assumed; give up later,"
                 + " or make the steps after the wait shorter"));
+    }
+
+    // ---- G409 / G417: do not be under a HIVE that can still tip ----------------------------------------------------
+
+    /**
+     * A DRIVE that is allowed under the HIVE ({@code allowUnderHive}) may drive along the lane between its foot bars, but the HIVE can tip
+     * while the robot is there: the cells swing through 60 degrees over its head and drop what they hold (G409), and a robot under the HIVE
+     * is where nobody wants to be when a volley lands (G417). The HIVE is known to be AT REST only after the camera has confirmed a tip fully
+     * (a WAIT_FOR_TIP ends exactly then) and until the next volley of ours goes into it. So for every such DRIVE whose robot footprint is
+     * over the HIVE frame at some moment, WARN unless a WAIT_FOR_TIP has completed before it with no SHOOT in between. The WARN also says when
+     * a tip is assumed during the move.
+     */
+    private static void checkUnderTheHive(RouteAnalysis a, List<Issue> out) {
+        Rect frame = a.field().hiveFrame();
+        boolean atRest = false;
+        for (RouteAnalysis.StepInfo info : a.steps()) {
+            if (info.step instanceof Step.Drive && ((Step.Drive) info.step).allowsUnderHive() && !atRest) {
+                Pose2 first = null;
+                for (Pose2 p : a.posesDuring(info, info.startSec, info.endSec())) {
+                    if (Footprint.of(p).overlaps(frame)) {
+                        first = p;
+                        break;
+                    }
+                }
+                if (first != null) {
+                    out.add(warn(info.index, Rule.UNDER_HIVE, RouteValidator.describe(info) + ": the robot drives under the HIVE (first at "
+                            + RouteValidator.pose(first) + ", the step runs from " + RouteValidator.sec(info.startSec) + " to " + RouteValidator.sec(info.endSec())
+                            + ") while the HIVE could still tip: the camera has not confirmed it at rest" + tipDuring(a, info) + ". The cells swing through 60"
+                            + " degrees over the robot and drop what they hold (G409), and launching into a tipping HIVE spoils the tip (G417). Put a"
+                            + " WAIT_FOR_TIP before this DRIVE, with no SHOOT between them, or go around the HIVE"));
+                }
+            }
+            if (info.step instanceof Step.WaitForTip) {
+                atRest = true;
+            } else if (info.step instanceof Step.Shoot) {
+                atRest = false;
+            }
+        }
+    }
+
+    /** ", and a tip is assumed at T s, during this move" for every tip of the simulation that falls inside the step, or "". */
+    private static String tipDuring(RouteAnalysis a, RouteAnalysis.StepInfo info) {
+        StringBuilder sb = new StringBuilder();
+        for (RouteAnalysis.TipEvent tip : a.tipEvents()) {
+            if (tip.timeSec >= info.startSec - EPS && tip.timeSec <= info.endSec() + EPS) {
+                sb.append(", and ").append(tip.byPartner ? "the partner's" : "our own").append(" tip is assumed at ")
+                        .append(RouteValidator.sec(tip.timeSec)).append(", during this move");
+            }
+        }
+        return sb.toString();
     }
 
     // ---- G409: do not stand where the tipped cell spills ----------------------------------------------------
