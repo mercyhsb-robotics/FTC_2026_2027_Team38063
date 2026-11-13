@@ -82,6 +82,12 @@ public final class RouteSvgRenderer {
         return new Drawing(own, own.analyze(), issues).draw();
     }
 
+    /** As {@link #render(AutoRoute, Alliance, List)} for a robot with other timing and wiggle numbers: the route is analysed with {@code timing}. */
+    public static String render(AutoRoute route, Alliance alliance, List<Issue> issues, TimingModel timing) {
+        AutoRoute own = route.forAlliance(alliance);
+        return new Drawing(own, RouteAnalysis.of(own, new FieldModel(), timing), issues).draw();
+    }
+
     /**
      * As {@link #render(AutoRoute, Alliance)} for a robot with other timing and wiggle numbers (for example wheels that stick out farther): the route is
      * analysed and checked with {@code timing}, so the drawing, the findings and the times all describe the same robot.

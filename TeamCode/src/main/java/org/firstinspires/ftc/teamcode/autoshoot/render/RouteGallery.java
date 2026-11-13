@@ -17,6 +17,7 @@ import java.util.Set;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip;
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.TipModel;
 
 /**
@@ -55,6 +57,14 @@ public final class RouteGallery {
      * part of file names, so they may only use letters, digits, '_' and '-', and must be unique.
      */
     public static Map<String, String> build(List<AutoRoute> routes) {
+        return build(routes, new TimingModel());
+    }
+
+    /**
+     * As {@link #build(List)} for a robot with other timing and wiggle numbers (for example wheels that stick out far enough for a FLOWER pick-up to
+     * work): every time, finding and diagram is worked out for that robot.
+     */
+    public static Map<String, String> build(List<AutoRoute> routes, TimingModel timing) {
         Set<String> seen = new HashSet<String>();
         List<Entry> entries = new ArrayList<Entry>();
         for (AutoRoute route : routes) {
@@ -64,22 +74,27 @@ public final class RouteGallery {
             if (!seen.add(route.id())) {
                 throw new IllegalArgumentException("two routes share the id '" + route.id() + "'");
             }
-            entries.add(new Entry(route));
+            entries.add(new Entry(route, timing));
         }
         Map<String, String> files = new LinkedHashMap<String, String>();
         files.put(INDEX_FILE, page(entries));
         for (Entry e : entries) {
-            files.put(svgFileName(e.route, Alliance.RED), RouteSvgRenderer.render(e.route, Alliance.RED, e.redIssues));
-            files.put(svgFileName(e.route, Alliance.BLUE), RouteSvgRenderer.render(e.route, Alliance.BLUE, e.blueIssues));
+            files.put(svgFileName(e.route, Alliance.RED), RouteSvgRenderer.render(e.route, Alliance.RED, e.redIssues, timing));
+            files.put(svgFileName(e.route, Alliance.BLUE), RouteSvgRenderer.render(e.route, Alliance.BLUE, e.blueIssues, timing));
         }
         return files;
     }
 
     /** The index page alone (for tests and previews); the SVG files are named as {@link #build} names them. */
     public static String indexHtml(List<AutoRoute> routes) {
+        return indexHtml(routes, new TimingModel());
+    }
+
+    /** As {@link #indexHtml(List)} for a robot with other timing and wiggle numbers. */
+    public static String indexHtml(List<AutoRoute> routes, TimingModel timing) {
         List<Entry> entries = new ArrayList<Entry>();
         for (AutoRoute route : routes) {
-            entries.add(new Entry(route));
+            entries.add(new Entry(route, timing));
         }
         return page(entries);
     }
@@ -119,13 +134,14 @@ public final class RouteGallery {
         final List<Issue> redIssues;
         final List<Issue> blueIssues;
 
-        Entry(AutoRoute route) {
+        Entry(AutoRoute route, TimingModel timing) {
             this.route = route;
             this.red = route.forAlliance(Alliance.RED);
             this.blue = route.forAlliance(Alliance.BLUE);
-            this.analysis = red.analyze();
-            this.redIssues = RouteValidator.check(red);
-            this.blueIssues = RouteValidator.check(blue);
+            this.analysis = RouteAnalysis.of(red, new FieldModel(), timing);
+            RouteValidator validator = new RouteValidator(new FieldModel(), timing);
+            this.redIssues = validator.validate(red);
+            this.blueIssues = validator.validate(blue);
         }
 
         int count(List<Issue> issues, Issue.Severity severity) {

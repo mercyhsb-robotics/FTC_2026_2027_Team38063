@@ -26,6 +26,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.WiggleTestRobot;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -610,6 +611,43 @@ public class RouteGalleryTest {
         }
         assertTrue(captured.toString("UTF-8"), captured.toString("UTF-8").contains("removed_route_red.svg belongs to no route"));
         assertTrue("left alone", old.isFile());
+    }
+
+    // ---- FLOWER pick-ups ---------------------------------------------------------------------------------
+
+    private static AutoRoute flowerRoute() {
+        return AutoRoute.builder("flower_pickup").title("FLOWER pick-up").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
+                .shootUp(4).intakeFlower(2.634, 47.281, 3).build();
+    }
+
+    @Test
+    public void aFlowerPickUpIsDescribedWithItsTimeItsWheelAndWhyThatWheel() throws Exception {
+        // a robot whose wheels reach far enough for the wiggle to work
+        List<AutoRoute> routes = Collections.singletonList(flowerRoute());
+        String html = RouteGallery.indexHtml(routes, WiggleTestRobot.timing());
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("FLOWER pick-up: 3 POLLEN in about (\\d+\\.\\d) s with the (LEFT|RIGHT) wheel").matcher(html);
+        assertTrue(html, m.find());
+        assertTrue("and why that wheel", html.contains("chosen automatically: "));
+        assertTrue("and what the wiggle does", html.contains("deg toward the POLLEN and back, 3 times"));
+        assertFalse("a pick-up that works has no ERROR", html.contains("THE WHEEL CANNOT REACH"));
+        assertTrue(html.contains("status-ok"));
+        // the diagrams of the same robot show the wiggle with its label
+        Map<String, String> files = RouteGallery.build(routes, WiggleTestRobot.timing());
+        assertTrue(files.get("flower_pickup_red.svg").contains("wiggle x3"));
+        assertTrue(files.get("flower_pickup_blue.svg").contains("wiggle x3"));
+        assertTrue(files.get("flower_pickup_red.svg").contains("class=\"wiggle\""));
+    }
+
+    @Test
+    public void withTheShippedWheelsThePageSaysTheyFallShortAndByHowMuch() throws Exception {
+        // the numbers of the drawing: the wheel falls 0.77 in short of the ball once the chassis keeps clear of the plate through the swing
+        String html = RouteGallery.indexHtml(Collections.singletonList(flowerRoute()));
+        assertTrue(html, html.contains("THE WHEEL CANNOT REACH"));
+        assertTrue(html, html.contains("0.8 in more than they do"));
+        assertTrue(html, html.contains("status-error"));
+        assertTrue("the text of the step is still there, so the page is not empty", html.contains("FLOWER pick-up: 3 POLLEN in about "));
+        // and the default build is the same as asking for the default timing
+        assertEquals(html, RouteGallery.indexHtml(Collections.singletonList(flowerRoute()), new org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel()));
     }
 
     // ---- the committed copy ------------------------------------------------------------------------
