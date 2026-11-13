@@ -134,6 +134,45 @@ public final class RouteValidator {
         return Collections.unmodifiableList(out);
     }
 
+    /**
+     * The first ERROR of the route, or null if it has none: the same checks as {@link #validate}, but it stops at the first ERROR it finds, which makes it much
+     * quicker for a route that is not valid (the search for a start asks it hundreds of thousands of times). It says only WHETHER the route is runnable and what
+     * the first problem found is, not the most important one: use {@link #validate} for the whole list.
+     */
+    public Issue firstError(AutoRoute route) {
+        RouteAnalysis a = RouteAnalysis.of(route, model, timing);
+        List<Issue> out = new ArrayList<Issue>();
+        checkStart(a, out);
+        checkTime(a, out);
+        checkEnd(a, out);
+        Issue found = firstErrorOf(out);
+        for (RouteAnalysis.StepInfo info : a.steps()) {
+            if (found != null) {
+                return found;
+            }
+            checkMotion(a, info, out);
+            checkPollen(a, info, out);
+            checkShoot(a, info, out);
+            checkPark(a, info, out);
+            checkUnplannedMove(info, out);
+            found = firstErrorOf(out);
+        }
+        if (found != null) {
+            return found;
+        }
+        TipRules.check(a, out);
+        return firstErrorOf(out);
+    }
+
+    private static Issue firstErrorOf(List<Issue> issues) {
+        for (Issue i : issues) {
+            if (i.isError()) {
+                return i;
+            }
+        }
+        return null;
+    }
+
     /** Convenience: validate with the default field and timing model. */
     public static List<Issue> check(AutoRoute route) {
         return new RouteValidator().validate(route);
