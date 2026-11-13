@@ -57,7 +57,7 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <header>
 <h1>BIOBUZZ autonomous routes</h1>
 <p class="muted">Team 38063. Every route of <code>RouteCatalog</code>, drawn for both alliances and checked by the validator. This page and the diagrams are generated: do not edit them by hand, change the catalog and run <code>tools/render-autos.sh</code> (or <code>tools/render-autos.bat</code>).</p>
-<p class="muted">How to read a diagram: top view of the 141.35 x 141.35 in field, the AUDIENCE wall at the bottom, the red alliance on the left. A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a blue robot starts at the top. The robot is drawn to scale (17.80 in x 17.80 in, wheels included): the body is tinted, the two flat intake wheels are the dark discs at the front, and the small ringed dot is its center of rotation, the point every pose refers to (it is 9.77 in behind the front edge and 8.03 in in front of the back edge, so it is not in the middle). Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. A FLOWER is emptied by a WIGGLE of ONE flat wheel (the program picks the cheaper wheel): the robot drives in off center so that the wheel is beside the bottom POLLEN, turns on the spot toward it and back, once per POLLEN, and backs out. The diagram draws the robot where the wiggle starts, a faint second outline where it ends the push, a curved arrow for the sweep of the wheel and a label such as 'wiggle x4'; the short solid arrow is the straight final approach and the dotted arrow the straight retreat. Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>
+<p class="muted">How to read a diagram: top view of the 141.35 x 141.35 in field, the AUDIENCE wall at the bottom, the red alliance on the left. A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a BLUE robot starts on the opposite wall: a RED start on the audience wall (the bottom of the picture) becomes a BLUE start on the rear wall (the top), and a RED start on the rear wall becomes a BLUE start on the audience wall. The words of a route (its title, description and step notes) are written for RED; every route says how to read them for BLUE, and its start tile, start pose and the words for placing the robot are worked out for each alliance. The robot is drawn to scale (17.80 in x 17.80 in, wheels included): the body is tinted, the two flat intake wheels are the dark discs at the front, and the small ringed dot is its center of rotation, the point every pose refers to (it is 9.77 in behind the front edge and 8.03 in in front of the back edge, so it is not in the middle). Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. A FLOWER is emptied by a WIGGLE of ONE flat wheel (the program picks the cheaper wheel): the robot drives in off center so that the wheel is beside the bottom POLLEN, turns on the spot toward it and back, once per POLLEN, and backs out. The diagram draws the robot where the wiggle starts, a faint second outline where it ends the push, a curved arrow for the sweep of the wheel and a label such as 'wiggle x4'; the short solid arrow is the straight final approach and the dotted arrow the straight retreat. Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>
 <p id="tip-rule" class="muted">How a HIVE tips: A HIVE cell tips when its POLLEN plus 5/3 POLLEN for every NECTAR add up to 8 POLLEN-equivalents (FIRST&apos;s own calibration, Event Field Setup Guide section 12.3: an empty cell tips with the 8th POLLEN and 7 do not; a cell with the 3 staged NECTAR tips with the 3rd POLLEN and 2 do not). The cell that is UP at the start holds those 3 NECTAR, so the FIRST tip needs only 3 POLLEN (the robot starts with 4, so 1 is spare). The cell that comes up after a tip is empty, so each LATER tip needs 8 POLLEN. A real field drifts (FIRST&apos;s Q&amp;A QA46: one HIVE needed 9 instead of 8), so a route plans 1 POLLEN more than the minimum, 4 and 9, and the page shows each route&apos;s spare. Every route says who shoots the first tip: <code>we shoot the first tip</code> (our pre-loads are the first tip: 3 of the 4 tip it) or <code>partner tips first, assumed at 12.0 s</code> (the alliance partner's volley is the first tip and our robot goes to the other side; the HIVE belongs to the alliance, so the partner's launches count for it). The partner's 20 points are shown but never counted in the points of our robot. The robot goes on after a partner's tip only when its camera has SEEN the tipped cell steady for 0.5 s, never because a time has passed.</p>
 </header>
 <main>
@@ -65,24 +65,25 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <h2>All routes</h2>
 <div class="tablewrap">
 <table class="summary">
-<thead><tr><th>Route</th><th>Start tile</th><th>First tip</th><th>Steps</th><th>Estimated time</th><th>Our AUTO points</th><th>POLLEN balance</th><th>Validator</th></tr></thead>
+<thead><tr><th>Route</th><th>Start tile (RED / BLUE)</th><th>First tip</th><th>Steps</th><th>Estimated time</th><th>Our AUTO points</th><th>POLLEN balance</th><th>Validator</th></tr></thead>
 <tbody>
-<tr class="summary-row" data-route="red_b1"><td><a href="#red_b1">Red B1: shoot, then drive up the left side to the LOADING ZONE</a><br /><code>red_b1</code></td><td>B1</td><td>we shoot the first tip</td><td>6</td><td>14.5 s</td><td>28</td><td>-4</td><td><span class="status-error">5 ERROR, 2 WARN</span></td></tr>
-<tr class="summary-row" data-route="red_c1"><td><a href="#red_c1">Red C1: shoot, then drive past the HIVE to the LOADING ZONE</a><br /><code>red_c1</code></td><td>C1</td><td>we shoot the first tip</td><td>7</td><td>16.1 s</td><td>28</td><td>-4</td><td><span class="status-error">3 ERROR, 1 WARN</span></td></tr>
-<tr class="summary-row" data-route="red_leave_park"><td><a href="#red_leave_park">Red A3: leave the wall and park (no shooting)</a><br /><code>red_leave_park</code></td><td>A3</td><td>we shoot the first tip</td><td>4</td><td>2.7 s</td><td>8</td><td>0</td><td><span class="status-error">2 ERROR</span></td></tr>
-<tr class="summary-row" data-route="wall_shoot_park"><td><a href="#wall_shoot_park">Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE</a><br /><code>wall_shoot_park</code></td><td>C1</td><td>we shoot the first tip</td><td>6</td><td>12.4 s</td><td>28</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
-<tr class="summary-row" data-route="garden_cycle"><td><a href="#garden_cycle">Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall</a><br /><code>garden_cycle</code></td><td>B1</td><td>we shoot the first tip</td><td>6</td><td>14.1 s</td><td>23</td><td>-1</td><td><span class="status-warn">1 WARN</span></td></tr>
-<tr class="summary-row" data-route="partner_rear_shoot_park"><td><a href="#partner_rear_shoot_park">Partner tips first: wait beside the cell that comes up, shoot 4 into it, park</a><br /><code>partner_rear_shoot_park</code></td><td>B6</td><td>partner tips first, assumed at 12.0 s<br /><span class="note">latest tip that works: 18.5 s</span></td><td>6</td><td>21.5 s</td><td>8</td><td>-4</td><td><span class="status-ok">no findings</span></td></tr>
+<tr class="summary-row" data-route="red_b1"><td><a href="#red_b1">Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE</a><br /><code>red_b1</code></td><td>B1 / E6</td><td>we shoot the first tip</td><td>6</td><td>14.5 s</td><td>28</td><td>-4</td><td><span class="status-error">5 ERROR, 2 WARN</span></td></tr>
+<tr class="summary-row" data-route="red_c1"><td><a href="#red_c1">Copy of RedAlliance_C1: shoot 4, then through the HIVE to the LOADING ZONE (do not run)</a><br /><code>red_c1</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>7</td><td>16.1 s</td><td>28</td><td>-4</td><td><span class="status-error">3 ERROR, 1 WARN</span></td></tr>
+<tr class="summary-row" data-route="red_leave_park"><td><a href="#red_leave_park">Copy of RedAlliance_LeavePark: leave the wall and park (no shooting)</a><br /><code>red_leave_park</code></td><td>A3 / F4</td><td>we shoot the first tip</td><td>4</td><td>2.7 s</td><td>8</td><td>0</td><td><span class="status-error">2 ERROR</span></td></tr>
+<tr class="summary-row" data-route="wall_shoot_park"><td><a href="#wall_shoot_park">Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park</a><br /><code>wall_shoot_park</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>6</td><td>12.4 s</td><td>28</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="garden_cycle"><td><a href="#garden_cycle">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall</a><br /><code>garden_cycle</code></td><td>B1 / E6</td><td>we shoot the first tip</td><td>6</td><td>14.1 s</td><td>23</td><td>-1</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="partner_rear_shoot_park"><td><a href="#partner_rear_shoot_park">Partner tips first: wait beside the cell that comes up, shoot 4 into it, park</a><br /><code>partner_rear_shoot_park</code></td><td>B6 / E1</td><td>partner tips first, assumed at 12.0 s<br /><span class="note">latest tip that works: 18.5 s</span></td><td>6</td><td>21.5 s</td><td>8</td><td>-4</td><td><span class="status-ok">no findings</span></td></tr>
 </tbody>
 </table>
 </div>
 </section>
 <section class="route" id="red_b1" data-route="red_b1">
-<h2>Red B1: shoot, then drive up the left side to the LOADING ZONE</h2>
+<h2>Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE</h2>
 <p class="muted"><code>red_b1</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile B1 is E6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
 <p>Conversion of RedAlliance_B1.java. Starts in tile B1, turns to -115 deg and fires the 4 pre-loads at the UP cell, waits for the launcher, then drives backwards up the left corridor to (35.8, 90) and sideways to (12, 90), ending partly in the red LOADING ZONE. The staged NECTAR plus the 3rd POLLEN tip the HIVE (4 pre-loads, 1 spare), but the old OpMode feeds for a fixed time and cannot stop, so its 4th POLLEN goes into a cell that is already tipping: the validator says so.</p>
 <table class="meta">
-<tr><th>Start tile</th><td>B1</td></tr>
+<tr><th>Start tile</th><td>RED B1, BLUE E6</td></tr>
 <tr><th>Start pose, RED</th><td>(35.0, 9.2) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(106.3, 132.1) in, heading 90 deg</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
@@ -97,11 +98,11 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <div class="pair">
 <figure class="red">
 <figcaption>RED alliance</figcaption>
-<a href="red_b1_red.svg"><img class="diagram" src="red_b1_red.svg" alt="Red B1: shoot, then drive up the left side to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="red_b1_red.svg"><img class="diagram" src="red_b1_red.svg" alt="Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 <figure class="blue">
 <figcaption>BLUE alliance</figcaption>
-<a href="red_b1_blue.svg"><img class="diagram" src="red_b1_blue.svg" alt="Red B1: shoot, then drive up the left side to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="red_b1_blue.svg"><img class="diagram" src="red_b1_blue.svg" alt="Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 </div>
 <h3>Steps</h3>
@@ -130,11 +131,12 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 </ul>
 </section>
 <section class="route" id="red_c1" data-route="red_c1">
-<h2>Red C1: shoot, then drive past the HIVE to the LOADING ZONE</h2>
+<h2>Copy of RedAlliance_C1: shoot 4, then through the HIVE to the LOADING ZONE (do not run)</h2>
 <p class="muted"><code>red_c1</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
 <p>Conversion of RedAlliance_C1.java. Starts in tile C1 with the back toward the UP cell, fires the 4 pre-loads, waits, then drives (58, 9.2) -&gt; (62, 118.1) -&gt; (58, 118.1) -&gt; (12, 118.1), all backwards. The first leg is a straight line through the HIVE footprint. The staged NECTAR plus the 3rd POLLEN tip the HIVE (4 pre-loads, 1 spare), but the old OpMode feeds for a fixed time and cannot stop, so its 4th POLLEN goes into a cell that is already tipping: the validator says so.</p>
 <table class="meta">
-<tr><th>Start tile</th><td>C1</td></tr>
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
 <tr><th>Start pose, RED</th><td>(58.0, 9.2) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(83.3, 132.1) in, heading 90 deg</td></tr>
 <tr><th>Steps</th><td>7</td></tr>
@@ -149,11 +151,11 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <div class="pair">
 <figure class="red">
 <figcaption>RED alliance</figcaption>
-<a href="red_c1_red.svg"><img class="diagram" src="red_c1_red.svg" alt="Red C1: shoot, then drive past the HIVE to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="red_c1_red.svg"><img class="diagram" src="red_c1_red.svg" alt="Copy of RedAlliance_C1: shoot 4, then through the HIVE to the LOADING ZONE (do not run), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 <figure class="blue">
 <figcaption>BLUE alliance</figcaption>
-<a href="red_c1_blue.svg"><img class="diagram" src="red_c1_blue.svg" alt="Red C1: shoot, then drive past the HIVE to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="red_c1_blue.svg"><img class="diagram" src="red_c1_blue.svg" alt="Copy of RedAlliance_C1: shoot 4, then through the HIVE to the LOADING ZONE (do not run), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 </div>
 <h3>Steps</h3>
@@ -180,11 +182,12 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 </ul>
 </section>
 <section class="route" id="red_leave_park" data-route="red_leave_park">
-<h2>Red A3: leave the wall and park (no shooting)</h2>
+<h2>Copy of RedAlliance_LeavePark: leave the wall and park (no shooting)</h2>
 <p class="muted"><code>red_leave_park</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile A3 is F4 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
 <p>Conversion of RedAlliance_LeavePark.java. Starts on the left wall in tile A3 facing 180 deg, drives to (24.86, 83.62) turning to 135 deg, then to (16, 91.5): LEAVE and a PARK with only a corner in the zone. The 4 pre-loads are never fired.</p>
 <table class="meta">
-<tr><th>Start tile</th><td>A3</td></tr>
+<tr><th>Start tile</th><td>RED A3, BLUE F4</td></tr>
 <tr><th>Start pose, RED</th><td>(9.2, 70.3) in, heading 180 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(132.1, 71.1) in, heading 0 deg</td></tr>
 <tr><th>Steps</th><td>4</td></tr>
@@ -199,11 +202,11 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <div class="pair">
 <figure class="red">
 <figcaption>RED alliance</figcaption>
-<a href="red_leave_park_red.svg"><img class="diagram" src="red_leave_park_red.svg" alt="Red A3: leave the wall and park (no shooting), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="red_leave_park_red.svg"><img class="diagram" src="red_leave_park_red.svg" alt="Copy of RedAlliance_LeavePark: leave the wall and park (no shooting), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 <figure class="blue">
 <figcaption>BLUE alliance</figcaption>
-<a href="red_leave_park_blue.svg"><img class="diagram" src="red_leave_park_blue.svg" alt="Red A3: leave the wall and park (no shooting), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="red_leave_park_blue.svg"><img class="diagram" src="red_leave_park_blue.svg" alt="Copy of RedAlliance_LeavePark: leave the wall and park (no shooting), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 </div>
 <h3>Steps</h3>
@@ -225,11 +228,12 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 </ul>
 </section>
 <section class="route" id="wall_shoot_park" data-route="wall_shoot_park">
-<h2>Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE</h2>
+<h2>Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park</h2>
 <p class="muted"><code>wall_shoot_park</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
 <p>Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver picks, then drives out through the left corridor (x &lt; 43, clear of the HIVE frame keep-out) and parks deep inside the red LOADING ZONE. The 3 NECTAR already in the UP cell plus the 3rd POLLEN tip the HIVE (FIRST&apos;s calibration), so the 4 pre-loads tip it with 1 spare for a HIVE that needs one more POLLEN. The camera sees the tip only about 0.85 s after the 3rd POLLEN lands, so the 4th is probably launched into the cell while it swings down and is spent (the validator says so; measure the real time on day one). The route claims LEAVE 3 + PARK 5 + our TIP 20: it parks standing about 4 in off the red wall, because a robot that touches ANY wall at the end of AUTO, the one inside the LOADING ZONE too, loses its LEAVE (QA21).</p>
 <table class="meta">
-<tr><th>Start tile</th><td>C1</td></tr>
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
 <tr><th>Start pose, RED</th><td>(58.0, 9.8) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(83.3, 131.6) in, heading 90 deg</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
@@ -244,11 +248,11 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <div class="pair">
 <figure class="red">
 <figcaption>RED alliance</figcaption>
-<a href="wall_shoot_park_red.svg"><img class="diagram" src="wall_shoot_park_red.svg" alt="Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="wall_shoot_park_red.svg"><img class="diagram" src="wall_shoot_park_red.svg" alt="Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 <figure class="blue">
 <figcaption>BLUE alliance</figcaption>
-<a href="wall_shoot_park_blue.svg"><img class="diagram" src="wall_shoot_park_blue.svg" alt="Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="wall_shoot_park_blue.svg"><img class="diagram" src="wall_shoot_park_blue.svg" alt="Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 </div>
 <h3>Steps</h3>
@@ -271,11 +275,12 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 </ul>
 </section>
 <section class="route" id="garden_cycle" data-route="garden_cycle">
-<h2>Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall</h2>
+<h2>Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall</h2>
 <p class="muted"><code>garden_cycle</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile B1 is E6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
 <p>Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the 3 NECTAR already in that cell the 3rd POLLEN tips the HIVE (+20); the 4th pre-load is the spare for a stiff HIVE, and because the camera sees the tip only about 0.85 s after the 3rd POLLEN lands it is probably launched into the swinging cell and spent. After a tip the UP cell is on the OTHER side of the HIVE, about 111 in away around it, and it holds no NECTAR, so it needs 8 POLLEN (plan 9): far more than this route can carry there. So the route does not shoot again: it sweeps up 3 of the 4 POLLEN of the red GARDEN along the audience wall (the robot holds 0 + 3 = 3; if the feeder does stop in time it holds 1 + 3 = 4, the most it may hold, G407, so never take a 4th) to carry into TELEOP and steps off the wall. LEAVE 3 + our TIP 20.</p>
 <table class="meta">
-<tr><th>Start tile</th><td>B1</td></tr>
+<tr><th>Start tile</th><td>RED B1, BLUE E6</td></tr>
 <tr><th>Start pose, RED</th><td>(35.0, 9.8) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(106.3, 131.6) in, heading 90 deg</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
@@ -290,11 +295,11 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <div class="pair">
 <figure class="red">
 <figcaption>RED alliance</figcaption>
-<a href="garden_cycle_red.svg"><img class="diagram" src="garden_cycle_red.svg" alt="Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="garden_cycle_red.svg"><img class="diagram" src="garden_cycle_red.svg" alt="Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 <figure class="blue">
 <figcaption>BLUE alliance</figcaption>
-<a href="garden_cycle_blue.svg"><img class="diagram" src="garden_cycle_blue.svg" alt="Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+<a href="garden_cycle_blue.svg"><img class="diagram" src="garden_cycle_blue.svg" alt="Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
 </figure>
 </div>
 <h3>Steps</h3>
@@ -319,9 +324,10 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <section class="route" id="partner_rear_shoot_park" data-route="partner_rear_shoot_park">
 <h2>Partner tips first: wait beside the cell that comes up, shoot 4 into it, park</h2>
 <p class="muted"><code>partner_rear_shoot_park</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile B6 is E1 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
 <p>Assumes the alliance PARTNER shoots the first tip (assumed done at 12 s, agree the real time with the partner team). The robot starts TURNED in a corner of its own half, on the wall behind the cell that comes up with the partner&apos;s tip (for RED that is the rear wall, for BLUE the audience wall), with its back (the shooter) toward that cell, and WAITS: it never shoots because a time has passed, only after its camera has SEEN that cell come up and stay steady. Then it fires its 4 pre-loads into it (the cell holds no NECTAR, so 4 POLLEN do not tip it: they are 4 of the 8 the second tip needs, which is for TELEOP), drives off the wall and parks in its own LOADING ZONE. LEAVE 3 + PARK 5 are ours; the partner&apos;s 20 is an assumption, not counted. The second tip does NOT fit in AUTO with the shipped numbers (see PartnerTipRoutes): a partner that tips by about 6 s and wheels that reach the FLOWER are needed first. If the tip never comes the robot gives up waiting at 19.0 s, leaves the volley out and still leaves and parks.</p>
 <table class="meta">
-<tr><th>Start tile</th><td>B6</td></tr>
+<tr><th>Start tile</th><td>RED B6, BLUE E1</td></tr>
 <tr><th>Start pose, RED</th><td>(36.3, 128.2) in, heading 125 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(105.1, 13.1) in, heading -55 deg</td></tr>
 <tr><th>Steps</th><td>6</td></tr>

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route garden_cycle for the BLUE alliance, starting in tile B1, with 6 steps: 1 START at (106.3, 131.6, 90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE to GARDEN constant to 132.3, 123.3; 4 DRIVE into GARDEN constant to 132.3, 130.8; 5 INTAKE GARDEN +3 from (132.3, 130.8, 90 deg); 6 DRIVE off the wall constant to 121.3, 117.3. First tip: we shoot the first tip. Estimated 14.1 s, POLLEN balance -1, up to 23 points for our robot; 0 errors and 1 warnings.</desc>
+<title id="svg-title">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall - BLUE alliance</title>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route garden_cycle for the BLUE alliance, starting in tile E6, with 6 steps: 1 START at (106.3, 131.6, 90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE to GARDEN constant to 132.3, 123.3; 4 DRIVE into GARDEN constant to 132.3, 130.8; 5 INTAKE GARDEN +3 from (132.3, 130.8, 90 deg); 6 DRIVE off the wall constant to 121.3, 117.3. First tip: we shoot the first tip. Estimated 14.1 s, POLLEN balance -1, up to 23 points for our robot; 0 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -15,8 +15,8 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="14.63" font-weight="bold" fill="#222222">Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall - BLUE alliance</text>
-<text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id garden_cycle  |  start tile B1  |  6 steps  |  blue ink  |  first tip: we shoot the first tip</text>
+<text id="title" x="24" y="27" font-size="17.09" font-weight="bold" fill="#222222">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall - BLUE alliance</text>
+<text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id garden_cycle  |  start tile E6  |  6 steps  |  blue ink  |  first tip: we shoot the first tip</text>
 <rect x="24" y="52" width="40" height="4" fill="#1565c0"/>
 <g id="field">
 <rect class="alliance-area" data-alliance="RED" x="32.9" y="166.43" width="92" height="445.37" fill="url(#area-red)"/>
@@ -168,23 +168,23 @@
 <polygon class="arrowhead" points="508.65,119.78 516.2,114.98 517.02,122.94" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE to GARDEN constant to 132.3, 123.3 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it.</title>
+<title>step 3: DRIVE to GARDEN constant to 132.3, 123.3 (t = 7.0 to 9.2 s)</title>
 <path class="leg" d="M 508.65 119.78 L 733.7 146.8" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="621.18,133.29 610.65,137.06 611.84,127.13" fill="#1565c0"/>
 <polygon class="arrowhead" points="733.7,146.8 723.18,150.57 724.37,140.64" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="4" data-mode="CONSTANT">
-<title>step 4: DRIVE into GARDEN constant to 132.3, 130.8 (t = 9.2 to 10.2 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
+<title>step 4: DRIVE into GARDEN constant to 132.3, 130.8 (t = 9.2 to 10.2 s)</title>
 <path class="leg" d="M 733.7 146.8 L 733.7 112.62" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="733.7,112.62 738.7,122.62 728.7,122.62" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="6" data-mode="CONSTANT">
-<title>step 6: DRIVE off the wall constant to 121.3, 117.3 (t = 12.7 to 14.1 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
+<title>step 6: DRIVE off the wall constant to 121.3, 117.3 (t = 12.7 to 14.1 s)</title>
 <path class="leg" d="M 733.7 112.62 L 683.1 174.4" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="683.1,174.4 685.57,163.5 693.3,169.83" fill="#1565c0"/>
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
-<title>step 1: START at (106.3, 131.6, 90 deg) (t = 0.0 to 0.0 s) - Front edge ON the audience wall (the center of rotation is 9.77 in out). Place the robot with the wheel tips touching the wall and the middle of the robot over tile B1.</title>
+<title>step 1: START at (106.3, 131.6, 90 deg) (t = 0.0 to 0.0 s)</title>
 <polygon class="outline" points="573.16,64 573.16,145.88 655.04,145.88 655.04,64" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
 <polygon class="chassis" points="573.16,76.42 573.16,145.88 655.04,145.88 655.04,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="573.16" y1="64" x2="655.04" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
@@ -200,7 +200,7 @@
 <polygon class="arrowhead" points="614.1,69 619.1,79 609.1,79" fill="#1565c0"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="true">
-<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.0 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on. - pose drawn is the nominal standoff pose; the solver picks the real one</title>
+<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.0 s) - pose drawn is the nominal standoff pose; the solver picks the real one</title>
 <polygon class="outline" points="467.71,74.84 467.71,156.72 549.59,156.72 549.59,74.84" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
 <polygon class="chassis" points="467.71,87.26 467.71,156.72 549.59,156.72 549.59,87.26" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="467.71" y1="74.84" x2="549.59" y2="74.84" stroke="#2e7d32" stroke-width="4.5"/>
@@ -216,7 +216,7 @@
 <polygon class="arrowhead" points="508.65,313.12 503.65,303.12 513.65,303.12" fill="#1565c0"/>
 </g>
 <g class="intake" data-step="5" data-source="GARDEN">
-<title>step 5: INTAKE GARDEN +3 from (132.3, 130.8, 90 deg) (t = 10.2 to 12.7 s) - The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
+<title>step 5: INTAKE GARDEN +3 from (132.3, 130.8, 90 deg) (t = 10.2 to 12.7 s)</title>
 <polygon class="outline" points="692.76,67.68 692.76,149.56 774.64,149.56 774.64,67.68" fill="#1565c0" fill-opacity="0.07" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
 <polygon class="chassis" points="692.76,80.1 692.76,149.56 774.64,149.56 774.64,80.1" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="692.76" y1="67.68" x2="774.64" y2="67.68" stroke="#2e7d32" stroke-width="4.5"/>
@@ -231,7 +231,7 @@
 <circle class="intake-ring" cx="748.88" cy="70.44" r="32.2" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 4"/>
 </g>
 <g class="end-outline" data-step="6">
-<title>step 6: DRIVE off the wall constant to 121.3, 117.3 (t = 12.7 to 14.1 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
+<title>step 6: DRIVE off the wall constant to 121.3, 117.3 (t = 12.7 to 14.1 s)</title>
 <polygon class="outline" points="642.16,129.46 642.16,211.34 724.04,211.34 724.04,129.46" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="642.16,141.88 642.16,211.34 724.04,211.34 724.04,141.88" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="642.16" y1="129.46" x2="724.04" y2="129.46" stroke="#2e7d32" stroke-width="4.5"/>
@@ -246,38 +246,38 @@
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
-<title>step 1: START at (106.3, 131.6, 90 deg) (t = 0.0 to 0.0 s) - Front edge ON the audience wall (the center of rotation is 9.77 in out). Place the robot with the wheel tips touching the wall and the middle of the robot over tile B1.</title>
+<title>step 1: START at (106.3, 131.6, 90 deg) (t = 0.0 to 0.0 s)</title>
 <circle cx="614.1" cy="108.94" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="614.1" y="112.74" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
-<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.0 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on.</title>
+<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.0 s)</title>
 <circle cx="508.65" cy="119.78" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="508.65" y="123.58" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE to GARDEN constant to 132.3, 123.3 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it.</title>
+<title>step 3: DRIVE to GARDEN constant to 132.3, 123.3 (t = 7.0 to 9.2 s)</title>
 <circle cx="621.18" cy="133.29" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="621.18" y="137.09" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
-<title>step 4: DRIVE into GARDEN constant to 132.3, 130.8 (t = 9.2 to 10.2 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
+<title>step 4: DRIVE into GARDEN constant to 132.3, 130.8 (t = 9.2 to 10.2 s)</title>
 <circle cx="733.7" cy="129.71" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="733.7" y="133.51" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="INTAKE">
-<title>step 5: INTAKE GARDEN +3 from (132.3, 130.8, 90 deg) (t = 10.2 to 12.7 s) - The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
+<title>step 5: INTAKE GARDEN +3 from (132.3, 130.8, 90 deg) (t = 10.2 to 12.7 s)</title>
 <circle cx="747.14" cy="99.19" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="747.14" y="102.99" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="DRIVE">
-<title>step 6: DRIVE off the wall constant to 121.3, 117.3 (t = 12.7 to 14.1 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
+<title>step 6: DRIVE off the wall constant to 121.3, 117.3 (t = 12.7 to 14.1 s)</title>
 <circle cx="708.4" cy="143.51" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="708.4" y="147.31" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
 </g>
 <g id="step-labels">
-<text class="step-label" x="629.1" y="99.94" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START B1</text>
+<text class="step-label" x="629.1" y="99.94" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START E6</text>
 <text class="step-label" x="523.65" y="252.92" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
 <text class="step-label" x="538.65" y="155.78" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">pose chosen by the solver</text>
 <text class="step-label" x="523.65" y="331.12" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
