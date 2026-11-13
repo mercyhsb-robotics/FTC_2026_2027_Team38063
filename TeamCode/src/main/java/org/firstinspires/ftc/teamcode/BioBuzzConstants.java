@@ -1063,6 +1063,22 @@ public final class BioBuzzConstants {
         /** FIXED (CAD): distance out from the pivot plane to the middle of the AprilTag row of a DOWN cell, 11.611 in (the cell swings in toward the pivot as it tips down). */
         public static final double DOWN_CELL_TAG_ROW_OUT_IN = 11.611;
 
+        /** FIXED (CAD; the manual says 43.95): the HIVE pivot axle is 43.95 in above the floor, on the pivot plane y = {@link #CENTER_IN}. */
+        public static final double HIVE_PIVOT_Z_IN = 43.95;
+        /** FIXED (CAD, checked on the meshes to 0.001 in): a tip turns a whole cell by exactly 60 degrees about the pivot axle, so the DOWN rows above are the UP rows turned by this. */
+        public static final double HIVE_TIP_ANGLE_DEG = 60.0;
+        /**
+         * FIXED (CAD, 30.00 degrees measured): the base of a cell, the axis of its opening and its AprilTag sticker are tilted 30 degrees
+         * from horizontal. An UP cell opens 30 degrees above horizontal; its sticker is in the plane under the cell and every tag looks
+         * 60 degrees below horizontal toward its own side (red audience UP cell: toward the audience wall and the floor). The camera has
+         * to be on that side of the sticker plane to read it.
+         */
+        public static final double CELL_TILT_DEG = 30.0;
+        /** FIXED (the FTC SDK's AprilTagGameDatabase; the CAD agrees to 0.001 in): the tag row is 7.1874 in behind the front of the cell, measured along the cell's tilted base ... */
+        public static final double TAG_ROW_BEHIND_CELL_FRONT_IN = 7.1874;
+        /** FIXED (the SDK; the CAD agrees to 0.14 in): ... and the cluster origin, the aim point, is 5.622 in inside the cell from the sticker plane, perpendicular to it. */
+        public static final double CLUSTER_ORIGIN_ABOVE_STICKER_IN = 5.622;
+
         /** FIXED (manual 9.9 / SDK, and the production art; the CAD agrees exactly): tag centers along the sticker, from its centerline, in tag-ID order. */
         public static final double[] TAG_X_OFFSETS_IN = {-6.5, -2.75, 2.75, 6.5};
         /** FIXED (manual 9.9): tags are 3.25 in square (82.55 mm). */

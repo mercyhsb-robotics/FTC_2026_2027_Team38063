@@ -86,9 +86,9 @@ public class PoseCorrectorTest {
         List<TagObservation> out = new ArrayList<TagObservation>();
         for (int i : tagIndexes) {
             double x = cell.tagFieldX(i);
-            // A DOWN cell's tag row is 11.65 in out from the pivot plane (y = 72) on its own side and lower
+            // A DOWN cell's tag row is 11.611 in out from the pivot plane (y = the field center) on its own side and lower
             // (downTagRowZ); an UP cell's row is at tagRowY and tagRowZ.
-            double y = cellIsUp ? cell.tagRowY : field.center() + cell.side.ySign() * 11.65;
+            double y = cellIsUp ? cell.tagRowY : cell.downTagRowY;
             double z = cellIsUp ? cell.tagRowZ : cell.downTagRowZ;
             double f = truth.forwardOf(x, y);
             double l = truth.leftOf(x, y);

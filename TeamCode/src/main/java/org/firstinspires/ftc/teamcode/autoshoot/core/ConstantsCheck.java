@@ -238,6 +238,12 @@ public final class ConstantsCheck {
                 BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MIN_IN, BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MAX_IN,
                 BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MIN_IN, BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MAX_IN);
 
+        checkClusterGeometry(r, BioBuzzConstants.Field.UP_CELL_TAG_ROW_OUT_IN, BioBuzzConstants.Field.UP_CELL_TAG_ROW_Z_IN,
+                BioBuzzConstants.Field.UP_CELL_ORIGIN_OUT_IN, BioBuzzConstants.Field.UP_CELL_ORIGIN_Z_IN,
+                BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_OUT_IN, BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_Z_IN,
+                BioBuzzConstants.Field.HIVE_PIVOT_Z_IN, BioBuzzConstants.Field.HIVE_TIP_ANGLE_DEG, BioBuzzConstants.Field.CELL_TILT_DEG,
+                BioBuzzConstants.Field.TAG_ROW_BEHIND_CELL_FRONT_IN, BioBuzzConstants.Field.CLUSTER_ORIGIN_ABOVE_STICKER_IN);
+
         // ---- the field model must hold together
         // Build the field from the constants and make sure every aim point is on the field; this catches a typo in
         // the HIVE geometry (for example a wrong sign or a missing digit) before the planner trusts it.
@@ -314,6 +320,34 @@ public final class ConstantsCheck {
         if (Math.abs(zoneXMin) > tolerance || zoneXMax <= zoneXMin || zoneXMax >= center || zoneYMin < 0 || zoneYMax <= zoneYMin || zoneYMax > size) {
             r.errors.add("The red LOADING ZONE (Auto.RED_LOADING_ZONE_*: x " + zoneXMin + " to " + zoneXMax + ", y " + zoneYMin + " to " + zoneYMax
                     + ") must touch the red wall (x = 0), lie on the red half and inside the field.");
+        }
+    }
+
+    /**
+     * The AprilTag cluster numbers must follow from the HIVE's mechanics: the cluster origin (the aim point) is the tag row moved 7.1874 in
+     * up the cell's axis (tilted {@code tiltDeg} from horizontal) and 5.622 in out of the sticker plane, and a DOWN cell is its UP self turned
+     * by {@code tipDeg} about the pivot axle. All of this is in the CAD to 0.02 in, so a typo in one of the six numbers (a tag row, an origin or
+     * a DOWN row) breaks a relation and is reported here. Distances out are measured from the pivot plane toward the cell's own side.
+     */
+    static void checkClusterGeometry(Report r, double tagRowOut, double tagRowZ, double originOut, double originZ, double downOut,
+                                     double downZ, double pivotZ, double tipDeg, double tiltDeg, double rowBehindFront, double originAbove) {
+        final double tolerance = 0.02;
+        double tilt = Math.toRadians(tiltDeg);
+        double expectedOriginOut = tagRowOut + rowBehindFront * Math.cos(tilt) - originAbove * Math.sin(tilt);
+        double expectedOriginZ = tagRowZ + rowBehindFront * Math.sin(tilt) + originAbove * Math.cos(tilt);
+        if (Math.abs(expectedOriginOut - originOut) > tolerance || Math.abs(expectedOriginZ - originZ) > tolerance) {
+            r.errors.add("Field.UP_CELL_ORIGIN_* (the aim point: " + originOut + " in out, " + originZ + " in up) does not follow from the tag row ("
+                    + tagRowOut + " in out, " + tagRowZ + " in up): moving " + rowBehindFront + " in up the cell's " + tiltDeg + " degree axis and "
+                    + originAbove + " in out of the sticker plane gives " + String.format(Locale.ROOT, "%.3f out, %.3f up", expectedOriginOut, expectedOriginZ) + ".");
+        }
+        // A tip turns the cell by tipDeg about the pivot axle: the UP tag row, seen from the axle, is turned that far to the DOWN row.
+        double tip = Math.toRadians(tipDeg);
+        double up = tagRowZ - pivotZ;
+        double expectedDownOut = tagRowOut * Math.cos(tip) + up * Math.sin(tip);
+        double expectedDownZ = pivotZ - tagRowOut * Math.sin(tip) + up * Math.cos(tip);
+        if (Math.abs(expectedDownOut - downOut) > tolerance || Math.abs(expectedDownZ - downZ) > tolerance) {
+            r.errors.add("Field.DOWN_CELL_TAG_ROW_* (" + downOut + " in out, " + downZ + " in up) is not the UP tag row turned " + tipDeg
+                    + " degrees about the pivot axle (" + pivotZ + " in up): that gives " + String.format(Locale.ROOT, "%.3f out, %.3f up", expectedDownOut, expectedDownZ) + ".");
         }
     }
 
