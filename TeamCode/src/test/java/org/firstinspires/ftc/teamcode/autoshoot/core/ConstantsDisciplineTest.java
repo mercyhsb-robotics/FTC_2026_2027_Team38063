@@ -171,7 +171,7 @@ public class ConstantsDisciplineTest {
      */
     private static List<File> logicFiles() {
         List<File> out = new ArrayList<File>();
-        for (String dir : new String[]{"autoshoot/core", "autoshoot/hardware", "autoshoot/routes", "diagnostics"}) {
+        for (String dir : new String[]{"autoshoot/core", "autoshoot/hardware", "autoshoot/routes", "autoshoot/run", "diagnostics"}) {
             File[] files = source(dir).listFiles();
             if (files != null) {
                 for (File f : files) {

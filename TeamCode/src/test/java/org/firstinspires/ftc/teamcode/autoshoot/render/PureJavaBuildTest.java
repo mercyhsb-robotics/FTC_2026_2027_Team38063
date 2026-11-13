@@ -62,7 +62,7 @@ public class PureJavaBuildTest {
         File root = sourceRoot();
         List<File> sources = new ArrayList<File>();
         sources.add(new File(root, PKG + "BioBuzzConstants.java"));
-        for (String pkg : new String[] {"core", "routes", "render"}) {
+        for (String pkg : new String[] {"core", "routes", "run", "render"}) {
             collect(new File(root, PKG + "autoshoot/" + pkg), sources);
         }
 
