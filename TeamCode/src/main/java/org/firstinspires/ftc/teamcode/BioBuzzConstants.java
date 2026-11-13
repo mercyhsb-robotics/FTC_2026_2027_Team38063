@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.autoshoot.core.Button;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 
 /**
@@ -376,6 +377,59 @@ public final class BioBuzzConstants {
         public static final double HIVE_STABLE_SEEN_SEC = 0.5;
         /** TUNE: tags missing this long (with the camera link healthy) after a steady sighting counts as a suspected tip. */
         public static final double HIVE_LOST_SEC = 0.6;
+    }
+
+    // =========================================================================================
+    // DRIVER CONTROLS (PlayStation-style gamepad 1) AND THE STARTING POSE
+    // =========================================================================================
+    public static final class Controls {
+        private Controls() {
+        }
+
+        /** TUNE: hold this to drive to the scoring pose and shoot every stored POLLEN. */
+        public static final Button SHOOT_BUTTON = Button.DPAD_UP;
+        /** TUNE: press this if the HIVE tipped and the robot does not know: it flips which cell it believes is up. */
+        public static final Button TOGGLE_HIVE_BUTTON = Button.DPAD_DOWN;
+        /** TUNE: hold this to tell the robot it is standing exactly on the default start pose (resets odometry). */
+        public static final Button RESET_POSE_BUTTON = Button.SHARE;
+        /** TUNE: ... for this long, so it cannot be hit by accident (seconds). */
+        public static final double RESET_POSE_HOLD_SEC = 0.6;
+        /** TUNE: during INIT, press this to choose the RED alliance. */
+        public static final Button ALLIANCE_RED_BUTTON = Button.DPAD_LEFT;
+        /** TUNE: during INIT, press this to choose the BLUE alliance. */
+        public static final Button ALLIANCE_BLUE_BUTTON = Button.DPAD_RIGHT;
+
+        /** TUNE: stick values smaller than this are treated as zero. */
+        public static final double STICK_DEADBAND = 0.05;
+        /** VERIFY: +1 or -1. If pushing the left stick forward drives the robot backward, flip this. */
+        public static final double MANUAL_FORWARD_SIGN = 1.0;
+        /** VERIFY: +1 or -1. If pushing the left stick right strafes left, flip this. */
+        public static final double MANUAL_STRAFE_SIGN = 1.0;
+        /** VERIFY: +1 or -1. If pushing the right stick right turns the robot counter-clockwise, flip this. */
+        public static final double MANUAL_TURN_SIGN = 1.0;
+        /** TUNE: manual drive power multipliers (0-1). */
+        public static final double MANUAL_DRIVE_SCALE = 1.0;
+        public static final double MANUAL_TURN_SCALE = 1.0;
+
+        /**
+         * VERIFY: where a RED robot stands at the start of TeleOp if the pose was not carried over from
+         * autonomous (RED frame; BLUE is the half-turn of it): tile C1, against the audience wall, back
+         * toward the HIVE. The robot must really be placed here for odometry to be right.
+         */
+        public static final double DEFAULT_START_X_IN = 58.0;
+        public static final double DEFAULT_START_Y_IN = 8.9;
+        public static final double DEFAULT_START_HEADING_DEG = -90.0;
+        /** TUNE: a pose saved by an earlier OpMode is only trusted if it is newer than this (seconds). */
+        public static final double POSE_CARRYOVER_MAX_AGE_SEC = 300.0;
+
+        /** TUNE: driver feedback, in milliseconds. */
+        public static final int RUMBLE_STARTED_MS = 60;
+        public static final int RUMBLE_ARRIVED_MS = 100;
+        public static final int RUMBLE_DONE_BLIPS = 2;
+        public static final int RUMBLE_FAULT_MS = 500;
+        /** TUNE: gamepad light colors for the alliance (red, green, blue, each 0-1). */
+        public static final double[] RED_LED = {1.0, 0.0, 0.0};
+        public static final double[] BLUE_LED = {0.0, 0.0, 1.0};
     }
 
     // =========================================================================================
