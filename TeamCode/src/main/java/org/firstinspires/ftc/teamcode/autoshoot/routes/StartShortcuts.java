@@ -178,7 +178,7 @@ public final class StartShortcuts {
         return new RouteTemplate() {
             @Override
             public AutoRoute build(Pose2 s) {
-                return shoot4(opening("partner_park", "Partner tips: wait, shoot 4 at the rear cell, park", s, true).waitForTip(16.0), s, Side.REAR)
+                return shoot4(opening("partner_park", "Partner tips: wait, shoot 4 at the rear cell, park", s, true).waitForTip(PartnerTipRoutes.GIVE_UP_SEC), s, Side.REAR)
                         .driveConstant(s.x, 112.0, s.headingDegrees()).label("off the wall")
                         .driveLinear(12.0, 108.0, 0.0).label("to zone")
                         .park(12.0, 108.0, 0.0).build();
@@ -188,6 +188,7 @@ public final class StartShortcuts {
 
     private static RouteTemplate partnerShootThenFlower() {
         final double[] flower = BioBuzzConstants.Field.FLOWER_CENTERS_IN[1];            // the rear-wall FLOWER
+        // 16 s is the earlier guess of the give-up time; this longer route does not fit in 30 s with the shipped numbers whatever it is, so it stays
         return new RouteTemplate() {
             @Override
             public AutoRoute build(Pose2 s) {
@@ -223,7 +224,7 @@ public final class StartShortcuts {
         List<String> audienceNames = Arrays.asList("tile B1, front on the audience wall", "tile C1, front on the audience wall");
         List<Named> audienceNamed = Collections.singletonList(
                 new Named("front on the audience wall, in line with the HIVE", Wall.AUDIENCE, -90.0, HIVE_AXIS_X));
-        List<String> partnerNames = Collections.singletonList("the catalog's partner start, front on the rear wall");
+        List<String> partnerNames = Collections.singletonList("a straight start on the rear wall (x = 61.5)");
         List<Pose2> partnerStandard = Collections.singletonList(Pose2.ofDegrees(61.5, SIZE - FRONT, 90.0));
         List<Named> partnerNamed = Collections.singletonList(
                 new Named("front on the rear wall, in line with the rear cell, clear of the rear FLOWER", Wall.REAR, 90.0, HIVE_AXIS_X));
