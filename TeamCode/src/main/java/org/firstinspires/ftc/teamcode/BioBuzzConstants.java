@@ -188,6 +188,75 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // VISION (Limelight 3A, AprilTag pipeline, mounted on top facing the REAR with the shooter)
+    // =========================================================================================
+    public static final class Vision {
+        private Vision() {
+        }
+
+        /** Which axes the Limelight's camera-space poses use. The Limelight docs contradict themselves; the diagnostic OpMode shows which is right. */
+        public enum CameraSpaceConvention {
+            /** x right, y DOWN, z forward out of the lens (the 3D coordinate-systems page, and OpenCV). */
+            OPENCV_RIGHT_DOWN_FORWARD,
+            /** x forward, y LEFT, z up in every space (the LimelightLib page). */
+            NWU_FORWARD_LEFT_UP
+        }
+
+        /** VERIFY: how the Limelight reports camera-space positions. Flip if the diagnostic OpMode shows left/right or up/down swapped. */
+        public static final CameraSpaceConvention CAMERA_SPACE_CONVENTION = CameraSpaceConvention.OPENCV_RIGHT_DOWN_FORWARD;
+        /** VERIFY: true if a positive tx means the tag is to the RIGHT of the camera's crosshair (as the docs say). */
+        public static final boolean TX_POSITIVE_IS_RIGHT = true;
+        /** VERIFY: true if a positive ty means the tag is ABOVE the crosshair (the docs disagree with themselves). */
+        public static final boolean TY_POSITIVE_IS_UP = true;
+
+        /** ADD: where the lens is, measured from the robot's rotation center. It sits on top and behind center, so forward is negative. */
+        public static final double CAMERA_FORWARD_IN = -6.0;
+        /** ADD: sideways offset of the lens from the center line (positive = robot's left). */
+        public static final double CAMERA_LEFT_IN = 0.0;
+        /** ADD: height of the lens above the floor. The robot is 12.13 in tall; the camera sits on top. */
+        public static final double CAMERA_HEIGHT_IN = 13.0;
+        /** FIXED by the mounting: the camera looks out the back, 180 degrees from the robot's forward direction. */
+        public static final double CAMERA_YAW_DEG = 180.0;
+        /**
+         * ADD: how far the camera is tilted UP from level. The tag rows are 35-50 in up and the verified
+         * geometry says the camera needs roughly +30 to +40 degrees to keep them inside its 42 degree
+         * vertical field of view.
+         */
+        public static final double CAMERA_PITCH_UP_DEG = 35.0;
+
+        /** FIXED by the setup checklist (docs/LIMELIGHT_SETUP.md): the AprilTag pipeline is index 0. */
+        public static final int PIPELINE_INDEX = 0;
+        /** FIXED by the setup checklist: hardware-configuration name of the Limelight. */
+        public static final String DEVICE_NAME = "limelight";
+        /** TUNE: how often the Control Hub polls the Limelight (1-250 Hz; set before start). */
+        public static final int POLL_RATE_HZ = 50;
+        /** VERIFY: the tag family string the Limelight reports for 36h11 tags. */
+        public static final String EXPECTED_TAG_FAMILY = "36H11C";
+
+        /** TUNE: a result older than this is ignored, in milliseconds. */
+        public static final double MAX_FRAME_AGE_MS = 250.0;
+        /** TUNE: if the camera link is up but no NEW frame has arrived for this long, vision is treated as stalled, in milliseconds. */
+        public static final double FRAME_STALL_MS = 400.0;
+        /** TUNE: tags closer than this to the lens are ignored (inches). */
+        public static final double TAG_MIN_RANGE_IN = 8.0;
+        /** TUNE: tags farther than this are ignored; 3.25 in tags are hard to read beyond about 100 in (inches). */
+        public static final double TAG_MAX_RANGE_IN = 110.0;
+        /** TUNE: a tag whose measured height is this far from an UP or DOWN cell's tag row is rejected (inches). */
+        public static final double TAG_HEIGHT_TOLERANCE_IN = 7.0;
+        /** TUNE: UP/DOWN is judged from the left-to-right order of tag IDs only if the tags are at least this far apart in the image (degrees of tx). */
+        public static final double ORDER_MIN_TX_SPAN_DEG = 1.0;
+
+        /** TUNE: the HIVE state belief changes only after this many NEW frames in a row agree. */
+        public static final int HIVE_CONFIRM_FRAMES = 3;
+        /** TUNE: ... spread over at least this many seconds. */
+        public static final double HIVE_CONFIRM_SEC = 0.15;
+        /** TUNE: after seeing the up cell's tags steadily for this long, losing all of them means the HIVE may have tipped. */
+        public static final double HIVE_STABLE_SEEN_SEC = 0.5;
+        /** TUNE: tags missing this long (with the camera link healthy) after a steady sighting counts as a suspected tip. */
+        public static final double HIVE_LOST_SEC = 0.6;
+    }
+
+    // =========================================================================================
     // FIELD AND HIVE (manual TU09 sections 9.2-9.9; RED frame)
     // =========================================================================================
     public static final class Field {
@@ -219,6 +288,8 @@ public final class BioBuzzConstants {
         public static final double UP_CELL_TAG_ROW_OUT_IN = 13.07;
         /** FIXED (same derivation): height of the AprilTag row of an UP cell. */
         public static final double UP_CELL_TAG_ROW_Z_IN = 49.85;
+        /** FIXED (same derivation): height of the AprilTag row of a DOWN cell (used to tell UP from DOWN by tag height). */
+        public static final double DOWN_CELL_TAG_ROW_Z_IN = 35.58;
 
         /** FIXED (manual 9.9 / SDK): tag centers along the sticker, from its centerline, in tag-ID order. */
         public static final double[] TAG_X_OFFSETS_IN = {-6.5, -2.75, 2.75, 6.5};

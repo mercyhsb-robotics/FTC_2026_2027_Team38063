@@ -26,6 +26,7 @@ public final class FieldModel {
         public double upOriginZ = BioBuzzConstants.Field.UP_CELL_ORIGIN_Z_IN;
         public double tagRowOut = BioBuzzConstants.Field.UP_CELL_TAG_ROW_OUT_IN;
         public double tagRowZ = BioBuzzConstants.Field.UP_CELL_TAG_ROW_Z_IN;
+        public double downTagRowZ = BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_Z_IN;
         public double[] tagXOffsets = BioBuzzConstants.Field.TAG_X_OFFSETS_IN;
         public int redRearBaseId = BioBuzzConstants.Field.RED_REAR_BASE_TAG_ID;
         public int redAudienceBaseId = BioBuzzConstants.Field.RED_AUDIENCE_BASE_TAG_ID;
@@ -53,9 +54,11 @@ public final class FieldModel {
         double c = p.size / 2.0;
 
         CellSpec redAudience = new CellSpec(Alliance.RED, Side.AUDIENCE, p.redAudienceBaseId, p.redHiveAxisX,
-                p.redHiveAxisX, c - p.upOriginOut, p.upOriginZ, c - p.tagRowOut, p.tagRowZ, p.tagXOffsets);
+                p.redHiveAxisX, c - p.upOriginOut, p.upOriginZ, c - p.tagRowOut, p.tagRowZ, p.downTagRowZ,
+                p.tagXOffsets);
         CellSpec redRear = new CellSpec(Alliance.RED, Side.REAR, p.redRearBaseId, p.redHiveAxisX,
-                p.redHiveAxisX, c + p.upOriginOut, p.upOriginZ, c + p.tagRowOut, p.tagRowZ, p.tagXOffsets);
+                p.redHiveAxisX, c + p.upOriginOut, p.upOriginZ, c + p.tagRowOut, p.tagRowZ, p.downTagRowZ,
+                p.tagXOffsets);
         // Blue cell on side S is the half-turn image of the red cell on the OPPOSITE side.
         CellSpec blueAudience = rotated(redRear, Alliance.BLUE, Side.AUDIENCE, p.blueAudienceBaseId);
         CellSpec blueRear = rotated(redAudience, Alliance.BLUE, Side.REAR, p.blueRearBaseId);
@@ -80,7 +83,7 @@ public final class FieldModel {
         return new CellSpec(alliance, side, baseTagId,
                 alliance.fromRedX(red.axisX, s),
                 alliance.fromRedX(red.originX, s), alliance.fromRedY(red.originY, s), red.originZ,
-                alliance.fromRedY(red.tagRowY, s), red.tagRowZ, p.tagXOffsets);
+                alliance.fromRedY(red.tagRowY, s), red.tagRowZ, red.downTagRowZ, p.tagXOffsets);
     }
 
     /** A FLOWER keep-out, oriented so its long side runs along whichever perimeter wall it sits on. */

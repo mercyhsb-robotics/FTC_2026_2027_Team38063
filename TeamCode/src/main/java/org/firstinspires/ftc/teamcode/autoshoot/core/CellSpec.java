@@ -26,6 +26,9 @@ public final class CellSpec {
     public final double tagRowY;
     public final double tagRowZ;
 
+    /** Height of the AprilTag row when this cell is DOWN (the sticker is the same plane, 14 in lower). */
+    public final double downTagRowZ;
+
     /** +1 if increasing tag ID runs toward +x on the field, -1 if toward -x (rear-side clusters are rotated). */
     public final int tagXSign;
 
@@ -36,7 +39,7 @@ public final class CellSpec {
 
     public CellSpec(Alliance alliance, Side side, int baseTagId, double axisX,
                     double originX, double originY, double originZ,
-                    double tagRowY, double tagRowZ, double[] tagXOffsets) {
+                    double tagRowY, double tagRowZ, double downTagRowZ, double[] tagXOffsets) {
         this.alliance = alliance;
         this.side = side;
         this.baseTagId = baseTagId;
@@ -46,6 +49,7 @@ public final class CellSpec {
         this.originZ = originZ;
         this.tagRowY = tagRowY;
         this.tagRowZ = tagRowZ;
+        this.downTagRowZ = downTagRowZ;
         this.tagXSign = side == Side.AUDIENCE ? 1 : -1;
         this.facingHeading = side.openingFacingHeading();
         this.tagXOffsets = tagXOffsets.clone();
