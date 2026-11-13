@@ -66,9 +66,8 @@ public class AutoShootWallSafetySimTest {
         final Alliance alliance;
         final HiveTracker tracker;
         final AutoShootController controller;
-        /** The robot's size, inches. */
-        final double lengthIn = BioBuzzConstants.Robot.LENGTH_IN;
-        final double widthIn = BioBuzzConstants.Robot.WIDTH_IN;
+        /** Where the robot's edges lie around its center of rotation (the real robot: not centered). */
+        final RobotShape robot = plannerCfg.robot;
 
         // world
         double x, y, heading, vx, vy, omega;
@@ -280,7 +279,7 @@ public class AutoShootWallSafetySimTest {
             Pose2 p = pose();
             Rect fieldRect = field.fieldRect();
             double gap = Double.POSITIVE_INFINITY;
-            for (double[] c : BruteForceFootprint.corners(p, lengthIn, widthIn)) {
+            for (double[] c : BruteForceFootprint.corners(p, robot)) {
                 gap = Math.min(gap, Math.min(Math.min(c[0] - fieldRect.minX, fieldRect.maxX - c[0]),
                         Math.min(c[1] - fieldRect.minY, fieldRect.maxY - c[1])));
             }
@@ -290,7 +289,7 @@ public class AutoShootWallSafetySimTest {
                 what = String.format("wall, %.2f in through it", -gap);
             } else {
                 for (Rect o : field.hardObstacles()) {
-                    if (BruteForceFootprint.overlaps(p, lengthIn, widthIn, o, BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN)) {
+                    if (BruteForceFootprint.overlaps(p, robot, o, BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN)) {
                         what = "obstacle " + o;
                         break;
                     }
@@ -330,12 +329,12 @@ public class AutoShootWallSafetySimTest {
 
     /** The robot's start for a row of {@link #STARTS}, built for the given alliance (BLUE gets the half-turn image). */
     private static Pose2 startFor(FieldModel field, Alliance alliance, double[] row) {
-        Pose2 red = WallStarts.againstWall(field, BioBuzzConstants.Robot.LENGTH_IN, (int) row[0], row[1], row[2], 0.0);
+        Pose2 red = WallStarts.againstWall(field, RobotShape.fromConstants(), (int) row[0], row[1], row[2], 0.0);
         Pose2 own = alliance.fromRed(red, field.size());
         // A start inside a FLOWER plate or the HIVE would be the test's own mistake, not the planner's.
         for (Rect o : field.hardObstacles()) {
             assertFalse("the test start overlaps " + o + ": " + own,
-                    BruteForceFootprint.overlaps(own, BioBuzzConstants.Robot.LENGTH_IN, BioBuzzConstants.Robot.WIDTH_IN, o, 0.0));
+                    BruteForceFootprint.overlaps(own, RobotShape.fromConstants(), o, 0.0));
         }
         return own;
     }
@@ -413,7 +412,7 @@ public class AutoShootWallSafetySimTest {
         }
         assertEquals(ALIGN, s.controller.state());
         // The shove: 30 in along the wall, pressed against it, facing the field.
-        Pose2 shoved = WallStarts.againstWall(field, s.lengthIn, 0, start.x - 30.0, 90.0, 0.0);
+        Pose2 shoved = WallStarts.againstWall(field, s.robot, 0, start.x - 30.0, 90.0, 0.0);
         s.x = shoved.x;
         s.y = shoved.y;
         s.heading = shoved.heading;

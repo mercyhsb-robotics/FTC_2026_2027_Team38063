@@ -44,10 +44,11 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * fast enough to do when the button is pressed.
  *
  * <p><b>Why the route is checked as a rectangle, not a point.</b> The road to a candidate is first found for a single
- * dot, the robot's center ({@link PathPlanner}); a dot has no corners, so that road keeps the dot only half a robot
- * width from a wall. But the robot is a 17.8 in square and it TURNS while it drives (see {@link HeadingProfile}), and a
- * square that is turned needs more room: turned 25 degrees it needs 11.8 in from its center to the wall, not 8.9 in,
- * and turned 45 degrees it needs 12.6 in. A robot that starts against a wall facing the wrong way and turns on its way
+ * dot, the robot's center of rotation ({@link PathPlanner}); a dot has no corners, so that road keeps the dot only the
+ * robot's smallest half-size (8.03 in) from a wall. But the robot is a 17.8 in rectangle that is not centered on that
+ * point, and it TURNS while it drives (see {@link HeadingProfile}), and a rectangle that is turned needs more room:
+ * facing the wall front-first it needs 9.77 in from its center to the wall, and turned 45 degrees about 13.2 in because a
+ * corner leads (see {@link RobotShape#reachTowardIn}). A robot that starts against a wall facing the wrong way and turns on its way
  * to the shooting spot can therefore push a corner through the wall, although the dot never goes near it and the
  * standing pose at the end is fine. So every candidate's road is walked with the real rotated rectangle
  * ({@link RouteSweep}) against the four walls, the HIVE frame and the FLOWER plates. A road that fails is repaired,
@@ -76,10 +77,11 @@ public final class ScoringPlanner {
         public double launchForwardIn;
         /** Ball exit position relative to the rotation center: sideways, positive = robot's left. */
         public double launchLeftIn;
-        /** Robot size front to back. */
-        public double robotLengthIn;
-        /** Robot size side to side. */
-        public double robotWidthIn;
+        /**
+         * Where the robot's edges lie around its center of rotation (front, rear, left, right; see {@link RobotShape}).
+         * The perimeter is NOT centered on the center of rotation, so the planner never uses half the length or the width.
+         */
+        public RobotShape robot;
         /** Extra clearance kept around the HIVE frame and FLOWERS beyond the robot's own size. */
         public double keepOutMarginIn;
         /** How close the robot's edge may come to a perimeter wall (0 = touching). */
@@ -128,8 +130,7 @@ public final class ScoringPlanner {
             Config c = new Config();
             c.launchForwardIn = BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN;
             c.launchLeftIn = BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN;
-            c.robotLengthIn = BioBuzzConstants.Robot.LENGTH_IN;
-            c.robotWidthIn = BioBuzzConstants.Robot.WIDTH_IN;
+            c.robot = RobotShape.fromConstants();
             c.keepOutMarginIn = BioBuzzConstants.AutoShoot.KEEPOUT_MARGIN_IN;
             c.wallClearanceIn = BioBuzzConstants.AutoShoot.WALL_CLEARANCE_IN;
             c.rangeMinIn = table.minRange() + BioBuzzConstants.Shooter.RANGE_MARGIN_IN;
@@ -236,30 +237,33 @@ public final class ScoringPlanner {
         this.field = field;
         this.cfg = cfg;
 
-        // The route check comes first because it knows the robot's REACH: the distance from the rotation center to the
-        // farthest corner (the "circumscribed radius", the smallest circle that holds the whole robot whatever way it
-        // faces). Taking it from the same Footprint the check uses means the planner and the check cannot disagree about
-        // how big the robot is. halfMin = half of the shorter side.
+        // The route check comes first because it knows the robot's REACH: the distance from the center of rotation to
+        // the farthest corner (the "circumscribed radius", the smallest circle that holds the whole robot whatever way
+        // it faces: 13.2 in for the real robot). Taking it from the same Footprint the check uses means the planner and
+        // the check cannot disagree about how big the robot is. nearestEdge is the SMALLEST distance from the center of
+        // rotation to any edge of the perimeter (the rear, 8.03 in): the closest the center can ever be to a wall.
         RouteSweep.Settings settings = new RouteSweep.Settings();
         settings.stepIn = cfg.sweepStepIn;
         settings.stepDeg = cfg.sweepStepDeg;
         settings.toleranceIn = cfg.sweepToleranceIn;
         settings.minStepIn = cfg.sweepMinStepIn;
         sweep = new RouteSweep(field.fieldRect(), cfg.wallClearanceIn, field.hardObstacles(), cfg.keepOutMarginIn,
-                cfg.robotLengthIn, cfg.robotWidthIn, settings);
+                cfg.robot, settings);
         double halfDiag = sweep.reachIn();
-        double halfMin = 0.5 * Math.min(cfg.robotLengthIn, cfg.robotWidthIn);
+        double nearestEdge = cfg.robot.smallestExtentIn();
 
         // Driving: the robot is a point; obstacles grow by its circumscribed radius (it may rotate while
-        // it drives) and the field shrinks by its smallest half-extent. (Using the smaller half-size for the walls
-        // lets poses that sit flush against a wall, such as the audience-wall shot, stay reachable. The cost is that a
-        // route planned this way can squeeze a TURNING robot against a wall; that is what the route check and the
-        // repairs below are for.)
+        // it drives) and the field shrinks by its smallest edge distance. (Using the smallest distance for the walls
+        // lets every pose that sits flush against a wall stay reachable, whichever edge touches it: the audience-wall
+        // shot has the FRONT on the wall, so its center is 9.77 in out, and a robot standing with its back to a wall
+        // has its center 8.03 in out. The cost is that a route planned this way can squeeze a robot that faces a longer
+        // edge, or a TURNING robot, against a wall; that is what the route check and the repairs below are for. The
+        // standing poses are checked with the real rectangle, which knows which edge faces the wall.)
         List<Rect> inflated = new ArrayList<Rect>();
         for (Rect o : field.hardObstacles()) {
             inflated.add(o.inflate(halfDiag + cfg.keepOutMarginIn));
         }
-        Rect driveBounds = field.fieldRect().inflate(-(halfMin + cfg.wallClearanceIn));
+        Rect driveBounds = field.fieldRect().inflate(-(nearestEdge + cfg.wallClearanceIn));
         travel = new PathPlanner(driveBounds, inflated);
 
         // Standing: the exact footprint box is tested, so obstacles only grow by the margin.
@@ -282,7 +286,8 @@ public final class ScoringPlanner {
      * test one candidate pose, and by the controller before it accepts a camera nudge of the hold pose.
      */
     public boolean standingPoseFree(Pose2 pose) {
-        Rect box = ShotGeometry.footprint(pose, cfg.robotLengthIn, cfg.robotWidthIn);
+        // The real perimeter at this pose (not centered on the pose point), as the box that just holds it.
+        Rect box = ShotGeometry.footprint(pose, cfg.robot);
         // Inside the field (shrunk by the wall clearance)?
         if (box.minX < standingBounds.minX || box.maxX > standingBounds.maxX
                 || box.minY < standingBounds.minY || box.maxY > standingBounds.maxY) {

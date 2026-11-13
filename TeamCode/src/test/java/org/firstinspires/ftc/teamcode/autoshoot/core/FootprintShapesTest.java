@@ -58,17 +58,21 @@ public class FootprintShapesTest {
     }
 
     @Test
-    public void theHalfDiagonalIsTheFarthestCornerFromThePoseAndHoldsForEveryPart() {
+    public void theCircumscribedRadiusIsTheFarthestCornerFromThePoseAndHoldsForEveryPart() {
         Pose2 p = Pose2.ofDegrees(20, 20, 71);
         double far = 0.0;
         for (int i = 0; i < 4; i++) {
             far = Math.max(far, Footprint.of(p).corner(i).distanceTo(new Point2(p.x, p.y)));
         }
-        assertEquals(far, Footprint.robotHalfDiagonal(), 1e-9);
+        assertEquals(far, Footprint.circumscribedRadiusIn(), 1e-9);
+        // the position is NOT the middle of the robot: the farthest corner is a FRONT one, hypot(9.77, 8.90) = 13.22 in, not the
+        // 12.59 in of a 17.80 in square centered on the position
+        assertEquals(Math.hypot(9.77, 8.90), far, 1e-9);
+        assertTrue(far > 13.2);
         Footprint[] parts = {Footprint.chassis(p), Footprint.wheelDisc(p, IntakeWheel.LEFT), Footprint.wheelDisc(p, IntakeWheel.RIGHT)};
         for (Footprint part : parts) {
             for (int i = 0; i < 4; i++) {
-                assertTrue(part.corner(i).distanceTo(new Point2(p.x, p.y)) <= Footprint.robotHalfDiagonal() + EPS);
+                assertTrue(part.corner(i).distanceTo(new Point2(p.x, p.y)) <= Footprint.circumscribedRadiusIn() + EPS);
             }
         }
     }

@@ -19,6 +19,8 @@ import org.junit.Test;
  * and a legal one next to it. Every route is validated for RED and for its BLUE half turn and both must agree.
  */
 public class TipRulesTest {
+    /** The robot's center of rotation is this far (9.77 in) from a wall its FRONT edge is touching; see RobotShape. */
+    private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double TIP_SEC = BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC;
 
     /** Validates for RED and for its BLUE half turn; both must give the same findings. */
@@ -62,7 +64,7 @@ public class TipRulesTest {
      * clears the rear-wall FLOWER: back toward the HIVE, 35 in from the aim point, 2.7 in from the start.
      */
     private static AutoRoute.Builder partnerRear() {
-        return AutoRoute.builder("partner_rear").start(61.5, 135.1, 90).partnerTipsFirst();
+        return AutoRoute.builder("partner_rear").start(61.5, 144 - FRONT, 90).partnerTipsFirst();
     }
 
     private static final double REAR_X = 62.0;
@@ -74,7 +76,7 @@ public class TipRulesTest {
     public void aVolleyThatKeepsFiringAfterTheTipIsAnError() {
         // 2 POLLEN, take 2 back from the floor, then fire 4: the 2nd of those 4 is the tip, the other 2 would go into
         // a cell that is already tipping down
-        List<Issue> l = validate(AutoRoute.builder("late").start(58, 9.2, -90)
+        List<Issue> l = validate(AutoRoute.builder("late").start(58, FRONT, -90)
                 .shootUp(2).intakeFloor(60, 30, 59.25, 30, -90, 2).shootUp(4));
         assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
@@ -87,12 +89,12 @@ public class TipRulesTest {
     @Test
     public void aVolleyWhoseLastPollenIsTheTipIsFine() {
         // 4 at once: the 4th POLLEN tips, nothing is fired after it
-        assertEquals(0, count(validate(AutoRoute.builder("one").start(58, 9.2, -90).shootUp(4)), Rule.SHOOT_TARGET, Severity.ERROR));
+        assertEquals(0, count(validate(AutoRoute.builder("one").start(58, FRONT, -90).shootUp(4)), Rule.SHOOT_TARGET, Severity.ERROR));
         // 2 + 2 into the same cell: the last POLLEN of the second volley tips
-        assertEquals(0, count(validate(AutoRoute.builder("two").start(58, 9.2, -90).shootUp(2).shootUp(2)), Rule.SHOOT_TARGET,
+        assertEquals(0, count(validate(AutoRoute.builder("two").start(58, FRONT, -90).shootUp(2).shootUp(2)), Rule.SHOOT_TARGET,
                 Severity.ERROR));
         // 3 POLLEN never reach the tip: nothing to complain about either
-        assertEquals(0, count(validate(AutoRoute.builder("three").start(58, 9.2, -90).shootUp(3)), Rule.SHOOT_TARGET,
+        assertEquals(0, count(validate(AutoRoute.builder("three").start(58, FRONT, -90).shootUp(3)), Rule.SHOOT_TARGET,
                 Severity.ERROR));
     }
 
@@ -178,7 +180,7 @@ public class TipRulesTest {
     public void aRouteThatShootsTheFirstTipItselfNeedsNoWait() {
         // SELF: no partner tip, so no wait: the second volley goes into the cell that came up with OUR tip (the robot
         // is camera-gated on the real field anyway, but the plan has no outside event to wait for)
-        List<Issue> l = validate(AutoRoute.builder("self").start(58, 9.2, -90).shootUp(4).shootUp(4));
+        List<Issue> l = validate(AutoRoute.builder("self").start(58, FRONT, -90).shootUp(4).shootUp(4));
         assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         assertEquals(0, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
     }
@@ -186,7 +188,7 @@ public class TipRulesTest {
     @Test
     public void aRouteThatShootsTheFirstTipItselfKeepsTheWarnForACellThatIsDown() {
         // SELF: the REAR cell is DOWN at the start and nobody tips it; the old WARN stays a WARN
-        List<Issue> l = validate(AutoRoute.builder("self").start(61.5, 135.1, 90).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4));
+        List<Issue> l = validate(AutoRoute.builder("self").start(61.5, 144 - FRONT, 90).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4));
         assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.WARN));
         assertEquals(0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         assertTrue(first(l, Rule.SHOOT_TARGET, Severity.WARN).message.contains("AUDIENCE cell is the UP one"));
@@ -196,13 +198,13 @@ public class TipRulesTest {
     public void aVolleyAtTheOldCellThatIsStillFiringWhenThePartnerTipsItIsAWarning() {
         // 10.5 s of waiting, then 4 POLLEN at the UP (audience) cell: the volley runs from about 11.3 s to 16.8 s and
         // the partner is assumed to tip that very cell at 12 s
-        List<Issue> l = validate(AutoRoute.builder("race").start(58, 9.2, -90).partnerTipsFirst().waitSeconds(10.5).shootUp(4));
+        List<Issue> l = validate(AutoRoute.builder("race").start(58, FRONT, -90).partnerTipsFirst().waitSeconds(10.5).shootUp(4));
         assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.WARN));
         Issue issue = first(l, Rule.SHOOT_TARGET, Severity.WARN);
         assertEquals(2, issue.stepIndex);
         assertTrue(issue.message, issue.message.contains("tipping down"));
         // a volley that is over before the tip is fine: 2 POLLEN at the audience cell starting at 0 s end at about 4.5 s
-        List<Issue> early = validate(AutoRoute.builder("early").start(58, 9.2, -90).partnerTipsFirst().shootSide(Side.AUDIENCE, 2));
+        List<Issue> early = validate(AutoRoute.builder("early").start(58, FRONT, -90).partnerTipsFirst().shootSide(Side.AUDIENCE, 2));
         assertEquals(early.toString(), 0, count(early, Rule.SHOOT_TARGET, Severity.WARN));
     }
 
@@ -210,14 +212,14 @@ public class TipRulesTest {
 
     @Test
     public void aWaitForTipInARouteThatShootsTheFirstTipItselfIsAWarning() {
-        List<Issue> self = validate(AutoRoute.builder("self").start(58, 9.2, -90).waitForTip(5));
+        List<Issue> self = validate(AutoRoute.builder("self").start(58, FRONT, -90).waitForTip(5));
         assertEquals(self.toString(), 1, count(self, Rule.TIP_ASSUMPTION, Severity.WARN));
         Issue issue = first(self, Rule.TIP_ASSUMPTION, Severity.WARN);
         assertEquals(1, issue.stepIndex);
         assertTrue(issue.message, issue.message.contains("WE shoot the first tip"));
         assertEquals("only a warning: the step does nothing", 0, count(self, Rule.TIP_ASSUMPTION, Severity.ERROR));
         // the same wait in a partner route is what it is for
-        List<Issue> partner = validate(AutoRoute.builder("partner").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(20));
+        List<Issue> partner = validate(AutoRoute.builder("partner").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitForTip(20));
         assertEquals(partner.toString(), 0, count(partner, Rule.TIP_ASSUMPTION, Severity.WARN));
     }
 
@@ -306,13 +308,13 @@ public class TipRulesTest {
     @Test
     public void tippingTheHiveOurselvesBeforeThePartnersAssumedTimeIsAWarning() {
         // 4 pre-loads at the start: our tip is at about 6 s, before the assumed 12 s
-        List<Issue> l = validate(AutoRoute.builder("early").start(58, 9.2, -90).partnerTipsFirst().shootUp(4));
+        List<Issue> l = validate(AutoRoute.builder("early").start(58, FRONT, -90).partnerTipsFirst().shootUp(4));
         assertEquals(l.toString(), 1, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
         Issue issue = first(l, Rule.TIP_ASSUMPTION, Severity.WARN);
         assertEquals("on the volley that tips", 1, issue.stepIndex);
         assertTrue(issue.message, issue.message.contains("before the partner's tip"));
         // the same route written for a robot that shoots the first tip itself has no such finding
-        assertEquals(0, count(validate(AutoRoute.builder("self").start(58, 9.2, -90).shootUp(4)), Rule.TIP_ASSUMPTION,
+        assertEquals(0, count(validate(AutoRoute.builder("self").start(58, FRONT, -90).shootUp(4)), Rule.TIP_ASSUMPTION,
                 Severity.WARN));
     }
 
@@ -320,9 +322,9 @@ public class TipRulesTest {
 
     @Test
     public void standingUnderTheAudienceCellWhenThePartnerTipsItIsAnError() {
-        // C1 start, drive to y = 38 (the footprint reaches y 46.9, the spill zone starts at 52.3 - 6 = 46.3) and wait there
-        List<Issue> l = validate(AutoRoute.builder("zone").start(58, 9.2, -90).partnerTipsFirst()
-                .driveConstant(58, 38, -90).waitSeconds(15));
+        // C1 start, drive to y = 39 (the footprint reaches y 47.0: the BACK edge is 8.03 in behind the center, and the spill zone starts at 52.3 - 6 = 46.3) and wait there
+        List<Issue> l = validate(AutoRoute.builder("zone").start(58, FRONT, -90).partnerTipsFirst()
+                .driveConstant(58, 39, -90).waitSeconds(15));
         assertEquals(l.toString(), 1, count(l, Rule.SPILL_G409, Severity.ERROR));
         Issue issue = first(l, Rule.SPILL_G409, Severity.ERROR);
         assertEquals("the wait is step 3", 2, issue.stepIndex);
@@ -334,8 +336,8 @@ public class TipRulesTest {
 
     @Test
     public void standingOutsideTheSpillZoneWhenThePartnerTipsIsFine() {
-        // y = 28: the footprint reaches y 36.9, nine inches short of the zone; and the rear robot is on the other side
-        assertEquals(0, count(validate(AutoRoute.builder("clear").start(58, 9.2, -90).partnerTipsFirst()
+        // y = 28: the footprint reaches y 36.0, ten inches short of the zone; and the rear robot is on the other side
+        assertEquals(0, count(validate(AutoRoute.builder("clear").start(58, FRONT, -90).partnerTipsFirst()
                 .driveConstant(58, 28, -90).waitSeconds(15)), Rule.SPILL_G409, Severity.ERROR));
         assertEquals(0, count(validate(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.SPILL_G409,
                 Severity.ERROR));
@@ -344,31 +346,31 @@ public class TipRulesTest {
     @Test
     public void theSpillRuleAlsoCoversTheWholeTimeAfterTheRouteHasEnded() {
         // the route is over at about 2 s, the assumed tip is at 12 s: the robot still stands in the zone then
-        List<Issue> l = validate(AutoRoute.builder("end").start(58, 9.2, -90).partnerTipsFirst().driveConstant(58, 38, -90));
+        List<Issue> l = validate(AutoRoute.builder("end").start(58, FRONT, -90).partnerTipsFirst().driveConstant(58, 39, -90));
         assertEquals(l.toString(), 1, count(l, Rule.SPILL_G409, Severity.ERROR));
         assertEquals("on the last step", 1, first(l, Rule.SPILL_G409, Severity.ERROR).stepIndex);
-        assertEquals(0, count(validate(AutoRoute.builder("end2").start(58, 9.2, -90).partnerTipsFirst()
+        assertEquals(0, count(validate(AutoRoute.builder("end2").start(58, FRONT, -90).partnerTipsFirst()
                 .driveConstant(58, 28, -90)), Rule.SPILL_G409, Severity.ERROR));
     }
 
     @Test
     public void drivingIntoTheZoneRightAfterOurOwnTipIsAnErrorButWaitingForTheSpillToEndIsFine() {
         // our volley tips the HIVE; the next leg drives toward the cell and reaches the zone within the 3 s
-        List<Issue> l = validate(AutoRoute.builder("own").start(58, 9.2, -90).shootUp(4).driveConstant(58, 38, -90));
+        List<Issue> l = validate(AutoRoute.builder("own").start(58, FRONT, -90).shootUp(4).driveConstant(58, 39, -90));
         assertEquals(l.toString(), 1, count(l, Rule.SPILL_G409, Severity.ERROR));
         Issue issue = first(l, Rule.SPILL_G409, Severity.ERROR);
         assertEquals("the drive is step 3", 2, issue.stepIndex);
         assertTrue(issue.message, issue.message.contains("the HIVE tip of step 2"));
         // the same drive after waiting out the spill time: the robot only gets there later
-        List<Issue> late = validate(AutoRoute.builder("late").start(58, 9.2, -90).shootUp(4)
-                .waitSeconds(BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC + 0.5).driveConstant(58, 38, -90));
+        List<Issue> late = validate(AutoRoute.builder("late").start(58, FRONT, -90).shootUp(4)
+                .waitSeconds(BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC + 0.5).driveConstant(58, 39, -90));
         assertEquals(late.toString(), 0, count(late, Rule.SPILL_G409, Severity.ERROR));
     }
 
     @Test
     public void theShootingPoseItselfIsOutsideTheSpillZoneOfTheCellItTips() {
         // standing at the nominal standoff pose (34 in from the aim point) while the cell spills is the normal case
-        assertEquals(0, count(validate(AutoRoute.builder("shoot").start(58, 9.2, -90).shootUp(4).waitSeconds(5)),
+        assertEquals(0, count(validate(AutoRoute.builder("shoot").start(58, FRONT, -90).shootUp(4).waitSeconds(5)),
                 Rule.SPILL_G409, Severity.ERROR));
     }
 }

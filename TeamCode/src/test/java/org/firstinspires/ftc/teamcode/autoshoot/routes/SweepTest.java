@@ -25,10 +25,11 @@ import org.junit.Test;
  * check each step of it and then try to break it with thin obstacles, a robot that turns fast, and a brute-force
  * comparison against sampling a thousand times more densely.
  *
- * <p>Numbers: the robot is a 17.80 in square, so its farthest corner is R = 12.59 in from its center.
+ * <p>Numbers: the farthest corner of the robot is R = 13.22 in from its center of rotation (a front corner: 9.77 in ahead and
+ * 8.90 in to the side; the robot is not centered on that point).
  */
 public class SweepTest {
-    private static final double R = Footprint.robotHalfDiagonal();
+    private static final double R = Footprint.circumscribedRadiusIn();
     private static final double EPS = 1e-9;
     private static final double RESOLUTION = BioBuzzConstants.Auto.SWEEP_RESOLUTION_IN;
 
@@ -67,17 +68,25 @@ public class SweepTest {
 
     @Test
     public void theTravelBoundIsDerivedFromTheStepsAndTheHalfDiagonal() {
+        // the farthest corner from the center of rotation: a FRONT corner, 9.77 in ahead and 8.90 in to the side
         double expected = BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN
-                + Math.hypot(BioBuzzConstants.Robot.LENGTH_IN / 2.0, BioBuzzConstants.Robot.WIDTH_IN / 2.0)
+                + Math.hypot(BioBuzzConstants.Robot.FRONT_EXTENT_IN, BioBuzzConstants.Robot.LEFT_EXTENT_IN)
                 * Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG);
         assertEquals(expected, Sweep.maxTravelBetweenSamples(), 1e-12);
-        assertEquals("1 in + 12.59 in * 5 degrees", 2.098, Sweep.maxTravelBetweenSamples(), 0.001);
+        assertEquals("1 in + 13.22 in * 5 degrees", 2.153, Sweep.maxTravelBetweenSamples(), 0.001);
         assertEquals(Sweep.maxTravelBetweenSamples() / 2.0, Sweep.obstacleGrowthIn(), 1e-12);
-        // the half-diagonal is the distance to a corner
+        // R is the distance to the farthest corner; the two rear corners are nearer (the position is not the robot's middle)
         Footprint fp = Footprint.of(Pose2.ofDegrees(10, 20, 33));
+        double farthest = 0.0;
         for (int i = 0; i < 4; i++) {
-            assertEquals(R, fp.corner(i).distanceTo(new Point2(10, 20)), 1e-9);
+            double d = fp.corner(i).distanceTo(new Point2(10, 20));
+            assertTrue(d <= R + 1e-9);
+            farthest = Math.max(farthest, d);
         }
+        assertEquals(R, farthest, 1e-9);
+        assertEquals("front corners", R, fp.corner(0).distanceTo(new Point2(10, 20)), 1e-9);
+        assertEquals("front corners", R, fp.corner(3).distanceTo(new Point2(10, 20)), 1e-9);
+        assertEquals("rear corners", Math.hypot(8.03, 8.9), fp.corner(1).distanceTo(new Point2(10, 20)), 1e-9);
     }
 
     @Test
@@ -115,19 +124,23 @@ public class SweepTest {
     @Test
     public void theSignedGapIsADistanceWhenApartAndADepthWhenOverlapping() {
         Rect wall = new Rect(0, 100, -10, 0);
-        // robot facing -y, center 20 in above the wall: the front edge is 20 - 8.9 = 11.1 in from it
-        assertEquals(11.1, Footprint.of(Pose2.ofDegrees(35, 20, -90)).signedGap(wall), 1e-9);
-        // touching
-        assertEquals(0.0, Footprint.of(Pose2.ofDegrees(35, 8.9, -90)).signedGap(wall), 1e-9);
+        // robot facing -y, center 20 in above the wall: the FRONT edge is 20 - 9.77 = 10.23 in from it
+        assertEquals(10.23, Footprint.of(Pose2.ofDegrees(35, 20, -90)).signedGap(wall), 1e-9);
+        // touching: the front edge is 9.77 in from the center of rotation
+        assertEquals(0.0, Footprint.of(Pose2.ofDegrees(35, 9.77, -90)).signedGap(wall), 1e-9);
         // 0.4 in into it
-        assertEquals(-0.4, Footprint.of(Pose2.ofDegrees(35, 8.5, -90)).signedGap(wall), 1e-9);
-        // a flat edge facing the corner of a box: a diamond (45 degrees) at (40, 40) has its front edge on x + y = 80 + 8.9 * sqrt 2
+        assertEquals(-0.4, Footprint.of(Pose2.ofDegrees(35, 9.37, -90)).signedGap(wall), 1e-9);
+        // facing away from the wall the BACK edge is the near one, 8.03 in from the center
+        assertEquals(0.0, Footprint.of(Pose2.ofDegrees(35, 8.03, 90)).signedGap(wall), 1e-9);
+        assertEquals(-0.4, Footprint.of(Pose2.ofDegrees(35, 7.63, 90)).signedGap(wall), 1e-9);
+        // a flat edge facing the corner of a box: a diamond (45 degrees) at (40, 40) has its FRONT edge on x + y = 80 + 9.77 * sqrt 2
         Rect box = new Rect(60, 70, 60, 70);
-        double edgeToCorner = (60 + 60 - 80 - 8.9 * Math.sqrt(2.0)) / Math.sqrt(2.0);
+        double edgeToCorner = (60 + 60 - 80 - 9.77 * Math.sqrt(2.0)) / Math.sqrt(2.0);
         assertEquals(edgeToCorner, Footprint.of(Pose2.ofDegrees(40, 40, 45)).signedGap(box), 1e-9);
-        // corner to corner: the axis-aligned robot's corner (48.9, 48.9) and the box corner (60, 60); every flat side is farther
-        // apart in only ONE direction (11.1 in), so a gap measured only along the four edge directions would be wrong
-        assertEquals(Math.hypot(11.1, 11.1), Footprint.of(Pose2.ofDegrees(40, 40, 0)).signedGap(box), 1e-9);
+        // corner to corner: the axis-aligned robot's front-left corner (49.77, 48.9) and the box corner (60, 60); every flat side is
+        // farther apart in only ONE direction (10.23 in in x, 11.1 in in y), so a gap measured only along the four edge directions
+        // would be wrong
+        assertEquals(Math.hypot(10.23, 11.1), Footprint.of(Pose2.ofDegrees(40, 40, 0)).signedGap(box), 1e-9);
     }
 
     @Test
@@ -219,12 +232,15 @@ public class SweepTest {
 
     @Test
     public void aThinPostBetweenTwoTurnSamplesIsNotMissed() {
-        // The robot turns in place at (50, 50) from 0 to 90 degrees. A corner is 12.59 in from the center and a
-        // sample every 5 degrees moves it 1.1 in, so a post 12.4 in out at the polar angle 42.5 degrees sits in the
-        // strip the corner sweeps (at heading 87.5 degrees) yet in none of the sampled rectangles.
+        // The robot turns in place at (50, 50) from 0 to 90 degrees. Its front-left corner is 13.22 in from the center of
+        // rotation (9.77 in ahead, 8.90 in left) and a sample every 5 degrees moves it 1.15 in, so a post 0.2 in inside that
+        // radius, placed where the corner is at heading 82.5 degrees (halfway between the samples at 80 and 85), sits in the
+        // strip the corner sweeps yet in none of the sampled rectangles: at 80 degrees it is 0.3 in beyond the left edge, at 85
+        // degrees 0.2 in beyond the front edge.
         DrivePath turn = leg(Pose2.ofDegrees(50, 50, 0), AutoRoute.builder("a").start(50, 50, 0).driveConstant(50, 50, 90));
-        double psi = Math.toRadians(42.5);
-        Rect thin = post(50 + 12.4 * Math.cos(psi), 50 + 12.4 * Math.sin(psi));
+        double radius = Footprint.circumscribedRadiusIn() - 0.2;
+        double psi = Math.toRadians(82.5) + Math.atan2(BioBuzzConstants.Robot.LEFT_EXTENT_IN, BioBuzzConstants.Robot.FRONT_EXTENT_IN);
+        Rect thin = post(50 + radius * Math.cos(psi), 50 + radius * Math.sin(psi));
 
         // the premise: what the old sampler looked at (every 5 degrees plus the leg's own samples) finds nothing
         List<Pose2> oldSamples = turn.turnInPlaceSamples(Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG));
@@ -234,7 +250,7 @@ public class SweepTest {
         // the sweep still finds it, and at the right heading
         Sweep.Result r = Sweep.run(turn, into(thin));
         assertTrue("the sweep finds the post", r.broken());
-        assertEquals("the corner meets the post near 87.5 degrees", 87.5, Math.toDegrees(r.firstPose.heading), 1.0);
+        assertEquals("the corner meets the post near 82.5 degrees", 82.5, Math.toDegrees(r.firstPose.heading), 1.5);
         assertTrue("a shallow touch: " + r.worst, r.worst > 0.0 && r.worst < 0.2);
     }
 
@@ -258,20 +274,21 @@ public class SweepTest {
 
     @Test
     public void aLegThatTurnsAQuarterTurnInOneInchIsCheckedWhileItTurns() {
-        // 1 in long, from -90 to 0 degrees, center about 10.5 in from the audience wall: both END poses are clear
-        // (front edge 1.6 in off, side 1.6 in off) but half way the corner swings out to 12.59 in: 2.1 in through the wall
-        AutoRoute.Builder b = AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(58, 11.0, -90).driveLinear(58, 10.0, 0);
-        Pose2 start = Pose2.ofDegrees(58, 11.0, -90);
-        Pose2 end = Pose2.ofDegrees(58, 10.0, 0);
+        // 1 in long, from -90 to 0 degrees, center about 11.5 in from the audience wall: both END poses are clear
+        // (front edge 2.2 in off, side 2.1 in off) but half way the front corner swings out to 13.2 in: 1.7 in through the wall
+        AutoRoute.Builder b = AutoRoute.builder("x").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN + 0.5, -90)
+                .driveConstant(58, 12.0, -90).driveLinear(58, 11.0, 0);
+        Pose2 start = Pose2.ofDegrees(58, 12.0, -90);
+        Pose2 end = Pose2.ofDegrees(58, 11.0, 0);
         Rect field = new Rect(0, 144, 0, 144);
         assertTrue("the start pose is clear", Footprint.of(start).signedOvershoot(field) < 0);
         assertTrue("the end pose is clear", Footprint.of(end).signedOvershoot(field) < 0);
         assertEquals(1, errors(b, Rule.FIELD_BOUNDS));
-        // the report names the depth reached mid-turn: R - 10.5 = 2.09 in (the center is 10.5 in out at the 45 degree heading)
+        // the report names the depth reached mid-turn: R - 11.5 = 1.7 in (the center is about 11.5 in out at the 45 degree heading)
         List<Issue> l = RouteValidator.check(b.build());
         boolean found = false;
         for (Issue i : l) {
-            found |= i.rule == Rule.FIELD_BOUNDS && i.message.contains("2.1 in");
+            found |= i.rule == Rule.FIELD_BOUNDS && i.message.contains("1.7 in");
         }
         assertTrue(l.toString(), found);
     }

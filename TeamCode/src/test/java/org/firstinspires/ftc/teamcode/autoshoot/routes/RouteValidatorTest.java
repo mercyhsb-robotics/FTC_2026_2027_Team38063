@@ -21,6 +21,14 @@ import org.junit.Test;
  * its BLUE half turn and both must give the same findings, which also tests the alliance handling.
  */
 public class RouteValidatorTest {
+    /**
+     * How far the robot's center of rotation (its pose point) is from a wall when the robot stands with its FRONT edge on
+     * it, 9.77 in. The robot is not centered on its pose point (rear 8.03 in, sides 8.90 in), so the start poses below
+     * are written with this number, not with half the robot's size.
+     */
+    private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+    private static final double REAR = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+    private static final double SIDE = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
 
     // ---- helpers -------------------------------------------------------------------------------------
 
@@ -92,15 +100,43 @@ public class RouteValidatorTest {
 
     @Test
     public void theTeamStartsAreLegal() {
-        assertClean(validate(AutoRoute.builder("b1").start(35.0, 9.2, -90).waitSeconds(1)));
-        assertClean(validate(AutoRoute.builder("c1").start(58.0, 9.2, -90).waitSeconds(1)));
-        assertClean(validate(AutoRoute.builder("a3").start(9.2112, 70.2702, 180).waitSeconds(1)));
-        assertClean(validate(AutoRoute.builder("c6").start(61.5, 135.1, 90).waitSeconds(1)));
+        // facing a wall, the FRONT edge on it: the center of rotation is 9.77 in from the wall
+        assertClean(validate(AutoRoute.builder("b1").start(35.0, FRONT, -90).waitSeconds(1)));
+        assertClean(validate(AutoRoute.builder("c1").start(58.0, FRONT, -90).waitSeconds(1)));
+        assertClean(validate(AutoRoute.builder("a3").start(FRONT, 70.2702, 180).waitSeconds(1)));
+        assertClean(validate(AutoRoute.builder("c6").start(61.5, 144 - FRONT, 90).waitSeconds(1)));
+        // the BACK edge on the wall (the shooter side): 8.03 in; a SIDE on the wall: 8.90 in
+        assertClean(validate(AutoRoute.builder("back").start(35.0, REAR, 90).waitSeconds(1)));
+        assertClean(validate(AutoRoute.builder("side").start(35.0, SIDE, 0).waitSeconds(1)));
+    }
+
+    @Test
+    public void theOldOpModeStartsClipTheWallByTheDifferenceBetweenTheEdgeAndTheirNumberAndTheMessageSaysHowToPlaceTheRobot() {
+        // The old OpModes put the robot's center 9.2 in from the audience wall, facing it. The real front edge is 9.77 in from the
+        // center of rotation, so a robot placed there would reach 0.57 in through the wall: an ERROR, with the way to fix it.
+        List<Issue> l = validate(AutoRoute.builder("old").start(35.0, 9.2, -90).waitSeconds(1));
+        assertOnly(l, Rule.START_G304, Severity.ERROR);
+        String m = first(l, Rule.START_G304).message;
+        assertTrue(m, m.contains("sticks out of the field by 0.6 in"));
+        assertTrue(m, m.contains("9.2 in from the wall at y = 0.0"));
+        assertTrue(m, m.contains("reaches 9.8 in from the center"));
+        assertTrue(m, m.contains("ON the wall"));
+        // the same pose facing AWAY from the wall does not poke through it: the back edge is only 8.03 in from the center (the robot
+        // is then 1.2 in off the wall, which is a different finding: G304.C, it must touch a wall)
+        List<Issue> away = validate(AutoRoute.builder("away").start(35.0, 9.2, 90).waitSeconds(1));
+        assertOnly(away, Rule.START_G304, Severity.ERROR);
+        assertTrue(first(away, Rule.START_G304).message, first(away, Rule.START_G304).message.contains("must touch"));
+        // and facing away with the back edge ON the wall is clean
+        assertClean(validate(AutoRoute.builder("away").start(35.0, REAR, 90).waitSeconds(1)));
+        // and a robot whose SIDE is on the wall needs 8.90 in: 8.5 in sticks out by 0.4 in, and the message names the side edge
+        List<Issue> side = validate(AutoRoute.builder("side").start(35.0, 8.5, 0).waitSeconds(1));
+        assertTrue(side.toString(), first(side, Rule.START_G304).message.contains("sticks out of the field by 0.4 in"));
+        assertTrue(first(side, Rule.START_G304).message.contains("reaches 8.9 in from the center"));
     }
 
     @Test
     public void aStartReachingIntoTheOpponentHalfIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(70, 9.2, -90).waitSeconds(1));
+        List<Issue> l = validate(AutoRoute.builder("x").start(70, FRONT, -90).waitSeconds(1));
         assertEquals(1, count(l, Rule.START_G304, Severity.ERROR));
         assertEquals(0, count(l, Rule.SIDE_G402, Severity.ERROR));
         assertTrue(first(l, Rule.START_G304).message.contains("opponent half"));
@@ -116,22 +152,23 @@ public class RouteValidatorTest {
 
     @Test
     public void wallContactToleranceIsAboutThreeQuartersOfAnInch() {
-        // 0.3 in gap (the team poses) passes, 0.7 passes, 1.0 fails
-        assertClean(validate(AutoRoute.builder("x").start(35, 8.9 + 0.7, -90).waitSeconds(1)));
-        assertOnly(validate(AutoRoute.builder("x").start(35, 8.9 + 1.0, -90).waitSeconds(1)),
+        // the front edge 0.3 in off the wall passes, 0.7 passes, 1.0 fails
+        assertClean(validate(AutoRoute.builder("x").start(35, FRONT + 0.3, -90).waitSeconds(1)));
+        assertClean(validate(AutoRoute.builder("x").start(35, FRONT + 0.7, -90).waitSeconds(1)));
+        assertOnly(validate(AutoRoute.builder("x").start(35, FRONT + 1.0, -90).waitSeconds(1)),
                 Rule.START_G304, Severity.ERROR);
     }
 
     @Test
     public void aStartInTheOwnLoadingZoneIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(8.9, 108, 180).waitSeconds(1));
+        List<Issue> l = validate(AutoRoute.builder("x").start(FRONT, 108, 180).waitSeconds(1));
         assertOnly(l, Rule.START_G304, Severity.ERROR);
         assertTrue(first(l, Rule.START_G304).message.contains("LOADING ZONE"));
     }
 
     @Test
     public void aStartTouchingAFlowerIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(8.9, 48, 180).waitSeconds(1));
+        List<Issue> l = validate(AutoRoute.builder("x").start(FRONT, 48, 180).waitSeconds(1));
         assertOnly(l, Rule.START_G304, Severity.ERROR);
         assertTrue(first(l, Rule.START_G304).message.contains("FLOWER 1"));
     }
@@ -153,81 +190,80 @@ public class RouteValidatorTest {
 
     @Test
     public void aLegThatLeavesTheFieldIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, -3, -90));
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(30, -3, -90));
         assertOnly(l, Rule.FIELD_BOUNDS, Severity.ERROR);
         assertEquals(1, first(l, Rule.FIELD_BOUNDS).stepIndex);
     }
 
     @Test
     public void aStepMarkedWallContactGetsNoExtraRoomEither() {
-        // center y = 8.0 puts the front edge 0.9 in through the wall: an ERROR whether or not the leg says it touches the
+        // a center 0.9 in too close puts the front edge 0.9 in through the wall: an ERROR whether or not the leg says it touches the
         // wall on purpose (the old 1.0 in allowance is gone; WallSafetyTest has the full set of wall tests)
-        assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.0, -90)),
+        assertOnly(validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(30, FRONT - 0.9, -90)),
                 Rule.FIELD_BOUNDS, Severity.ERROR);
-        assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.0, -90).wallContact()),
+        assertOnly(validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(30, FRONT - 0.9, -90).wallContact()),
                 Rule.FIELD_BOUNDS, Severity.ERROR);
         // touching is fine
-        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.9, -90).wallContact()));
+        assertClean(validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(30, FRONT, -90).wallContact()));
     }
 
     @Test
     public void turningInPlaceAgainstTheWallCountsToo() {
-        // the old B1 hold: -90 -> -115 degrees at y = 9.2 swings a corner through the audience wall; the square
-        // 17.80 in robot reaches 8.9 * (sin 115 + cos 115 in magnitude) = 11.83 in below its center, 2.63 in too far
-        List<Issue> l = validate(AutoRoute.builder("x").start(35, 9.2, -90).shootUp(35, 9.2, -115, 4));
+        // the old B1 hold: -90 -> -115 degrees with the front edge on the audience wall swings a corner through it. Turned 25
+        // degrees off the wall's direction the robot reaches 9.77 * cos 25 + 8.90 * sin 25 = 12.62 in toward the wall from its
+        // center of rotation (the FRONT corner leads), 2.85 in more than the 9.77 in the wall allows
+        List<Issue> l = validate(AutoRoute.builder("x").start(35, FRONT, -90).shootUp(35, FRONT, -115, 4));
         assertEquals(1, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
         assertEquals(1, first(l, Rule.FIELD_BOUNDS).stepIndex);
-        double halfLength = BioBuzzConstants.Robot.LENGTH_IN / 2.0;
-        double halfWidth = BioBuzzConstants.Robot.WIDTH_IN / 2.0;
-        double overshoot = halfLength * Math.abs(Math.sin(Math.toRadians(115))) + halfWidth * Math.abs(Math.cos(Math.toRadians(115))) - 9.2;
-        assertEquals(2.63, overshoot, 0.005);
+        double overshoot = FRONT * Math.cos(Math.toRadians(25)) + SIDE * Math.sin(Math.toRadians(25)) - FRONT;
+        assertEquals(2.85, overshoot, 0.01);
         assertTrue(first(l, Rule.FIELD_BOUNDS).message, first(l, Rule.FIELD_BOUNDS).message
                 .contains(String.format(java.util.Locale.ROOT, "%.1f in", overshoot)));
     }
 
     @Test
     public void aLegThroughTheHiveFrameIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(58, 118, -90));
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(58, 118, -90));
         assertOnly(l, Rule.HIVE_KEEPOUT, Severity.ERROR);
         assertTrue(first(l, Rule.HIVE_KEEPOUT).message.contains("keep-out"));
     }
 
     @Test
     public void theHiveKeepOutIncludesTheMargin() {
-        // Driving up the left corridor with the robot facing -y: its x half-extent is half the 17.80 in width (8.9 in).
+        // Driving up the left corridor with the robot facing -y: its x reach on each side is the side extent, 8.9 in.
         // The frame starts at x = 72 - 49.46 / 2 = 47.27 and the keep-out 3.0 in before it, at 44.27, so the center may
         // be at most 44.27 - 8.9 = 35.37 in from the left wall.
         double frameMinX = BioBuzzConstants.Field.SIZE_IN / 2.0 - BioBuzzConstants.Field.HIVE_FRAME_WIDTH_X_IN / 2.0;
-        double limit = frameMinX - BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN - BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+        double limit = frameMinX - BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN - BioBuzzConstants.Robot.LEFT_EXTENT_IN;
         assertEquals(35.37, limit, 0.005);
-        assertClean(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(35.3, 90, -90)));
+        assertClean(validate(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(35.3, 90, -90)));
         // 0.13 in past the limit is inside the margin: the old B1 path1 target x = 35.8 was chosen for a narrower robot
-        assertOnly(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(35.5, 90, -90)),
+        assertOnly(validate(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(35.5, 90, -90)),
                 Rule.HIVE_KEEPOUT, Severity.ERROR);
-        assertOnly(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(37.0, 90, -90)),
+        assertOnly(validate(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(37.0, 90, -90)),
                 Rule.HIVE_KEEPOUT, Severity.ERROR);
     }
 
     @Test
     public void aLegAlongTheWallThroughAFlowerPlateIsAnError() {
         // start A3, drive straight down the left wall past FLOWER 1 (y 45..51)
-        List<Issue> l = validate(AutoRoute.builder("x").start(8.9, 61.5, 180).driveConstant(9, 30, 180));
+        List<Issue> l = validate(AutoRoute.builder("x").start(FRONT, 61.5, 180).driveConstant(FRONT, 30, 180));
         assertOnly(l, Rule.FLOWER_KEEPOUT, Severity.ERROR);
         assertTrue(first(l, Rule.FLOWER_KEEPOUT).message.contains("FLOWER 1"));
     }
 
     @Test
     public void noDriveMayEnterAFlowerPlateEvenJustBeforeItsIntake() {
-        // a drive to (13.5, 48, 180) puts the front edge 4.6 in from the wall, inside the 4.75 in plate (plus its margin)
-        AutoRoute.Builder plain = AutoRoute.builder("x").start(8.9, 61.5, 180).driveConstant(13.5, 62, 180)
-                .driveConstant(13.5, 48, 180);
+        // a drive to (14.37, 48, 180) puts the front edge 4.6 in from the wall, inside the 4.75 in plate (plus its margin)
+        AutoRoute.Builder plain = AutoRoute.builder("x").start(FRONT, 61.5, 180).driveConstant(FRONT + 4.6, 62, 180)
+                .driveConstant(FRONT + 4.6, 48, 180);
         assertOnly(validate(plain), Rule.FLOWER_KEEPOUT, Severity.ERROR);
 
         // the old validator excused the whole plate for the drive that led to a FLOWER intake. Not any more: the only part
         // of the robot that may enter a plate is the one pressing flat wheel, during the press-in (see FlowerPressTest)
-        AutoRoute.Builder intake = AutoRoute.builder("x").start(8.9, 61.5, 180).driveConstant(13.5, 62, 180)
-                .driveConstant(13.5, 48, 180)
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 4);
+        AutoRoute.Builder intake = AutoRoute.builder("x").start(FRONT, 61.5, 180).driveConstant(FRONT + 4.6, 62, 180)
+                .driveConstant(FRONT + 4.6, 48, 180)
+                .intakeFlower(2.4, 48, FRONT + 4.6, 48, 180, 4);
         List<Issue> l = validate(intake);
         boolean driveFlagged = false;
         for (Issue i : l) {
@@ -240,11 +276,11 @@ public class RouteValidatorTest {
 
     @Test
     public void theRobotCenterMustStayOnTheOwnSide() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(75, 9.2, -90));
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(75, FRONT, -90));
         assertOnly(l, Rule.SIDE_G402, Severity.ERROR);
         assertEquals(1, first(l, Rule.SIDE_G402).stepIndex);
         // the center exactly on the line is allowed by G402; the body overhanging it is only the end-pose warning
-        List<Issue> onLine = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(72, 9.2, -90));
+        List<Issue> onLine = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(72, FRONT, -90));
         assertEquals(0, count(onLine, Rule.SIDE_G402, Severity.ERROR));
         assertOnly(onLine, Rule.END_POSE, Severity.WARN);
     }
@@ -254,9 +290,9 @@ public class RouteValidatorTest {
     @Test
     public void holdingMoreThanFourPollenIsAnError() {
         // 4 pre-loads + 4 from the GARDEN = 8
-        List<Issue> l = validate(AutoRoute.builder("x").start(35, 9.2, -90)
-                .driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4));
+        List<Issue> l = validate(AutoRoute.builder("x").start(35, FRONT, -90)
+                .driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4));
         assertOnly(l, Rule.CAPACITY_G407, Severity.ERROR);
         assertTrue(first(l, Rule.CAPACITY_G407).message.contains("8 POLLEN"));
     }
@@ -264,13 +300,13 @@ public class RouteValidatorTest {
     @Test
     public void firingPollenTheRobotDoesNotHoldIsAnError() {
         // (the 4 pre-loads tip the HIVE, so the second volley goes to the other cell: that move has findings of its own)
-        List<Issue> none = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4).shootUp(1));
+        List<Issue> none = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4).shootUp(1));
         assertEquals(1, count(none, Rule.CAPACITY_G407, Severity.ERROR));
         assertEquals(2, first(none, Rule.CAPACITY_G407).stepIndex);
         assertTrue(first(none, Rule.CAPACITY_G407).message.contains("holds none"));
 
         // (5 POLLEN into a cell that tips on the 4th also fires one past the tip: that is its own G417 finding)
-        List<Issue> tooMany = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(5));
+        List<Issue> tooMany = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(5));
         assertEquals(1, count(tooMany, Rule.CAPACITY_G407, Severity.ERROR));
         assertTrue(first(tooMany, Rule.CAPACITY_G407).message.contains("only 4"));
     }
@@ -278,24 +314,24 @@ public class RouteValidatorTest {
     @Test
     public void aFullCycleStaysWithinCapacity() {
         // shoot 4, take 4 from the GARDEN, shoot 4: never more than 4 held
-        AutoRoute.Builder b = AutoRoute.builder("x").start(58, 9.2, -90)
+        AutoRoute.Builder b = AutoRoute.builder("x").start(58, FRONT, -90)
                 .shootUp(4)
                 .driveConstant(9, 18, -90)
-                .driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)
+                .driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4)
                 .shootUp(4);
         assertEquals(0, count(validate(b), Rule.CAPACITY_G407, Severity.ERROR));
     }
 
     @Test
     public void takingFromAnEmptySourceIsAWarning() {
-        AutoRoute.Builder b = AutoRoute.builder("x").start(58, 9.2, -90)
+        AutoRoute.Builder b = AutoRoute.builder("x").start(58, FRONT, -90)
                 .shootUp(4)
-                .driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)
+                .driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4)
                 .shootUp(4)
-                .driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4);
+                .driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4);
         List<Issue> l = validate(b);
         assertEquals(1, count(l, Rule.SOURCE, Severity.WARN));
         assertTrue(first(l, Rule.SOURCE).message.contains("only 0 POLLEN are left"));
@@ -305,18 +341,18 @@ public class RouteValidatorTest {
     @Test
     public void takingFromTheOtherAlliancesSourcesIsAnError() {
         // robot pose on the own side so that only the source is wrong: FLOWER 4 sits on the audience wall at x = 96 (blue's)
-        List<Issue> flower = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
+        List<Issue> flower = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
                 .driveConstant(70, 12, 0).intakeFlower(96, 2.4, 70, 12, 0, 1));
         assertEquals(1, count(flower, Rule.SOURCE, Severity.ERROR));
         assertTrue(first(flower, Rule.SOURCE).message.contains("opposing side"));
-        List<Issue> garden = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
+        List<Issue> garden = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
                 .driveConstant(70, 12, 0).intakeGarden(135, 138, 70, 12, 0, 1));
         assertEquals(1, count(garden, Rule.SOURCE, Severity.ERROR));
     }
 
     @Test
     public void anIntakeWhoseTargetIsNearNoSourceIsAWarning() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
                 .driveConstant(30, 30, 0).intakeFlower(60, 30, 30, 30, 0, 1));
         assertEquals(1, count(l, Rule.SOURCE, Severity.WARN));
         assertTrue(first(l, Rule.SOURCE).message.contains("nothing to take"));
@@ -324,10 +360,10 @@ public class RouteValidatorTest {
 
     @Test
     public void aFloorIntakeNeedsSomethingThatCouldHaveLandedThere() {
-        AutoRoute.Builder before = AutoRoute.builder("x").start(58, 9.2, -90)
+        AutoRoute.Builder before = AutoRoute.builder("x").start(58, FRONT, -90)
                 .driveConstant(30, 30, 0).intakeFloor(34, 30, 30, 30, 0, 1);
         assertEquals("nothing was shot yet", 1, count(validate(before), Rule.SOURCE, Severity.WARN));
-        AutoRoute.Builder after = AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
+        AutoRoute.Builder after = AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
                 .driveConstant(30, 30, 0).intakeFloor(34, 30, 30, 30, 0, 1);
         assertEquals(0, count(validate(after), Rule.SOURCE, Severity.WARN));
     }
@@ -336,21 +372,21 @@ public class RouteValidatorTest {
 
     @Test
     public void theTimeLimitIsAnErrorBeyond30SecondsAndAWarningInsideTheMargin() {
-        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).waitSeconds(20)));
-        List<Issue> tight = validate(AutoRoute.builder("x").start(58, 9.2, -90).waitSeconds(29.0));
+        assertClean(validate(AutoRoute.builder("x").start(58, FRONT, -90).waitSeconds(20)));
+        List<Issue> tight = validate(AutoRoute.builder("x").start(58, FRONT, -90).waitSeconds(29.0));
         assertOnly(tight, Rule.TIME_G401, Severity.WARN);
         assertEquals(-1, first(tight, Rule.TIME_G401).stepIndex);
-        assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).waitSeconds(31.0)), Rule.TIME_G401, Severity.ERROR);
+        assertOnly(validate(AutoRoute.builder("x").start(58, FRONT, -90).waitSeconds(31.0)), Rule.TIME_G401, Severity.ERROR);
         // exactly 30 s is still legal but inside the margin
-        assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).waitSeconds(30.0)), Rule.TIME_G401, Severity.WARN);
-        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).waitSeconds(27.9)));
+        assertOnly(validate(AutoRoute.builder("x").start(58, FRONT, -90).waitSeconds(30.0)), Rule.TIME_G401, Severity.WARN);
+        assertClean(validate(AutoRoute.builder("x").start(58, FRONT, -90).waitSeconds(27.9)));
     }
 
     // ---- 6. end pose -------------------------------------------------------------------------------------
 
     @Test
     public void endingInsideTheHiveFrameIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(60, 70, 0));
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(60, 70, 0));
         assertEquals(1, count(l, Rule.END_POSE, Severity.ERROR));
         assertEquals("the last step", 1, first(l, Rule.END_POSE).stepIndex);
         // getting there also crossed the keep-out
@@ -359,7 +395,7 @@ public class RouteValidatorTest {
 
     @Test
     public void endingWithTheBodyOverTheCenterLineIsAWarning() {
-        AutoRoute.Builder b = AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
+        AutoRoute.Builder b = AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
                 .driveReverseTangent(30, 30).driveReverseTangent(30, 110).driveConstant(66, 110, 0);
         List<Issue> l = validate(b);
         assertOnly(l, Rule.END_POSE, Severity.WARN);
@@ -369,19 +405,20 @@ public class RouteValidatorTest {
 
     @Test
     public void aShootFromThePoseTheSolverWouldChooseIsFine() {
-        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)));
-        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(58, 9.2, -90, 4)));
+        assertClean(validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)));
+        assertClean(validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(58, FRONT, -90, 4)));
     }
 
     @Test
     public void aShootOutsideTheStandoffBandIsAWarning() {
-        // the old B1 hold pose is 43 in from the cell; it also swings through the wall (a different rule)
-        List<Issue> far = validate(AutoRoute.builder("x").start(35, 9.2, -90).shootUp(35, 9.2, -115, 4));
+        // the old B1 hold pose is 43.8 in from the cell (ball exit 8.03 in behind the center of rotation); it also swings through
+        // the wall (a different rule)
+        List<Issue> far = validate(AutoRoute.builder("x").start(35, FRONT, -90).shootUp(35, FRONT, -115, 4));
         assertEquals(1, count(far, Rule.SHOOT_POSE, Severity.WARN));
         assertTrue(first(far, Rule.SHOOT_POSE).message.contains("standoff band"));
-        assertTrue(first(far, Rule.SHOOT_POSE).message.contains("43.4"));
+        assertTrue(first(far, Rule.SHOOT_POSE).message.contains("43.8"));
         // far too close to the HIVE
-        List<Issue> near = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(59.25, 30, -90)
+        List<Issue> near = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(59.25, 30, -90)
                 .shootUp(59.25, 30, -90, 4));
         assertEquals(1, count(near, Rule.SHOOT_POSE, Severity.WARN));
         assertEquals(0, count(near, Rule.SHOOT_POSE, Severity.ERROR));
@@ -390,7 +427,7 @@ public class RouteValidatorTest {
     @Test
     public void aShootWithTheBackTurnedAwayFromTheCellIsAWarning() {
         // C1 start has the back to the cell; turning around the front toward it
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(59.25, 14, 90)
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(59.25, 14, 90)
                 .shootUp(59.25, 14, 90, 4));
         boolean aim = false;
         for (Issue i : l) {
@@ -402,7 +439,7 @@ public class RouteValidatorTest {
     @Test
     public void aShootFromTheWrongSideOfTheHiveIsAWarning() {
         // a robot at the rear wall (legal C6 start) cannot shoot the audience-side UP cell
-        List<Issue> l = validate(AutoRoute.builder("x").start(61.5, 135.1, 90).shootUp(61.5, 135.1, 90, 4));
+        List<Issue> l = validate(AutoRoute.builder("x").start(61.5, 144 - FRONT, 90).shootUp(61.5, 144 - FRONT, 90, 4));
         boolean side = false;
         for (Issue i : l) {
             side |= i.rule == Rule.SHOOT_POSE && i.message.contains("wrong side");
@@ -413,21 +450,21 @@ public class RouteValidatorTest {
     @Test
     public void shootingAtACellThatIsDownIsAWarningAndTheHiveStateFlipsAfterATip() {
         // at match start the red AUDIENCE cell is UP: a fixed REAR shot is at the DOWN cell
-        List<Issue> down = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootSide(Side.REAR, 4));
+        List<Issue> down = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootSide(Side.REAR, 4));
         assertEquals(1, count(down, Rule.SHOOT_TARGET, Severity.WARN));
         assertTrue(first(down, Rule.SHOOT_TARGET).message.contains("REAR"));
         // fixed AUDIENCE is right at the start...
-        assertEquals(0, count(validate(AutoRoute.builder("x").start(58, 9.2, -90).shootSide(Side.AUDIENCE, 4)),
+        assertEquals(0, count(validate(AutoRoute.builder("x").start(58, FRONT, -90).shootSide(Side.AUDIENCE, 4)),
                 Rule.SHOOT_TARGET, Severity.WARN));
         // ...but once the 4 pre-loads have tipped the HIVE (3 staged NECTAR + 4 POLLEN) the REAR cell is the UP one and
         // AUDIENCE is down; the second volley of 4 into the empty REAR cell does not tip it again
-        AutoRoute.Builder afterTip = AutoRoute.builder("x").start(58, 9.2, -90)
+        AutoRoute.Builder afterTip = AutoRoute.builder("x").start(58, FRONT, -90)
                 .shootUp(4)
-                .driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)
+                .driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4)
                 .shootUp(4)
-                .driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)
+                .driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4)
                 .shootSide(Side.AUDIENCE, 4);
         assertEquals(1, count(validate(afterTip), Rule.SHOOT_TARGET, Severity.WARN));
     }
@@ -436,21 +473,21 @@ public class RouteValidatorTest {
 
     @Test
     public void aParkOutsideTheLoadingZoneIsAnError() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 30, -90).park(30, 30, -90));
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(30, 30, -90).park(30, 30, -90));
         assertOnly(l, Rule.PARK_ZONE, Severity.ERROR);
         assertEquals(2, first(l, Rule.PARK_ZONE).stepIndex);
     }
 
     @Test
     public void aShallowParkIsAWarningADeepOneIsFine() {
-        // the old B1 park: the 17.80 in square robot at (12, 90, 0) reaches y 98.9, 2.9 in into the zone (y from 96)
-        AutoRoute.Builder shallow = AutoRoute.builder("x").start(35, 9.2, -90)
+        // the old B1 park: the robot at (12, 90, 0) reaches y 98.9 (8.9 in to the left), 2.9 in into the zone (y from 96)
+        AutoRoute.Builder shallow = AutoRoute.builder("x").start(35, FRONT + 0.5, -90)
                 .driveReverseTangent(34, 50, -90).driveReverseTangent(30, 90, -90).driveReverseTangent(12, 90, 0).park(12, 90, 0);
         List<Issue> l = validate(shallow);
         assertOnly(l, Rule.PARK_ZONE, Severity.WARN);
         assertTrue(first(l, Rule.PARK_ZONE).message, first(l, Rule.PARK_ZONE).message.contains("only 2.9 in"));
-        // 12 in deeper in y: 7.9 in overlap
-        assertClean(validate(AutoRoute.builder("x").start(35, 9.2, -90)
+        // 12 in deeper in y: 7.0 in overlap (the 7.03 in of the robot behind the center, inside the zone in x)
+        assertClean(validate(AutoRoute.builder("x").start(35, FRONT + 0.5, -90)
                 .driveReverseTangent(34, 50, -90).driveReverseTangent(30, 90, -90).driveLinear(12, 108, 0).park(12, 108, 0)));
     }
 
@@ -458,22 +495,22 @@ public class RouteValidatorTest {
 
     @Test
     public void anExplicitPoseFarFromWhereTheRobotIsWantsADriveFirst() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4));
+        List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4));
         // (the shoot pose is AUTO: the solver drives, no warning; the intake pose is explicit and 50 in away)
         assertEquals(1, count(l, Rule.IMPLICIT_MOVE, Severity.WARN));
         assertEquals(2, first(l, Rule.IMPLICIT_MOVE).stepIndex);
         // with a DRIVE first the warning is gone
-        assertEquals(0, count(validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4)
-                .driveConstant(9, 18, -90).driveConstant(9, 9.7, -90).wallContact()
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)), Rule.IMPLICIT_MOVE, Severity.WARN));
+        assertEquals(0, count(validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
+                .driveConstant(9, 18, -90).driveConstant(9, FRONT + 0.8, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4)), Rule.IMPLICIT_MOVE, Severity.WARN));
     }
 
     // ---- API ---------------------------------------------------------------------------------------------
 
     @Test
     public void issuesAreSortedByStepAndKnowTheirManualRule() {
-        List<Issue> l = validate(AutoRoute.builder("x").start(35, 9.2, -90).shootUp(35, 9.2, -115, 4).waitSeconds(40));
+        List<Issue> l = validate(AutoRoute.builder("x").start(35, FRONT, -90).shootUp(35, FRONT, -115, 4).waitSeconds(40));
         int previous = -2;
         for (Issue i : l) {
             int idx = i.stepIndex < 0 ? Integer.MAX_VALUE : i.stepIndex;

@@ -14,7 +14,8 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
  *       way it faces (radians, 0 = +x, counter-clockwise positive).</li>
  *   <li>{@code launchForwardIn} / {@code launchLeftIn} locate the ball exit relative to that rotation center, in
  *       the robot's own frame: forward is the way the intake faces, left is 90 degrees counter-clockwise from it.
- *       The shooter is at the back, so {@code launchForwardIn} is negative (about -8.9 in).</li>
+ *       The shooter is at the back, so {@code launchForwardIn} is negative (about -8.03 in: the rear edge of the robot,
+ *       which is NOT the same distance behind the center of rotation as the front edge is in front of it).</li>
  *   <li>{@code targetX}, {@code targetY} are field inches; normally a cell's aim point
  *       ({@link CellSpec#originX}, {@link CellSpec#originY}).</li>
  * </ul>
@@ -97,26 +98,13 @@ public final class ShotGeometry {
     }
 
     /**
-     * Width (along field x, inches) of the axis-aligned box around a robot footprint of the given size turned by
-     * {@code heading}. {@code lengthIn} is the robot's front-to-back size and {@code widthIn} its side-to-side size.
-     * Example: a 17.8 in square robot turned 45 degrees needs a box about 25.2 in wide, not 17.8.
+     * The axis-aligned box ({@link Rect}) around the robot's perimeter at a pose. The perimeter is NOT centered on the
+     * pose (the robot's center of rotation): it reaches {@link RobotShape#frontIn()} in front of it, {@link
+     * RobotShape#rearIn()} behind it and so on, turned to the heading, so the box is not centered on the pose either.
+     * The planner uses it to ask "is the robot touching a wall or an obstacle here?". Example: the real robot facing the
+     * audience wall (heading -90 degrees) at y = 9.77 has a box that starts at y = 0.
      */
-    public static double footprintExtentX(double lengthIn, double widthIn, double heading) {
-        return lengthIn * Math.abs(Math.cos(heading)) + widthIn * Math.abs(Math.sin(heading));
-    }
-
-    /** Height (along field y, inches) of the axis-aligned box around a rotated robot footprint. */
-    public static double footprintExtentY(double lengthIn, double widthIn, double heading) {
-        return lengthIn * Math.abs(Math.sin(heading)) + widthIn * Math.abs(Math.cos(heading));
-    }
-
-    /**
-     * The axis-aligned box ({@link Rect}) around the robot footprint at a pose, assumed centered on the pose (the
-     * robot's rotation center). The planner uses it to ask "is the robot touching a wall or an obstacle here?".
-     */
-    public static Rect footprint(Pose2 pose, double lengthIn, double widthIn) {
-        return Rect.centered(pose.x, pose.y,
-                footprintExtentX(lengthIn, widthIn, pose.heading),
-                footprintExtentY(lengthIn, widthIn, pose.heading));
+    public static Rect footprint(Pose2 pose, RobotShape robot) {
+        return Footprint.of(pose, robot).bounds();
     }
 }

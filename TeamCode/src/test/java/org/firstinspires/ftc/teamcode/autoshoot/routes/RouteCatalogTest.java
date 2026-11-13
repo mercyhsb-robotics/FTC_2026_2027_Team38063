@@ -331,17 +331,45 @@ public class RouteCatalogTest {
                 assertEquals("path1", 3, i.stepIndex);
             }
         }
-        // the shot itself is fine (37.4 in standoff, aimed) and the park is deep
-        assertEquals(0, count(l, Rule.SHOOT_POSE, Severity.WARN));
+        // the park is deep; the shot is aimed, but at the OpMode's old y = 9.2 the real ball exit (8.03 in behind the center of
+        // rotation) is 38.3 in from the aim point, just outside the 30 to 38 in band: a WARN that goes away when the robot is
+        // placed with its front ON the wall (y = 9.77: 37.7 in, the measured shot)
         assertEquals(0, count(l, Rule.PARK_ZONE, Severity.WARN));
-        assertEquals(1, l.size());
+        assertEquals(1, count(l, Rule.SHOOT_POSE, Severity.WARN));
+        // and the old start y = 9.2 puts the front edge 0.57 in through the audience wall (the start, and the first leg that
+        // turns toward the HIVE a couple of degrees: 0.9 in)
+        assertEquals(1, count(l, Rule.START_G304, Severity.ERROR));
+        assertEquals(1, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
+        assertEquals(4, l.size());
         assertFalse(RouteValidator.isRunnable(l));
+    }
+
+    @Test
+    public void theFaithfulConversionsSayThatTheRealRobotMustBePlacedWithItsFrontOnTheWall() {
+        // each old OpMode start (y 9.2, 9.2 and x 9.21) is written for a robot centered 9.2 in from its wall; the notes of the
+        // START step say so, and say where the real robot goes
+        for (String id : new String[] {"red_b1", "red_c1", "red_leave_park"}) {
+            String note = RouteCatalog.byId(id).step(0).note();
+            assertTrue(id + ": " + note, note.contains("FRONT ON the wall"));
+            assertTrue(id + ": " + note, note.contains("9.77"));
+        }
+    }
+
+    @Test
+    public void everyStartOfTheDemonstrationRoutesHasItsFrontEdgeOnTheWall() {
+        // the new demonstration routes are placed the right way: the center of rotation is the front extent from the audience wall,
+        // so the footprint touches the wall (and no more)
+        for (String id : new String[] {"wall_shoot_park", "garden_cycle"}) {
+            Pose2 start = RouteCatalog.byId(id).startPose();
+            assertEquals(id, BioBuzzConstants.Robot.FRONT_EXTENT_IN, start.y, 1e-9);
+            assertEquals(id, 0.0, Footprint.of(start).bounds().minY, 1e-9);
+        }
     }
 
     @Test
     public void redB1TurnsThroughTheWallShootsFromTooFarAndParksShallowly() {
         List<Issue> l = issues("red_b1", Alliance.RED);
-        // the -115 deg hold swings a corner 2.6 in through the audience wall, and so does turning back for path1
+        // the -115 deg hold swings a corner 3.4 in through the audience wall (9.2 in out, and it needs 12.6), and so does turning back for path1
         assertEquals(2, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
         assertEquals(1, count(l, Rule.SHOOT_POSE, Severity.WARN));
         assertEquals(1, count(l, Rule.PARK_ZONE, Severity.WARN));
@@ -361,10 +389,22 @@ public class RouteCatalogTest {
     }
 
     @Test
-    public void redLeaveParkPassesAndClaimsLeaveAndPark() {
-        assertTrue("findings: " + issues("red_leave_park", Alliance.RED), issues("red_leave_park", Alliance.RED).isEmpty());
+    public void redLeaveParkClipsTheRedWallByItsOldStartNumberButStillClaimsLeaveAndPark() {
+        // the OpMode starts at x = 9.2112 facing the red wall (180 deg); the real front edge is 9.77 in from the center of
+        // rotation, so the robot would reach 0.56 in through the wall at the start and along the first leg. Nothing else is wrong.
+        List<Issue> l = issues("red_leave_park", Alliance.RED);
+        assertEquals("findings: " + l, 2, l.size());
+        assertEquals(Rule.START_G304, l.get(0).rule);
+        assertEquals(0, l.get(0).stepIndex);
+        assertTrue(l.get(0).message, l.get(0).message.contains("sticks out of the field by 0.6 in"));
+        assertEquals(Rule.FIELD_BOUNDS, l.get(1).rule);
+        assertEquals(1, l.get(1).stepIndex);
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS,
                 RouteCatalog.byId("red_leave_park").claimablePoints());
+        // the same route placed with the front ON the wall (x = 9.77) is clean
+        AutoRoute placed = AutoRoute.builder("placed").start(BioBuzzConstants.Robot.FRONT_EXTENT_IN, 70.2702, 180)
+                .driveLinear(24.8608, 83.6152, 135).driveLinear(16.0, 91.5, 135).park(16.0, 91.5, 135).build();
+        assertTrue(RouteValidator.check(placed).toString(), RouteValidator.check(placed).isEmpty());
     }
 
     // ---- the two demonstration routes --------------------------------------------------------------------

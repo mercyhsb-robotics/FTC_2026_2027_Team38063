@@ -56,18 +56,27 @@ public class ScoringPlannerTest {
     private final ScoringPlanner.Config cfg = ScoringPlanner.Config.fromConstants(table);
     private final ScoringPlanner planner = new ScoringPlanner(field, cfg);
 
-    /** The robot's length in inches, as the planner is configured. */
-    private double lengthIn() {
-        return cfg.robotLengthIn;
+    /**
+     * The C1 start the team's autos use, written the right way for the real robot: facing the audience wall (-90 degrees)
+     * with its FRONT edge on the wall, so the robot's position (its center of rotation) is the front extent, 9.77 in, from it.
+     */
+    private static Pose2 c1Start() {
+        return Pose2.ofDegrees(58.0, Footprint.frontExtentIn(), -90);
+    }
+
+    /** The B1 start, the same way: front edge on the audience wall. */
+    private static Pose2 b1Start() {
+        return Pose2.ofDegrees(35.0, Footprint.frontExtentIn(), -90);
     }
 
     // ---------------------------------------------------------------- ShotGeometry
 
     /**
-     * Situation: the robot at the C1 autonomous start (58, 9.2) facing -90 degrees, with the RED audience cell as the
-     *     target.
-     * Expected: the range from the ball exit to the aim point is about 37.4 in, and the shooter is within 3.5 degrees
-     *     of pointing at it.
+     * Situation: the robot at the C1 autonomous start (58, 9.77) facing -90 degrees (front edge on the audience wall), with
+     *     the RED audience cell as the target.
+     * Expected: the range from the ball exit to the aim point is about 37.74 in (the ball exit is 17.80 in from the wall,
+     *     so 55.52 - 17.80 = 37.72 in straight up, plus 1.25 in sideways), and the shooter is within 3.5 degrees of
+     *     pointing at it.
      * Why: the shooter is on the back, so aiming means heading = bearing + half a turn. Getting that wrong would aim
      *     every shot 180 degrees away. Tolerances: 0.05 in on the range (the verified figure is quoted to a tenth of an
      *     inch); 3.5 degrees allows the real error of about 2 degrees (C1 is 1.25 in off the HIVE axis).
@@ -75,10 +84,10 @@ public class ScoringPlannerTest {
     @Test
     public void shooterPointsAtTheAimPointWhenHeadingIsBearingPlusHalfATurn() {
         // Robot at C1 facing -90: the back faces +y, straight at the red audience cell's aim point.
-        Pose2 c1 = Pose2.ofDegrees(58.0, 9.2, -90);
+        Pose2 c1 = c1Start();
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         double range = ShotGeometry.rangeTo(c1, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
-        assertEquals(37.4, range, 0.05);                       // matches the verified "C1 start D = 37.4 in"
+        assertEquals(37.74, range, 0.05);                      // 1.25 in off the axis, ball exit 17.80 in from the wall
         double err = Math.toDegrees(ShotGeometry.aimError(c1, cfg.launchForwardIn, cfg.launchLeftIn,
                 cell.originX, cell.originY));
         assertTrue("C1 is nearly in line: " + err, Math.abs(err) < 3.5);
@@ -202,7 +211,7 @@ public class ScoringPlannerTest {
         assertEquals(0.0, err, 1e-6);
         // Footprint is free of the HIVE frame, the FLOWERS and the walls.
         assertTrue(planner.standingPoseFree(s.pose));
-        Rect box = ShotGeometry.footprint(s.pose, cfg.robotLengthIn, cfg.robotWidthIn);
+        Rect box = ShotGeometry.footprint(s.pose, cfg.robot);
         for (Rect o : field.hardObstacles()) {
             assertFalse("overlaps an obstacle: " + o, box.overlaps(o));
         }
@@ -228,7 +237,7 @@ public class ScoringPlannerTest {
      */
     @Test
     public void fromTheC1StartTheRedAudienceCellNeedsAlmostNoMovement() {
-        Pose2 c1 = Pose2.ofDegrees(58.0, 9.2, -90);
+        Pose2 c1 = c1Start();
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         ScoringPlanner.Solution s = planner.solve(c1, cell);
         assertGoodSolution(s, cell);
@@ -245,7 +254,7 @@ public class ScoringPlannerTest {
      */
     @Test
     public void fromTheB1StartTheRobotMovesTowardTheCellAxisAndStaysInTheCone() {
-        Pose2 b1 = Pose2.ofDegrees(35.0, 9.2, -90);
+        Pose2 b1 = b1Start();
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         ScoringPlanner.Solution s = planner.solve(b1, cell);
         assertGoodSolution(s, cell);
@@ -286,7 +295,7 @@ public class ScoringPlannerTest {
         for (Alliance a : Alliance.values()) {
             for (Side side : Side.values()) {
                 CellSpec cell = field.cell(a, side);
-                Pose2 start = a.fromRed(Pose2.ofDegrees(58.0, 9.2, -90), field.size());
+                Pose2 start = a.fromRed(c1Start(), field.size());
                 ScoringPlanner.Solution s = planner.solve(start, cell);
                 assertGoodSolution(s, cell);
             }
@@ -304,7 +313,7 @@ public class ScoringPlannerTest {
      */
     @Test
     public void reachingTheFarSideGoesAroundTheHiveFrameAndStaysClear() {
-        Pose2 c1 = Pose2.ofDegrees(58.0, 9.2, -90);
+        Pose2 c1 = c1Start();
         CellSpec rear = field.cell(Alliance.RED, Side.REAR);
         ScoringPlanner.Solution s = planner.solve(c1, rear);
         assertGoodSolution(s, rear);
@@ -314,7 +323,7 @@ public class ScoringPlannerTest {
         assertTrue("travel " + s.travelIn, s.travelIn > 100.0 && s.travelIn < 175.0);
 
         // No leg crosses the HIVE frame grown by the robot size.
-        double halfDiag = 0.5 * Math.hypot(cfg.robotLengthIn, cfg.robotWidthIn);
+        double halfDiag = cfg.robot.reachIn();
         Rect keepOut = field.hiveFrame().inflate(halfDiag);
         double x = c1.x, y = c1.y;
         for (double[] w : s.waypoints) {
@@ -338,7 +347,7 @@ public class ScoringPlannerTest {
         far.rangeMinIn = 45.0;
         far.rangeMaxIn = 60.0;
         ScoringPlanner p = new ScoringPlanner(field, far);
-        ScoringPlanner.Solution s = p.solve(Pose2.ofDegrees(58.0, 9.2, -90), field.cell(Alliance.RED, Side.AUDIENCE));
+        ScoringPlanner.Solution s = p.solve(c1Start(), field.cell(Alliance.RED, Side.AUDIENCE));
         assertEquals(ScoringPlanner.Status.NO_FEASIBLE_POSE, s.status);
         assertFalse(s.ok());
     }
@@ -359,7 +368,7 @@ public class ScoringPlannerTest {
         wide.rangeMaxIn = 60.0;
         wide.coneHalfAngleDeg = 0.0;
         ScoringPlanner p = new ScoringPlanner(field, wide);
-        ScoringPlanner.Solution s = p.solve(Pose2.ofDegrees(58.0, 9.2, -90), field.cell(Alliance.RED, Side.AUDIENCE));
+        ScoringPlanner.Solution s = p.solve(c1Start(), field.cell(Alliance.RED, Side.AUDIENCE));
         assertTrue(s.ok());
         assertTrue("range " + s.rangeIn, s.rangeIn < 38.0);
     }
@@ -378,7 +387,7 @@ public class ScoringPlannerTest {
     @Test
     public void theRobotFrontAgainstTheWallInLineIsTheMeasuredAnchorShot() {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
-        Pose2 wallShot = new Pose2(cell.axisX, cfg.robotLengthIn / 2.0, -Math.PI / 2.0);
+        Pose2 wallShot = new Pose2(cell.axisX, cfg.robot.frontIn(), -Math.PI / 2.0);
         double range = ShotGeometry.rangeTo(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
         assertEquals(37.7, range, 0.05);
         assertEquals(1200.0, table.velocityAt(37.7), EPS);
@@ -391,18 +400,49 @@ public class ScoringPlannerTest {
     }
 
     /**
-     * Situation: the axis-aligned box (the rectangle lined up with the field's x and y axes) that just contains the
-     *     17.8 x 17.8 in square robot, for a robot turned different amounts.
-     * Expected: facing along an axis (-90 degrees) the box is 17.8 in wide; turned 30 degrees it is 17.8 x (cos 30 +
-     *     sin 30), about 24.3 in. The last line only confirms that the lengthIn() helper returns the configured length.
-     * Why: the planner checks that this box is clear of walls and the HIVE frame, and a turned robot takes more room (a
-     *     square's corner-to-corner distance is about 1.41 times its side).
+     * Situation: the axis-aligned box (the rectangle lined up with the field's x and y axes) that just contains the real
+     *     robot, for a robot standing at (60, 50) and turned different amounts. The robot is NOT centered on its position
+     *     (its center of rotation): its edges are 9.77 in ahead, 8.03 in behind and 8.90 in to each side.
+     * Expected: facing -90 degrees (front toward the audience wall, -y) the box reaches 9.77 in below the position and
+     *     8.03 in above it; facing +90 it is the other way round; facing 0 it reaches 9.77 in toward +x. At 30 degrees the
+     *     box equals the extremes of the four corners worked out by hand, and it is wider than the upright 17.8 in.
+     * Why: the planner checks that this box is clear of walls and the HIVE frame. A box centered on the position would
+     *     let the robot's front come 0.87 in closer to a wall than it really can, and keep its back 0.87 in away from a
+     *     wall it is facing away from.
      */
     @Test
-    public void footprintBoxGrowsWhenTheRobotIsTurned() {
-        assertEquals(17.8, ShotGeometry.footprintExtentX(17.8, 17.8, Math.toRadians(-90)), 1e-9);
-        assertEquals(17.8 * (Math.cos(Math.toRadians(30)) + Math.sin(Math.toRadians(30))),
-                ShotGeometry.footprintExtentX(17.8, 17.8, Math.toRadians(30)), 1e-9);
-        assertEquals(lengthIn(), cfg.robotLengthIn, EPS);
+    public void footprintBoxIsNotCenteredOnThePositionAndGrowsWhenTheRobotIsTurned() {
+        RobotShape robot = cfg.robot;
+        Rect down = ShotGeometry.footprint(new Pose2(60, 50, -Math.PI / 2.0), robot);
+        assertEquals(50 - 9.77, down.minY, EPS);
+        assertEquals(50 + 8.03, down.maxY, EPS);
+        assertEquals(60 - 8.90, down.minX, EPS);
+        assertEquals(60 + 8.90, down.maxX, EPS);
+        Rect up = ShotGeometry.footprint(new Pose2(60, 50, Math.PI / 2.0), robot);
+        assertEquals(50 - 8.03, up.minY, EPS);
+        assertEquals(50 + 9.77, up.maxY, EPS);
+        Rect ahead = ShotGeometry.footprint(new Pose2(60, 50, 0.0), robot);
+        assertEquals(60 - 8.03, ahead.minX, EPS);
+        assertEquals(60 + 9.77, ahead.maxX, EPS);
+        // turned 30 degrees: the four corners, worked out by hand
+        double h = Math.toRadians(30);
+        double minX = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+        for (double[] c : new double[][] {{9.77, 8.9}, {-8.03, 8.9}, {-8.03, -8.9}, {9.77, -8.9}}) {
+            double x = 60 + c[0] * Math.cos(h) - c[1] * Math.sin(h);
+            double y = 50 + c[0] * Math.sin(h) + c[1] * Math.cos(h);
+            minX = Math.min(minX, x);
+            maxX = Math.max(maxX, x);
+            minY = Math.min(minY, y);
+            maxY = Math.max(maxY, y);
+        }
+        Rect turned = ShotGeometry.footprint(new Pose2(60, 50, h), robot);
+        assertEquals(minX, turned.minX, EPS);
+        assertEquals(maxX, turned.maxX, EPS);
+        assertEquals(minY, turned.minY, EPS);
+        assertEquals(maxY, turned.maxY, EPS);
+        assertTrue("a turned robot needs a bigger box", turned.maxX - turned.minX > 17.8 + 1.0);
     }
 }

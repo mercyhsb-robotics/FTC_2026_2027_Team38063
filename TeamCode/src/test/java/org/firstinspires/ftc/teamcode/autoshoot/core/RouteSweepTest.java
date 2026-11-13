@@ -37,16 +37,21 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  */
 public class RouteSweepTest {
     private static final double EPS = 1e-6;
-    /** The robot is a 17.8 in square; half of it is 8.9 in. */
+    /**
+     * These tests are about the sweep's maths, so they use a plain 17.8 in square CENTERED on the robot's position (half of
+     * it is 8.9 in) to keep their numbers easy to read. The real robot is not centered: its edges are 9.77 / 8.03 / 8.90 /
+     * 8.90 in from its center of rotation, and that robot is tested in AsymmetricRobotTest.
+     */
     private static final double SIZE = BioBuzzConstants.Robot.LENGTH_IN;
     private static final double HALF = SIZE / 2.0;
+    private static final RobotShape SQUARE = RobotShape.centered(SIZE, SIZE);
     private static final double CLEAR = BioBuzzConstants.AutoShoot.WALL_CLEARANCE_IN;
     private static final double TOL = BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN;
     /** A plain 100 x 100 in test field. */
     private static final Rect BOX = new Rect(0, 100, 0, 100);
 
     private static RouteSweep sweep(Rect field, double wallClear, List<Rect> obstacles, double margin) {
-        return new RouteSweep(field, wallClear, obstacles, margin, SIZE, SIZE, RouteSweep.Settings.fromConstants());
+        return new RouteSweep(field, wallClear, obstacles, margin, SQUARE, RouteSweep.Settings.fromConstants());
     }
 
     private static RouteSweep plain() {
@@ -92,7 +97,7 @@ public class RouteSweepTest {
         assertTrue(v.what, v.what.startsWith("wall y = 0.0"));
         assertTrue("caught early, at " + v.distanceIn, v.distanceIn < 20.0);
         assertTrue(v.gapIn < v.requiredIn);
-        String clip = BruteForceFootprint.firstClip(turning, SIZE, SIZE, BOX, Collections.<Rect>emptyList(), 2.0);
+        String clip = BruteForceFootprint.firstClip(turning, SQUARE, BOX, Collections.<Rect>emptyList(), 2.0);
         assertNotNull("the referee must see a real clip too", clip);
 
         // Negative twins.
@@ -197,7 +202,7 @@ public class RouteSweepTest {
         RouteSweep.Violation v = s.check(route(start, 45, 88, 30));
         assertNotNull(v);
         assertTrue(v.what, v.what.startsWith("obstacle 0"));
-        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, 88, 30), SIZE, SIZE, BOX, box, TOL));
+        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, 88, 30), SQUARE, BOX, box, TOL));
     }
 
     /**
@@ -254,9 +259,9 @@ public class RouteSweepTest {
         assertTrue(v.what, v.what.startsWith("obstacle 0"));
         // The referee, asked to keep the same margin (it shrinks the box by the tolerance it is given, so grow it).
         Rect grown = field.hiveFrame().inflate(margin);
-        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, 36, 110), SIZE, SIZE, field.fieldRect(),
+        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, 36, 110), SQUARE, field.fieldRect(),
                 Collections.singletonList(grown), TOL));
-        assertNull(BruteForceFootprint.firstClip(route(start, 90, 36, 110), SIZE, SIZE, field.fieldRect(),
+        assertNull(BruteForceFootprint.firstClip(route(start, 90, 36, 110), SQUARE, field.fieldRect(),
                 Collections.singletonList(grown), TOL));
     }
 
@@ -273,14 +278,14 @@ public class RouteSweepTest {
         coarse.stepIn = 5.0;
         coarse.stepDeg = 45.0;
         Rect thin = new Rect(52.0, 52.1, 0, 100);
-        RouteSweep s = new RouteSweep(BOX, 0.0, Collections.singletonList(thin), 0.0, 2.0, 2.0, coarse);
+        RouteSweep s = new RouteSweep(BOX, 0.0, Collections.singletonList(thin), 0.0, RobotShape.centered(2.0, 2.0), coarse);
         HeadingProfile p = route(Pose2.ofDegrees(10, 50, 0), 0, 90, 50);
         RouteSweep.Violation v = s.check(p);
         assertNotNull("must catch a 0.1 in wall between samples", v);
         assertTrue(v.what, v.what.startsWith("obstacle 0"));
         // A wall that is 0.1 in thick but does not span the robot's path (it ends at y = 40) is not a problem.
         RouteSweep elsewhere = new RouteSweep(BOX, 0.0, Collections.singletonList(new Rect(52.0, 52.1, 0, 40)), 0.0,
-                2.0, 2.0, coarse);
+                RobotShape.centered(2.0, 2.0), coarse);
         assertNull(elsewhere.check(p));
     }
 
@@ -313,12 +318,12 @@ public class RouteSweepTest {
     @Test
     public void theGapIsPositiveApartZeroTouchingAndNegativeOverlapping() {
         Rect box = new Rect(20, 40, 0, 20);
-        assertEquals(4.0, RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - 4 - HALF, 10, 0), SIZE, SIZE), box), EPS);
-        assertEquals(0.0, RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - HALF, 10, 0), SIZE, SIZE), box), EPS);
-        assertEquals(-3.0, RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - HALF + 3, 10, 0), SIZE, SIZE), box), EPS);
+        assertEquals(4.0, RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - 4 - HALF, 10, 0), SQUARE), box), EPS);
+        assertEquals(0.0, RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - HALF, 10, 0), SQUARE), box), EPS);
+        assertEquals(-3.0, RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - HALF + 3, 10, 0), SQUARE), box), EPS);
         // Turned 45 degrees the square's corner (12.58 in from its centre) points at the box.
         double reach = HALF * Math.sqrt(2.0);
-        double gap = RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - reach - 4, 10, 45), SIZE, SIZE), box);
+        double gap = RouteSweep.gapToRect(Footprint.of(Pose2.ofDegrees(20 - reach - 4, 10, 45), SQUARE), box);
         assertEquals(4.0, gap, 1e-9);
         assertTrue(gap <= 4.0 + EPS);
     }
@@ -344,12 +349,12 @@ public class RouteSweepTest {
         while (trials < 400) {
             Pose2 start = new Pose2(10 + rng.nextDouble() * 80, 10 + rng.nextDouble() * 80, (rng.nextDouble() - 0.5) * 6.0);
             // Only starts that are clear of everything (a start inside a wall is a different question).
-            if (BruteForceFootprint.wallPoke(start, SIZE, SIZE, BOX) > 0.0) {
+            if (BruteForceFootprint.wallPoke(start, SQUARE, BOX) > 0.0) {
                 continue;
             }
             boolean startClear = true;
             for (Rect b : boxes) {
-                if (BruteForceFootprint.overlaps(start, SIZE, SIZE, b, 0.0)) {
+                if (BruteForceFootprint.overlaps(start, SQUARE, b, 0.0)) {
                     startClear = false;
                 }
             }
@@ -364,7 +369,7 @@ public class RouteSweepTest {
             }
             HeadingProfile p = HeadingProfile.build(start, wps, (rng.nextDouble() - 0.5) * 6.0);
             RouteSweep.Violation v = s.check(p);
-            String clip = BruteForceFootprint.firstClip(p, SIZE, SIZE, BOX, boxes, TOL);
+            String clip = BruteForceFootprint.firstClip(p, SQUARE, BOX, boxes, TOL);
             if (v == null) {
                 safe++;
                 assertNull("the check let a clip through: " + clip, clip);
@@ -372,7 +377,7 @@ public class RouteSweepTest {
                 unsafe++;
                 if (v.gapIn < -0.2) {
                     assertNotNull("the check reported a clip the referee cannot see: " + v, BruteForceFootprint.firstClip(
-                            p, SIZE, SIZE, BOX, boxes, TOL / 2.0));
+                            p, SQUARE, BOX, boxes, TOL / 2.0));
                 }
             }
         }

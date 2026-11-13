@@ -12,6 +12,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+
 /**
  * Closed-loop tests of the whole hold-to-shoot sequence against a small physical simulation: a robot that follows
  * commanded paths with lag, a flywheel that dips when a ball is fed, a HIVE that tips after enough balls land in its UP
@@ -424,11 +426,24 @@ public class AutoShootSequenceTest {
     }
 
     /**
-     * A RED robot at the C1 autonomous start (58, 9.2) facing the audience wall, with the HIVE in its match-start state
+     * The C1 autonomous start, written for the real robot: facing the audience wall (-90 degrees) with its FRONT edge on it,
+     * so its position (center of rotation) is the front extent, 9.77 in, from the wall.
+     */
+    private static Pose2 c1Start() {
+        return Pose2.ofDegrees(58.0, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90);
+    }
+
+    /** The B1 autonomous start, the same way: front edge on the audience wall. */
+    private static Pose2 b1Start() {
+        return Pose2.ofDegrees(35.0, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90);
+    }
+
+    /**
+     * A RED robot at the C1 autonomous start (58, 9.77) facing the audience wall, with the HIVE in its match-start state
      * (red audience cell up), which is also what the robot believes.
      */
     private static Sim redAtC1() {
-        return new Sim(Alliance.RED, Pose2.ofDegrees(58.0, 9.2, -90));
+        return new Sim(Alliance.RED, c1Start());
     }
 
     /** Shorthand for the two end states the tests wait for. */
@@ -476,7 +491,7 @@ public class AutoShootSequenceTest {
      */
     @Test
     public void redFromB1DrivesToTheCellAxisAndShootsAllFour() {
-        Sim s = new Sim(Alliance.RED, Pose2.ofDegrees(35.0, 9.2, -90));
+        Sim s = new Sim(Alliance.RED, b1Start());
         s.held = true;
         s.run(25, DONE, FAULT);
         assertEquals(DONE, s.controller.state());
@@ -496,7 +511,7 @@ public class AutoShootSequenceTest {
         Sim red = redAtC1();
         red.held = true;
         red.run(25, DONE, FAULT);
-        Sim blue = new Sim(Alliance.BLUE, Alliance.BLUE.fromRed(Pose2.ofDegrees(58.0, 9.2, -90), 144.0));
+        Sim blue = new Sim(Alliance.BLUE, Alliance.BLUE.fromRed(c1Start(), 144.0));
         blue.held = true;
         blue.run(25, DONE, FAULT);
         assertEquals(DONE, blue.controller.state());
@@ -519,7 +534,7 @@ public class AutoShootSequenceTest {
     public void everyAllianceSideAndStartingCornerWorks() {
         for (Alliance a : Alliance.values()) {
             for (Side up : Side.values()) {
-                Sim s = new Sim(a, a.fromRed(Pose2.ofDegrees(58.0, 9.2, -90), 144.0), false);
+                Sim s = new Sim(a, a.fromRed(c1Start(), 144.0), false);
                 // Make this cell really up, and make the robot believe the same (not yet confirmed by the camera).
                 s.trueUp = up;
                 s.tracker.reset(up, false);
@@ -571,7 +586,7 @@ public class AutoShootSequenceTest {
      */
     @Test
     public void aWrongBeliefIsCorrectedWithoutFiringAtTheDownCell() {
-        Sim s = new Sim(Alliance.RED, Pose2.ofDegrees(58.0, 9.2, -90), false);
+        Sim s = new Sim(Alliance.RED, c1Start(), false);
         s.trueUp = Side.REAR;                      // the HIVE was tipped earlier; the robot still believes AUDIENCE
         s.step();                                  // one loop with the button up
         s.held = true;
@@ -591,7 +606,7 @@ public class AutoShootSequenceTest {
      */
     @Test
     public void ifNeitherSideShowsTags_theSequenceStopsInsteadOfFiringBlind() {
-        Sim s = new Sim(Alliance.RED, Pose2.ofDegrees(58.0, 9.2, -90), false);
+        Sim s = new Sim(Alliance.RED, c1Start(), false);
         s.dropoutRate = 1.0;                       // the camera is healthy but never sees a tag
         s.step();                                  // one loop with the button up
         s.held = true;
@@ -801,7 +816,7 @@ public class AutoShootSequenceTest {
      */
     @Test
     public void aButtonAlreadyHeldWhenTheOpModeStartsDoesNotAutoStartUntilReleasedAndPressedAgain() {
-        Sim s = new Sim(Alliance.RED, Pose2.ofDegrees(58.0, 9.2, -90), false);
+        Sim s = new Sim(Alliance.RED, c1Start(), false);
         s.held = true;                              // the driver was holding it through INIT
         s.run(1.0);
         assertEquals(AutoShootController.State.IDLE, s.controller.state());

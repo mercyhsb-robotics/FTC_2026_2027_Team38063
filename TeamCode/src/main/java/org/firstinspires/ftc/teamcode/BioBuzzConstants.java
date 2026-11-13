@@ -243,8 +243,8 @@ public final class BioBuzzConstants {
         public static final double TIME_SAFETY_MARGIN_SEC = 2.0;
         /**
          * FIXED: spacing of the COARSE samples that the validator checks along every leg (inches). Between two coarse
-         * samples a corner of the robot can move up to {@code PATH_SAMPLE_STEP_IN + 12.59 in * TURN_SAMPLE_STEP_DEG in
-         * radians} (2.10 in); the validator grows every obstacle by half of that and cuts a gap in two whenever it
+         * samples a corner of the robot can move up to {@code PATH_SAMPLE_STEP_IN + 13.22 in * TURN_SAMPLE_STEP_DEG in
+         * radians} (2.15 in); the validator grows every obstacle by half of that and cuts a gap in two whenever it
          * cannot prove it is clear, so nothing can slip between two samples (see {@code routes/Sweep.java}).
          */
         public static final double PATH_SAMPLE_STEP_IN = 1.0;
@@ -418,23 +418,59 @@ public final class BioBuzzConstants {
         }
 
         /**
-         * FIXED (goBILDA mecanum StarterBot drawing 3200-2627-0004): overall length, front to back, 452 mm. It is
-         * assumed to INCLUDE the flat intake wheels at the front (see {@link #INTAKE_REACH_IN}), so everything that plans
-         * with the footprint (the TeleOp auto-shoot, the route validator) sees the same rectangle.
+         * FIXED (goBILDA mecanum StarterBot drawing 3200-2627-0004): overall length, front to back, 452 mm. This is the
+         * OUTER PERIMETER: it INCLUDES the four mecanum wheels and the two flat intake wheels at the front (see
+         * {@link #INTAKE_REACH_IN}). It is NOT centered on the robot's center of rotation (the point Pedro and the
+         * odometry call the robot's position): see {@link #FRONT_EXTENT_IN} and {@link #REAR_EXTENT_IN} for where the
+         * perimeter really lies around that point. Used for the 18 in start cube (rule R102).
          */
         public static final double LENGTH_IN = 17.80;
-        /** FIXED (same drawing): overall width, side to side, 452 mm. The robot is square, so it fits the 18 in start cube (rule R102) with 0.2 in to spare. */
+        /** FIXED (same drawing): overall width, side to side, 452 mm, wheels included. The robot is square, so it fits the 18 in start cube (rule R102) with 0.2 in to spare. */
         public static final double WIDTH_IN = 17.80;
+
+        // ---- where the perimeter lies around the center of rotation -----------------------------------------
+        // The robot's POSITION is the point it spins about (the "center of rotation": for a mecanum robot, about the
+        // middle between the axles). It is NOT the middle of the 17.80 x 17.80 in perimeter, because the intake sticks
+        // out in front of the front axle and the back of the robot ends nearer to the rear axle. These four numbers say
+        // how far the perimeter is from that point in each direction. Facing the audience wall front-first, the robot's
+        // position is FRONT_EXTENT_IN from the wall when the front touches it.
+
+        /**
+         * VERIFY: distance, in inches, from the center of rotation to the FRONT edge of the perimeter (the outer edge of
+         * the two flat intake wheels). 9.77 in read off the goBILDA drawing, taking the center of rotation as the middle
+         * between the two axles (the axles are 10.39 in apart; the drawing puts the middle 8.03 in from the rear edge and
+         * 9.77 in from the front edge). Measure it on the real robot: mark the point the robot spins about, then measure
+         * to the front edge. Must satisfy {@code FRONT_EXTENT_IN + REAR_EXTENT_IN = LENGTH_IN}; ConstantsCheck checks it.
+         */
+        public static final double FRONT_EXTENT_IN = 9.77;
+        /**
+         * VERIFY: distance, in inches, from the center of rotation to the REAR edge of the perimeter (the back lip, where
+         * the ball leaves). 8.03 in from the drawing. See {@link #FRONT_EXTENT_IN}.
+         */
+        public static final double REAR_EXTENT_IN = 8.03;
+        /**
+         * VERIFY: distance, in inches, from the center of rotation to the LEFT edge of the perimeter (the outer face of
+         * the left mecanum wheels, seen from above, with the robot facing forward). 8.90 in because the drive is symmetric
+         * left to right. Must satisfy {@code LEFT_EXTENT_IN + RIGHT_EXTENT_IN = WIDTH_IN}.
+         */
+        public static final double LEFT_EXTENT_IN = 8.90;
+        /** VERIFY: distance, in inches, from the center of rotation to the RIGHT edge of the perimeter. See {@link #LEFT_EXTENT_IN}. */
+        public static final double RIGHT_EXTENT_IN = 8.90;
         /** FIXED (same drawing): height of the tallest part, 308 mm. */
         public static final double HEIGHT_IN = 12.13;
         /** FIXED (same drawing): mecanum wheel diameter, 104 mm. */
         public static final double WHEEL_DIAMETER_IN = 4.09;
 
         /**
-         * ADD: where the ball leaves the shooter, measured from the robot's rotation center. The
-         * shooter fires out the BACK, so forward is NEGATIVE. Placeholder = the rear face.
+         * ADD: where the ball leaves the shooter, measured from the robot's center of rotation. The
+         * shooter fires out the BACK, so forward is NEGATIVE. The starting value, -8.03 in, is DERIVED FROM THE CAD
+         * DRAWING, not measured: the drawing dimensions the launch height at the REAR lip of the robot, so the ball is
+         * assumed to leave at the rear edge of the perimeter, {@link #REAR_EXTENT_IN} behind the center of rotation.
+         * Measure the real exit (from the center of rotation straight back to where the ball leaves) and replace it.
+         * With this value and the robot's front on the audience wall, the ball exit is 17.80 in from that wall, which is
+         * the situation of the measured shot (37.7 in from the aim point).
          */
-        public static final double LAUNCH_POINT_FORWARD_IN = -8.90;
+        public static final double LAUNCH_POINT_FORWARD_IN = -8.03;
         /** ADD: sideways offset of the exit from the center line (positive = robot's left). */
         public static final double LAUNCH_POINT_LEFT_IN = 0.0;
 
@@ -456,6 +492,13 @@ public final class BioBuzzConstants {
          * inches are missing.
          */
         public static final double INTAKE_REACH_IN = 2.7;
+        /**
+         * Derived, not a setting: how far the chassis FRAME reaches in front of the center of rotation, in inches
+         * ({@link #FRONT_EXTENT_IN} minus {@link #INTAKE_REACH_IN}: 7.07 in, the drawing shows about 7.1). It is the
+         * perimeter without the stretch where only the two flat wheels stick out. Change the two numbers it is made of,
+         * never this one.
+         */
+        public static final double CHASSIS_FRONT_EXTENT_IN = FRONT_EXTENT_IN - INTAKE_REACH_IN;
         /**
          * ADD: how far (inches) the middle of each flat wheel is from the robot's center line, to the left for the left
          * wheel and to the right for the right one. 6.1 in read off the drawing (the two wheels are 12.2 in apart, center to
@@ -648,13 +691,13 @@ public final class BioBuzzConstants {
         public static final double PATH_MIN_LEG_IN = 0.5;
 
         // ---- keeping the whole robot (not just its center) off the walls while it drives ------
-        // The route checker (core/RouteSweep) slides the robot's real 17.8 in square along the route and tests it
+        // The route checker (core/RouteSweep) slides the robot's real 17.8 x 17.8 in outline (not centered on its position) along the route and tests it
         // against the walls, the HIVE frame and the FLOWER plates. It looks at least this often, and more often
         // wherever the robot is close to something.
 
         /** TUNE: the route checker looks at the robot at least every this many inches of driving (smaller = slower but finer). */
         public static final double PATH_SWEEP_STEP_IN = 1.0;
-        /** TUNE: ... and at least every this many degrees of turning (a turning square sweeps its corners through a wide arc). */
+        /** TUNE: ... and at least every this many degrees of turning (a turning rectangle sweeps its corners through a wide arc). */
         public static final double PATH_SWEEP_STEP_DEG = 3.0;
         /**
          * VERIFY: the checker forgives the robot coming this much closer than the wall clearance or keep-out margin
@@ -884,10 +927,12 @@ public final class BioBuzzConstants {
          * autonomous (RED frame; BLUE is the half-turn of it): the CENTER of tile C1 (60 in from the red
          * wall, 0.75 in from the HIVE axis), robot FRONT pressed against the audience wall, back toward the
          * HIVE. This is also the one measured good shot position (37.7 in from the aim point). The robot must
-         * really be placed here for odometry to be right.
+         * really be placed here for odometry to be right. The position is the robot's center of rotation, which is
+         * {@link Robot#FRONT_EXTENT_IN} behind the front edge, so the Y value is that distance (the front edge is then
+         * exactly on the wall; the start check in ConstantsCheck rejects a value that would put the robot through it).
          */
         public static final double DEFAULT_START_X_IN = 60.0;
-        public static final double DEFAULT_START_Y_IN = 8.9;
+        public static final double DEFAULT_START_Y_IN = Robot.FRONT_EXTENT_IN;
         public static final double DEFAULT_START_HEADING_DEG = -90.0;
         /** TUNE: a pose saved by an earlier OpMode is only trusted if it is newer than this (seconds). */
         public static final double POSE_CARRYOVER_MAX_AGE_SEC = 300.0;

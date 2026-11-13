@@ -123,7 +123,7 @@ public class RouteSvgFootprintTest {
     private static AutoRoute flowerRoute(IntakeWheel wheel) {
         AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
         Pose2 lineUp = FlowerPress.idealLineUp(red, 0, wheel);
-        return AutoRoute.builder("flower").title("FLOWER press-in").startTile("B1").start(35, 9.2, -90).shootUp(4)
+        return AutoRoute.builder("flower").title("FLOWER press-in").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
                 .driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees()).label("to the FLOWER")
                 .intakeFlower(2.4, 48, wheel, 4).build();
     }
@@ -216,8 +216,11 @@ public class RouteSvgFootprintTest {
             AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
             FlowerPress press = FlowerPress.of((Step.Intake) r.step(3), red);
             // the robot is drawn at the press pose (not at the line-up pose)
+            // (the outline is NOT centered on the pose: facing the left wall its FRONT edge is 9.77 in to the left of the pose and its
+            // BACK edge 8.03 in to the right, and the center-of-rotation dot sits at the pose itself)
             double[] outline = polygonBounds(withClass(intake, "polygon", "outline").get(0));
-            assertEquals(px(press.press.x), (outline[0] + outline[1]) / 2.0, 0.05);
+            assertEquals(px(press.press.x - BioBuzzConstants.Robot.FRONT_EXTENT_IN), outline[0], 0.05);
+            assertEquals(px(press.press.x + BioBuzzConstants.Robot.REAR_EXTENT_IN), outline[1], 0.05);
             assertEquals(py(press.press.y), (outline[2] + outline[3]) / 2.0, 0.05);
             // exactly one wheel is ringed: the one the step names, and it sits on the FLOWER's center line
             List<Element> pressing = withClass(intake, "circle", "pressing");
@@ -278,7 +281,7 @@ public class RouteSvgFootprintTest {
     @Test
     public void aFootprintAtAStepWithAnErrorIsOutlinedInAmberAndOthersAreNot() throws Exception {
         // the second volley fires 4 POLLEN that the robot does not hold (an ERROR at step 3); the first volley is fine
-        AutoRoute r = AutoRoute.builder("bad").startTile("B1").start(35, 9.2, -90).shootUp(4).shootUp(4).build();
+        AutoRoute r = AutoRoute.builder("bad").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4).shootUp(4).build();
         List<Issue> issues = RouteValidator.check(r);
         boolean errorAtStep3 = false;
         for (Issue i : issues) {
@@ -302,7 +305,7 @@ public class RouteSvgFootprintTest {
         // a FLOWER press-in with a retreat of only 2 in is a WARN at step 4 and nothing else is wrong with that step
         AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
         Pose2 lineUp = FlowerPress.idealLineUp(red, 0, IntakeWheel.LEFT);
-        AutoRoute r = AutoRoute.builder("warn").startTile("B1").start(35, 9.2, -90).shootUp(4)
+        AutoRoute r = AutoRoute.builder("warn").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
                 .driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees())
                 .intakeFlower(2.4, 48, IntakeWheel.LEFT, 4).retreat(2.0).build();
         boolean warnAtIntake = false;

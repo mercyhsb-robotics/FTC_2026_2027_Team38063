@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+
 /**
  * Every autonomous route the team has, as data. Each route is written ONCE, for the RED alliance;
  * the BLUE version is {@link AutoRoute#forAlliance} (a half turn about the field center).
@@ -22,8 +24,21 @@ import java.util.List;
  * They are NOT improved here, so the validator reports their real problems honestly. The last two are
  * small demonstration routes that pass the validator. Every route here assumes that OUR robot shoots the first
  * tip of the HIVE (the 3 NECTAR staged in the UP cell make one volley of 4 POLLEN enough).
+ *
+ * <p><b>Where the robot stands at the start.</b> A pose is the robot's CENTER OF ROTATION, which is not the middle of
+ * its 17.80 x 17.80 in outline: the front edge is 9.77 in ahead of it, the back edge 8.03 in behind it
+ * ({@code Robot.FRONT_EXTENT_IN} and {@code REAR_EXTENT_IN}, to be measured on the real robot). So a robot that faces the
+ * audience wall with its FRONT edge on the wall has its pose 9.77 in from it ({@link #FRONT_ON_WALL_IN}); the old OpModes
+ * wrote 9.2 in, a number from before the center of rotation was known, and the validator reports honestly that the real
+ * footprint would then reach 0.57 in through the wall. Place the real robot with its front edge ON the wall.
  */
 public final class RouteCatalog {
+    /**
+     * How far the robot's center of rotation is from a wall that its FRONT edge is touching, inches: the robot faces the wall.
+     * The new demonstration routes start (and stand at the GARDEN) at this distance.
+     */
+    static final double FRONT_ON_WALL_IN = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+
     public static final String RED_B1 = "red_b1";
     public static final String RED_C1 = "red_c1";
     public static final String RED_LEAVE_PARK = "red_leave_park";
@@ -67,6 +82,10 @@ public final class RouteCatalog {
                         + "to (35.8, 90) and sideways to (12, 90), ending partly in the red LOADING ZONE.")
                 .startTile("B1")
                 .start(35.0, 9.2, -90)
+                    .note("The OpMode's number, copied. The robot's center of rotation is 9.2 in from the audience wall, but its "
+                            + "front edge is " + FRONT_ON_WALL_IN + " in ahead of the center, so the real footprint would reach "
+                            + "0.57 in through the wall: place the real robot with its FRONT ON the wall (center " + FRONT_ON_WALL_IN
+                            + " in out) and change the OpMode's y to match once the center of rotation is measured.")
                 .shootUp(35.0, 9.2, -115, 4).launchSeconds(5.0)
                     .note("hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an "
                             + "instant command, so the shot really starts without waiting for the turn.")
@@ -79,7 +98,7 @@ public final class RouteCatalog {
                             + "turns to face +x by itself because it drives toward -x backwards.")
                 .park(12, 90, 0)
                     .note("The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone "
-                            + "by only 2.9 in (the 17.80 in square robot reaches y 98.9; the zone starts at y 96).")
+                            + "by only 2.9 in (the robot reaches 8.9 in to its left, y 98.9; the zone starts at y 96).")
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -92,6 +111,9 @@ public final class RouteCatalog {
                         + "all backwards. The first leg is a straight line through the HIVE footprint.")
                 .startTile("C1")
                 .start(58.0, 9.2, -90)
+                    .note("The OpMode's number, copied. The center of rotation is 9.2 in from the audience wall but the front edge is "
+                            + FRONT_ON_WALL_IN + " in ahead of it: the real footprint would reach 0.57 in through the wall. Place the "
+                            + "real robot with its FRONT ON the wall (center " + FRONT_ON_WALL_IN + " in out) and change the OpMode's y to match.")
                 .shootUp(58.0, 9.2, -90, 4).launchSeconds(5.0)
                     .note("hold(follower, (58.0, 9.2, -90)) then aimAndLaunch(): fixed waitMs(5000).")
                 .waitSeconds(4.5)
@@ -103,7 +125,7 @@ public final class RouteCatalog {
                 .driveReverseTangent(12.0, 118.1, -90).label("path3")
                     .note("The -90 deg heading in the source is ignored: the robot ends facing 0 deg.")
                 .park(12.0, 118.1, 0)
-                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.9 x 10.8 in.")
+                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.0 x 10.8 in (the back edge is 8.03 in behind the center of rotation).")
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -116,12 +138,16 @@ public final class RouteCatalog {
                         + "The 4 pre-loads are never fired.")
                 .startTile("A3")
                 .start(9.2112, 70.2702, 180)
+                    .note("The OpMode's number, copied (its comment says the front is about 0.3 in from the red wall). The center of "
+                            + "rotation is 9.21 in from the wall but the front edge is " + FRONT_ON_WALL_IN + " in ahead of it, so the real "
+                            + "footprint would reach 0.56 in through the wall: place the real robot with its FRONT ON the wall (center "
+                            + FRONT_ON_WALL_IN + " in out) and change the OpMode's x to match once the center of rotation is measured.")
                 .driveLinear(24.8608, 83.6152, 135).label("path1")
                     .note("Paths.line(start, path1).linear(start, path1)")
                 .driveLinear(16.0, 91.5, 135).label("path2")
                     .note("Paths.line(point2Start, point2).linear(point2Start, point2)")
                 .park(16.0, 91.5, 135)
-                    .note("Only a corner of the robot reaches the LOADING ZONE, 3.1 in deep; the source does not call it PARK.")
+                    .note("Only a corner of the robot reaches the LOADING ZONE, 4.3 in deep; the source does not call it PARK.")
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -134,7 +160,9 @@ public final class RouteCatalog {
                         + "parks deep inside the red LOADING ZONE. The 4 POLLEN land on top of the NECTAR that already "
                         + "sit in the UP cell and tip the HIVE, so the route claims LEAVE 3 + PARK 5 + our TIP 20.")
                 .startTile("C1")
-                .start(58.0, 9.2, -90)
+                .start(58.0, FRONT_ON_WALL_IN, -90)
+                    .note("Front edge ON the audience wall (the center of rotation is " + FRONT_ON_WALL_IN + " in out). Place the robot with the "
+                            + "wheel tips touching the wall and the middle of the robot over tile C1.")
                 .shootUp(4)
                     .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose. "
                             + "The staged NECTAR in the cell plus these 4 POLLEN tip the HIVE: one volley is enough for the first tip.")
@@ -155,15 +183,17 @@ public final class RouteCatalog {
                         + "(that needs 8 POLLEN). So the route does not shoot again: it sweeps up the 4 POLLEN of the red "
                         + "GARDEN along the audience wall to carry into TELEOP and steps off the wall. LEAVE 3 + our TIP 20.")
                 .startTile("B1")
-                .start(35.0, 9.2, -90)
+                .start(35.0, FRONT_ON_WALL_IN, -90)
+                    .note("Front edge ON the audience wall (the center of rotation is " + FRONT_ON_WALL_IN + " in out). Place the robot with the "
+                            + "wheel tips touching the wall and the middle of the robot over tile B1.")
                 .shootUp(4)
                     .note("AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The staged "
                             + "NECTAR plus these 4 POLLEN tip the HIVE, and the REAR cell is the UP one from now on.")
                 .driveConstant(9.0, 18.0, -90).label("to GARDEN")
                     .note("Slides along the audience wall with the intake still facing it.")
-                .driveConstant(9.0, 9.7, -90).label("into GARDEN").wallContact()
+                .driveConstant(9.0, FRONT_ON_WALL_IN + 0.8, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
-                .intakeGarden(5.9, 1.4, 9.0, 9.7, -90, 4)
+                .intakeGarden(5.9, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 4)
                     .note("The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3. The robot now holds 4 for TELEOP.")
                 .driveConstant(20.0, 24.0, -90).label("off the wall")
                     .note("Ends with the whole footprint more than 1.5 in off every wall: LEAVE.")

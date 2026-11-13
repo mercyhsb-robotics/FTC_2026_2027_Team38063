@@ -22,40 +22,58 @@ import org.junit.Test;
 /** Footprint, shot geometry and the alliance-specific zones. */
 public class GeometryTest {
     private static final double EPS = 1e-6;
-    private static final double HL = BioBuzzConstants.Robot.LENGTH_IN / 2.0;
-    private static final double HW = BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+    /**
+     * Where the robot's outline lies around its center of rotation (the pose): 9.77 in ahead, 8.03 in behind, 8.90 in to each
+     * side. The robot is NOT centered on its pose.
+     */
+    private static final double F = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+    private static final double B = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+    private static final double S = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
 
     // ---- Footprint ---------------------------------------------------------------------------------
 
     @Test
     public void footprintBoundsFollowTheHeading() {
         Rect facingX = Footprint.of(Pose2.ofDegrees(50, 50, 0)).bounds();
-        assertEquals(50 - HL, facingX.minX, EPS);
-        assertEquals(50 + HL, facingX.maxX, EPS);
-        assertEquals(50 - HW, facingX.minY, EPS);
-        Rect facingDown = Footprint.of(Pose2.ofDegrees(35, 9.2, -90)).bounds();
-        assertEquals("front edge 0.3 in from the audience wall", 0.3, facingDown.minY, EPS);
-        assertEquals(35 - HW, facingDown.minX, EPS);
+        assertEquals("rear edge 8.03 behind the pose", 50 - B, facingX.minX, EPS);
+        assertEquals("front edge 9.77 ahead of it", 50 + F, facingX.maxX, EPS);
+        assertEquals(50 - S, facingX.minY, EPS);
+        assertEquals(50 + S, facingX.maxY, EPS);
+        Rect facingDown = Footprint.of(Pose2.ofDegrees(35, F, -90)).bounds();
+        assertEquals("front edge ON the audience wall", 0.0, facingDown.minY, EPS);
+        assertEquals("rear edge 17.8 in from it", F + B, facingDown.maxY, EPS);
+        assertEquals(35 - S, facingDown.minX, EPS);
+        // the same pose, facing away: the rear edge is the near one
+        Rect facingUp = Footprint.of(Pose2.ofDegrees(35, B, 90)).bounds();
+        assertEquals(0.0, facingUp.minY, EPS);
+        assertEquals(B + F, facingUp.maxY, EPS);
+        // 45 degrees: the corners worked out by hand, a front corner reaches farthest
         Rect diagonal = Footprint.of(Pose2.ofDegrees(50, 50, 45)).bounds();
-        double half = (HL + HW) / Math.sqrt(2.0);
-        assertEquals(50 - half, diagonal.minX, EPS);
-        assertEquals(50 + half, diagonal.maxX, EPS);
+        double c = Math.sqrt(0.5);
+        assertEquals(50 - c * (B + S), diagonal.minX, EPS);       // the rear-left corner (-B, +S): x = -B c - S c
+        assertEquals(50 + c * (F + S), diagonal.maxX, EPS);       // the front-right corner (F, -S): x = F c + S c
     }
 
     @Test
     public void theFrontLeftCornerIsAheadAndToTheLeftOfTheRobot() {
         Footprint fp = Footprint.of(Pose2.ofDegrees(0, 0, 90));
-        // heading +y: front is +y, left is -x
-        assertEquals(-HW, fp.corner(0).x, EPS);
-        assertEquals(HL, fp.corner(0).y, EPS);
+        // heading +y: front is +y (9.77 in), left is -x (8.90 in)
+        assertEquals(-S, fp.corner(0).x, EPS);
+        assertEquals(F, fp.corner(0).y, EPS);
+        // the back-right corner is 8.03 in behind and 8.90 in to the right
+        assertEquals(S, fp.corner(2).x, EPS);
+        assertEquals(-B, fp.corner(2).y, EPS);
     }
 
     @Test
     public void touchingEdgesDoNotOverlapButPenetrationDoes() {
         Rect wall = new Rect(0, 100, -10, 0);
-        // robot standing exactly on the line y = 0
-        assertFalse(Footprint.of(Pose2.ofDegrees(35, HL, -90)).overlaps(wall));
-        assertTrue(Footprint.of(Pose2.ofDegrees(35, HL - 0.01, -90)).overlaps(wall));
+        // robot standing exactly on the line y = 0 with its front edge
+        assertFalse(Footprint.of(Pose2.ofDegrees(35, F, -90)).overlaps(wall));
+        assertTrue(Footprint.of(Pose2.ofDegrees(35, F - 0.01, -90)).overlaps(wall));
+        // with its back edge: the pose may be closer
+        assertFalse(Footprint.of(Pose2.ofDegrees(35, B, 90)).overlaps(wall));
+        assertTrue(Footprint.of(Pose2.ofDegrees(35, B - 0.01, 90)).overlaps(wall));
         // far away never overlaps
         assertFalse(Footprint.of(Pose2.ofDegrees(35, 50, -90)).overlaps(wall));
     }
@@ -68,9 +86,9 @@ public class GeometryTest {
         Footprint fp = Footprint.of(p);
         assertTrue("premise: the bounding boxes overlap", fp.bounds().maxX > box.minX && fp.bounds().maxY > box.minY);
         assertFalse("but the rotated body stays clear of the corner", fp.overlaps(box));
-        // the front edge of a 45 degree robot at (56, 56) lies along x + y = 124.6, past the box corner at 120
+        // the front edge of a 45 degree robot at (56, 56) lies along x + y = 112 + 9.77 sqrt 2 = 125.8, past the box corner at 120
         assertTrue(Footprint.of(Pose2.ofDegrees(56, 56, 45)).overlaps(box));
-        // while at (52, 52) the same edge (x + y = 116.6) stops short of the corner
+        // while at (52, 52) the same edge (x + y = 104 + 13.8 = 117.8) stops short of the corner
         assertFalse(Footprint.of(Pose2.ofDegrees(52, 52, 45)).overlaps(box));
     }
 
@@ -78,44 +96,45 @@ public class GeometryTest {
     public void overshootAndInsideRectAreMeasuredFromTheBoundingBox() {
         Rect field = new Rect(0, 144, 0, 144);
         Footprint out = Footprint.of(Pose2.ofDegrees(35, 9.2, -115));
-        // heading -115 at y = 9.2 (the old B1 shooting pose): the rotated 17.80 x 17.80 in robot reaches
-        // 8.9 * (|sin 115| + |cos 115|) = 11.83 in below its center, so 2.63 in through the audience wall
-        double reach = HL * Math.abs(Math.sin(Math.toRadians(-115))) + HW * Math.abs(Math.cos(Math.toRadians(-115)));
-        assertEquals(2.627, reach - 9.2, 0.001);
+        // heading -115 at y = 9.2 (the old B1 shooting pose): the rotated robot reaches 9.77 * cos 25 + 8.90 * sin 25 = 12.62 in
+        // toward the audience wall from its center (the front-left corner leads), so 3.42 in through it
+        double reach = F * Math.cos(Math.toRadians(25)) + S * Math.sin(Math.toRadians(25));
+        assertEquals(3.416, reach - 9.2, 0.001);
         assertEquals(reach - 9.2, out.overshootOutside(field), EPS);
         assertFalse(out.insideRect(field, 0.1));
-        assertFalse(out.insideRect(field, 2.5));
-        assertTrue(out.insideRect(field, 2.7));
+        assertFalse(out.insideRect(field, 3.3));
+        assertTrue(out.insideRect(field, 3.5));
         assertTrue(Footprint.of(Pose2.ofDegrees(72, 72, 33)).insideRect(field, 0));
     }
 
     @Test
     public void clippedBoundsGivesTheOverlapWithARectangle() {
         Rect zone = new Rect(0, 11, 96, 120);
-        // B1 park (12, 90, 0): the robot spans x 3.1..20.9 and y 81.1..98.9, so 7.9 in of it is inside the zone in x
-        // (0..11) and 2.9 in in y (96..120)
+        // B1 park (12, 90, 0): the robot spans x 3.97..21.77 (rear edge 8.03 behind the pose, front 9.77 ahead) and y 81.1..98.9,
+        // so 7.03 in of it is inside the zone in x (0..11) and 2.9 in in y (96..120)
         Rect c = Footprint.of(Pose2.ofDegrees(12, 90, 0)).clippedBounds(zone);
         assertNotNull(c);
-        assertEquals(11.0 - (12.0 - HL), c.maxX - c.minX, EPS);
-        assertEquals(7.9, c.maxX - c.minX, EPS);
-        assertEquals(90.0 + HW - 96.0, c.maxY - c.minY, EPS);
+        assertEquals(11.0 - (12.0 - B), c.maxX - c.minX, EPS);
+        assertEquals(7.03, c.maxX - c.minX, EPS);
+        assertEquals(90.0 + S - 96.0, c.maxY - c.minY, EPS);
         assertEquals(2.9, c.maxY - c.minY, EPS);
         // far away -> null
         assertNull(Footprint.of(Pose2.ofDegrees(60, 60, 0)).clippedBounds(zone));
-        // merely touching -> null
-        assertNull(Footprint.of(Pose2.ofDegrees(11 + HL, 108, 0)).clippedBounds(zone));
+        // merely touching -> null (the rear edge on the zone's far side)
+        assertNull(Footprint.of(Pose2.ofDegrees(11 + B, 108, 0)).clippedBounds(zone));
     }
 
     @Test
     public void clippingARotatedFootprintIsSmallerThanItsBoundingBox() {
-        // LeavePark end pose: only a corner reaches into the zone
+        // LeavePark end pose (16, 91.5, 135): only a corner reaches into the zone; the front edge runs along y = x + 89.3 and cuts
+        // the zone x 0..11, y 96..120 in a triangle 4.3 in wide and 4.3 in high
         Rect zone = new Rect(0, 11, 96, 120);
         Footprint fp = Footprint.of(Pose2.ofDegrees(16, 91.5, 135));
         assertTrue(fp.overlaps(zone));
         Rect clipped = fp.clippedBounds(zone);
         assertNotNull(clipped);
-        assertEquals(3.08, clipped.maxX - clipped.minX, 0.05);
-        assertEquals(3.08, clipped.maxY - clipped.minY, 0.05);
+        assertEquals(4.32, clipped.maxX - clipped.minX, 0.01);
+        assertEquals(4.32, clipped.maxY - clipped.minY, 0.01);
     }
 
     // ---- ShotGeometry ------------------------------------------------------------------------------
@@ -124,18 +143,20 @@ public class GeometryTest {
 
     @Test
     public void theLaunchPointIsAtTheBackOfTheRobot() {
-        Point2 l = ShotGeometry.launchPoint(Pose2.ofDegrees(58, 9.2, -90));
-        // back of the robot faces +y at heading -90: the launch point is 8.9 in toward +y
+        // front edge on the audience wall: the position is 9.77 in from it
+        Point2 l = ShotGeometry.launchPoint(Pose2.ofDegrees(58, F, -90));
+        // back of the robot faces +y at heading -90: the launch point is 8.03 in toward +y, i.e. the rear edge, 17.8 in from the wall
         assertEquals(58.0, l.x, EPS);
-        assertEquals(9.2 + 8.9, l.y, EPS);
+        assertEquals(F + 8.03, l.y, EPS);
+        assertEquals("the ball leaves the rear edge, a whole robot length from the wall", BioBuzzConstants.Robot.LENGTH_IN, l.y, EPS);
     }
 
     @Test
     public void c1StartIsInsideTheStandoffBandAndAimedAtTheUpCell() {
         CellSpec aud = model.cell(Alliance.RED, Side.AUDIENCE);
-        Pose2 c1 = Pose2.ofDegrees(58, 9.2, -90);
+        Pose2 c1 = Pose2.ofDegrees(58, F, -90);
         double d = ShotGeometry.standoff(c1, aud);
-        assertEquals(37.4, d, 0.05);
+        assertEquals(37.74, d, 0.05);
         assertTrue(d >= BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN && d <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
         assertEquals(1.9, Math.toDegrees(ShotGeometry.aimError(c1, aud)), 0.1);
         assertTrue(ShotGeometry.onOpeningSide(c1, aud));
@@ -144,8 +165,8 @@ public class GeometryTest {
     @Test
     public void b1HoldPoseIsAimedAtTheCellButFartherThanTheStandoffBand() {
         CellSpec aud = model.cell(Alliance.RED, Side.AUDIENCE);
-        Pose2 b1 = Pose2.ofDegrees(35, 9.2, -115);
-        assertEquals(43.4, ShotGeometry.standoff(b1, aud), 0.1);
+        Pose2 b1 = Pose2.ofDegrees(35, F, -115);
+        assertEquals(43.76, ShotGeometry.standoff(b1, aud), 0.05);
         assertTrue(Math.toDegrees(ShotGeometry.aimError(b1, aud)) < 5.0);
     }
 
@@ -162,10 +183,10 @@ public class GeometryTest {
                 assertEquals(cell.facingHeading, p.heading, EPS);
             }
         }
-        // red audience cell: robot south of the HIVE, heading -90, center about 12.6 in from the wall
+        // red audience cell: robot south of the HIVE, heading -90, center of rotation 13.5 in from the wall (the ball exit 8.03 in behind it)
         Pose2 red = ShotGeometry.nominalPose(model.cell(Alliance.RED, Side.AUDIENCE));
         assertEquals(59.25, red.x, EPS);
-        assertEquals(55.52 - 34.0 - 8.9, red.y, 1e-6);
+        assertEquals(55.52 - 34.0 - B, red.y, 1e-6);
         assertEquals(-90.0, red.headingDegrees(), EPS);
     }
 

@@ -98,7 +98,7 @@ public class RouteGalleryTest {
     }
 
     private static AutoRoute simple(String id, String title) {
-        return AutoRoute.builder(id).title(title).description("d").startTile("C1").start(58, 9.2, -90).waitSeconds(1).build();
+        return AutoRoute.builder(id).title(title).description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).waitSeconds(1).build();
     }
 
     // ---- the set of files --------------------------------------------------------------------------
@@ -198,8 +198,8 @@ public class RouteGalleryTest {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         Element garden = section(page, "garden_cycle");
         assertEquals("B1", rowValue(garden, "Start tile"));
-        assertEquals("(35.0, 9.2) in, heading -90 deg", rowValue(garden, "Start pose, RED"));
-        assertEquals("(109.0, 134.8) in, heading 90 deg", rowValue(garden, "Start pose, BLUE"));
+        assertEquals(String.format(java.util.Locale.ROOT, "(35.0, %.1f) in, heading -90 deg", BioBuzzConstants.Robot.FRONT_EXTENT_IN), rowValue(garden, "Start pose, RED"));
+        assertEquals(String.format(java.util.Locale.ROOT, "(109.0, %.1f) in, heading 90 deg", 144.0 - BioBuzzConstants.Robot.FRONT_EXTENT_IN), rowValue(garden, "Start pose, BLUE"));
         assertEquals("6", rowValue(garden, "Steps"));
         assertTrue(rowValue(garden, "Estimated time"), rowValue(garden, "Estimated time").contains("placeholder"));
         assertEquals("23 = LEAVE 3 + PARK 0 + our HIVE TIP 20", rowValue(garden, "Our AUTO points"));
@@ -207,7 +207,7 @@ public class RouteGalleryTest {
         assertEquals("1 (the first needs 4 POLLEN into the UP cell, each later one 8)", rowValue(garden, "Our HIVE TIPs"));
         assertEquals("no findings", rowValue(garden, "Validator"));
         Element c1 = section(page, "red_c1");
-        assertEquals("1 ERROR", rowValue(c1, "Validator"));
+        assertEquals("3 ERROR, 1 WARN", rowValue(c1, "Validator"));
         assertTrue(rowValue(c1, "Ends"), rowValue(c1, "Ends").startsWith("LEAVE yes, PARK yes"));
     }
 
@@ -216,7 +216,7 @@ public class RouteGalleryTest {
     /** A partner route that waits at the rear wall for the partner's tip and then fires 4 POLLEN at the rear cell. */
     private static AutoRoute partnerRoute() {
         return AutoRoute.builder("partner_rear").title("Partner tips first").description("d").startTile("C6")
-                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
+                .start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
     }
 
     private static List<AutoRoute> catalogAndPartner() {
@@ -252,7 +252,7 @@ public class RouteGalleryTest {
         // a route that shoots the first tip itself has no partner row at all
         assertFalse(section(page, "garden_cycle").getTextContent().contains("Assumed partner tip"));
         // and when our own volley tips first the partner row says the partner is not needed
-        AutoRoute early = AutoRoute.builder("early").title("Early").description("d").startTile("C1").start(58, 9.2, -90)
+        AutoRoute early = AutoRoute.builder("early").title("Early").description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
                 .partnerTipsFirst().shootUp(4).build();
         String voided = rowValue(section(parse(RouteGallery.indexHtml(Collections.singletonList(early))), "early"), "Assumed partner tip");
         assertTrue(voided, voided.startsWith("none:"));
@@ -294,11 +294,11 @@ public class RouteGalleryTest {
 
     @Test
     public void theSlackTextSaysWhenARouteHasLittleOrNoSlackOrDoesNotDependOnThePartner() throws Exception {
-        AutoRoute tight = AutoRoute.builder("tight").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
+        AutoRoute tight = AutoRoute.builder("tight").title("t").description("d").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
                 .partnerTipsFirst().waitForTip(13).shootUp(62.0, 132.5, 90, 4).build();
-        AutoRoute broken = AutoRoute.builder("broken").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
+        AutoRoute broken = AutoRoute.builder("broken").title("t").description("d").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
                 .partnerTipsFirst().waitForTip(10).shootUp(62.0, 132.5, 90, 4).build();
-        AutoRoute free = AutoRoute.builder("free").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
+        AutoRoute free = AutoRoute.builder("free").title("t").description("d").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
                 .partnerTipsFirst().driveConstant(61.5, 120, 90).build();
         Document page = parse(RouteGallery.indexHtml(java.util.Arrays.asList(tight, broken, free)));
         String tightText = rowValue(section(page, "tight"), "Latest partner tip that works");
@@ -348,7 +348,7 @@ public class RouteGalleryTest {
         // a route without a volley says so
         assertTrue(withClass(section(page, "red_leave_park"), "li", "tipline").get(0).getTextContent().contains("launches no POLLEN"));
         // three POLLEN do not tip the first HIVE
-        AutoRoute three = AutoRoute.builder("three").title("Three").description("d").startTile("C1").start(58, 9.2, -90).shootUp(3).build();
+        AutoRoute three = AutoRoute.builder("three").title("Three").description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(3).build();
         String text = withClass(section(parse(RouteGallery.indexHtml(Collections.singletonList(three))), "three"), "li", "tipline").get(0)
                 .getTextContent();
         assertTrue(text, text.contains("3 x 8 + 3 x 5 = 39, short of 40, so no tip yet (1 more POLLEN"));
@@ -374,13 +374,13 @@ public class RouteGalleryTest {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         Element b1 = section(page, "red_b1");
         List<Element> issues = withClass(b1, "li", "issue");
-        assertEquals(6, issues.size());
+        assertEquals(7, issues.size());
         int errors = 0;
         for (Element i : issues) {
             errors += i.getAttribute("data-severity").equals("ERROR") ? 1 : 0;
             assertTrue(i.getTextContent(), i.getTextContent().contains("step "));
         }
-        assertEquals(4, errors);
+        assertEquals(5, errors);
         assertTrue("one shared list when red and blue agree", b1.getTextContent().contains("Same for RED and BLUE."));
         Element clean = section(page, "wall_shoot_park");
         List<Element> ok = withClass(clean, "li", "ok");
@@ -412,7 +412,7 @@ public class RouteGalleryTest {
     @Test
     public void markupInATitleOrNoteCannotBreakThePage() throws Exception {
         AutoRoute odd = AutoRoute.builder("odd").title("A & B <fast> \"auto\"").description("<b>x</b> & y").startTile("C1")
-                .start(58, 9.2, -90).waitSeconds(1).note("1 < 2 & 3 > 2").build();
+                .start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).waitSeconds(1).note("1 < 2 & 3 > 2").build();
         Document page = parse(RouteGallery.indexHtml(Collections.singletonList(odd)));
         Element s = section(page, "odd");
         assertEquals("A & B <fast> \"auto\"", all(s, "h2").get(0).getTextContent());
@@ -477,7 +477,7 @@ public class RouteGalleryTest {
             assertTrue(new File(dir, r.id() + "_red.svg").isFile());
             assertTrue(new File(dir, r.id() + "_blue.svg").isFile());
         }
-        assertTrue(out, out.contains("4 ERROR, 2 WARN"));
+        assertTrue(out, out.contains("5 ERROR, 2 WARN"));
         assertTrue(out, out.contains("no findings"));
         // every route line says who is assumed to shoot the first tip
         assertTrue(out, out.contains("1st tip"));

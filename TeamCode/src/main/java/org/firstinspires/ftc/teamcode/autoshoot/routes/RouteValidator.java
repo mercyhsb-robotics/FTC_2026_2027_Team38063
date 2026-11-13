@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.RobotShape;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
@@ -24,7 +25,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *
  * <p>The checks (rule numbers are the manual's):
  * <ol>
- *   <li><b>START, G304.</b> The whole robot footprint (a rotated {@code LENGTH x WIDTH} rectangle at the
+ *   <li><b>START, G304.</b> The whole robot footprint (the perimeter rectangle, NOT centered on the pose point: see {@code RobotShape}, at the
  *       start heading) is inside the field and inside the own half, touches a perimeter wall (within
  *       {@code START_WALL_CONTACT_TOLERANCE_IN}), and is not in the own LOADING ZONE (G304.E), not touching
  *       a FLOWER (G304.D) and not attached to the HIVE frame (G304.B).</li>
@@ -153,7 +154,8 @@ public final class RouteValidator {
 
         double outside = fp.overshootOutside(f.fieldRect());
         if (outside > tol) {
-            out.add(error(0, Rule.START_G304, at + " sticks out of the field by " + in(outside) + " (G304.A)"));
+            out.add(error(0, Rule.START_G304, at + " sticks out of the field by " + in(outside) + " (G304.A)"
+                    + wallHint(start, f.fieldRect())));
         }
         double past = 0.0;
         for (int i = 0; i < 4; i++) {
@@ -184,6 +186,39 @@ public final class RouteValidator {
             out.add(error(0, Rule.START_G304, at + " overlaps the HIVE frame " + f.hiveFrame()
                     + "; a start may not be attached to a FIELD element (G304.B)"));
         }
+    }
+
+    /**
+     * For a start that pokes through a wall: which wall it is, how far the pose point (the center of rotation) is from it,
+     * and how far it has to be for the robot's edge that faces the wall to just touch it. The robot is not centered on its
+     * pose point, so the answer depends on which way it faces: the front edge is {@code Robot.FRONT_EXTENT_IN} from the
+     * pose point, the back edge {@code REAR_EXTENT_IN}, the sides {@code LEFT_EXTENT_IN} and {@code RIGHT_EXTENT_IN}.
+     * Empty if no wall is poked through.
+     */
+    private static String wallHint(Pose2 start, Rect field) {
+        double[] direction = {Math.PI, 0.0, -Math.PI / 2.0, Math.PI / 2.0};       // toward the wall at x = min, x = max, y = min, y = max
+        double[] distance = {start.x - field.minX, field.maxX - start.x, start.y - field.minY, field.maxY - start.y};
+        double[] wallAt = {field.minX, field.maxX, field.minY, field.maxY};
+        String[] axis = {"x", "x", "y", "y"};
+        RobotShape shape = RobotShape.fromConstants();
+        int worst = -1;
+        double worstPoke = EPS;
+        for (int i = 0; i < 4; i++) {
+            double poke = shape.reachTowardIn(start.heading, direction[i]) - distance[i];
+            if (poke > worstPoke) {
+                worstPoke = poke;
+                worst = i;
+            }
+        }
+        if (worst < 0) {
+            return "";
+        }
+        double needed = shape.reachTowardIn(start.heading, direction[worst]);
+        return ": its center of rotation is " + in(distance[worst]) + " from the wall at " + axis[worst] + " = "
+                + String.format(Locale.ROOT, "%.1f", wallAt[worst])
+                + " but the robot's edge that faces that wall reaches " + in(needed) + " from the center (front " + in(shape.frontIn())
+                + ", rear " + in(shape.rearIn()) + ", sides " + in(shape.leftIn())
+                + "); place the real robot with that edge ON the wall, its center " + in(needed) + " out";
     }
 
     // ---- 2 and 3. every leg: field, HIVE, FLOWERS, sides -----------------------------------------------

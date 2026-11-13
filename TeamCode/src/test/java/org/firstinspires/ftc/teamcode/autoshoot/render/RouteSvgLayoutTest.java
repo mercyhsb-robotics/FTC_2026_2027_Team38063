@@ -262,15 +262,17 @@ public class RouteSvgLayoutTest {
 
     @Test
     public void aRouteThatEndsOnADriveShowsWhereTheRobotStopsAndOneThatParksDoesNot() throws Exception {
-        AutoRoute open = AutoRoute.builder("open").title("Open end").startTile("C1").start(58, 9.2, -90)
+        AutoRoute open = AutoRoute.builder("open").title("Open end").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
                 .driveConstant(30, 30, -90).build();
         Document d = parse(RouteSvgRenderer.render(open, Alliance.RED));
         List<Element> end = withClass(byId(d, "route"), "g", "end-outline");
         assertEquals(1, end.size());
         assertEquals("2", end.get(0).getAttribute("data-step"));
         double[] b = polygonBounds(all(end.get(0), "polygon").get(0));
-        assertEquals("centered on the last pose", X0 + 30.0 * S, (b[0] + b[1]) / 2.0, 0.05);
-        assertEquals(Y_BOTTOM - 30.0 * S, (b[2] + b[3]) / 2.0, 0.05);
+        // the outline of the last pose (30, 30, -90): the FRONT edge 9.77 in below the center of rotation, the BACK edge 8.03 in above it
+        assertEquals(X0 + 30.0 * S, (b[0] + b[1]) / 2.0, 0.05);
+        assertEquals(Y_BOTTOM - (30.0 - BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[3], 0.05);
+        assertEquals(Y_BOTTOM - (30.0 + BioBuzzConstants.Robot.REAR_EXTENT_IN) * S, b[2], 0.05);
         assertTrue(stepLabels(d).contains("END"));
         for (AutoRoute r : RouteCatalog.all()) {
             assertEquals(r.id(), endsOnADrive(r) ? 1 : 0,
@@ -309,7 +311,7 @@ public class RouteSvgLayoutTest {
     @Test
     public void theSubtitleAndFooterLinesWithTheFirstTipTextStillFitTheWidthOfTheImage() throws Exception {
         AutoRoute partner = AutoRoute.builder("partner_rear_wait_then_two_volleys").title("Partner tips first").startTile("C6")
-                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
+                .start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
         List<AutoRoute> routes = new ArrayList<AutoRoute>(RouteCatalog.all());
         routes.add(partner);
         for (AutoRoute r : routes) {
@@ -375,7 +377,7 @@ public class RouteSvgLayoutTest {
         List<String> single = stepLabels(render("wall_shoot_park", Alliance.RED));
         assertTrue(single.toString(), single.contains("SHOOT 4"));
         // two volleys of 2 into the same UP cell from the same solver pose (together they are the first tip)
-        AutoRoute split = AutoRoute.builder("split").title("Two volleys").startTile("B1").start(35, 9.2, -90)
+        AutoRoute split = AutoRoute.builder("split").title("Two volleys").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
                 .shootUp(2).shootUp(2).build();
         List<String> twice = stepLabels(parse(RouteSvgRenderer.render(split, Alliance.RED)));
         assertTrue(twice.toString(), twice.contains("SHOOT 2 (step 2)"));
@@ -395,7 +397,7 @@ public class RouteSvgLayoutTest {
     public void intakeLabelsNameTheSourceAndTheCount() throws Exception {
         List<String> labels = stepLabels(render("garden_cycle", Alliance.BLUE));
         assertTrue(labels.toString(), labels.contains("INTAKE GARDEN +4"));
-        AutoRoute flower = AutoRoute.builder("f").title("Flower").startTile("A3").start(8.9, 61.5, 180)
+        AutoRoute flower = AutoRoute.builder("f").title("Flower").startTile("A3").start(BioBuzzConstants.Robot.FRONT_EXTENT_IN, 61.5, 180)
                 .shootUp(4)
                 .driveConstant(13.5, 62, 180).driveConstant(13.5, 48, 180)
                 .intakeFlower(2.4, 48, 13.5, 48, 180, 4).build();

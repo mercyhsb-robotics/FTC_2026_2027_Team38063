@@ -25,11 +25,17 @@ final class BruteForceFootprint {
     private BruteForceFootprint() {
     }
 
-    /** The four corners (x, y) of the robot rectangle at a pose, counter-clockwise from the front-left corner. */
-    static double[][] corners(Pose2 pose, double lengthIn, double widthIn) {
-        double hl = lengthIn / 2.0;
-        double hw = widthIn / 2.0;
-        double[][] local = {{hl, hw}, {-hl, hw}, {-hl, -hw}, {hl, -hw}};
+    /**
+     * The four corners (x, y) of the robot rectangle at a pose, counter-clockwise from the front-left corner. The
+     * rectangle is NOT centered on the pose (the robot's center of rotation): it reaches {@code front} ahead, {@code rear}
+     * behind, {@code left} to the left and {@code right} to the right of it.
+     */
+    static double[][] corners(Pose2 pose, RobotShape robot) {
+        double front = robot.frontIn();
+        double rear = robot.rearIn();
+        double left = robot.leftIn();
+        double right = robot.rightIn();
+        double[][] local = {{front, left}, {-rear, left}, {-rear, -right}, {front, -right}};
         double c = Math.cos(pose.heading);
         double s = Math.sin(pose.heading);
         double[][] out = new double[4][2];
@@ -41,9 +47,9 @@ final class BruteForceFootprint {
     }
 
     /** How far the robot's corners stick out of the field box at a pose, inches (0 if it is inside). */
-    static double wallPoke(Pose2 pose, double lengthIn, double widthIn, Rect field) {
+    static double wallPoke(Pose2 pose, RobotShape robot, Rect field) {
         double poke = 0.0;
-        for (double[] p : corners(pose, lengthIn, widthIn)) {
+        for (double[] p : corners(pose, robot)) {
             poke = Math.max(poke, field.minX - p[0]);
             poke = Math.max(poke, p[0] - field.maxX);
             poke = Math.max(poke, field.minY - p[1]);
@@ -56,11 +62,11 @@ final class BruteForceFootprint {
      * True if the robot at a pose overlaps the box by more than the tolerance. The box is shrunk by the tolerance on
      * each side first (but never by more than a quarter of its size, so a very thin box is not shrunk away).
      */
-    static boolean overlaps(Pose2 pose, double lengthIn, double widthIn, Rect box, double tol) {
+    static boolean overlaps(Pose2 pose, RobotShape shape, Rect box, double tol) {
         // Quick answer for the common case: the box is farther from the robot's center than the robot's farthest corner.
         double dx = Math.max(Math.max(box.minX - pose.x, pose.x - box.maxX), 0.0);
         double dy = Math.max(Math.max(box.minY - pose.y, pose.y - box.maxY), 0.0);
-        if (Math.hypot(dx, dy) > 0.5 * Math.hypot(lengthIn, widthIn) + 1e-9) {
+        if (Math.hypot(dx, dy) > Math.hypot(Math.max(shape.frontIn(), shape.rearIn()), Math.max(shape.leftIn(), shape.rightIn())) + 1e-9) {
             return false;
         }
         double tx = Math.min(tol, 0.25 * (box.maxX - box.minX));
@@ -69,7 +75,7 @@ final class BruteForceFootprint {
         double x1 = box.maxX - tx;
         double y0 = box.minY + ty;
         double y1 = box.maxY - ty;
-        double[][] robot = corners(pose, lengthIn, widthIn);
+        double[][] robot = corners(pose, shape);
         double[][] rect = {{x0, y0}, {x1, y0}, {x1, y1}, {x0, y1}};
         // 1. A corner of the robot strictly inside the box.
         for (double[] p : robot) {
@@ -137,13 +143,13 @@ final class BruteForceFootprint {
      * @param boxes      the HIVE frame and the FLOWER plates (the real ones, with no margin added)
      * @param tol        overlap forgiven, inches
      */
-    static String firstClip(HeadingProfile profile, double lengthIn, double widthIn, Rect field, List<Rect> boxes,
+    static String firstClip(HeadingProfile profile, RobotShape robot, Rect field, List<Rect> boxes,
                             double tol) {
-        return firstClip(profile, lengthIn, widthIn, field, boxes, tol, 0.02, 0.1);
+        return firstClip(profile, robot, field, boxes, tol, 0.02, 0.1);
     }
 
     /** Same, with the step set explicitly: one look every {@code stepIn} inches and every {@code stepDeg} degrees. */
-    static String firstClip(HeadingProfile profile, double lengthIn, double widthIn, Rect field, List<Rect> boxes,
+    static String firstClip(HeadingProfile profile, RobotShape robot, Rect field, List<Rect> boxes,
                             double tol, double stepIn, double stepDeg) {
         if (profile.isEmpty()) {
             return null;
@@ -157,13 +163,13 @@ final class BruteForceFootprint {
             for (int k = 0; k <= n; k++) {
                 double s = sA + (sB - sA) * k / n;
                 Pose2 pose = profile.poseAt(s);
-                double poke = wallPoke(pose, lengthIn, widthIn, field);
+                double poke = wallPoke(pose, robot, field);
                 if (poke > tol) {
                     return String.format(Locale.ROOT, "pokes %.2f in through a wall at %s (%.2f in along the route)",
                             poke, pose, s);
                 }
                 for (Rect b : boxes) {
-                    if (overlaps(pose, lengthIn, widthIn, b, tol)) {
+                    if (overlaps(pose, robot, b, tol)) {
                         return String.format(Locale.ROOT, "overlaps %s at %s (%.2f in along the route)", b, pose, s);
                     }
                 }

@@ -150,7 +150,7 @@ public class RouteSvgRendererTest {
     @Test
     public void textWithMarkupCharactersCannotBreakTheXml() throws Exception {
         AutoRoute r = AutoRoute.builder("odd").title("A & B <fast> \"auto\" it's").startTile("B1")
-                .start(35, 9.2, -90).waitSeconds(1).note("x < y & z").build();
+                .start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).waitSeconds(1).note("x < y & z").build();
         Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
         assertTrue(byId(d, "svg-title").getTextContent().contains("A & B <fast> \"auto\" it's"));
     }
@@ -320,11 +320,15 @@ public class RouteSvgRendererTest {
         assertNotNull(start);
         Element polygon = withClass(start, "polygon", "outline").get(0);
         double[] b = polygonBounds(polygon);
-        // C1 start (58, 9.2, -90): the square 17.80 in robot, its length along y and its width along x
+        // C1 start (58, 9.2, -90): the 17.80 x 17.80 in robot, its length along y and its width along x
         assertEquals(BioBuzzConstants.Robot.WIDTH_IN * S, b[1] - b[0], 0.05);
         assertEquals(BioBuzzConstants.Robot.LENGTH_IN * S, b[3] - b[2], 0.05);
         assertEquals("center x", X0 + 58.0 * S, (b[0] + b[1]) / 2.0, 0.05);
-        assertEquals("center y", Y_BOTTOM - 9.2 * S, (b[2] + b[3]) / 2.0, 0.05);
+        // The pose (58, 9.2) is the robot's center of rotation, NOT the middle of its outline: facing -90 the FRONT edge is 9.77 in
+        // below it (toward the audience wall, the bottom of the picture) and the BACK edge 8.03 in above it.
+        assertEquals("front edge", Y_BOTTOM - (9.2 - BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[3], 0.05);
+        assertEquals("back edge", Y_BOTTOM - (9.2 + BioBuzzConstants.Robot.REAR_EXTENT_IN) * S, b[2], 0.05);
+        assertTrue("the outline is not centered on the pose", Math.abs((b[2] + b[3]) / 2.0 - (Y_BOTTOM - 9.2 * S)) > 3.0);
         // FRONT at the audience wall (bottom of the image), BACK at the top, in different colours
         Element front = withClass(start, "line", "front-edge").get(0);
         Element back = withClass(start, "line", "back-edge").get(0);
@@ -346,8 +350,9 @@ public class RouteSvgRendererTest {
         double[] b = polygonBounds(polygon);
         Pose2 blueStart = Alliance.BLUE.fromRed(r.startPose(), 144.0);
         Footprint fp = Footprint.of(blueStart);
-        assertEquals(X0 + blueStart.x * S, (b[0] + b[1]) / 2.0, 0.05);
-        assertEquals(Y_BOTTOM - blueStart.y * S, (b[2] + b[3]) / 2.0, 0.05);
+        // the outline is the real Footprint of the blue pose (not centered on it), and the pose point is marked at the pose
+        assertEquals(X0 + (fp.bounds().minX + fp.bounds().maxX) / 2.0 * S, (b[0] + b[1]) / 2.0, 0.05);
+        assertEquals(Y_BOTTOM - (fp.bounds().minY + fp.bounds().maxY) / 2.0 * S, (b[2] + b[3]) / 2.0, 0.05);
         assertEquals((fp.bounds().maxX - fp.bounds().minX) * S, b[1] - b[0], 0.05);
         // the blue robot starts at the top (rear wall) of the image: smaller pixel y than the field middle
         assertTrue((b[2] + b[3]) / 2.0 < Y_BOTTOM - 72 * S);
@@ -374,9 +379,9 @@ public class RouteSvgRendererTest {
         Element shoot = withClass(byId(d, "route"), "g", "shoot-pose").get(0);
         Element shot = withClass(shoot, "line", "shot").get(0);
         assertFalse("dashed", shot.getAttribute("stroke-dasharray").isEmpty());
-        // C1 (58, 9.2, -90): launch point (58, 18.1); the aim point of the red audience cell is (59.25, 55.52)
+        // C1 (58, 9.2, -90): launch point (58, 9.2 + 8.03 = 17.23), the rear edge; the aim point of the red audience cell is (59.25, 55.52)
         assertEquals(X0 + 58.0 * S, Double.parseDouble(shot.getAttribute("x1")), 0.05);
-        assertEquals(Y_BOTTOM - 18.1 * S, Double.parseDouble(shot.getAttribute("y1")), 0.05);
+        assertEquals(Y_BOTTOM - (9.2 - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN) * S, Double.parseDouble(shot.getAttribute("y1")), 0.05);
         // it points up the page, toward the HIVE
         assertTrue(Double.parseDouble(shot.getAttribute("y2")) < Double.parseDouble(shot.getAttribute("y1")));
         assertFalse("an explicit pose is drawn solid", "true".equals(shoot.getAttribute("data-nominal")));
@@ -414,10 +419,12 @@ public class RouteSvgRendererTest {
         Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
         Element park = withClass(byId(d, "route"), "g", "park-outline").get(0);
         double[] b = polygonBounds(all(park, "polygon").get(0));
-        // end pose (12, 108, 0): x 3.1..20.9, y 99.1..116.9, overlapping the zone x 0..11 y 96..120
-        assertEquals(X0 + (12.0 - BioBuzzConstants.Robot.LENGTH_IN / 2.0) * S, b[0], 0.1);
-        assertEquals(X0 + 3.1 * S, b[0], 0.1);
-        assertEquals(Y_BOTTOM - (108.0 + BioBuzzConstants.Robot.WIDTH_IN / 2.0) * S, b[2], 0.1);
+        // end pose (12, 108, 0) facing +x: the BACK edge is 8.03 in behind the center of rotation and the FRONT 9.77 in ahead, so the
+        // outline runs x 3.97..21.77, y 99.1..116.9, overlapping the zone x 0..11 y 96..120
+        assertEquals(X0 + (12.0 - BioBuzzConstants.Robot.REAR_EXTENT_IN) * S, b[0], 0.1);
+        assertEquals(X0 + 3.97 * S, b[0], 0.1);
+        assertEquals(X0 + (12.0 + BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[1], 0.1);
+        assertEquals(Y_BOTTOM - (108.0 + BioBuzzConstants.Robot.LEFT_EXTENT_IN) * S, b[2], 0.1);
         assertEquals(Y_BOTTOM - 116.9 * S, b[2], 0.1);
         assertFalse(all(park, "polygon").get(0).getAttribute("stroke-dasharray").isEmpty());
         double zoneRight = X0 + 11.0 * S;
@@ -458,7 +465,7 @@ public class RouteSvgRendererTest {
     // ---- who shoots the first tip ----------------------------------------------------------------------
 
     private static AutoRoute partnerRoute() {
-        return AutoRoute.builder("partner_rear").title("Partner tips first").startTile("C6").start(61.5, 135.1, 90)
+        return AutoRoute.builder("partner_rear").title("Partner tips first").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
                 .partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
     }
 
@@ -477,7 +484,7 @@ public class RouteSvgRendererTest {
         assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.BLUE)), "svg-desc").getTextContent()
                 .contains("First tip: partner tips first, assumed at 12.0 s; latest that works 20.0 s."));
         // a partner route that never shoots at the cell that comes up does not depend on the time at all
-        AutoRoute independent = AutoRoute.builder("partner_walk").title("t").startTile("C6").start(61.5, 135.1, 90).partnerTipsFirst()
+        AutoRoute independent = AutoRoute.builder("partner_walk").title("t").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst()
                 .driveConstant(61.5, 120, 90).build();
         String walkSub = byId(parse(RouteSvgRenderer.render(independent, Alliance.RED)), "subtitle").getTextContent();
         assertTrue(walkSub, walkSub.contains("assumed at 12.0 s; any tip time works"));
@@ -513,7 +520,10 @@ public class RouteSvgRendererTest {
 
     @Test
     public void validatorFindingsAreListedAndMarkedOnTheirSteps() throws Exception {
-        Document d = parse(RouteSvgRenderer.render(RouteCatalog.byId("red_c1"), Alliance.RED));
+        // a route with exactly one finding: its only leg runs straight through the HIVE frame (a legal start, front edge on the wall)
+        AutoRoute throughTheHive = AutoRoute.builder("through_the_hive").title("Through the HIVE").startTile("C1")
+                .start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).driveConstant(58, 118, -90).build();
+        Document d = parse(RouteSvgRenderer.render(throughTheHive, Alliance.RED));
         String pollen = byId(d, "footer-pollen").getTextContent();
         assertTrue(pollen, pollen.contains("1 ERROR"));
         List<Element> lines = withClass(byId(d, "footer"), "g", "issue-line");
@@ -522,7 +532,7 @@ public class RouteSvgRendererTest {
         assertTrue(lines.get(0).getTextContent().contains("HIVE frame keep-out"));
         List<Element> marks = withClass(byId(d, "route"), "g", "issue-mark");
         assertEquals(1, marks.size());
-        assertEquals("4", marks.get(0).getAttribute("data-step"));
+        assertEquals("2", marks.get(0).getAttribute("data-step"));
         assertEquals("ERROR", marks.get(0).getAttribute("data-severity"));
     }
 
@@ -536,9 +546,9 @@ public class RouteSvgRendererTest {
     @Test
     public void manyFindingsAreCappedWithAPointerToTheGallery() throws Exception {
         // a deliberately terrible route: crosses the wall, the HIVE and the center line, then overruns the time
-        AutoRoute bad = AutoRoute.builder("bad").title("Bad").startTile("C1").start(58, 9.2, -90)
+        AutoRoute bad = AutoRoute.builder("bad").title("Bad").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
                 .shootUp(5).shootUp(5)
-                .driveConstant(75, 9.2, -90)
+                .driveConstant(75, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
                 .driveConstant(30, -3, -90)
                 .driveConstant(58, 118, -90)
                 .waitSeconds(40).build();

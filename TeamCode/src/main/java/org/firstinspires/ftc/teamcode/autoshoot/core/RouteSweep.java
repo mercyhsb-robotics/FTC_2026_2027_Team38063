@@ -11,11 +11,12 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * FLOWER plates, at EVERY point of the route, including while the robot is turning.
  *
  * <p>Why it exists. {@link PathPlanner} plans a route for the robot's CENTER, a single dot. It keeps the dot away from
- * the walls by about half the robot's width, which is enough while the robot faces along an axis. But a 17.8 in
- * square that turns takes more room: turned 25 degrees it needs 11.8 in from its center to the wall, not 8.9 in, and
- * turned 45 degrees it needs 12.6 in. The robot does turn while it drives (see {@link HeadingProfile}), so a route that
- * is fine for a dot can push a corner of the robot THROUGH a wall. Standing poses were already tested with the real
- * rotated rectangle ({@link Footprint}); this class does the same for everything in between.
+ * the walls by about the robot's smallest half-size, which is enough while the robot faces along an axis. But a 17.8 in
+ * square-ish robot that turns takes more room: standing flush against a wall it needs its center of rotation 8.03 to
+ * 9.77 in from the wall (the rear, the sides or the front edge touching, see {@link RobotShape}), and turned 45 degrees
+ * it needs about 13.2 in, because a corner leads. The robot does turn while it drives (see {@link HeadingProfile}), so a
+ * route that is fine for a dot can push a corner of the robot THROUGH a wall. Standing poses were already tested with
+ * the real rotated rectangle ({@link Footprint}); this class does the same for everything in between.
  *
  * <p>How it works, in plain words:
  * <ol>
@@ -102,8 +103,7 @@ public final class RouteSweep {
     private final double wallClearanceIn;
     private final List<Rect> obstacles;
     private final double obstacleMarginIn;
-    private final double lengthIn;
-    private final double widthIn;
+    private final RobotShape robot;
     private final Settings settings;
     // The farthest any point of the robot is from its rotation center (inches): the radius of the smallest circle that
     // holds the robot whatever its heading. It sets how fast a corner can move while the robot turns.
@@ -118,21 +118,21 @@ public final class RouteSweep {
      * @param wallClearanceIn  empty space kept between the robot and a wall, inches
      * @param obstacles        the REAL keep-out boxes (the HIVE frame and the FLOWER plates), not yet grown by any margin
      * @param obstacleMarginIn empty space kept between the robot and an obstacle, inches
-     * @param lengthIn         the robot's size front to back, inches
-     * @param widthIn          the robot's size side to side, inches
+     * @param robot            where the robot's edges lie around its center of rotation (see {@link RobotShape})
      * @param settings         how finely to look; see {@link Settings}
      */
     public RouteSweep(Rect field, double wallClearanceIn, List<Rect> obstacles, double obstacleMarginIn,
-                      double lengthIn, double widthIn, Settings settings) {
+                      RobotShape robot, Settings settings) {
         this.field = field;
         this.wallClearanceIn = wallClearanceIn;
         this.obstacles = new ArrayList<Rect>(obstacles);
         this.obstacleMarginIn = obstacleMarginIn;
-        this.lengthIn = lengthIn;
-        this.widthIn = widthIn;
+        this.robot = robot;
         this.settings = settings;
 
-        Footprint upright = Footprint.of(new Pose2(0.0, 0.0, 0.0), lengthIn, widthIn);
+        // The farthest corner of the upright rectangle from the center of rotation. It is measured on a real Footprint
+        // (not copied from the shape) so the sweep and the checks can never disagree about how far the robot reaches.
+        Footprint upright = Footprint.of(new Pose2(0.0, 0.0, 0.0), robot);
         double reach = 0.0;
         for (int i = 0; i < 4; i++) {
             reach = Math.max(reach, Math.hypot(upright.corner(i).x, upright.corner(i).y));
@@ -184,7 +184,7 @@ public final class RouteSweep {
 
     /** The robot's rectangle at a pose, built exactly the way every other check builds it. */
     private Footprint footprintAt(Pose2 pose) {
-        return Footprint.of(pose, lengthIn, widthIn);
+        return Footprint.of(pose, robot);
     }
 
     /**

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
@@ -120,12 +121,11 @@ public final class ConstantsCheck {
                     || BioBuzzConstants.Robot.HEIGHT_IN > 18.0) {
                 r.warnings.add("The robot is larger than the 18 in start cube (rule R102).");
             }
-            // Catches a mix-up of units (for example millimeters typed as inches): the ball exit cannot be farther
-            // from the robot's center than the robot is long or wide.
-            if (Math.abs(BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN) > BioBuzzConstants.Robot.LENGTH_IN
-                    || Math.abs(BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN) > BioBuzzConstants.Robot.WIDTH_IN) {
-                r.warnings.add("Robot.LAUNCH_POINT_* is far outside the robot footprint.");
-            }
+            checkRobotEdges(r, BioBuzzConstants.Robot.FRONT_EXTENT_IN, BioBuzzConstants.Robot.REAR_EXTENT_IN,
+                    BioBuzzConstants.Robot.LEFT_EXTENT_IN, BioBuzzConstants.Robot.RIGHT_EXTENT_IN,
+                    BioBuzzConstants.Robot.LENGTH_IN, BioBuzzConstants.Robot.WIDTH_IN, BioBuzzConstants.Robot.INTAKE_REACH_IN,
+                    BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN,
+                    BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN, BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN);
         }
         // Forward is the intake's direction; the shooter fires out the back, so the ball exit is at negative forward.
         if (BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN >= 0) {
@@ -243,9 +243,88 @@ public final class ConstantsCheck {
                     }
                 }
             }
+            checkStartPose(r, f, "Controls.DEFAULT_START_*", Pose2.ofDegrees(BioBuzzConstants.Controls.DEFAULT_START_X_IN,
+                    BioBuzzConstants.Controls.DEFAULT_START_Y_IN, BioBuzzConstants.Controls.DEFAULT_START_HEADING_DEG));
         } catch (RuntimeException e) {
             r.errors.add("Field geometry is invalid: " + e.getMessage());
         }
         return r;
+    }
+
+    /**
+     * The robot's edges around its center of rotation (see {@link RobotShape}): the four distances must be positive and
+     * must add up to the overall size, the intake wheels must fit inside them, and the ball exit must lie on the robot.
+     * The tolerance (0.01 in) only forgives the rounding of a drawing dimension typed with two decimals. The values are
+     * parameters (the shipped constants are passed in by {@link #run()}) so a unit test can feed in bad ones.
+     */
+    static void checkRobotEdges(Report r, double front, double rear, double left, double right, double length, double width,
+                                double reach, double wheelOffset, double wheelDiameter, double lf, double ll) {
+        final double sumTolerance = 0.01;
+        if (front <= 0 || rear <= 0 || left <= 0 || right <= 0) {
+            r.errors.add("Robot.FRONT_EXTENT_IN, REAR_EXTENT_IN, LEFT_EXTENT_IN and RIGHT_EXTENT_IN (how far each edge of the"
+                    + " robot is from its center of rotation) must all be positive.");
+            return;
+        }
+        if (Math.abs(front + rear - length) > sumTolerance) {
+            r.errors.add("Robot.FRONT_EXTENT_IN (" + front + ") + REAR_EXTENT_IN (" + rear + ") = " + String.format(Locale.ROOT, "%.2f", front + rear)
+                    + " in, but Robot.LENGTH_IN is " + length + " in: the distances from the center"
+                    + " of rotation to the front and rear edges must add up to the robot's length. Re-measure the center of"
+                    + " rotation, or fix the typo.");
+        }
+        if (Math.abs(left + right - width) > sumTolerance) {
+            r.errors.add("Robot.LEFT_EXTENT_IN (" + left + ") + RIGHT_EXTENT_IN (" + right + ") = " + String.format(Locale.ROOT, "%.2f", left + right)
+                    + " in, but Robot.WIDTH_IN is " + width + " in: the distances from the center"
+                    + " of rotation to the left and right edges must add up to the robot's width. Re-measure the center of"
+                    + " rotation, or fix the typo.");
+        }
+        // The flat intake wheels sit at the front: the frame has to reach behind the wheel tips, and each wheel disc
+        // has to fit inside the side edge it sits near.
+        if (reach <= 0 || reach >= front) {
+            r.errors.add("Robot.INTAKE_REACH_IN (" + reach + ") must be more than 0 and less than FRONT_EXTENT_IN (" + front
+                    + "): it is how far the flat wheels stick out in front of the chassis frame, so the frame's front edge"
+                    + " would not be in front of the center of rotation.");
+        }
+        double wheelOuter = wheelOffset + wheelDiameter / 2.0;
+        if (wheelOuter > Math.min(left, right) + sumTolerance) {
+            r.warnings.add("A flat intake wheel (centered " + wheelOffset + " in from the center"
+                    + " line, " + wheelDiameter + " in across) would reach " + wheelOuter
+                    + " in to the side, past the robot's side edge (" + Math.min(left, right) + " in).");
+        }
+        // The ball leaves the robot, so the exit must lie on it. This also catches a mix-up of units (millimeters typed
+        // as inches) and a sign error (the shooter is at the back, which is NEGATIVE forward).
+        double eps = 1e-9;
+        if (lf < -rear - eps || lf > front + eps || ll > left + eps || ll < -right - eps) {
+            r.warnings.add("Robot.LAUNCH_POINT_* (" + lf + " in forward, " + ll + " in left) is outside the robot's perimeter"
+                    + " (" + (-rear) + " to " + front + " in forward, " + (-right) + " to " + left + " in left of the center of"
+                    + " rotation).");
+        }
+    }
+
+    /**
+     * A start pose (RED frame) must be a pose the REAL footprint can stand on: inside the field (the robot's edges,
+     * turned to its heading, may not poke through a wall) and clear of the HIVE frame and the FLOWER plates. A start
+     * whose center of rotation is closer to a wall than the robot's edge toward that wall would start the match with the
+     * robot "inside" the wall, and the odometry would be wrong from the first loop. {@link #run()} uses it for the TeleOp
+     * default start; it takes the pose as a parameter so a unit test can try bad ones.
+     *
+     * @param what the name to put in the message, for example {@code Controls.DEFAULT_START_*}
+     */
+    static void checkStartPose(Report r, FieldModel field, String what, Pose2 start) {
+        Footprint fp = Footprint.of(start);
+        double tolerance = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
+        double outside = fp.overshootOutside(field.fieldRect());
+        if (outside > tolerance) {
+            RobotShape shape = RobotShape.fromConstants();
+            r.errors.add(what + " puts the robot's real footprint " + String.format(Locale.ROOT, "%.2f", outside) + " in through a field wall (the start pose is "
+                    + start + "). The pose is the robot's center of rotation, which must be at least as far from a wall as the"
+                    + " robot's edge that faces it: front " + shape.frontIn() + " in, rear " + shape.rearIn() + " in, each side "
+                    + shape.leftIn() + " in. A robot that stands with its FRONT on the audience wall (heading -90 degrees)"
+                    + " has its center of rotation " + shape.frontIn() + " in from it.");
+        }
+        for (Rect o : field.hardObstacles()) {
+            if (fp.overlaps(o)) {
+                r.errors.add(what + " puts the robot on top of " + o + " (the HIVE frame or a FLOWER plate).");
+            }
+        }
     }
 }

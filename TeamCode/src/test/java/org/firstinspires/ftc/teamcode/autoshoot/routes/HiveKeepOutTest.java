@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.RobotShape;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
@@ -24,12 +25,16 @@ import org.junit.Test;
  * treated as solid.
  *
  * <p>Numbers: the frame footprint is x 47.27 to 96.73 and y 52.53 to 91.47 (49.46 x 38.95 in around the field center).
- * With the 3.0 in margin the keep-out is x 44.27 to 99.73 and y 49.53 to 94.47. The robot is a 17.80 in square: half
- * of it, 8.9 in, is the distance from its center to each side.
+ * With the 3.0 in margin the keep-out is x 44.27 to 99.73 and y 49.53 to 94.47. The robot is 17.80 x 17.80 in but its
+ * position (its center of rotation) is not in the middle of it: the front edge is 9.77 in from the position, the back edge
+ * 8.03 in and each side 8.90 in, so how close the position may come to the keep-out depends on which way the robot faces.
  */
 public class HiveKeepOutTest {
     private static final double MARGIN = BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN;
-    private static final double HALF = BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+    private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
+    private static final double REAR = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+    private static final double SIDE = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
+    private static final RobotShape ROBOT = RobotShape.fromConstants();
     private static final double EPS = 1e-9;
 
     private final AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
@@ -100,20 +105,24 @@ public class HiveKeepOutTest {
     @Test
     public void eachEdgeOfTheKeepOutStopsTheRobot() {
         double mid = 72.0;
-        // heading 0 faces +x, 90 faces +y: a square robot is 8.9 in from its center to every side whatever it faces
+        // heading 0 faces +x, 90 faces +y. The robot is NOT the same distance from its center to every side: how close the center
+        // may come to the keep-out edge is the reach of the side that faces it, 9.77 in for the front, 8.03 in for the back and
+        // 8.90 in for a side
         Object[][] approaches = {
-                // name, x, y, how far to move toward the frame (dx, dy)
-                {"left edge", keepOut.minX - HALF, mid, 1.0, 0.0},
-                {"right edge", keepOut.maxX + HALF, mid, -1.0, 0.0},
-                {"audience edge", mid, keepOut.minY - HALF, 0.0, 1.0},
-                {"rear edge", mid, keepOut.maxY + HALF, 0.0, -1.0},
+                // name, direction from the robot toward the frame (radians), and the way to move toward it (dx, dy)
+                {"left edge", 0.0, 1.0, 0.0},
+                {"right edge", Math.PI, -1.0, 0.0},
+                {"audience edge", Math.PI / 2.0, 0.0, 1.0},
+                {"rear edge", -Math.PI / 2.0, 0.0, -1.0},
         };
         for (Object[] a : approaches) {
-            double x = (Double) a[1];
-            double y = (Double) a[2];
-            double dx = (Double) a[3];
-            double dy = (Double) a[4];
+            double dir = (Double) a[1];
+            double dx = (Double) a[2];
+            double dy = (Double) a[3];
             for (double heading : new double[] {0, 90, 180, -90}) {
+                double reach = ROBOT.reachTowardIn(Math.toRadians(heading), dir);
+                double x = dx > 0 ? keepOut.minX - reach : dx < 0 ? keepOut.maxX + reach : mid;
+                double y = dy > 0 ? keepOut.minY - reach : dy < 0 ? keepOut.maxY + reach : mid;
                 assertFalse(a[0] + " touching at heading " + heading, touchesOrOverlaps(Pose2.ofDegrees(x, y, heading), keepOut));
                 assertTrue(a[0] + " 0.05 in closer at heading " + heading,
                         touchesOrOverlaps(Pose2.ofDegrees(x + 0.05 * dx, y + 0.05 * dy, heading), keepOut));
@@ -125,13 +134,15 @@ public class HiveKeepOutTest {
     @Test
     public void eachEdgeIsAlsoCaughtByTheValidatorOnALeg() {
         // left edge (blue: the right edge): drive up the corridor 0.1 in past the limit, and exactly to it
-        double leftLimit = keepOut.minX - HALF;     // 35.37
-        assertEquals(0, hiveErrors(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(leftLimit, 90, -90)));
-        assertEquals(1, hiveErrors(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(leftLimit + 0.1, 90, -90)));
-        // audience edge (blue: the rear edge): drive along the front of the frame toward it from the audience side
-        double audienceLimit = keepOut.minY - HALF;     // 40.63
-        assertEquals(0, hiveErrors(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(58, audienceLimit, -90)));
-        assertEquals(1, hiveErrors(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(58, audienceLimit + 0.1, -90)));
+        // (facing -90 the robot's +x side is a side edge, 8.90 in from the center)
+        double leftLimit = keepOut.minX - SIDE;     // 35.37
+        assertEquals(0, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(leftLimit, 90, -90)));
+        assertEquals(1, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(leftLimit + 0.1, 90, -90)));
+        // audience edge (blue: the rear edge): drive along the front of the frame toward it from the audience side; facing -90
+        // the BACK of the robot leads, 8.03 in from the center
+        double audienceLimit = keepOut.minY - REAR;     // 41.50
+        assertEquals(0, hiveErrors(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(58, audienceLimit, -90)));
+        assertEquals(1, hiveErrors(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(58, audienceLimit + 0.1, -90)));
     }
 
     // ---- 3. every corner -----------------------------------------------------------------------------------------
@@ -142,9 +153,10 @@ public class HiveKeepOutTest {
                 {keepOut.minX, keepOut.minY, -1, -1}, {keepOut.maxX, keepOut.minY, 1, -1},
                 {keepOut.maxX, keepOut.maxY, 1, 1}, {keepOut.minX, keepOut.maxY, -1, 1}};
         for (double[] c : corners) {
-            // an axis-aligned robot whose own corner just reaches the keep-out corner from outside, diagonally
-            double x = c[0] + c[2] * HALF;
-            double y = c[1] + c[3] * HALF;
+            // an axis-aligned robot (facing +x) whose own corner just reaches the keep-out corner from outside, diagonally: on the
+            // side of the corner where it is toward +x it reaches 9.77 in (its front), toward -x 8.03 in (its back), and 8.90 in in y
+            double x = c[0] + c[2] * (c[2] < 0 ? FRONT : REAR);
+            double y = c[1] + c[3] * SIDE;
             Pose2 touching = Pose2.ofDegrees(x, y, 0);
             assertFalse("corner touching", touchesOrOverlaps(touching, keepOut));
             assertEquals("corner to corner", 0.0, Footprint.of(touching).signedGap(keepOut), 1e-9);
@@ -152,9 +164,11 @@ public class HiveKeepOutTest {
             // pulled back along the diagonal the gap is the corner-to-corner distance, not a smaller edge distance
             double back = 2.0;
             assertEquals(back * Math.sqrt(2.0), Footprint.of(Pose2.ofDegrees(x + back * c[2], y + back * c[3], 0)).signedGap(keepOut), 1e-9);
-            // a robot turned 45 degrees (a diamond) meets the corner with the middle of a flat side instead, 8.9 in from its center
-            double diagX = c[0] + c[2] * HALF / Math.sqrt(2.0);
-            double diagY = c[1] + c[3] * HALF / Math.sqrt(2.0);
+            // a robot turned 45 degrees (a diamond) meets the corner with the middle of a flat side instead: whichever side faces
+            // the corner, 9.77 in (front), 8.03 in (back) or 8.90 in (a side) from the center
+            double reach = ROBOT.reachTowardIn(Math.toRadians(45.0), Math.atan2(-c[3], -c[2]));
+            double diagX = c[0] + c[2] * reach / Math.sqrt(2.0);
+            double diagY = c[1] + c[3] * reach / Math.sqrt(2.0);
             Pose2 diamond = Pose2.ofDegrees(diagX, diagY, 45.0);
             assertEquals("diamond side touching the corner", 0.0, Footprint.of(diamond).signedGap(keepOut), 1e-9);
             assertFalse(touchesOrOverlaps(diamond, keepOut));
@@ -165,13 +179,14 @@ public class HiveKeepOutTest {
 
     @Test
     public void theCornersAreCaughtByTheValidatorToo() {
-        double lx = keepOut.minX - HALF;
-        double nearY = keepOut.minY - HALF;            // audience-side corner of the left edge
-        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(lx, nearY, -90)));
-        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(lx + 0.15, nearY + 0.15, -90)));
-        double farY = keepOut.maxY + HALF;             // rear-side corner of the left edge
-        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(lx, farY, -90)));
-        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(lx + 0.15, farY - 0.15, -90)));
+        // facing -90: the robot's +x side is a side edge (8.90 in), its +y side the BACK (8.03 in), its -y side the FRONT (9.77 in)
+        double lx = keepOut.minX - SIDE;
+        double nearY = keepOut.minY - REAR;            // audience-side corner of the left edge
+        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx, nearY, -90)));
+        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx + 0.15, nearY + 0.15, -90)));
+        double farY = keepOut.maxY + FRONT;            // rear-side corner of the left edge
+        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx, farY, -90)));
+        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx + 0.15, farY - 0.15, -90)));
     }
 
     // ---- 4. a gap under or inside the frame is solid -------------------------------------------------------------
@@ -192,14 +207,14 @@ public class HiveKeepOutTest {
         // x = 59.25 is the red HIVE axis: between the legs and under the crossbar a 12.13 in robot might physically fit;
         // the validator still calls a leg through it an ERROR, and so a leg through the gap between the two HIVEs (x = 72)
         for (double x : new double[] {59.25, 62.0, 66.0}) {
-            List<Issue> l = RouteValidator.check(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(x, 100, -90).build());
+            List<Issue> l = RouteValidator.check(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(x, 100, -90).build());
             assertTrue("x = " + x + ": " + l, count(l, Rule.HIVE_KEEPOUT) >= 1);
         }
     }
 
     @Test
     public void routesMayNeitherEndNorStartInsideTheKeepOutRegionOfTheFrame() {
-        List<Issue> l = RouteValidator.check(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(60, 70, 0).build());
+        List<Issue> l = RouteValidator.check(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(60, 70, 0).build());
         assertTrue(l.toString(), count(l, Rule.END_POSE) == 1);
     }
 

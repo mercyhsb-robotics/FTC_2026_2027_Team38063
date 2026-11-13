@@ -6,31 +6,34 @@ import java.util.List;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 
 /**
- * The robot's floor footprint at a pose: a rectangle {@code LENGTH x WIDTH} (front to back by side to
- * side) rotated to the pose's heading about the robot's rotation center. The corners run
+ * The robot's floor footprint at a pose: a rectangle turned to the pose's heading about the robot's POSITION, which is
+ * its center of rotation. The rectangle is NOT centered on that point: a {@link RobotShape} says how far it reaches in
+ * front of, behind, left of and right of it (9.77, 8.03, 8.90 and 8.90 in for the real robot). The corners run
  * counter-clockwise starting at the front-left one.
  *
  * <p>Three shapes come out of this class, all rectangles that turn with the robot:
  * <ul>
- *   <li>{@link #of(Pose2)}: the whole PERIMETER (every wheel included). Walls, the HIVE keep-out and the rest of the
- *       field are judged with this one.</li>
+ *   <li>{@link #of(Pose2)}: the whole PERIMETER (every wheel included). Walls, the HIVE keep-out, the center line, the
+ *       start rule and the TeleOp planning checks are judged with this one. It is the conservative shape.</li>
  *   <li>{@link #chassis(Pose2)}: the BODY, the perimeter without the front {@code Robot.INTAKE_REACH_IN} where only the
- *       two flat intake wheels stick out. A FLOWER plate must never touch it, not even while the wheels press in.</li>
+ *       two flat intake wheels stick out (its front edge is {@code Robot.CHASSIS_FRONT_EXTENT_IN} from the position). A
+ *       FLOWER plate must never touch it, not even while the wheels press in.</li>
  *   <li>{@link #wheelDisc(Pose2, IntakeWheel)}: one of the two flat intake WHEELS, a small square around the wheel's
  *       disc. It is the only part of the robot that may enter a FLOWER plate, and only to press the POLLEN.</li>
  * </ul>
  *
- * <p>The rectangle does not have to be centered on the pose point: it is described by how far it reaches forward,
- * backward, left and right of that point, so the body and the wheel discs (which sit off to the side and at the very
- * front) use the same maths as the perimeter. Where the perimeter lies around the pose point is written in ONE place,
- * {@link #frontExtentIn()} and its three siblings; everything else in the code asks them (nobody writes
- * {@code LENGTH_IN / 2} anywhere else), so the day the real center of rotation is measured those four are all that change.
+ * <p>Where the perimeter lies around the position is written in ONE place, {@link RobotShape} (fed by the four
+ * {@code Robot.*_EXTENT_IN} constants); {@link #frontExtentIn()} and its three siblings read it. Nobody writes
+ * {@code LENGTH_IN / 2} anywhere else, so the day the real center of rotation is measured those four constants are all
+ * that change.
  *
  * <p>All overlap tests treat touching as NOT overlapping (a robot may stand against a wall or a
  * keep-out edge); a penetration of more than a nanoinch counts.
  */
 public final class Footprint {
     private static final double EPS = 1e-9;
+    /** The real robot's edges, read once from the constants. */
+    private static final RobotShape ROBOT = RobotShape.fromConstants();
 
     private final Pose2 pose;
     /** The rectangle in the robot frame: how far it reaches forward / backward / left / right of the pose point (inches). */
@@ -55,41 +58,41 @@ public final class Footprint {
         }
     }
 
-    // ---- where the perimeter lies around the pose point (the one place that knows) ------------------------
+    // ---- where the perimeter lies around the pose point (the one place that knows is RobotShape) -----------
 
     /**
-     * How far the perimeter reaches IN FRONT of the pose point, in inches: the tips of the flat intake wheels. Today the
-     * pose point is taken to be the middle of the {@code LENGTH_IN x WIDTH_IN} rectangle, so this is half the length.
+     * How far the perimeter reaches IN FRONT of the pose point (the robot's center of rotation), in inches: the tips of
+     * the flat intake wheels, 9.77 in for the real robot.
      */
     public static double frontExtentIn() {
-        return BioBuzzConstants.Robot.LENGTH_IN / 2.0;
+        return ROBOT.frontIn();
     }
 
-    /** How far the perimeter reaches BEHIND the pose point, in inches (the back lip, where the ball leaves). */
+    /** How far the perimeter reaches BEHIND the pose point, in inches (the back lip, where the ball leaves; 8.03 in). */
     public static double rearExtentIn() {
-        return BioBuzzConstants.Robot.LENGTH_IN / 2.0;
+        return ROBOT.rearIn();
     }
 
-    /** How far the perimeter reaches to the robot's LEFT of the pose point, in inches. */
+    /** How far the perimeter reaches to the robot's LEFT of the pose point, in inches (8.90 in). */
     public static double leftExtentIn() {
-        return BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+        return ROBOT.leftIn();
     }
 
-    /** How far the perimeter reaches to the robot's RIGHT of the pose point, in inches. */
+    /** How far the perimeter reaches to the robot's RIGHT of the pose point, in inches (8.90 in). */
     public static double rightExtentIn() {
-        return BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+        return ROBOT.rightIn();
     }
 
     // ---- the three shapes -------------------------------------------------------------------------------
 
-    /** The whole footprint of the robot (its perimeter, wheels included) at a pose. */
+    /** The whole footprint of the real robot (its perimeter, wheels included) at a pose. */
     public static Footprint of(Pose2 pose) {
-        return new Footprint(pose, -rearExtentIn(), frontExtentIn(), -rightExtentIn(), leftExtentIn());
+        return of(pose, ROBOT);
     }
 
-    /** A rectangle {@code length x width} centered on the pose point (used by tests and tools). */
-    public static Footprint of(Pose2 pose, double length, double width) {
-        return new Footprint(pose, -length / 2.0, length / 2.0, -width / 2.0, width / 2.0);
+    /** The perimeter of a robot with the given edges (the tests use this to try other shapes) at a pose. */
+    public static Footprint of(Pose2 pose, RobotShape shape) {
+        return new Footprint(pose, -shape.rearIn(), shape.frontIn(), -shape.rightIn(), shape.leftIn());
     }
 
     /**
@@ -202,14 +205,15 @@ public final class Footprint {
     }
 
     /**
-     * The distance from the robot's rotation center to its farthest corner, in inches (half the diagonal of the
-     * {@code LENGTH x WIDTH} rectangle: 12.59 in for the 17.80 in square centered on the pose point). Every point of the
-     * robot, the chassis and the wheel discs included, is at most this far from the center, so turning the robot by an
-     * angle t moves no point of it by more than {@code halfDiagonal * t}. The route validator relies on this to prove that
-     * its samples cannot miss a collision (see {@code Sweep}).
+     * The distance from the robot's center of rotation to its farthest corner, in inches: the circumscribed radius,
+     * {@code hypot(max(front, rear), max(left, right))}, 13.22 in for the real robot (a centered 17.80 in square would
+     * be 12.59 in). Every point of the robot, the chassis and the wheel discs included, is at most this far from the
+     * center of rotation, so turning the robot by an angle t moves no point of it by more than
+     * {@code circumscribedRadiusIn * t}. The route validator relies on this to prove that its samples cannot miss a
+     * collision (see {@code Sweep}).
      */
-    public static double robotHalfDiagonal() {
-        return Math.hypot(Math.max(frontExtentIn(), rearExtentIn()), Math.max(leftExtentIn(), rightExtentIn()));
+    public static double circumscribedRadiusIn() {
+        return ROBOT.reachIn();
     }
 
     /**

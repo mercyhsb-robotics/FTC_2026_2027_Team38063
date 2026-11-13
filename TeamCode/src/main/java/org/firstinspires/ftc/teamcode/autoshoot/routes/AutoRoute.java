@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
  * <p>Adding an auto is ONE data entry in {@link RouteCatalog}:
  * <pre>
  * AutoRoute.builder("red_b1").title("Red B1").startTile("B1")
- *     .start(35.0, 9.2, -90)
+ *     .start(35.0, 9.77, -90)         // front edge ON the audience wall: the center of rotation is 9.77 in from it
  *     .shootUp(4)
  *     .driveReverseTangent(35.8, 90, -90)
  *     .park(12, 90, 0)

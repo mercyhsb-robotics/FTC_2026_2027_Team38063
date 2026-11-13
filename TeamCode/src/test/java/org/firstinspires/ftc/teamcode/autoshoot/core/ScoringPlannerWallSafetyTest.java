@@ -46,8 +46,8 @@ public class ScoringPlannerWallSafetyTest {
     private final ShotTable table = ShotTable.fromConstants();
     private final ScoringPlanner.Config cfg = ScoringPlanner.Config.fromConstants(table);
     private final ScoringPlanner planner = new ScoringPlanner(field, cfg);
-    /** The robot's size, inches (it is a square). */
-    private final double size = BioBuzzConstants.Robot.LENGTH_IN;
+    /** Where the robot's edges lie around its center of rotation (front 9.77 in, rear 8.03 in, sides 8.90 in). */
+    private final RobotShape robot = cfg.robot;
     /** How much overlap the referee forgives: the planner's own tolerance plus a rounding hair. */
     private final double tol = BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN + 1e-6;
 
@@ -58,19 +58,19 @@ public class ScoringPlannerWallSafetyTest {
 
     /** The slow referee's verdict on a solution: null if the robot never clips anything, else what it clips. */
     private String clip(Pose2 start, ScoringPlanner.Solution s) {
-        return BruteForceFootprint.firstClip(driven(start, s), size, size, field.fieldRect(), field.hardObstacles(), tol);
+        return BruteForceFootprint.firstClip(driven(start, s), robot, field.fieldRect(), field.hardObstacles(), tol);
     }
 
     // ------------------------------------------------------------------ the starting poses (see WallStarts)
 
     /** A robot against a wall: 0 audience, 1 rear, 2 red, 3 blue; {@code gapIn} inches off it (0 = touching). */
     private Pose2 againstWall(int wall, double along, double headingDeg, double gapIn) {
-        return WallStarts.againstWall(field, size, wall, along, headingDeg, gapIn);
+        return WallStarts.againstWall(field, robot, wall, along, headingDeg, gapIn);
     }
 
     /** Every start next to a wall or in a corner: 12 headings, touching and 1.5 in off, 3 places along each wall. */
     private List<Pose2> allWallStarts() {
-        return WallStarts.all(field, size);
+        return WallStarts.all(field, robot);
     }
 
     // ------------------------------------------------------------------ tests
@@ -183,7 +183,7 @@ public class ScoringPlannerWallSafetyTest {
     }
 
     /**
-     * Situation: the TeleOp default start (the center of tile C1: x 60, y 8.9, facing -90, front against the audience
+     * Situation: the TeleOp default start (the center of tile C1: x 60, y 9.77, facing -90, front against the audience
      *     wall) and the measured anchor shot (front against the wall, exactly in line with the HIVE), each asking for
      *     the RED audience cell, which is the cell that is up at the start of the match.
      * Expected: both plan, both with no turn window and no detour (the robot only needs to settle a few inches), the
@@ -197,7 +197,7 @@ public class ScoringPlannerWallSafetyTest {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 defaultStart = Pose2.ofDegrees(BioBuzzConstants.Controls.DEFAULT_START_X_IN,
                 BioBuzzConstants.Controls.DEFAULT_START_Y_IN, BioBuzzConstants.Controls.DEFAULT_START_HEADING_DEG);
-        Pose2 anchor = new Pose2(cell.axisX, 0.5 * size, -0.5 * Math.PI);
+        Pose2 anchor = new Pose2(cell.axisX, robot.frontIn(), -0.5 * Math.PI);
         for (Pose2 start : new Pose2[]{defaultStart, anchor}) {
             ScoringPlanner.Solution s = planner.solve(start, cell);
             assertTrue("must plan from " + start + ": " + s, s.ok());
@@ -214,7 +214,7 @@ public class ScoringPlannerWallSafetyTest {
      * Situation: a RED robot standing against the audience wall, touching it, right below the middle of the HIVE
      *     (x = 72, so the open floor straight ahead is the HIVE itself), facing +90 degrees (front toward the field,
      *     back toward the wall) and asked for the audience cell, which it shoots at facing -90. That is a 180 degree
-     *     flip, and a square flipping next to a wall swings its corners through 12.6 in of room.
+     *     flip, and a rectangle flipping next to a wall swings its corners through 13.2 in of room.
      * Expected: the planner returns a route; the robot keeps its heading for the first few inches (hold above 0), so it
      *     leaves the wall before it turns; the first waypoint is farther from the wall than the start; the slow referee
      *     finds nothing clipped. The same start with the check switched off clips the wall.

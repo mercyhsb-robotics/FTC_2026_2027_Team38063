@@ -40,6 +40,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  * the plate (5.25 in from the wall), so the wheel tip stops 5.25 - 2.7 = 2.55 in from the wall, 1.25 in into the POLLEN.
  */
 public class FlowerPressTest {
+    /** The robot's center of rotation is this far (9.77 in) from a wall its FRONT edge is touching; see RobotShape. */
+    private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double EPS = 1e-6;
     private static final double REACH = BioBuzzConstants.Robot.INTAKE_REACH_IN;
     private static final double PLATE_DEPTH = BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN;
@@ -50,7 +52,7 @@ public class FlowerPressTest {
 
     private static AutoRoute.Builder base() {
         // 4 pre-loads fired first, so that a FLOWER INTAKE of 4 is legal; the drive to the FLOWER is not what these tests judge
-        return AutoRoute.builder("press").start(35, 9.2, -90).shootUp(4);
+        return AutoRoute.builder("press").start(35, FRONT, -90).shootUp(4);
     }
 
     /** A route that drives to the given line-up pose and presses with the given wheel; the INTAKE is step index 3. */
@@ -277,22 +279,36 @@ public class FlowerPressTest {
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage(), expected.getMessage().contains("wheel"));
         }
-        AutoRoute garden = AutoRoute.builder("g").start(35, 9.2, -90).shootUp(4).intakeGarden(5.9, 1.4, 9, 9.7, -90, 4).build();
+        AutoRoute garden = AutoRoute.builder("g").start(35, FRONT, -90).shootUp(4).intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4).build();
         assertNull(((Step.Intake) garden.step(2)).wheel());
         assertNull(FlowerPress.of((Step.Intake) garden.step(2), RED));
     }
 
     // ---- I4: heading, lateral, approach length, retreat ----------------------------------------------------
 
+    /**
+     * The pose with its heading crooked by {@code deltaRad} and NOTHING ELSE wrong: it is as far from the wall as before (the
+     * final approach keeps its length) and the middle of the pressing wheel is still on the FLOWER's center line. Turning the
+     * robot about its pose point (the center of rotation) swings the wheel sideways, because the wheel is 8.4 in ahead of that
+     * point and 6.1 in to the side: 8 degrees moves it 1.2 in along the wall, more than the 1.0 in alignment tolerance. So the
+     * turned robot is slid back along the wall until the wheel is on the center line again.
+     */
+    private static Pose2 crookedButOtherwiseIdeal(Pose2 pose, IntakeWheel wheel, double deltaRad) {
+        Pose2 turned = new Pose2(pose.x, pose.y, pose.heading + deltaRad);
+        Point2 n = RED.flowerInward(0);
+        double off = RED.flowerLateral(0, Footprint.wheelCenter(turned, wheel));
+        return new Pose2(turned.x + n.y * off, turned.y - n.x * off, turned.heading);
+    }
+
     @Test
     public void aCrookedLineUpIsAnErrorAndASlightlyCrookedOneIsNot() {
         Pose2 ideal = ideal(0, IntakeWheel.LEFT);
         double tol = BioBuzzConstants.Auto.FLOWER_HEADING_TOLERANCE_DEG;
-        AutoRoute crooked = lineUpRoute(0, IntakeWheel.LEFT, new Pose2(ideal.x, ideal.y, ideal.heading + Math.toRadians(tol + 3.0)));
+        AutoRoute crooked = lineUpRoute(0, IntakeWheel.LEFT, crookedButOtherwiseIdeal(ideal, IntakeWheel.LEFT, Math.toRadians(tol + 3.0)));
         List<Issue> l = intakeIssues(crooked);
         assertEquals(l.toString(), 1, count(l, Rule.FLOWER_PRESS, Severity.ERROR));
         assertTrue(first(l, Rule.FLOWER_PRESS, Severity.ERROR).message.contains("perpendicular to the wall"));
-        AutoRoute slight = lineUpRoute(0, IntakeWheel.LEFT, new Pose2(ideal.x, ideal.y, ideal.heading + Math.toRadians(tol - 1.0)));
+        AutoRoute slight = lineUpRoute(0, IntakeWheel.LEFT, crookedButOtherwiseIdeal(ideal, IntakeWheel.LEFT, Math.toRadians(tol - 1.0)));
         assertTrue(intakeIssues(slight).toString(), intakeIssues(slight).isEmpty());
         // a robot that faces AWAY from the wall is as wrong as it gets
         AutoRoute away = lineUpRoute(0, IntakeWheel.LEFT, new Pose2(ideal.x, ideal.y, ideal.heading + Math.PI));
@@ -368,7 +384,7 @@ public class FlowerPressTest {
     public void aLineUpThatIsAlreadyInsideThePlateRunsTheChassisIntoIt() {
         // line-up with the wheel tip only 1 in from the wall: the chassis front is 3.7 in from it, inside the 4.75 in plate
         Pose2 inside = FlowerPress.poseWithWheelOnCenterLine(RED, 0, IntakeWheel.LEFT, 1.0);
-        AutoRoute r = AutoRoute.builder("x").start(35, 9.2, -90).shootUp(4)
+        AutoRoute r = AutoRoute.builder("x").start(35, FRONT, -90).shootUp(4)
                 .driveConstant(inside.x, inside.y, inside.headingDegrees())
                 .intakeFlower(2.4, 48, inside.x, inside.y, inside.headingDegrees(), IntakeWheel.LEFT, 4).build();
         List<Issue> all = RouteValidator.check(r);
@@ -486,11 +502,11 @@ public class FlowerPressTest {
 
     @Test
     public void onlyAFlowerIntakeIsAPressIn() {
-        AutoRoute garden = AutoRoute.builder("g").start(35, 9.2, -90).shootUp(4)
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4).build();
+        AutoRoute garden = AutoRoute.builder("g").start(35, FRONT, -90).shootUp(4)
+                .intakeGarden(5.9, 1.4, 9, FRONT + 0.8, -90, 4).build();
         assertNull(FlowerPress.of((Step.Intake) garden.step(2), RED));
         // a FLOWER intake whose target is near no FLOWER has nothing to press
-        AutoRoute nothing = AutoRoute.builder("n").start(35, 9.2, -90).shootUp(4)
+        AutoRoute nothing = AutoRoute.builder("n").start(35, FRONT, -90).shootUp(4)
                 .intakeFlower(60, 30, 30, 30, 0, IntakeWheel.LEFT, 1).build();
         assertNull(FlowerPress.of((Step.Intake) nothing.step(2), RED));
         assertFalse(RouteValidator.check(nothing).isEmpty());

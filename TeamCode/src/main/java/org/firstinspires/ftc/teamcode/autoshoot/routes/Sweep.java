@@ -15,21 +15,21 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  * one every {@code PATH_SAMPLE_STEP_IN} inches along the path and one every {@code TURN_SAMPLE_STEP_DEG} degrees of
  * turning. A thin obstacle (a post, the edge of a wall) can sit in the strip of floor the robot sweeps over between
  * two samples without being inside the robot at either of them. The corners are the danger: the robot's corner is
- * 12.59 in from its center, so a 5 degree turn moves it 1.1 in.
+ * 13.22 in from its center of rotation, so a 5 degree turn moves it 1.15 in.
  *
  * <p><b>The guarantee.</b> Call a pose's <i>depth</i> how far the robot is into the thing it must stay out of
  * (a wall, the HIVE keep-out, a FLOWER plate); a NEGATIVE depth means "clear by that many inches", and the rule is
  * broken when the depth is above 0. Take two neighbouring samples A and B and any pose Q on the route between them.
  * <ol>
  *   <li>Every point of the robot is within {@code R} of its rotation center, where {@code R} is
- *       {@link Footprint#robotHalfDiagonal()} (the farthest corner, 12.59 in). Sliding the center by {@code d} moves every
+ *       {@link Footprint#circumscribedRadiusIn()} (the farthest corner, 13.22 in). Sliding the center by {@code d} moves every
  *       point by {@code d}; turning the robot by an angle {@code t} (radians) moves a point at radius {@code <= R} along an
  *       arc of {@code <= R * t}. So no point of the robot, corners included, moves more than
  *       <br>{@code travel(A, Q) = d(A, Q) + R * t(A, Q)}<br> between A and Q.</li>
  *   <li>The sampler cuts the path until neighbouring samples are at most {@code PATH_SAMPLE_STEP_IN} apart and turn at
  *       most {@code TURN_SAMPLE_STEP_DEG} (see {@link DrivePath#sampleArcLengths(double, double)}), so for neighbours
  *       {@code travel(A, B) <= T = PATH_SAMPLE_STEP_IN + R * TURN_SAMPLE_STEP_DEG(in radians)}, which is
- *       {@link #maxTravelBetweenSamples()}: 1 + 12.59 * 0.0873 = 2.10 in. (While turning in place only the second term
+ *       {@link #maxTravelBetweenSamples()}: 1 + 13.22 * 0.0873 = 2.15 in. (While turning in place only the second term
  *       counts; while driving straight with a fixed heading only the first.)</li>
  *   <li>The depth is <b>1-Lipschitz</b>: if every point of the robot moves by at most {@code m}, the depth changes by at
  *       most {@code m}. It is true for every depth used here, because each is a plain distance (the signed gap between
@@ -108,11 +108,11 @@ final class Sweep {
 
     /**
      * The most any point of the robot can move between two neighbouring samples:
-     * {@code PATH_SAMPLE_STEP_IN + halfDiagonal * TURN_SAMPLE_STEP_DEG}, in inches (derived, see the class comment).
+     * {@code PATH_SAMPLE_STEP_IN + circumscribedRadius * TURN_SAMPLE_STEP_DEG}, in inches (derived, see the class comment).
      */
     static double maxTravelBetweenSamples() {
         return BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN
-                + Footprint.robotHalfDiagonal() * Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG);
+                + Footprint.circumscribedRadiusIn() * Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG);
     }
 
     /**
@@ -199,7 +199,7 @@ final class Sweep {
     /** Turning in place at the start point of a leg; the parameter is the angle turned so far, in radians. */
     private static final class TurnMotion implements Motion {
         private final DrivePath leg;
-        private final double radius = Footprint.robotHalfDiagonal();
+        private final double radius = Footprint.circumscribedRadiusIn();
 
         TurnMotion(DrivePath leg) {
             this.leg = leg;
@@ -224,7 +224,7 @@ final class Sweep {
     /** Driving along a leg; the parameter is the distance along the path, in inches. */
     private static final class LegMotion implements Motion {
         private final DrivePath leg;
-        private final double radius = Footprint.robotHalfDiagonal();
+        private final double radius = Footprint.circumscribedRadiusIn();
 
         LegMotion(DrivePath leg) {
             this.leg = leg;
