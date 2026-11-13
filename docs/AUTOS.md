@@ -42,7 +42,7 @@ The six routes today. The numbers are the gallery's at the time of writing, made
 | `red_leave_park` | we tip first (it shoots nothing, so it does not care) | A3 | A copy of `RedAlliance_LeavePark`: leaves the wall and parks. | 2.7 s | 8 | 2 ERROR |
 | `wall_shoot_park` | we tip first | C1 | Shoots the 4 pre-loads (this tips the HIVE), leaves through the left corridor and parks deep in the LOADING ZONE. | 12.4 s | 28 | 0 ERROR, 1 WARN |
 | `garden_cycle` | we tip first | B1 | Shoots the 4 pre-loads, sweeps up 3 GARDEN POLLEN and steps off the wall. It does not park. | 14.1 s | 23 | 0 ERROR, 1 WARN |
-| `partner_rear_shoot_park` | partner tips first | C6 | Starts on the rear wall, waits for the camera to see the REAR cell come up, shoots 4 into it and parks in the LOADING ZONE. | 22.2 s | 8 | no findings |
+| `partner_rear_shoot_park` | partner tips first | B6 | Starts turned in the rear corner next to the rear-wall FLOWER, waits for the camera to see the REAR cell come up, shoots 4 into it and parks in the LOADING ZONE. | 21.5 s | 8 | no findings |
 
 **Our points** counts only what our robot earns: LEAVE 3, PARK 5, and 20 for a tip that **our** volley makes. A tip the partner makes belongs to
 the alliance and is never counted here. **ERROR** and **WARN** are explained in "What the validator checks". The first three routes are faithful
@@ -304,9 +304,10 @@ by `Auto.START_PLACEMENT_MARGIN_IN` (1 in) along the wall and `START_PLACEMENT_M
 robot back against the wall again (a hand cannot push a robot into a wall, and a robot 1 in off the wall is not a legal start), and runs the validator on each.
 Every ERROR that appears only because of the move is a finding: **the route is placed too close to the edge of what is legal**. The report also says how
 much the time estimate moves (the spread). A turn of 3 degrees swings the robot's front corner sideways by 0.5 in, so the margin is bigger than it sounds.
-`StartRobustnessTest` runs it on every route of the catalog and lists what it finds today: `red_c1` (its start is 0.57 in through the wall, so the
-first move clips the wall a little deeper) and `partner_rear_shoot_park` (its start x = 61.5 leaves only 0.27 in between the robot and the center line, so a hand
-that is 1 in off puts the robot into the other half, G304.A). The catalog is not changed here: the finding is the report.
+`StartRobustnessTest` runs it on every route of the catalog and lists what it finds today: only `red_c1` (its start is 0.57 in through the wall, so the
+first move clips the wall a little deeper). `partner_rear_shoot_park` used to be on that list: it started straight on the rear wall at x = 61.5, which leaves only
+0.27 in between the robot and the center line, so a hand that was 1 in off put the robot into the other half (G304.A) and 5 of the 8 placements failed. It now starts
+at the turned corner start of the table below, which passes all 8. The report for `red_c1` is left as it is: that route is a copy of an old OpMode.
 
 **The best start for a route.** `StartPoseSearch.bestStart(template, standardStarts)` takes a route with its start left open (`RouteTemplate`: "this is the
 rest of the route, and this is how it changes with the start": a robot that starts where it would shoot from shoots without a move first), tries every legal start
@@ -323,22 +324,23 @@ and shooter numbers, so read the order and the sizes, not the decimals):
 | Shoot 4, left corridor, park | C1 front on the wall: 11.7 s (B1: 13.2 s) | **turned 40 degrees, a front corner on the audience wall 35.8 in from the red wall**: 10.9 s | 0.8 s |
 | Shoot 4, take 3 GARDEN POLLEN, step off | C1: 12.6 s (B1: 14.1 s) | the same start: 12.0 s | 0.6 s |
 | Shoot 4, take 3 from the red-wall FLOWER, park (a robot whose wheels reach) | C1: 18.5 s (B1: 20.0 s) | the same start: 17.7 s | 0.8 s |
-| Partner tips first: wait, shoot 4 at the rear cell, park | the catalog's start (x = 61.5): 21.7 s, **fails the margin** | **turned 35 degrees, a corner on the rear wall 37.9 in from the red wall**: 20.9 s | 0.7 s |
+| Partner tips first: wait, shoot 4 at the rear cell, park | a straight start on the rear wall (x = 61.5): 21.7 s, **fails the margin** | **turned 35 degrees, a corner on the rear wall 37.9 in from the red wall**: 20.9 s (the catalog's `partner_rear_shoot_park` starts here and steps 1 in toward the cell to be inside the 30-38 in band: 21.5 s) | 0.7 s |
 | Partner tips first, then take 3 from the rear FLOWER and leave (wheels that reach) | 28.4 s, fails the margin | the same kind of start: 28.1 s | 0.3 s |
 | Leave and park only | B1: 3.5 s (C1's straight line crosses the HIVE) | **a back corner on the red wall above the LOADING ZONE, turned 25 degrees**, 123.7 in from the audience wall: 1.4 s | 2.0 s |
 
 What this says about the shortcuts one might expect:
 
 * **Start in a shooting pose** (front on the audience wall, in line with the HIVE): confirmed, and it is what C1 already is. At x = 58 the ball leaves 36.4 in
-  from the aim point (the measured shot is 37.7 in, see the day-one list), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
+  from the aim point (the measured shot is 37.7 in, see docs/START_HERE.md, step 19), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
   to a pose is in the plan. The search finds something slightly better: **start turned about 40 degrees with the back toward the cell** and a front corner on the
   wall, standing about 23 in nearer the corridor to the LOADING ZONE. It saves about 0.8 s over C1 for every family that goes down the left side, and the robot is still a
   shooting pose (the back points within about 15 degrees of the aim point). This is the "start rotated" shortcut of Figure 11-1.
 * **The rear-wall equivalent** (front on the rear wall, in line with the rear cell, for a route where the partner tips first): the in-line start does exist, but
   **the gap between the rear-wall FLOWER (its plate ends at x = 50.26, its bracket at 50.6) and the center line (x = 70.67) is only 20.4 in wide (20.1 in counting the bracket),
   and a 17.80 in robot needs 3 in of margin on top (1 in either way, plus 0.5 in either way for a 3 degree turn)**. No place there keeps the full margin. With 70% of it (0.7 in and 2.1 degrees) the
-  robot can stand at x = 60.75, front on the rear wall: 36.4 in from the aim point, 21.6 s (the catalog's x = 61.5 is only 0.27 in from the center line and fails). The best
-  start with the full margin is again the turned one, left of the FLOWER (turned 35 degrees, 37.9 in from the red wall), 0.7 s faster than the catalog's.
+  robot can stand at x = 60.75, front on the rear wall: 36.4 in from the aim point, 21.6 s (a straight start at x = 61.5 is only 0.27 in from the center line and fails). The best
+  start with the full margin is again the turned one, left of the FLOWER (turned 35 degrees, 37.9 in from the red wall), 0.7 s faster than the straight one, and it is the
+  start the catalog's `partner_rear_shoot_park` uses.
 * **Start beside the first pick-up**: the first action cannot be a pick-up, because the robot holds 4 pre-loads and may control at most 4 (G407), so a start beside
   the red-wall FLOWER only wins if it is also a shooting pose, and it is not (it is about 60 in from the nearest one). In the search it never beats the audience-wall
   start. On the rear wall the turned start left of the rear FLOWER is both a shooting pose for the rear cell and close to that FLOWER: it saves 0.3 s for the route
@@ -346,7 +348,7 @@ What this says about the shortcuts one might expect:
 * **Start next to the LOADING ZONE**: for a route that only leaves and parks it saves about 2 s: the robot starts above the zone and drives 20 in. (The zone itself is
   forbidden for a start, G304.E, and the robot must end 1.5 in off every wall to keep its LEAVE, QA21.)
 
-These starts are not authored into the catalog yet: the table is the evidence, and a route author picks the start. Each is a plain `start(x, y, heading)` call.
+Only the partner route uses one of these starts so far (the turned one on the rear wall); the others are not authored into the catalog yet: the table is the evidence, and a route author picks the start. Each is a plain `start(x, y, heading)` call.
 
 **The words for a student.** `StartPlacement.placementText(route)` turns a start into instructions to follow with a tape measure to the robot's **edges**, never to
 the pose point (an invisible point inside the robot):
@@ -428,7 +430,7 @@ every route goes **around** it.
 That is the loop of a partner route (the robot must get from the audience side to the cell that comes up on the rear side
 after the partner's tip): about 0.6 s at the placeholder cruise speed of 40 in/s, which is a tenth of the 6 s a 3-POLLEN
 FLOWER pick-up is estimated to take. Worth having if the HIVE is known to be at rest; not worth a foul. Day one: measure the real
-lane with a tape before the first run (`docs/DAY_ONE_CHECKLIST.md`).
+lane with a tape before the first run (`docs/START_HERE.md`, "Measure later").
 
 ## Taking POLLEN from a FLOWER (the wiggle)
 
@@ -488,7 +490,7 @@ derived from the constants**, so nobody computes it by hand:
   (wheels that stick out 2.7 in) the wheel falls 0.77 in short**: the validator says so as an ERROR, with the missing inches:
   *"the flat wheels would have to stick out 3.5 in in front of the chassis, 0.8 in more than they do"*. What helps is longer wheels,
   or a smaller `Auto.FLOWER_CHASSIS_CLEARANCE_IN`, or a smaller `Auto.FLOWER_WHEEL_START_OFFSET_IN` (a smaller swing): **measure the
-  real robot** (the day-one checklist) before believing this ERROR, it follows from placeholder numbers. (If the wheel would
+  real robot** ("Measure later" in docs/START_HERE.md) before believing this ERROR, it follows from placeholder numbers. (If the wheel would
   have to turn more than 20 degrees, no length of wheel helps and the finding says so.)
 * **Which wheel.** `intakeFlower(x, y, count)` leaves the wheel to `IntakeWheel.AUTO`; `LEFT` or `RIGHT` forces it. The program
   plans the whole pick-up for each wheel and **keeps only the legal ones** (the wheel reaches, nothing breaks a rule on the
@@ -534,7 +536,7 @@ not simulated (the validator checks them as straight legs). The margin is thin a
 is 1.1 in, 1.2 in and 8 degrees. And with the minimum standoff the wheel stands exactly on the stop line, so any slide toward the wall breaks
 it. The script reads only the heading by design (the follower holds the position, the runner only alternates the target heading); a runner
 that also reads the pose and gives up when the pose point leaves a small circle would close the gap, but there is no runner yet, so it is a
-design note and not built. Until then the day-one checklist asks to watch the pose during one wiggle, and `Auto.FLOWER_CHASSIS_CLEARANCE_IN` is the knob.
+design note and not built. Until then "Measure later" in docs/START_HERE.md asks to watch the pose during one wiggle, and `Auto.FLOWER_CHASSIS_CLEARANCE_IN` is the knob.
 
 In the diagram a FLOWER INTAKE draws the robot where the wiggle **starts** (the working wheel has a green ring), a faint
 second outline where the push **ends**, a **curved arrow** for the sweep of the wheel, a small label such as `wiggle x4`, a short
@@ -568,7 +570,7 @@ NECTAR x 5  +  POLLEN x 3  >=  8 x 3 = 24
 | 4 NECTAR | 20 | no | (not official) |
 
 Any NECTAR weight from 5/3 up to (not including) 2 POLLEN agrees with the official table; 5/3 is the lightest, and it also
-gives the team's "5 NECTAR tip, 4 do not". Weigh your own balls (day-one checklist). `ConstantsCheck` refuses constants that do
+gives the team's "5 NECTAR tip, 4 do not". Weigh your own balls ("Measure later" in docs/START_HERE.md). `ConstantsCheck` refuses constants that do
 not reproduce the table, and `TipModelTest` pins all six cases. (The first version of this planner used `NECTAR / 5 + POLLEN / 8 >= 1`, which
 said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first tip: that was wrong.)
 
@@ -625,7 +627,7 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
   **The shooter fires out of the robot's BACK**, so its rear edge is what faces the landing band. The standard shooting pose is outside the zone on
   purpose (the rear edge is about 48 in out at the nominal 34 in standoff, 53 in at the measured anchor shot, 45 in at the closest legal
   standoff, 30 in): a zone that reached 48 in would call every standard shot "standing in the spill". The swing of the cell is not modelled, so
-  day one looks (see the checklist) and `Auto.TIP_SPILL_REACH_IN` is the knob. So after a tip a route must not drive diagonally toward the HIVE: slide
+  day one looks (see "Measure later" in docs/START_HERE.md) and `Auto.TIP_SPILL_REACH_IN` is the knob. So after a tip a route must not drive diagonally toward the HIVE: slide
   along the wall at the height of the shooting pose first (the demonstration routes do), or wait the 3.5 s out.
 * **G402 (AUTO sides).** The foul is disrupting the other alliance (controlling their elements or touching their robot on
   their side); merely crossing the center line is risky, not itself a foul. The validator keeps the stricter rule (the robot
@@ -735,7 +737,7 @@ PARK) after the volley**, so they are done whether or not the tip comes.
   close it gets (`Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`), which side of the wheel the ball is on (`Auto.FLOWER_WHEEL_BALL_INBOARD`), the holds
   and the cycles (`Auto.FLOWER_WIGGLE_*`), and how far the chassis stays off the plate (`Auto.FLOWER_CHASSIS_CLEARANCE_IN`). **With the
   numbers of the drawing the validator reports that the wheel falls 0.77 in short of the ball** (see "Taking POLLEN from a
-  FLOWER"): that is the finding to check first with the real robot. They are on the day-one checklist (section C); measure
+  FLOWER"): that is the finding to check first with the real robot. They are in "Measure later" in docs/START_HERE.md; measure
   them with the real robot at a real FLOWER, both wheels.
 * **The tip figures** (`Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR` / `_DENOMINATOR` = 5/3 and `Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD` = 8,
   VERIFY) come from FIRST's calibration (see "How a HIVE tips"), not from the manual. `Auto.TIP_PLANNING_MARGIN_POLLEN` = 1 (TUNE) is
@@ -782,14 +784,14 @@ the OpMode's start y (or x) to match once the real center of rotation is measure
 3 of the 4 GARDEN POLLEN (the robot holds 0, or 1 if the feeder stops in time; standing 0.8 in off the wall) and steps off the wall (23 points). It does not
 shoot the GARDEN POLLEN: the UP cell is on the far side of the HIVE after the tip and needs 8 POLLEN (plan 9).
 * **`partner_rear_shoot_park`** is the one route of the **partner family** (`PartnerTipRoutes`): it assumes the alliance partner shoots the first
-  tip (assumed at 12 s). It starts on the rear wall in tile C6 with its back toward the HIVE, WAITS until its camera has seen the REAR cell come up
-  and stay steady, shoots 4 into it (4 of the 8 the second tip needs, for TELEOP), drives off the wall and parks in the red LOADING ZONE
-  (LEAVE 3 + PARK 5 are ours; the partner's 20 is shown separately, never counted). If the tip never comes it gives up and still leaves and parks.
+  tip (assumed at 12 s). It starts turned in the rear corner in tile B6 (front-right corner on the wall, back toward the REAR cell: no drive before the volley), WAITS until its camera has seen the REAR cell come up
+  and stay steady, steps 1 in toward the cell and shoots 4 into it (4 of the 8 the second tip needs, for TELEOP), drives off the wall and parks in the red LOADING ZONE
+  (LEAVE 3 + PARK 5 are ours; the partner's 20 is shown separately, never counted). If the tip never comes it gives up at 19 s (the latest the rest of the route allows) and still leaves and parks.
   **Why it does not also make the second tip.** Partner tips (12 s) + the camera's settle (0.5 s) + a volley of 4 (1.9 + 4 x 0.9 = 5.5 s) + a
   FLOWER pick-up of 4 (about 7.4 s) + a second volley of 4 (5.5 s) = 30.9 s with NO driving at all, over the 30 s of AUTO: the route as the team
   asked for it cannot fit with the shipped numbers (written out as a test in `RouteCatalogTest`). It needs a partner that tips by about 6 s, and
   wheels that really reach the POLLEN (the validator says the shipped wheels fall 0.8 in short). 12 s is the team's own "about 12 s" guess and
-  is NOT changed here: agree the real time with the partner team (day-one checklist) and measure the wheels first. Two things the timing model does
+  is NOT changed here: agree the real time with the partner team ("Measure later" in docs/START_HERE.md) and measure the wheels first. Two things the timing model does
   not know yet could win a few seconds: it charges the aim and spin-up (1.9 s) after every WAIT_FOR_TIP and after every volley, never in parallel with
   the wait or a drive, and it does not know the partner could be faster. Even with both spin-ups free the total is about 27 s with no driving at all,
   which leaves no room for the drives.

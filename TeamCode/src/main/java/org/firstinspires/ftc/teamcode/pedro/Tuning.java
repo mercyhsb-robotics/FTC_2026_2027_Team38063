@@ -38,9 +38,10 @@ import org.firstinspires.ftc.teamcode.pedro.procedures.Tests;
  *
  * <p><b>What this class is.</b> It is only a list: it tells Pedro's tuning menu which procedures exist. The procedures
  * themselves are in the {@code pedro/procedures} folder. Pedro finds the methods below by their {@code @Tuner}
- * annotation (all four are {@code public static} and return a {@code Procedure}). The tuning menu is listed with the
- * other OpModes on the Driver Station (see README.md); there you run a procedure, answer its questions, and it shows
- * the numbers and the Java code to paste into {@code Constants.java}. See docs/TUNING.md for the full guide.
+ * annotation (all four are {@code public static} and return a {@code Procedure}). The tuning menu is a web page, not an
+ * item in the Driver Station list: open http://192.168.43.1:10158 in a browser on a laptop that is on the Robot Controller's Wi-Fi
+ * (keep the Driver Station connected); there you run a procedure, answer its questions, and it shows
+ * the numbers and the Java code to paste into {@code Constants.java}. See docs/START_HERE.md for the full guide.
  *
  * <p><b>Words used here.</b> <b>Pedro Pathing</b> is the library that drives the robot along paths using its
  * measured position. The <b>Pinpoint</b> is the goBILDA odometry computer that measures that position.

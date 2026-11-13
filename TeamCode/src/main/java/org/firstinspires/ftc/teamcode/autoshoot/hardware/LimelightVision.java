@@ -23,7 +23,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.VisionFrame;
  *
  * <p>What the Limelight is: a small camera with its own computer. It finds the AprilTags itself, using a saved
  * set of vision settings called a "pipeline" (ours is pipeline 0, set up as described in
- * docs/LIMELIGHT_SETUP.md), and the Control Hub only reads the answers over USB. So this class never looks at
+ * docs/START_HERE.md), and the Control Hub only reads the answers over USB. So this class never looks at
  * pictures; it reads a list of "this tag ID is at this angle, and this far away".
  *
  * <p>Where it sits in the data flow: Limelight camera -> this class -> {@link VisionFrame} (a list of

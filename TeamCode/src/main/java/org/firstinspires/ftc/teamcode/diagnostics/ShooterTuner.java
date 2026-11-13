@@ -39,7 +39,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  * turns. The shot table lists, for several distances, the flywheel speed that scores. Speeds are in encoder
  * <b>ticks per second</b> ("tps"; a tick is one count of the motor's encoder). The <b>feeder</b> is the servo that
  * pushes a POLLEN into the flywheel. This tool gets the numbers you paste into
- * {@code BioBuzzConstants.Shooter.SHOT_TABLE} (see docs/TUNING.md, section 2).
+ * {@code BioBuzzConstants.Shooter.SHOT_TABLE} (see docs/START_HERE.md, "Build the shot table").
  *
  * <p><b>When to run it and what to do.</b> Use it when the shot table is new or no longer fits (a new flywheel, a new
  * PIDF, a changed launch point). It is in the Driver Station TeleOp list as "Shooter Tuner" (group "AutoShoot").
