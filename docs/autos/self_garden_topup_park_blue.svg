@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, then park - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_garden_topup_park for the BLUE alliance, starting in tile E6, with 10 steps: 1 START at (96.8, 129.1, 70 deg); 2 SHOOT 4 at UP cell from (96.8, 129.1, 70 deg); 3 DRIVE into the GARDEN constant to 131.8, 130.8; 4 INTAKE GARDEN +4 from (131.8, 130.8, 90 deg); 5 DRIVE back to the shot linear to 96.8, 129.1; 6 SHOOT 4 at REAR cell from (96.8, 129.1, 70 deg); 7 DRIVE along the wall constant to 111.3, 126.5; 8 DRIVE corridor reverse tangent to 111.3, 57.3; 9 DRIVE to the zone linear to 129.3, 49.2; 10 PARK at (129.3, 49.2, 180 deg). First tip: we shoot the first tip. Estimated 21.8 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 2 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_garden_topup_park for the BLUE alliance, starting in tile E6, with 10 steps: 1 START at (96.8, 129.2, 70 deg); 2 SHOOT 4 at UP cell from (96.8, 129.2, 70 deg); 3 DRIVE into the GARDEN constant to 131.8, 130.8; 4 INTAKE GARDEN +4 from (131.8, 130.8, 90 deg); 5 DRIVE back to the shot linear to 96.8, 129.2; 6 SHOOT 4 at REAR cell from (96.8, 129.2, 70 deg); 7 DRIVE along the wall constant to 111.3, 126.5; 8 DRIVE corridor reverse tangent to 111.3, 57.3; 9 DRIVE to the zone linear to 129.3, 49.1; 10 PARK at (129.3, 49.1, 180 deg). First tip: we shoot the first tip. Estimated 21.8 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 2 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -163,31 +163,31 @@
 </g>
 <g id="start-bands" data-heading="70">
 <title>Where a robot facing 70 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
-<rect class="start-band" data-wall="BLUE" data-from="10.59" data-to="13.93" x="763.6" y="650.11" width="11.5" height="15.38" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="BLUE" data-from="57.35" data-to="83.12" x="763.6" y="331.83" width="11.5" height="118.54" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="BLUE" data-from="104.73" data-to="129.12" x="763.6" y="120.23" width="11.5" height="112.19" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="81.68" data-to="83.64" x="500.64" y="702.7" width="9.01" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="105.25" data-to="129.64" x="609.06" y="702.7" width="112.19" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="81.68" data-to="129.64" x="500.64" y="64" width="220.61" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="10.56" data-to="13.9" x="763.6" y="650.25" width="11.5" height="15.38" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="57.32" data-to="83.09" x="763.6" y="331.98" width="11.5" height="118.54" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="104.7" data-to="129.15" x="763.6" y="120.09" width="11.5" height="112.48" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="81.6" data-to="83.73" x="500.26" y="702.7" width="9.79" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="105.34" data-to="129.73" x="609.45" y="702.7" width="112.19" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="81.6" data-to="129.73" x="500.26" y="64" width="221.39" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
 <text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
 </g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="self_garden_topup_park">
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
 <title>step 3: DRIVE into the GARDEN constant to 131.8, 130.8 (t = 5.5 to 7.1 s)</title>
-<path class="leg" d="M 570.4 120.23 L 731.4 112.62" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="650.9,116.43 641.15,121.89 640.68,111.91" fill="#1565c0"/>
-<polygon class="arrowhead" points="731.4,112.62 721.65,118.09 721.18,108.1" fill="#1565c0"/>
+<path class="leg" d="M 570.4 120.09 L 731.4 112.62" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="650.9,116.36 641.14,121.82 640.68,111.83" fill="#1565c0"/>
+<polygon class="arrowhead" points="731.4,112.62 721.64,118.08 721.18,108.09" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="LINEAR">
-<title>step 5: DRIVE back to the shot linear to 96.8, 129.1 (t = 10.1 to 11.6 s)</title>
-<path class="leg" d="M 731.4 112.62 L 570.4 120.23" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="650.9,116.43 660.65,110.96 661.13,120.95" fill="#1565c0"/>
-<polygon class="arrowhead" points="570.4,120.23 580.15,114.77 580.63,124.76" fill="#1565c0"/>
+<title>step 5: DRIVE back to the shot linear to 96.8, 129.2 (t = 10.1 to 11.6 s)</title>
+<path class="leg" d="M 731.4 112.62 L 570.4 120.09" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="650.9,116.36 660.66,110.9 661.12,120.89" fill="#1565c0"/>
+<polygon class="arrowhead" points="570.4,120.09 580.16,114.63 580.62,124.62" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="7" data-mode="CONSTANT">
 <title>step 7: DRIVE along the wall constant to 111.3, 126.5 (t = 17.1 to 18.3 s)</title>
-<path class="leg" d="M 570.4 120.23 L 637.1 132.08" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="637.1,132.08 626.38,135.25 628.13,125.41" fill="#1565c0"/>
+<path class="leg" d="M 570.4 120.09 L 637.1 132.08" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="637.1,132.08 626.37,135.23 628.14,125.39" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="8" data-mode="REVERSE_TANGENT">
 <title>step 8: DRIVE corridor reverse tangent to 111.3, 57.3 (t = 18.3 to 20.5 s)</title>
@@ -196,48 +196,48 @@
 <polygon class="arrowhead" points="637.1,450.4 632.1,440.4 642.1,440.4" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="9" data-mode="LINEAR">
-<title>step 9: DRIVE to the zone linear to 129.3, 49.2 (t = 20.5 to 21.8 s)</title>
-<path class="leg" d="M 637.1 450.4 L 719.9 488.05" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="719.9,488.05 708.73,488.46 712.87,479.36" fill="#1565c0"/>
+<title>step 9: DRIVE to the zone linear to 129.3, 49.1 (t = 20.5 to 21.8 s)</title>
+<path class="leg" d="M 637.1 450.4 L 719.9 488.46" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="719.9,488.46 708.73,488.83 712.9,479.74" fill="#1565c0"/>
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
-<title>step 1: START at (96.8, 129.1, 70 deg) (t = 0.0 to 0.0 s)</title>
-<polygon class="outline" points="547.3,64 519.3,140.94 596.24,168.95 624.24,92" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="543.05,75.67 519.3,140.94 596.24,168.95 619.99,103.68" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="547.3" y1="64" x2="624.24" y2="92" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="519.3" y1="140.94" x2="596.24" y2="168.95" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="557.2" cy="74.46" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="609.94" cy="93.65" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="96.85" data-y="129.12">
-<circle cx="570.4" cy="120.23" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
-<line x1="567" y1="120.23" x2="573.8" y2="120.23" stroke="#1565c0" stroke-width="1"/>
-<line x1="570.4" y1="116.83" x2="570.4" y2="123.63" stroke="#1565c0" stroke-width="1"/>
+<title>step 1: START at (96.8, 129.2, 70 deg) (t = 0.0 to 0.0 s)</title>
+<polygon class="outline" points="547.69,64 519.68,140.94 595.85,168.66 623.85,91.72" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="543.44,75.67 519.68,140.94 595.85,168.66 619.61,103.39" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="547.69" y1="64" x2="623.85" y2="91.72" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="519.68" y1="140.94" x2="595.85" y2="168.66" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="557.2" cy="74.32" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="609.94" cy="93.51" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="96.85" data-y="129.15">
+<circle cx="570.4" cy="120.09" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
+<line x1="567" y1="120.09" x2="573.8" y2="120.09" stroke="#1565c0" stroke-width="1"/>
+<line x1="570.4" y1="116.69" x2="570.4" y2="123.49" stroke="#1565c0" stroke-width="1"/>
 </g>
-<line class="heading-arrow" x1="574.16" y1="109.9" x2="581.33" y2="90.22" stroke="#1565c0" stroke-width="2.5"/>
-<polygon class="arrowhead" points="584.06,82.7 585.34,93.81 575.94,90.39" fill="#1565c0"/>
+<line class="heading-arrow" x1="574.16" y1="109.76" x2="581.33" y2="90.08" stroke="#1565c0" stroke-width="2.5"/>
+<polygon class="arrowhead" points="584.06,82.56 585.34,93.67 575.94,90.25" fill="#1565c0"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
-<title>step 2: SHOOT 4 at UP cell from (96.8, 129.1, 70 deg) (t = 0.0 to 5.5 s)</title>
-<polygon class="outline" points="547.3,64 519.3,140.94 596.24,168.95 624.24,92" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="543.05,75.67 519.3,140.94 596.24,168.95 619.99,103.68" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="547.3" y1="64" x2="624.24" y2="92" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="519.3" y1="140.94" x2="596.24" y2="168.95" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="557.2" cy="74.46" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="609.94" cy="93.65" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="96.85" data-y="129.12">
-<circle cx="570.4" cy="120.23" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
-<line x1="567" y1="120.23" x2="573.8" y2="120.23" stroke="#1565c0" stroke-width="1"/>
-<line x1="570.4" y1="116.83" x2="570.4" y2="123.63" stroke="#1565c0" stroke-width="1"/>
+<title>step 2: SHOOT 4 at UP cell from (96.8, 129.2, 70 deg) (t = 0.0 to 5.5 s)</title>
+<polygon class="outline" points="547.69,64 519.68,140.94 595.85,168.66 623.85,91.72" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="543.44,75.67 519.68,140.94 595.85,168.66 619.61,103.39" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="547.69" y1="64" x2="623.85" y2="91.72" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="519.68" y1="140.94" x2="595.85" y2="168.66" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="557.2" cy="74.32" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="609.94" cy="93.51" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="96.85" data-y="129.15">
+<circle cx="570.4" cy="120.09" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
+<line x1="567" y1="120.09" x2="573.8" y2="120.09" stroke="#1565c0" stroke-width="1"/>
+<line x1="570.4" y1="116.69" x2="570.4" y2="123.49" stroke="#1565c0" stroke-width="1"/>
 </g>
-<line class="shot" x1="557.77" y1="154.94" x2="511.32" y2="304.52" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="508.65,313.12 506.84,302.08 516.39,305.05" fill="#1565c0"/>
+<line class="shot" x1="562.63" y1="143.6" x2="511.38" y2="304.54" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="508.65,313.12 506.92,302.07 516.45,305.11" fill="#1565c0"/>
 </g>
 <g class="intake" data-step="4" data-source="GARDEN">
 <title>step 4: INTAKE GARDEN +4 from (131.8, 130.8, 90 deg) (t = 7.1 to 10.1 s)</title>
-<polygon class="outline" points="690.46,67.68 690.46,149.56 772.34,149.56 772.34,67.68" fill="#1565c0" fill-opacity="0.07" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
-<polygon class="chassis" points="690.46,80.1 690.46,149.56 772.34,149.56 772.34,80.1" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="690.46" y1="67.68" x2="772.34" y2="67.68" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="690.46" y1="149.56" x2="772.34" y2="149.56" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="690.87,67.68 690.87,149.56 771.93,149.56 771.93,67.68" fill="#1565c0" fill-opacity="0.07" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<polygon class="chassis" points="690.87,80.1 690.87,149.56 771.93,149.56 771.93,80.1" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="690.87" y1="67.68" x2="771.93" y2="67.68" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="690.87" y1="149.56" x2="771.93" y2="149.56" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="703.34" cy="74.12" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="759.46" cy="74.12" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="131.85" data-y="130.78">
@@ -248,50 +248,50 @@
 <circle class="intake-ring" cx="748.72" cy="70.44" r="32.2" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 4"/>
 </g>
 <g class="shoot-pose" data-step="6" data-nominal="false">
-<title>step 6: SHOOT 4 at REAR cell from (96.8, 129.1, 70 deg) (t = 11.6 to 17.1 s)</title>
-<polygon class="outline" points="547.3,64 519.3,140.94 596.24,168.95 624.24,92" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="543.05,75.67 519.3,140.94 596.24,168.95 619.99,103.68" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="547.3" y1="64" x2="624.24" y2="92" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="519.3" y1="140.94" x2="596.24" y2="168.95" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="557.2" cy="74.46" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="609.94" cy="93.65" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="96.85" data-y="129.12">
-<circle cx="570.4" cy="120.23" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
-<line x1="567" y1="120.23" x2="573.8" y2="120.23" stroke="#1565c0" stroke-width="1"/>
-<line x1="570.4" y1="116.83" x2="570.4" y2="123.63" stroke="#1565c0" stroke-width="1"/>
+<title>step 6: SHOOT 4 at REAR cell from (96.8, 129.2, 70 deg) (t = 11.6 to 17.1 s)</title>
+<polygon class="outline" points="547.69,64 519.68,140.94 595.85,168.66 623.85,91.72" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="543.44,75.67 519.68,140.94 595.85,168.66 619.61,103.39" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="547.69" y1="64" x2="623.85" y2="91.72" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="519.68" y1="140.94" x2="595.85" y2="168.66" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="557.2" cy="74.32" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="609.94" cy="93.51" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="96.85" data-y="129.15">
+<circle cx="570.4" cy="120.09" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
+<line x1="567" y1="120.09" x2="573.8" y2="120.09" stroke="#1565c0" stroke-width="1"/>
+<line x1="570.4" y1="116.69" x2="570.4" y2="123.49" stroke="#1565c0" stroke-width="1"/>
 </g>
-<line class="shot" x1="557.77" y1="154.94" x2="511.32" y2="304.52" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="508.65,313.12 506.84,302.08 516.39,305.05" fill="#1565c0"/>
+<line class="shot" x1="562.63" y1="143.6" x2="511.38" y2="304.54" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="508.65,313.12 506.92,302.07 516.45,305.11" fill="#1565c0"/>
 </g>
 <g class="park-outline" data-step="10">
-<title>step 10: PARK at (129.3, 49.2, 180 deg) (t = 21.8 to 21.8 s)</title>
-<polygon class="outline" points="674.96,528.99 756.84,528.99 756.84,447.11 674.96,447.11" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
-<polygon class="chassis" points="687.38,528.99 756.84,528.99 756.84,447.11 687.38,447.11" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="674.96" y1="528.99" x2="674.96" y2="447.11" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="756.84" y1="528.99" x2="756.84" y2="447.11" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="681.4" cy="516.11" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="681.4" cy="459.99" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="129.35" data-y="49.16">
-<circle cx="719.9" cy="488.05" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
-<line x1="716.5" y1="488.05" x2="723.3" y2="488.05" stroke="#1565c0" stroke-width="1"/>
-<line x1="719.9" y1="484.65" x2="719.9" y2="491.45" stroke="#1565c0" stroke-width="1"/>
+<title>step 10: PARK at (129.3, 49.1, 180 deg) (t = 21.8 to 21.8 s)</title>
+<polygon class="outline" points="674.96,528.99 756.84,528.99 756.84,447.93 674.96,447.93" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
+<polygon class="chassis" points="687.38,528.99 756.84,528.99 756.84,447.93 687.38,447.93" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="674.96" y1="528.99" x2="674.96" y2="447.93" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="756.84" y1="528.99" x2="756.84" y2="447.93" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="681.4" cy="516.52" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="681.4" cy="460.4" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="129.35" data-y="49.07">
+<circle cx="719.9" cy="488.46" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
+<line x1="716.5" y1="488.46" x2="723.3" y2="488.46" stroke="#1565c0" stroke-width="1"/>
+<line x1="719.9" y1="485.06" x2="719.9" y2="491.86" stroke="#1565c0" stroke-width="1"/>
 </g>
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
-<title>step 1: START at (96.8, 129.1, 70 deg) (t = 0.0 to 0.0 s)</title>
-<circle cx="570.4" cy="120.23" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="570.4" y="124.03" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+<title>step 1: START at (96.8, 129.2, 70 deg) (t = 0.0 to 0.0 s)</title>
+<circle cx="570.4" cy="120.09" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="570.4" y="123.89" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
-<title>step 2: SHOOT 4 at UP cell from (96.8, 129.1, 70 deg) (t = 0.0 to 5.5 s)</title>
-<circle cx="583.84" cy="106.8" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="583.84" y="110.6" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
+<title>step 2: SHOOT 4 at UP cell from (96.8, 129.2, 70 deg) (t = 0.0 to 5.5 s)</title>
+<circle cx="583.84" cy="106.66" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="583.84" y="110.46" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
 <title>step 3: DRIVE into the GARDEN constant to 131.8, 130.8 (t = 5.5 to 7.1 s)</title>
-<circle cx="650.9" cy="116.43" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="650.9" y="120.23" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
+<circle cx="650.9" cy="116.36" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="650.9" y="120.16" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="INTAKE">
 <title>step 4: INTAKE GARDEN +4 from (131.8, 130.8, 90 deg) (t = 7.1 to 10.1 s)</title>
@@ -299,19 +299,19 @@
 <text x="731.4" y="116.42" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
-<title>step 5: DRIVE back to the shot linear to 96.8, 129.1 (t = 10.1 to 11.6 s)</title>
-<circle cx="664.34" cy="102.99" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="664.34" y="106.79" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
+<title>step 5: DRIVE back to the shot linear to 96.8, 129.2 (t = 10.1 to 11.6 s)</title>
+<circle cx="664.34" cy="102.92" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="664.34" y="106.72" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="SHOOT">
-<title>step 6: SHOOT 4 at REAR cell from (96.8, 129.1, 70 deg) (t = 11.6 to 17.1 s)</title>
-<circle cx="583.84" cy="133.67" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="583.84" y="137.47" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
+<title>step 6: SHOOT 4 at REAR cell from (96.8, 129.2, 70 deg) (t = 11.6 to 17.1 s)</title>
+<circle cx="583.84" cy="133.53" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="583.84" y="137.33" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
 <g class="badge" data-step="7" data-kind="DRIVE">
 <title>step 7: DRIVE along the wall constant to 111.3, 126.5 (t = 17.1 to 18.3 s)</title>
-<circle cx="603.75" cy="126.16" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="603.75" y="129.96" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
+<circle cx="603.75" cy="126.09" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="603.75" y="129.89" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
 </g>
 <g class="badge" data-step="8" data-kind="DRIVE">
 <title>step 8: DRIVE corridor reverse tangent to 111.3, 57.3 (t = 18.3 to 20.5 s)</title>
@@ -319,37 +319,37 @@
 <text x="637.1" y="295.04" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">8</text>
 </g>
 <g class="badge" data-step="9" data-kind="DRIVE">
-<title>step 9: DRIVE to the zone linear to 129.3, 49.2 (t = 20.5 to 21.8 s)</title>
-<circle cx="678.5" cy="469.22" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="678.5" y="473.02" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">9</text>
+<title>step 9: DRIVE to the zone linear to 129.3, 49.1 (t = 20.5 to 21.8 s)</title>
+<circle cx="678.5" cy="469.43" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="678.5" y="473.23" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">9</text>
 </g>
 <g class="badge" data-step="10" data-kind="PARK">
-<title>step 10: PARK at (129.3, 49.2, 180 deg) (t = 21.8 to 21.8 s)</title>
-<circle cx="719.9" cy="488.05" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="719.9" y="491.85" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">10</text>
+<title>step 10: PARK at (129.3, 49.1, 180 deg) (t = 21.8 to 21.8 s)</title>
+<circle cx="719.9" cy="488.46" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="719.9" y="492.26" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">10</text>
 </g>
 </g>
 <g id="step-labels">
-<text class="step-label" x="555.4" y="138.23" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START E6</text>
-<text class="step-label" x="548.21" y="252.03" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 2)</text>
+<text class="step-label" x="555.4" y="138.09" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START E6</text>
+<text class="step-label" x="550.64" y="246.36" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 2)</text>
 <text class="step-label" x="523.65" y="331.12" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
-<text class="step-label" x="665.9" y="134.43" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into the GARDEN</text>
+<text class="step-label" x="665.9" y="134.36" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into the GARDEN</text>
 <text class="step-label" x="763.72" y="88.44" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">INTAKE GARDEN +4</text>
-<text class="step-label" x="649.34" y="93.99" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">back to the shot</text>
-<text class="step-label" x="548.21" y="225.03" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 6)</text>
-<text class="step-label" x="603.75" y="156.16" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="middle" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">along the wall</text>
+<text class="step-label" x="649.34" y="93.92" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">back to the shot</text>
+<text class="step-label" x="550.64" y="219.36" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 6)</text>
+<text class="step-label" x="603.75" y="156.09" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="middle" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">along the wall</text>
 <text class="step-label" x="652.1" y="309.24" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">corridor</text>
-<text class="step-label" x="693.5" y="460.22" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to the zone</text>
-<text class="step-label" x="734.9" y="506.05" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>
+<text class="step-label" x="693.5" y="460.43" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to the zone</text>
+<text class="step-label" x="734.9" y="506.46" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>
 </g>
 <g id="issue-marks">
 <g class="issue-mark" data-step="2" data-severity="WARN">
-<polygon points="595.84,86.8 603.84,100.8 587.84,100.8" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
-<text x="595.84" y="99.4" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<polygon points="595.84,86.66 603.84,100.66 587.84,100.66" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
+<text x="595.84" y="99.26" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
 </g>
 <g class="issue-mark" data-step="6" data-severity="WARN">
-<polygon points="595.84,113.67 603.84,127.67 587.84,127.67" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
-<text x="595.84" y="126.27" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<polygon points="595.84,113.53 603.84,127.53 587.84,127.53" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
+<text x="595.84" y="126.13" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
 </g>
 </g>
 </g>

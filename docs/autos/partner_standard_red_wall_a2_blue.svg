@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Standard: start on the side wall below its FLOWER, go up the corridor, wait, shoot 4, park - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_standard_red_wall_a2 for the BLUE alliance, starting in tile F5, with 10 steps: 1 START at (132.4, 113.3, -90 deg); 2 DRIVE away from the wall constant to 115.3, 105.3; 3 DRIVE up the corridor constant to 115.3, 18.3; 4 DRIVE past the FLOWER constant to 83.4, 18.3; 5 DRIVE to the shooting pose constant to 83.4, 15.9; 6 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 19.6 s on the route clock; 7 SHOOT 4 at UP cell from (83.4, 15.9, -90 deg); 8 DRIVE off the wall constant to 83.4, 29.3; 9 DRIVE to zone linear to 129.3, 33.3; 10 PARK at (129.3, 33.3, 180 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 19.1 s. Estimated 20.9 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_standard_red_wall_a2 for the BLUE alliance, starting in tile F5, with 10 steps: 1 START at (132.5, 113.3, -90 deg); 2 DRIVE away from the wall constant to 115.3, 105.3; 3 DRIVE up the corridor constant to 115.3, 18.3; 4 DRIVE past the FLOWER constant to 83.4, 18.3; 5 DRIVE to the shooting pose constant to 83.4, 15.9; 6 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 19.6 s on the route clock; 7 SHOOT 4 at UP cell from (83.4, 15.9, -90 deg); 8 DRIVE off the wall constant to 83.4, 29.3; 9 DRIVE to zone linear to 129.3, 33.3; 10 PARK at (129.3, 33.3, 180 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 19.1 s. Estimated 20.9 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -167,16 +167,16 @@
 <rect class="start-band" data-wall="BLUE" data-from="9.77" data-to="16.04" x="763.6" y="640.4" width="11.5" height="28.86" fill="#1565c0" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="BLUE" data-from="56.53" data-to="82.7" x="763.6" y="333.77" width="11.5" height="120.37" fill="#1565c0" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="BLUE" data-from="107.17" data-to="133.32" x="763.6" y="100.94" width="11.5" height="120.27" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="79.47" data-to="81.83" x="490.48" y="702.7" width="10.85" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="106.3" data-to="132.45" x="613.89" y="702.7" width="120.27" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="79.47" data-to="132.45" x="490.48" y="64" width="243.68" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="79.38" data-to="81.92" x="490.07" y="702.7" width="11.67" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="106.21" data-to="132.54" x="613.47" y="702.7" width="121.1" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="79.38" data-to="132.54" x="490.07" y="64" width="244.51" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
 <text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
 </g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="partner_standard_red_wall_a2">
 <g class="drive-leg" data-step="2" data-mode="CONSTANT">
 <title>step 2: DRIVE away from the wall constant to 115.3, 105.3 (t = 0.0 to 1.2 s)</title>
-<path class="leg" d="M 734.16 192.8 L 655.5 229.6" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="655.5,229.6 662.44,220.83 666.68,229.89" fill="#1565c0"/>
+<path class="leg" d="M 734.57 192.8 L 655.5 229.6" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="655.5,229.6 662.46,220.85 666.68,229.91" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
 <title>step 3: DRIVE up the corridor constant to 115.3, 18.3 (t = 1.2 to 3.9 s)</title>
@@ -207,27 +207,27 @@
 <polygon class="arrowhead" points="719.9,560.8 710.37,566.65 709.5,556.69" fill="#1565c0"/>
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
-<title>step 1: START at (132.4, 113.3, -90 deg) (t = 0.0 to 0.0 s)</title>
-<polygon class="outline" points="775.1,237.74 775.1,155.86 693.22,155.86 693.22,237.74" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="775.1,225.32 775.1,155.86 693.22,155.86 693.22,225.32" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="775.1" y1="237.74" x2="693.22" y2="237.74" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="775.1" y1="155.86" x2="693.22" y2="155.86" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="762.22" cy="231.3" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="706.1" cy="231.3" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="132.45" data-y="113.35">
-<circle cx="734.16" cy="192.8" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
-<line x1="730.76" y1="192.8" x2="737.56" y2="192.8" stroke="#1565c0" stroke-width="1"/>
-<line x1="734.16" y1="189.4" x2="734.16" y2="196.2" stroke="#1565c0" stroke-width="1"/>
+<title>step 1: START at (132.5, 113.3, -90 deg) (t = 0.0 to 0.0 s)</title>
+<polygon class="outline" points="775.1,237.74 775.1,155.86 694.05,155.86 694.05,237.74" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="775.1,225.32 775.1,155.86 694.05,155.86 694.05,225.32" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="775.1" y1="237.74" x2="694.05" y2="237.74" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="775.1" y1="155.86" x2="694.05" y2="155.86" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="762.63" cy="231.3" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="706.51" cy="231.3" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="132.54" data-y="113.35">
+<circle cx="734.57" cy="192.8" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#1565c0" stroke-width="1.6"/>
+<line x1="731.17" y1="192.8" x2="737.97" y2="192.8" stroke="#1565c0" stroke-width="1"/>
+<line x1="734.57" y1="189.4" x2="734.57" y2="196.2" stroke="#1565c0" stroke-width="1"/>
 </g>
-<line class="heading-arrow" x1="734.16" y1="203.8" x2="734.16" y2="224.74" stroke="#1565c0" stroke-width="2.5"/>
-<polygon class="arrowhead" points="734.16,232.74 729.16,222.74 739.16,222.74" fill="#1565c0"/>
+<line class="heading-arrow" x1="734.57" y1="203.8" x2="734.57" y2="224.74" stroke="#1565c0" stroke-width="2.5"/>
+<polygon class="arrowhead" points="734.57,232.74 729.57,222.74 739.57,222.74" fill="#1565c0"/>
 </g>
 <g class="shoot-pose" data-step="7" data-nominal="false">
 <title>step 7: SHOOT 4 at UP cell from (83.4, 15.9, -90 deg) (t = 12.5 to 18.0 s)</title>
-<polygon class="outline" points="549.59,685.78 549.59,603.9 467.71,603.9 467.71,685.78" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="549.59,673.36 549.59,603.9 467.71,603.9 467.71,673.36" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="549.59" y1="685.78" x2="467.71" y2="685.78" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="549.59" y1="603.9" x2="467.71" y2="603.9" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="549.18,685.78 549.18,603.9 468.12,603.9 468.12,685.78" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="549.18,673.36 549.18,603.9 468.12,603.9 468.12,673.36" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="549.18" y1="685.78" x2="468.12" y2="685.78" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="549.18" y1="603.9" x2="468.12" y2="603.9" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="536.71" cy="679.34" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="480.59" cy="679.34" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="83.42" data-y="15.95">
@@ -235,15 +235,15 @@
 <line x1="505.25" y1="640.84" x2="512.05" y2="640.84" stroke="#1565c0" stroke-width="1"/>
 <line x1="508.65" y1="637.44" x2="508.65" y2="644.24" stroke="#1565c0" stroke-width="1"/>
 </g>
-<line class="shot" x1="508.65" y1="603.9" x2="508.65" y2="474.08" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="508.65,465.08 513.65,475.08 503.65,475.08" fill="#1565c0"/>
+<line class="shot" x1="507.91" y1="616.09" x2="508.61" y2="474.08" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="508.65,465.08 513.6,475.11 503.6,475.06" fill="#1565c0"/>
 </g>
 <g class="park-outline" data-step="10">
 <title>step 10: PARK at (129.3, 33.3, 180 deg) (t = 20.9 to 20.9 s)</title>
-<polygon class="outline" points="674.96,601.74 756.84,601.74 756.84,519.86 674.96,519.86" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
-<polygon class="chassis" points="687.38,601.74 756.84,601.74 756.84,519.86 687.38,519.86" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="674.96" y1="601.74" x2="674.96" y2="519.86" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="756.84" y1="601.74" x2="756.84" y2="519.86" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="674.96,601.33 756.84,601.33 756.84,520.27 674.96,520.27" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
+<polygon class="chassis" points="687.38,601.33 756.84,601.33 756.84,520.27 687.38,520.27" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="674.96" y1="601.33" x2="674.96" y2="520.27" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="756.84" y1="601.33" x2="756.84" y2="520.27" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="681.4" cy="588.86" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="681.4" cy="532.74" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="129.35" data-y="33.35">
@@ -254,14 +254,14 @@
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
-<title>step 1: START at (132.4, 113.3, -90 deg) (t = 0.0 to 0.0 s)</title>
-<circle cx="734.16" cy="192.8" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="734.16" y="196.6" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+<title>step 1: START at (132.5, 113.3, -90 deg) (t = 0.0 to 0.0 s)</title>
+<circle cx="734.57" cy="192.8" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="734.57" y="196.6" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="DRIVE">
 <title>step 2: DRIVE away from the wall constant to 115.3, 105.3 (t = 0.0 to 1.2 s)</title>
-<circle cx="694.83" cy="211.2" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
-<text x="694.83" y="215" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
+<circle cx="695.04" cy="211.2" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="695.04" y="215" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
 <title>step 3: DRIVE up the corridor constant to 115.3, 18.3 (t = 1.2 to 3.9 s)</title>
@@ -305,8 +305,8 @@
 </g>
 </g>
 <g id="step-labels">
-<text class="step-label" x="749.16" y="210.8" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START F5</text>
-<text class="step-label" x="709.83" y="229.2" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">away from the wall</text>
+<text class="step-label" x="749.57" y="210.8" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START F5</text>
+<text class="step-label" x="710.04" y="229.2" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">away from the wall</text>
 <text class="step-label" x="670.5" y="447.7" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">up the corridor</text>
 <text class="step-label" x="597.08" y="647.8" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">past the FLOWER</text>
 <text class="step-label" x="493.65" y="653.32" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to the shooting pose</text>
@@ -315,7 +315,7 @@
 <polyline points="548.65,669.34 548.65,672.84 551.45,674.44" fill="none" stroke="#1565c0" stroke-width="1.4" stroke-linecap="round"/>
 </g>
 <text class="step-label" x="557.65" y="676.84" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">WAIT FOR TIP (give up at 19.6 s)</text>
-<text class="step-label" x="523.65" y="552.49" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
+<text class="step-label" x="523.28" y="558.59" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
 <text class="step-label" x="523.65" y="601.02" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">off the wall</text>
 <text class="step-label" x="629.28" y="588" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to zone</text>
 <text class="step-label" x="734.9" y="578.8" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>

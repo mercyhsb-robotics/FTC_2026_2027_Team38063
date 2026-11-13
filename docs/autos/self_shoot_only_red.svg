@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -166,18 +166,18 @@
 <rect class="start-band" data-wall="RED" data-from="9.77" data-to="35.92" x="124.9" y="548.99" width="11.5" height="120.27" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="RED" data-from="60.39" data-to="86.55" x="124.9" y="316.05" width="11.5" height="120.37" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="RED" data-from="127.04" data-to="133.32" x="124.9" y="100.94" width="11.5" height="28.86" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="8.9" data-to="61.87" x="165.84" y="702.7" width="243.68" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="8.9" data-to="35.05" x="165.84" y="64" width="120.27" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="59.52" data-to="61.87" x="398.67" y="64" width="10.85" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="8.81" data-to="61.96" x="165.43" y="702.7" width="244.51" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="8.81" data-to="35.14" x="165.43" y="64" width="121.1" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="59.43" data-to="61.96" x="398.26" y="64" width="11.67" height="11.5" fill="#c62828" fill-opacity="0.35"/>
 <text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
 </g>
 <g id="route" data-ink="#c62828" data-alliance="RED" data-route="self_shoot_only">
 <g id="start-footprint" class="footprint start" data-step="1">
 <title>step 1: START at (57.9, 9.8, -90 deg) (t = 0.0 to 0.0 s) - Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, in line with the HIVE: a shooting pose, so the robot fires where it stands, with nothing to drive.</title>
-<polygon class="outline" points="432.29,714.2 432.29,632.32 350.41,632.32 350.41,714.2" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="432.29,701.78 432.29,632.32 350.41,632.32 350.41,701.78" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="432.29" y1="714.2" x2="350.41" y2="714.2" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="432.29" y1="632.32" x2="350.41" y2="632.32" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="431.88,714.2 431.88,632.32 350.82,632.32 350.82,714.2" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="431.88,701.78 431.88,632.32 350.82,632.32 350.82,701.78" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="431.88" y1="714.2" x2="350.82" y2="714.2" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="431.88" y1="632.32" x2="350.82" y2="632.32" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="419.41" cy="707.76" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="363.29" cy="707.76" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="57.92" data-y="9.77">
@@ -190,10 +190,10 @@
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
 <title>step 2: SHOOT 4 at UP cell from (57.9, 9.8, -90 deg) (t = 0.0 to 5.5 s) - The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</title>
-<polygon class="outline" points="432.29,714.2 432.29,632.32 350.41,632.32 350.41,714.2" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="432.29,701.78 432.29,632.32 350.41,632.32 350.41,701.78" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="432.29" y1="714.2" x2="350.41" y2="714.2" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="432.29" y1="632.32" x2="350.41" y2="632.32" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="431.88,714.2 431.88,632.32 350.82,632.32 350.82,714.2" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="431.88,701.78 431.88,632.32 350.82,632.32 350.82,701.78" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="431.88" y1="714.2" x2="350.82" y2="714.2" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="431.88" y1="632.32" x2="350.82" y2="632.32" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="419.41" cy="707.76" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="363.29" cy="707.76" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="57.92" data-y="9.77">
@@ -201,8 +201,8 @@
 <line x1="387.95" y1="669.26" x2="394.75" y2="669.26" stroke="#c62828" stroke-width="1"/>
 <line x1="391.35" y1="665.86" x2="391.35" y2="672.66" stroke="#c62828" stroke-width="1"/>
 </g>
-<line class="shot" x1="391.35" y1="632.32" x2="391.35" y2="474.08" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="391.35,465.08 396.35,475.08 386.35,475.08" fill="#c62828"/>
+<line class="shot" x1="390.61" y1="644.51" x2="391.31" y2="474.08" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="391.35,465.08 396.31,475.1 386.31,475.06" fill="#c62828"/>
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
@@ -218,7 +218,7 @@
 </g>
 <g id="step-labels">
 <text class="step-label" x="406.35" y="687.26" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START C1</text>
-<text class="step-label" x="406.35" y="566.7" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
+<text class="step-label" x="405.98" y="572.8" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
 <text class="step-label" x="406.35" y="483.08" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
 </g>
 <g id="issue-marks">

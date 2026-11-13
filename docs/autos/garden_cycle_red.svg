@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -166,22 +166,22 @@
 <rect class="start-band" data-wall="RED" data-from="9.77" data-to="35.92" x="124.9" y="548.99" width="11.5" height="120.27" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="RED" data-from="60.39" data-to="86.55" x="124.9" y="316.05" width="11.5" height="120.37" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="RED" data-from="127.04" data-to="133.32" x="124.9" y="100.94" width="11.5" height="28.86" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="8.9" data-to="61.87" x="165.84" y="702.7" width="243.68" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="8.9" data-to="35.05" x="165.84" y="64" width="120.27" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="59.52" data-to="61.87" x="398.67" y="64" width="10.85" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="8.81" data-to="61.96" x="165.43" y="702.7" width="244.51" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="8.81" data-to="35.14" x="165.43" y="64" width="121.1" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="59.43" data-to="61.96" x="398.26" y="64" width="11.67" height="11.5" fill="#c62828" fill-opacity="0.35"/>
 <text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
 </g>
 <g id="route" data-ink="#c62828" data-alliance="RED" data-route="garden_cycle">
 <g class="approach" data-step="2">
 <title>step 2: move to the pose of SHOOT</title>
-<line x1="285.9" y1="669.26" x2="391.35" y2="658.42" stroke="#c62828" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round" opacity="0.85"/>
-<polygon class="arrowhead" points="391.35,658.42 383.8,663.22 382.98,655.26" fill="#c62828"/>
+<line x1="285.9" y1="669.26" x2="392.09" y2="646.23" stroke="#c62828" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round" opacity="0.85"/>
+<polygon class="arrowhead" points="392.09,646.23 385.12,651.84 383.42,644.02" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 6.8 to 8.7 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
-<path class="leg" d="M 391.35 658.42 L 166.3 631.4" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="278.82,644.91 289.35,641.14 288.16,651.07" fill="#c62828"/>
-<polygon class="arrowhead" points="166.3,631.4 176.82,627.63 175.63,637.56" fill="#c62828"/>
+<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 6.8 to 8.7 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.2 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
+<path class="leg" d="M 392.09 646.23 L 166.3 631.4" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="279.19,638.82 289.5,634.48 288.84,644.46" fill="#c62828"/>
+<polygon class="arrowhead" points="166.3,631.4 176.61,627.07 175.95,637.05" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="4" data-mode="CONSTANT">
 <title>step 4: DRIVE into GARDEN constant to 9.0, 10.6 (t = 8.7 to 9.6 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
@@ -195,10 +195,10 @@
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
 <title>step 1: START at (35.0, 9.8, -90 deg) (t = 0.0 to 0.0 s) - Front edge ON the audience wall (the center of rotation is 9.77 in out). Place the robot with the wheel tips touching the wall and the middle of the robot over tile B1.</title>
-<polygon class="outline" points="326.84,714.2 326.84,632.32 244.96,632.32 244.96,714.2" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="326.84,701.78 326.84,632.32 244.96,632.32 244.96,701.78" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="326.84" y1="714.2" x2="244.96" y2="714.2" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="326.84" y1="632.32" x2="244.96" y2="632.32" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="326.43,714.2 326.43,632.32 245.37,632.32 245.37,714.2" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="326.43,701.78 326.43,632.32 245.37,632.32 245.37,701.78" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="326.43" y1="714.2" x2="245.37" y2="714.2" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="326.43" y1="632.32" x2="245.37" y2="632.32" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="313.96" cy="707.76" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="257.84" cy="707.76" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="35" data-y="9.77">
@@ -211,26 +211,26 @@
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="true">
 <title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 6.8 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on. - pose drawn is the nominal standoff pose; the solver picks the real one</title>
-<polygon class="outline" points="432.29,703.36 432.29,621.48 350.41,621.48 350.41,703.36" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
-<polygon class="chassis" points="432.29,690.94 432.29,621.48 350.41,621.48 350.41,690.94" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="432.29" y1="703.36" x2="350.41" y2="703.36" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="432.29" y1="621.48" x2="350.41" y2="621.48" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="419.41" cy="696.92" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="363.29" cy="696.92" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="57.92" data-y="12.13">
-<circle cx="391.35" cy="658.42" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
-<line x1="387.95" y1="658.42" x2="394.75" y2="658.42" stroke="#c62828" stroke-width="1"/>
-<line x1="391.35" y1="655.02" x2="391.35" y2="661.82" stroke="#c62828" stroke-width="1"/>
+<polygon class="outline" points="432.61,691.17 432.61,609.29 351.56,609.29 351.56,691.17" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<polygon class="chassis" points="432.61,678.75 432.61,609.29 351.56,609.29 351.56,678.75" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="432.61" y1="691.17" x2="351.56" y2="691.17" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="432.61" y1="609.29" x2="351.56" y2="609.29" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="420.15" cy="684.73" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="364.03" cy="684.73" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="58.08" data-y="14.78">
+<circle cx="392.09" cy="646.23" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="388.69" y1="646.23" x2="395.49" y2="646.23" stroke="#c62828" stroke-width="1"/>
+<line x1="392.09" y1="642.83" x2="392.09" y2="649.63" stroke="#c62828" stroke-width="1"/>
 </g>
 <line class="shot" x1="391.35" y1="621.48" x2="391.35" y2="474.08" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
 <polygon class="arrowhead" points="391.35,465.08 396.35,475.08 386.35,475.08" fill="#c62828"/>
 </g>
 <g class="intake" data-step="5" data-source="GARDEN">
 <title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 9.6 to 12.6 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
-<polygon class="outline" points="207.24,710.52 207.24,628.64 125.36,628.64 125.36,710.52" fill="#c62828" fill-opacity="0.07" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
-<polygon class="chassis" points="207.24,698.1 207.24,628.64 125.36,628.64 125.36,698.1" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="207.24" y1="710.52" x2="125.36" y2="710.52" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="207.24" y1="628.64" x2="125.36" y2="628.64" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="206.83,710.52 206.83,628.64 125.77,628.64 125.77,710.52" fill="#c62828" fill-opacity="0.07" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<polygon class="chassis" points="206.83,698.1 206.83,628.64 125.77,628.64 125.77,698.1" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="206.83" y1="710.52" x2="125.77" y2="710.52" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="206.83" y1="628.64" x2="125.77" y2="628.64" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="194.36" cy="704.08" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="138.24" cy="704.08" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="9" data-y="10.57">
@@ -242,10 +242,10 @@
 </g>
 <g class="end-outline" data-step="6">
 <title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.6 to 13.8 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
-<polygon class="outline" points="257.84,648.74 257.84,566.86 175.96,566.86 175.96,648.74" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
-<polygon class="chassis" points="257.84,636.32 257.84,566.86 175.96,566.86 175.96,636.32" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="257.84" y1="648.74" x2="175.96" y2="648.74" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="257.84" y1="566.86" x2="175.96" y2="566.86" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="257.43,648.74 257.43,566.86 176.37,566.86 176.37,648.74" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
+<polygon class="chassis" points="257.43,636.32 257.43,566.86 176.37,566.86 176.37,636.32" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="257.43" y1="648.74" x2="176.37" y2="648.74" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="257.43" y1="566.86" x2="176.37" y2="566.86" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="244.96" cy="642.3" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="188.84" cy="642.3" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="20" data-y="24">
@@ -262,13 +262,13 @@
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
 <title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 6.8 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on.</title>
-<circle cx="391.35" cy="658.42" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="391.35" y="662.22" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
+<circle cx="392.09" cy="646.23" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="392.09" y="650.03" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 6.8 to 8.7 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
-<circle cx="278.82" cy="644.91" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="278.82" y="648.71" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
+<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 6.8 to 8.7 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.2 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
+<circle cx="279.19" cy="638.82" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="279.19" y="642.62" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
 <title>step 4: DRIVE into GARDEN constant to 9.0, 10.6 (t = 8.7 to 9.6 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
@@ -289,9 +289,9 @@
 <g id="step-labels">
 <text class="step-label" x="300.9" y="687.26" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START B1</text>
 <text class="step-label" x="406.35" y="561.28" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
-<text class="step-label" x="406.35" y="676.42" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">pose chosen by the solver</text>
+<text class="step-label" x="407.09" y="664.23" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">pose chosen by the solver</text>
 <text class="step-label" x="406.35" y="483.08" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
-<text class="step-label" x="293.82" y="635.91" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to GARDEN</text>
+<text class="step-label" x="294.19" y="656.82" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to GARDEN</text>
 <text class="step-label" x="151.3" y="666.49" font-size="10" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into GARDEN</text>
 <text class="step-label" x="166.12" y="725.76" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">INTAKE GARDEN +3</text>
 <text class="step-label" x="206.6" y="625.69" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">off the wall</text>
@@ -299,8 +299,8 @@
 </g>
 <g id="issue-marks">
 <g class="issue-mark" data-step="2" data-severity="WARN">
-<polygon points="403.35,638.42 411.35,652.42 395.35,652.42" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
-<text x="403.35" y="651.02" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<polygon points="404.09,626.23 412.09,640.23 396.09,640.23" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
+<text x="404.09" y="638.83" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
 </g>
 </g>
 </g>

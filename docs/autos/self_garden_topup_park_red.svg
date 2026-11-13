@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, then park - RED alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_garden_topup_park for the RED alliance, starting in tile B1, with 10 steps: 1 START at (44.5, 12.2, -110 deg); 2 SHOOT 4 at UP cell from (44.5, 12.2, -110 deg); 3 DRIVE into the GARDEN constant to 9.5, 10.6; 4 INTAKE GARDEN +4 from (9.5, 10.6, -90 deg); 5 DRIVE back to the shot linear to 44.5, 12.2; 6 SHOOT 4 at AUDIENCE cell from (44.5, 12.2, -110 deg); 7 DRIVE along the wall constant to 30.0, 14.8; 8 DRIVE corridor reverse tangent to 30.0, 84.0; 9 DRIVE to the zone linear to 12.0, 92.2; 10 PARK at (12.0, 92.2, 0 deg). First tip: we shoot the first tip. Estimated 21.8 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 2 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_garden_topup_park for the RED alliance, starting in tile B1, with 10 steps: 1 START at (44.5, 12.2, -110 deg); 2 SHOOT 4 at UP cell from (44.5, 12.2, -110 deg); 3 DRIVE into the GARDEN constant to 9.5, 10.6; 4 INTAKE GARDEN +4 from (9.5, 10.6, -90 deg); 5 DRIVE back to the shot linear to 44.5, 12.2; 6 SHOOT 4 at AUDIENCE cell from (44.5, 12.2, -110 deg); 7 DRIVE along the wall constant to 30.0, 14.8; 8 DRIVE corridor reverse tangent to 30.0, 84.0; 9 DRIVE to the zone linear to 12.0, 92.3; 10 PARK at (12.0, 92.3, 0 deg). First tip: we shoot the first tip. Estimated 21.8 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 2 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -163,31 +163,31 @@
 </g>
 <g id="start-bands" data-heading="-110">
 <title>Where a robot facing -110 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
-<rect class="start-band" data-wall="RED" data-from="12.22" data-to="36.61" x="124.9" y="545.77" width="11.5" height="112.19" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="RED" data-from="58.22" data-to="83.99" x="124.9" y="327.83" width="11.5" height="118.54" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="RED" data-from="127.41" data-to="130.76" x="124.9" y="112.71" width="11.5" height="15.38" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="11.7" data-to="59.66" x="178.74" y="702.7" width="220.61" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="11.7" data-to="36.09" x="178.74" y="64" width="112.19" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="57.7" data-to="59.66" x="390.34" y="64" width="9.01" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="12.19" data-to="36.65" x="124.9" y="545.63" width="11.5" height="112.48" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="58.26" data-to="84.03" x="124.9" y="327.69" width="11.5" height="118.54" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="127.45" data-to="130.79" x="124.9" y="112.57" width="11.5" height="15.38" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="11.62" data-to="59.75" x="178.35" y="702.7" width="221.39" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="11.62" data-to="36.01" x="178.35" y="64" width="112.19" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="57.62" data-to="59.75" x="389.95" y="64" width="9.79" height="11.5" fill="#c62828" fill-opacity="0.35"/>
 <text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
 </g>
 <g id="route" data-ink="#c62828" data-alliance="RED" data-route="self_garden_topup_park">
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
 <title>step 3: DRIVE into the GARDEN constant to 9.5, 10.6 (t = 5.5 to 7.1 s) - Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</title>
-<path class="leg" d="M 329.6 657.97 L 168.6 665.58" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="249.1,661.77 258.85,656.31 259.32,666.29" fill="#c62828"/>
-<polygon class="arrowhead" points="168.6,665.58 178.35,660.11 178.82,670.1" fill="#c62828"/>
+<path class="leg" d="M 329.6 658.11 L 168.6 665.58" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="249.1,661.84 258.86,656.39 259.32,666.37" fill="#c62828"/>
+<polygon class="arrowhead" points="168.6,665.58 178.36,660.12 178.82,670.11" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="LINEAR">
 <title>step 5: DRIVE back to the shot linear to 44.5, 12.2 (t = 10.1 to 11.6 s) - Back to the pose of the first volley, turning evenly while it slides away from the wall.</title>
-<path class="leg" d="M 168.6 665.58 L 329.6 657.97" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="249.1,661.77 239.35,667.24 238.87,657.25" fill="#c62828"/>
-<polygon class="arrowhead" points="329.6,657.97 319.85,663.43 319.37,653.44" fill="#c62828"/>
+<path class="leg" d="M 168.6 665.58 L 329.6 658.11" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="249.1,661.84 239.34,667.3 238.88,657.31" fill="#c62828"/>
+<polygon class="arrowhead" points="329.6,658.11 319.84,663.57 319.38,653.58" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="7" data-mode="CONSTANT">
 <title>step 7: DRIVE along the wall constant to 30.0, 14.8 (t = 17.1 to 18.3 s) - Slides sideways along the audience wall with the front still toward it, 5 in off the wall, until it is beside the left corridor.</title>
-<path class="leg" d="M 329.6 657.97 L 262.9 646.12" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="262.9,646.12 273.62,642.95 271.87,652.79" fill="#c62828"/>
+<path class="leg" d="M 329.6 658.11 L 262.9 646.12" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="262.9,646.12 273.63,642.97 271.86,652.81" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="8" data-mode="REVERSE_TANGENT">
 <title>step 8: DRIVE corridor reverse tangent to 30.0, 84.0 (t = 18.3 to 20.5 s) - Backwards (the shooter end first) up the left corridor, 13 in clear of the HIVE keep-out and of the spill zone of the cell that tipped.</title>
@@ -196,48 +196,48 @@
 <polygon class="arrowhead" points="262.9,327.8 267.9,337.8 257.9,337.8" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="9" data-mode="LINEAR">
-<title>step 9: DRIVE to the zone linear to 12.0, 92.2 (t = 20.5 to 21.8 s) - Turns to face +x while it slides into the LOADING ZONE.</title>
-<path class="leg" d="M 262.9 327.8 L 180.1 290.15" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-<polygon class="arrowhead" points="180.1,290.15 191.27,289.74 187.13,298.84" fill="#c62828"/>
+<title>step 9: DRIVE to the zone linear to 12.0, 92.3 (t = 20.5 to 21.8 s) - Turns to face +x while it slides into the LOADING ZONE.</title>
+<path class="leg" d="M 262.9 327.8 L 180.1 289.74" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="180.1,289.74 191.27,289.37 187.1,298.46" fill="#c62828"/>
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
 <title>step 1: START at (44.5, 12.2, -110 deg) (t = 0.0 to 0.0 s) - A front corner ON the audience wall, turned 20 degrees clockwise, back toward the audience cell. Chosen because the robot comes back to it for the second volley: it is a shooting pose AND 13 in closer to the GARDEN than the anchor start, which saves about 1.0 s on the two trips to it, against the anchor start. The same pose is used twice, so the aim only has to be checked once. (On a route with only one trip the same start saves just 0.4 s, which is not worth the harder placement.)</title>
-<polygon class="outline" points="352.7,714.2 380.7,637.26 303.76,609.25 275.76,686.2" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="356.95,702.53 380.7,637.26 303.76,609.25 280.01,674.53" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="352.7" y1="714.2" x2="275.76" y2="686.2" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="380.7" y1="637.26" x2="303.76" y2="609.25" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="342.8" cy="703.74" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="290.06" cy="684.55" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="44.5" data-y="12.22">
-<circle cx="329.6" cy="657.97" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
-<line x1="326.2" y1="657.97" x2="333" y2="657.97" stroke="#c62828" stroke-width="1"/>
-<line x1="329.6" y1="654.57" x2="329.6" y2="661.37" stroke="#c62828" stroke-width="1"/>
+<polygon class="outline" points="352.31,714.2 380.32,637.26 304.15,609.54 276.15,686.48" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="356.56,702.53 380.32,637.26 304.15,609.54 280.39,674.81" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="352.31" y1="714.2" x2="276.15" y2="686.48" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="380.32" y1="637.26" x2="304.15" y2="609.54" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="342.8" cy="703.89" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="290.06" cy="684.69" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="44.5" data-y="12.19">
+<circle cx="329.6" cy="658.11" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="326.2" y1="658.11" x2="333" y2="658.11" stroke="#c62828" stroke-width="1"/>
+<line x1="329.6" y1="654.71" x2="329.6" y2="661.51" stroke="#c62828" stroke-width="1"/>
 </g>
-<line class="heading-arrow" x1="325.84" y1="668.3" x2="318.67" y2="687.98" stroke="#c62828" stroke-width="2.5"/>
-<polygon class="arrowhead" points="315.94,695.5 314.66,684.39 324.06,687.81" fill="#c62828"/>
+<line class="heading-arrow" x1="325.84" y1="668.45" x2="318.67" y2="688.12" stroke="#c62828" stroke-width="2.5"/>
+<polygon class="arrowhead" points="315.94,695.64 314.66,684.53 324.06,687.95" fill="#c62828"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
 <title>step 2: SHOOT 4 at UP cell from (44.5, 12.2, -110 deg) (t = 0.0 to 5.5 s) - The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</title>
-<polygon class="outline" points="352.7,714.2 380.7,637.26 303.76,609.25 275.76,686.2" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="356.95,702.53 380.7,637.26 303.76,609.25 280.01,674.53" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="352.7" y1="714.2" x2="275.76" y2="686.2" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="380.7" y1="637.26" x2="303.76" y2="609.25" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="342.8" cy="703.74" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="290.06" cy="684.55" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="44.5" data-y="12.22">
-<circle cx="329.6" cy="657.97" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
-<line x1="326.2" y1="657.97" x2="333" y2="657.97" stroke="#c62828" stroke-width="1"/>
-<line x1="329.6" y1="654.57" x2="329.6" y2="661.37" stroke="#c62828" stroke-width="1"/>
+<polygon class="outline" points="352.31,714.2 380.32,637.26 304.15,609.54 276.15,686.48" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="356.56,702.53 380.32,637.26 304.15,609.54 280.39,674.81" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="352.31" y1="714.2" x2="276.15" y2="686.48" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="380.32" y1="637.26" x2="304.15" y2="609.54" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="342.8" cy="703.89" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="290.06" cy="684.69" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="44.5" data-y="12.19">
+<circle cx="329.6" cy="658.11" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="326.2" y1="658.11" x2="333" y2="658.11" stroke="#c62828" stroke-width="1"/>
+<line x1="329.6" y1="654.71" x2="329.6" y2="661.51" stroke="#c62828" stroke-width="1"/>
 </g>
-<line class="shot" x1="342.23" y1="623.26" x2="388.68" y2="473.68" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="391.35,465.08 393.16,476.12 383.61,473.15" fill="#c62828"/>
+<line class="shot" x1="337.37" y1="634.6" x2="388.62" y2="473.66" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="391.35,465.08 393.08,476.13 383.55,473.09" fill="#c62828"/>
 </g>
 <g class="intake" data-step="4" data-source="GARDEN">
 <title>step 4: INTAKE GARDEN +4 from (9.5, 10.6, -90 deg) (t = 7.1 to 10.1 s) - The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</title>
-<polygon class="outline" points="209.54,710.52 209.54,628.64 127.66,628.64 127.66,710.52" fill="#c62828" fill-opacity="0.07" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
-<polygon class="chassis" points="209.54,698.1 209.54,628.64 127.66,628.64 127.66,698.1" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="209.54" y1="710.52" x2="127.66" y2="710.52" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="209.54" y1="628.64" x2="127.66" y2="628.64" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="209.13,710.52 209.13,628.64 128.07,628.64 128.07,710.52" fill="#c62828" fill-opacity="0.07" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<polygon class="chassis" points="209.13,698.1 209.13,628.64 128.07,628.64 128.07,698.1" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="209.13" y1="710.52" x2="128.07" y2="710.52" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="209.13" y1="628.64" x2="128.07" y2="628.64" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="196.66" cy="704.08" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="140.54" cy="704.08" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="9.5" data-y="10.57">
@@ -249,49 +249,49 @@
 </g>
 <g class="shoot-pose" data-step="6" data-nominal="false">
 <title>step 6: SHOOT 4 at AUDIENCE cell from (44.5, 12.2, -110 deg) (t = 11.6 to 17.1 s) - THE TOP-UP. The plan says the first volley tipped the HIVE, so on paper the audience cell is already DOWN: that is the WARN on this step. On the field the robot fires only if its camera still shows the audience cell UP (tags in view, steady), which means the first volley did not tip it; the cell then still holds the 3 NECTAR and whatever landed, so 1 to 3 more POLLEN tip it. If the camera shows the cell DOWN (the HIVE tipped), or sees nothing, the volley is skipped and the robot goes on. The plan counts the volley&apos;s time (5.5 s) as if it fired, so the finish time is the worst case.</title>
-<polygon class="outline" points="352.7,714.2 380.7,637.26 303.76,609.25 275.76,686.2" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="356.95,702.53 380.7,637.26 303.76,609.25 280.01,674.53" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="352.7" y1="714.2" x2="275.76" y2="686.2" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="380.7" y1="637.26" x2="303.76" y2="609.25" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="342.8" cy="703.74" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="290.06" cy="684.55" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="44.5" data-y="12.22">
-<circle cx="329.6" cy="657.97" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
-<line x1="326.2" y1="657.97" x2="333" y2="657.97" stroke="#c62828" stroke-width="1"/>
-<line x1="329.6" y1="654.57" x2="329.6" y2="661.37" stroke="#c62828" stroke-width="1"/>
+<polygon class="outline" points="352.31,714.2 380.32,637.26 304.15,609.54 276.15,686.48" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="356.56,702.53 380.32,637.26 304.15,609.54 280.39,674.81" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="352.31" y1="714.2" x2="276.15" y2="686.48" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="380.32" y1="637.26" x2="304.15" y2="609.54" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="342.8" cy="703.89" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="290.06" cy="684.69" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="44.5" data-y="12.19">
+<circle cx="329.6" cy="658.11" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="326.2" y1="658.11" x2="333" y2="658.11" stroke="#c62828" stroke-width="1"/>
+<line x1="329.6" y1="654.71" x2="329.6" y2="661.51" stroke="#c62828" stroke-width="1"/>
 </g>
-<line class="shot" x1="342.23" y1="623.26" x2="388.68" y2="473.68" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="391.35,465.08 393.16,476.12 383.61,473.15" fill="#c62828"/>
+<line class="shot" x1="337.37" y1="634.6" x2="388.62" y2="473.66" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="391.35,465.08 393.08,476.13 383.55,473.09" fill="#c62828"/>
 </g>
 <g class="park-outline" data-step="10">
-<title>step 10: PARK at (12.0, 92.2, 0 deg) (t = 21.8 to 21.8 s) - Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</title>
-<polygon class="outline" points="225.04,249.21 143.16,249.21 143.16,331.09 225.04,331.09" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
-<polygon class="chassis" points="212.62,249.21 143.16,249.21 143.16,331.09 212.62,331.09" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="225.04" y1="249.21" x2="225.04" y2="331.09" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="143.16" y1="249.21" x2="143.16" y2="331.09" stroke="#ef6c00" stroke-width="4.5"/>
-<circle class="wheel" data-wheel="LEFT" cx="218.6" cy="262.09" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<circle class="wheel" data-wheel="RIGHT" cx="218.6" cy="318.21" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
-<g class="pose-point" data-x="12" data-y="92.18">
-<circle cx="180.1" cy="290.15" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
-<line x1="176.7" y1="290.15" x2="183.5" y2="290.15" stroke="#c62828" stroke-width="1"/>
-<line x1="180.1" y1="286.75" x2="180.1" y2="293.55" stroke="#c62828" stroke-width="1"/>
+<title>step 10: PARK at (12.0, 92.3, 0 deg) (t = 21.8 to 21.8 s) - Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</title>
+<polygon class="outline" points="225.04,249.21 143.16,249.21 143.16,330.27 225.04,330.27" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
+<polygon class="chassis" points="212.62,249.21 143.16,249.21 143.16,330.27 212.62,330.27" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="225.04" y1="249.21" x2="225.04" y2="330.27" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="143.16" y1="249.21" x2="143.16" y2="330.27" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="218.6" cy="261.68" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="218.6" cy="317.8" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="12" data-y="92.27">
+<circle cx="180.1" cy="289.74" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="176.7" y1="289.74" x2="183.5" y2="289.74" stroke="#c62828" stroke-width="1"/>
+<line x1="180.1" y1="286.34" x2="180.1" y2="293.14" stroke="#c62828" stroke-width="1"/>
 </g>
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
 <title>step 1: START at (44.5, 12.2, -110 deg) (t = 0.0 to 0.0 s) - A front corner ON the audience wall, turned 20 degrees clockwise, back toward the audience cell. Chosen because the robot comes back to it for the second volley: it is a shooting pose AND 13 in closer to the GARDEN than the anchor start, which saves about 1.0 s on the two trips to it, against the anchor start. The same pose is used twice, so the aim only has to be checked once. (On a route with only one trip the same start saves just 0.4 s, which is not worth the harder placement.)</title>
-<circle cx="329.6" cy="657.97" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="329.6" y="661.77" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+<circle cx="329.6" cy="658.11" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="329.6" y="661.91" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
 <title>step 2: SHOOT 4 at UP cell from (44.5, 12.2, -110 deg) (t = 0.0 to 5.5 s) - The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</title>
-<circle cx="343.03" cy="644.53" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="343.03" y="648.33" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
+<circle cx="343.03" cy="644.67" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="343.03" y="648.47" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
 <title>step 3: DRIVE into the GARDEN constant to 9.5, 10.6 (t = 5.5 to 7.1 s) - Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</title>
-<circle cx="249.1" cy="661.77" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="249.1" y="665.57" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
+<circle cx="249.1" cy="661.84" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="249.1" y="665.64" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="INTAKE">
 <title>step 4: INTAKE GARDEN +4 from (9.5, 10.6, -90 deg) (t = 7.1 to 10.1 s) - The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</title>
@@ -300,18 +300,18 @@
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
 <title>step 5: DRIVE back to the shot linear to 44.5, 12.2 (t = 10.1 to 11.6 s) - Back to the pose of the first volley, turning evenly while it slides away from the wall.</title>
-<circle cx="262.53" cy="648.34" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="262.53" y="652.14" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
+<circle cx="262.53" cy="648.41" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="262.53" y="652.21" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="SHOOT">
 <title>step 6: SHOOT 4 at AUDIENCE cell from (44.5, 12.2, -110 deg) (t = 11.6 to 17.1 s) - THE TOP-UP. The plan says the first volley tipped the HIVE, so on paper the audience cell is already DOWN: that is the WARN on this step. On the field the robot fires only if its camera still shows the audience cell UP (tags in view, steady), which means the first volley did not tip it; the cell then still holds the 3 NECTAR and whatever landed, so 1 to 3 more POLLEN tip it. If the camera shows the cell DOWN (the HIVE tipped), or sees nothing, the volley is skipped and the robot goes on. The plan counts the volley&apos;s time (5.5 s) as if it fired, so the finish time is the worst case.</title>
-<circle cx="343.03" cy="671.4" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="343.03" y="675.2" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
+<circle cx="343.03" cy="671.54" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="343.03" y="675.34" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
 <g class="badge" data-step="7" data-kind="DRIVE">
 <title>step 7: DRIVE along the wall constant to 30.0, 14.8 (t = 17.1 to 18.3 s) - Slides sideways along the audience wall with the front still toward it, 5 in off the wall, until it is beside the left corridor.</title>
-<circle cx="296.25" cy="652.04" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="296.25" y="655.84" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
+<circle cx="296.25" cy="652.11" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="296.25" y="655.91" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
 </g>
 <g class="badge" data-step="8" data-kind="DRIVE">
 <title>step 8: DRIVE corridor reverse tangent to 30.0, 84.0 (t = 18.3 to 20.5 s) - Backwards (the shooter end first) up the left corridor, 13 in clear of the HIVE keep-out and of the spill zone of the cell that tipped.</title>
@@ -319,37 +319,37 @@
 <text x="262.9" y="490.76" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">8</text>
 </g>
 <g class="badge" data-step="9" data-kind="DRIVE">
-<title>step 9: DRIVE to the zone linear to 12.0, 92.2 (t = 20.5 to 21.8 s) - Turns to face +x while it slides into the LOADING ZONE.</title>
-<circle cx="221.5" cy="308.98" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="221.5" y="312.78" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">9</text>
+<title>step 9: DRIVE to the zone linear to 12.0, 92.3 (t = 20.5 to 21.8 s) - Turns to face +x while it slides into the LOADING ZONE.</title>
+<circle cx="221.5" cy="308.77" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="221.5" y="312.57" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">9</text>
 </g>
 <g class="badge" data-step="10" data-kind="PARK">
-<title>step 10: PARK at (12.0, 92.2, 0 deg) (t = 21.8 to 21.8 s) - Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</title>
-<circle cx="180.1" cy="290.15" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
-<text x="180.1" y="293.95" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">10</text>
+<title>step 10: PARK at (12.0, 92.3, 0 deg) (t = 21.8 to 21.8 s) - Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</title>
+<circle cx="180.1" cy="289.74" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="180.1" y="293.54" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">10</text>
 </g>
 </g>
 <g id="step-labels">
-<text class="step-label" x="314.6" y="675.97" font-size="11" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START B1</text>
-<text class="step-label" x="381.79" y="562.17" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 2)</text>
+<text class="step-label" x="314.6" y="676.11" font-size="11" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START B1</text>
+<text class="step-label" x="379.36" y="567.84" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 2)</text>
 <text class="step-label" x="406.35" y="483.08" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
-<text class="step-label" x="234.1" y="652.77" font-size="10" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into the GARDEN</text>
+<text class="step-label" x="234.1" y="652.84" font-size="10" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into the GARDEN</text>
 <text class="step-label" x="166.28" y="725.76" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">INTAKE GARDEN +4</text>
-<text class="step-label" x="247.53" y="639.34" font-size="10" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">back to the shot</text>
-<text class="step-label" x="381.79" y="535.17" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 6)</text>
-<text class="step-label" x="296.25" y="632.04" font-size="10" font-weight="bold" fill="#c62828" text-anchor="middle" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">along the wall</text>
+<text class="step-label" x="247.53" y="639.41" font-size="10" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">back to the shot</text>
+<text class="step-label" x="379.36" y="540.84" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 6)</text>
+<text class="step-label" x="296.25" y="632.11" font-size="10" font-weight="bold" fill="#c62828" text-anchor="middle" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">along the wall</text>
 <text class="step-label" x="277.9" y="504.96" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">corridor</text>
-<text class="step-label" x="236.5" y="326.98" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to the zone</text>
-<text class="step-label" x="195.1" y="281.15" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>
+<text class="step-label" x="236.5" y="326.77" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to the zone</text>
+<text class="step-label" x="195.1" y="280.74" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>
 </g>
 <g id="issue-marks">
 <g class="issue-mark" data-step="2" data-severity="WARN">
-<polygon points="355.03,624.53 363.03,638.53 347.03,638.53" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
-<text x="355.03" y="637.13" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<polygon points="355.03,624.67 363.03,638.67 347.03,638.67" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
+<text x="355.03" y="637.27" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
 </g>
 <g class="issue-mark" data-step="6" data-severity="WARN">
-<polygon points="355.03,651.4 363.03,665.4 347.03,665.4" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
-<text x="355.03" y="664" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<polygon points="355.03,651.54 363.03,665.54 347.03,665.54" fill="#f9a825" stroke="#ffffff" stroke-width="1"/>
+<text x="355.03" y="664.14" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
 </g>
 </g>
 </g>

@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -166,18 +166,18 @@
 <rect class="start-band" data-wall="BLUE" data-from="8.03" data-to="14.3" x="763.6" y="648.4" width="11.5" height="28.86" fill="#1565c0" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="BLUE" data-from="54.79" data-to="80.96" x="763.6" y="341.78" width="11.5" height="120.37" fill="#1565c0" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="BLUE" data-from="105.43" data-to="131.58" x="763.6" y="108.94" width="11.5" height="120.27" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="79.47" data-to="81.83" x="490.48" y="702.7" width="10.85" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="106.3" data-to="132.45" x="613.89" y="702.7" width="120.27" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="79.47" data-to="132.45" x="490.48" y="64" width="243.68" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="79.38" data-to="81.92" x="490.07" y="702.7" width="11.67" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="106.21" data-to="132.54" x="613.47" y="702.7" width="121.1" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="79.38" data-to="132.54" x="490.07" y="64" width="244.51" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
 <text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
 </g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="self_shoot_only">
 <g id="start-footprint" class="footprint start" data-step="1">
 <title>step 1: START at (83.4, 131.6, 90 deg) (t = 0.0 to 0.0 s)</title>
-<polygon class="outline" points="467.71,64 467.71,145.88 549.59,145.88 549.59,64" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="467.71,76.42 467.71,145.88 549.59,145.88 549.59,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="467.71" y1="64" x2="549.59" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="467.71" y1="145.88" x2="549.59" y2="145.88" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="468.12,64 468.12,145.88 549.18,145.88 549.18,64" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="468.12,76.42 468.12,145.88 549.18,145.88 549.18,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="468.12" y1="64" x2="549.18" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="468.12" y1="145.88" x2="549.18" y2="145.88" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="480.59" cy="70.44" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="536.71" cy="70.44" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="83.42" data-y="131.58">
@@ -190,10 +190,10 @@
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
 <title>step 2: SHOOT 4 at UP cell from (83.4, 131.6, 90 deg) (t = 0.0 to 5.5 s)</title>
-<polygon class="outline" points="467.71,64 467.71,145.88 549.59,145.88 549.59,64" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
-<polygon class="chassis" points="467.71,76.42 467.71,145.88 549.59,145.88 549.59,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="467.71" y1="64" x2="549.59" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="467.71" y1="145.88" x2="549.59" y2="145.88" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="468.12,64 468.12,145.88 549.18,145.88 549.18,64" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="468.12,76.42 468.12,145.88 549.18,145.88 549.18,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="468.12" y1="64" x2="549.18" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="468.12" y1="145.88" x2="549.18" y2="145.88" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="480.59" cy="70.44" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="536.71" cy="70.44" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="83.42" data-y="131.58">
@@ -201,8 +201,8 @@
 <line x1="505.25" y1="108.94" x2="512.05" y2="108.94" stroke="#1565c0" stroke-width="1"/>
 <line x1="508.65" y1="105.54" x2="508.65" y2="112.34" stroke="#1565c0" stroke-width="1"/>
 </g>
-<line class="shot" x1="508.65" y1="145.88" x2="508.65" y2="304.12" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
-<polygon class="arrowhead" points="508.65,313.12 503.65,303.12 513.65,303.12" fill="#1565c0"/>
+<line class="shot" x1="509.39" y1="133.69" x2="508.69" y2="304.12" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="508.65,313.12 503.69,303.1 513.69,303.14" fill="#1565c0"/>
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
@@ -218,7 +218,7 @@
 </g>
 <g id="step-labels">
 <text class="step-label" x="523.65" y="126.94" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START D6</text>
-<text class="step-label" x="523.65" y="247.5" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
+<text class="step-label" x="524.02" y="241.4" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
 <text class="step-label" x="523.65" y="331.12" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
 </g>
 <g id="issue-marks">

@@ -82,10 +82,10 @@
 <g id="hive-solid">
 <polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 <polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
-<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 362.76,445.34 362.76,440.28 357.7,440.28 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 357.7,337.92 362.76,337.92 362.76,332.86 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,445.34 557,477.01 562.06,477.01 562.06,471.95 542.3,440.28 537.24,440.28" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="537.24,337.92 542.3,337.92 562.06,306.25 562.06,301.19 557,301.19 537.24,332.86" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
 </g>
 <text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
 <g class="hive" data-alliance="RED">
@@ -163,9 +163,9 @@
 </g>
 <g id="start-bands" data-heading="180">
 <title>Where a robot facing 180 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
-<rect class="start-band" data-wall="RED" data-from="8.9" data-to="35.05" x="124.9" y="552.99" width="11.5" height="120.27" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="RED" data-from="59.52" data-to="85.68" x="124.9" y="320.05" width="11.5" height="120.37" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="RED" data-from="126.17" data-to="132.45" x="124.9" y="104.94" width="11.5" height="28.86" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="8.81" data-to="35.14" x="124.9" y="552.58" width="11.5" height="121.1" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="59.43" data-to="85.77" x="124.9" y="319.64" width="11.5" height="121.2" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="126.08" data-to="132.54" x="124.9" y="104.53" width="11.5" height="29.69" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="AUDIENCE" data-from="9.77" data-to="62.74" x="169.84" y="702.7" width="243.68" height="11.5" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="REAR" data-from="9.77" data-to="35.92" x="169.84" y="64" width="120.27" height="11.5" fill="#c62828" fill-opacity="0.35"/>
 <rect class="start-band" data-wall="REAR" data-from="60.39" data-to="62.74" x="402.68" y="64" width="10.85" height="11.5" fill="#c62828" fill-opacity="0.35"/>
@@ -184,10 +184,10 @@
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
 <title>step 1: START at (9.2, 70.3, 180 deg) (t = 0.0 to 0.0 s) - The OpMode&apos;s number, copied (its comment says the front is about 0.3 in from the red wall). The center of rotation is 9.21 in from the wall but the front edge is 9.77 in ahead of it, so the real footprint would reach 0.56 in through the wall: place the real robot with its FRONT ON the wall (center 9.77 in out) and change the OpMode&apos;s x to match once the center of rotation is measured.</title>
-<polygon class="outline error" points="122.33,431.9 204.21,431.9 204.21,350.02 122.33,350.02" fill="#f9a825" fill-opacity="0.3" stroke="#f9a825" stroke-width="3.4" stroke-linejoin="round"/>
-<polygon class="chassis" points="134.75,431.9 204.21,431.9 204.21,350.02 134.75,350.02" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="122.33" y1="431.9" x2="122.33" y2="350.02" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="204.21" y1="431.9" x2="204.21" y2="350.02" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline error" points="122.33,431.48 204.21,431.48 204.21,350.43 122.33,350.43" fill="#f9a825" fill-opacity="0.3" stroke="#f9a825" stroke-width="3.4" stroke-linejoin="round"/>
+<polygon class="chassis" points="134.75,431.48 204.21,431.48 204.21,350.43 134.75,350.43" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="122.33" y1="431.48" x2="122.33" y2="350.43" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="204.21" y1="431.48" x2="204.21" y2="350.43" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="128.77" cy="419.02" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="128.77" cy="362.9" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="9.21" data-y="70.27">
@@ -200,10 +200,10 @@
 </g>
 <g class="park-outline" data-step="4">
 <title>step 4: PARK at (16.0, 91.5, 135 deg) (t = 2.3 to 2.3 s) - Only a corner of the robot reaches the LOADING ZONE, 5.7 in deep; the source does not call it PARK.</title>
-<polygon class="outline" points="137.77,290.47 195.67,348.37 253.57,290.47 195.67,232.57" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
-<polygon class="chassis" points="146.55,299.25 195.67,348.37 253.57,290.47 204.45,241.36" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
-<line class="front-edge" x1="137.77" y1="290.47" x2="195.67" y2="232.57" stroke="#2e7d32" stroke-width="4.5"/>
-<line class="back-edge" x1="195.67" y1="348.37" x2="253.57" y2="290.47" stroke="#ef6c00" stroke-width="4.5"/>
+<polygon class="outline" points="138.06,290.18 195.96,348.08 253.27,290.76 195.38,232.87" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
+<polygon class="chassis" points="146.85,298.96 195.96,348.08 253.27,290.76 204.16,241.65" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="138.06" y1="290.18" x2="195.38" y2="232.87" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="195.96" y1="348.08" x2="253.27" y2="290.76" stroke="#ef6c00" stroke-width="4.5"/>
 <circle class="wheel" data-wheel="LEFT" cx="151.43" cy="285.92" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <circle class="wheel" data-wheel="RIGHT" cx="191.12" cy="246.23" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
 <g class="pose-point" data-x="16" data-y="91.5">
@@ -319,7 +319,7 @@
 <text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 2.3 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 8  (LEAVE 3, PARK 5, HIVE TIP 0)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#b71c1c">POLLEN: hold 4 at start, +0 taken, -0 fired, 4 at the end (balance 0)   |   Validator: 2 ERROR, 0 WARN</text>
 <g class="issue-line" data-severity="ERROR">
-<title>ERROR step 1 [G304] start footprint at (9.2, 70.3, 180 deg) sticks out of the field by 0.6 in (G304.A): its center of rotation is 9.2 in from the wall at x = 0.0 but the robot&apos;s edge that faces that wall reaches 9.8 in from the center (front 9.8 in, rear 8.0 in, sides 8.9 in); place the real robot with that edge ON the wall, its center 9.8 in out</title>
+<title>ERROR step 1 [G304] start footprint at (9.2, 70.3, 180 deg) sticks out of the field by 0.6 in (G304.A): its center of rotation is 9.2 in from the wall at x = 0.0 but the robot&apos;s edge that faces that wall reaches 9.8 in from the center (front 9.8 in, rear 8.0 in, sides 8.8 in); place the real robot with that edge ON the wall, its center 9.8 in out</title>
 <text x="24" y="838.2" font-size="10" fill="#b71c1c">ERROR step 1: start footprint at (9.2, 70.3, 180 deg) sticks out of the field by 0.6 in (G304.A): its center of rotation is 9.2 in from the wall at x = 0.0...</text>
 </g>
 <g class="issue-line" data-severity="ERROR">
