@@ -116,8 +116,8 @@ Every step is a method of the builder. The first step must be `start(...)`, and 
 | | `driveConstant(x, y, headingDeg)` | Turn first, then keep that heading all the way (strafing if needed). |
 | | `driveFacing(x, y, px, py)` / `driveBackFacing(...)` | Keep the front / the back pointed at the point (px, py). |
 | **INTAKE** | `intakeFloor(...)`, `intakeGarden(...)` | Take POLLEN: `(targetX, targetY, robotX, robotY, robotHeadingDeg, count)`. |
-| | `intakeFlower(targetX, targetY, IntakeWheel.LEFT, count)` | Empty a FLOWER by **pressing one flat wheel into its bottom POLLEN**. Give the FLOWER's center, which wheel presses (the robot's own `LEFT` or `RIGHT`) and the count; the line-up pose, the press pose and the retreat are worked out for you. Drive to the line-up pose first (`FlowerPress.idealLineUp`). |
-| | `intakeFlower(targetX, targetY, robotX, robotY, robotHeadingDeg, count)` | The same with your own line-up pose; the wheel is the one nearer the FLOWER's center line (or add the wheel before the count). |
+| | `intakeFlower(targetX, targetY, count)` | Empty a FLOWER by **wiggling one flat wheel into its bottom POLLEN** (see "Taking POLLEN from a FLOWER"). Give only the FLOWER's center and the count: where the robot stands, how far it turns, how many times and **which wheel** do the work are worked out for you (the cheaper wheel for the legs before and after). The robot goes to its line-up pose by a straight, checked move, so put a DRIVE before it if that straight line would hit something. |
+| | `intakeFlower(targetX, targetY, IntakeWheel.LEFT, count)` | The same, forcing the wheel: `LEFT` or `RIGHT` (the robot's own sides), or `AUTO` (the default of the form above). |
 | **SHOOT** | `shootUp(count)` | Fire at the cell that is UP; the solver picks the pose (the picture shows a nominal one). |
 | | `shootUp(x, y, headingDeg, count)` | Same, from an explicit pose. |
 | | `shootSide(Side.AUDIENCE, count)` | Fire at a fixed cell (a promise that it is UP at that moment). |
@@ -134,7 +134,7 @@ Modifiers apply to the step added **just before** them:
 | `.label("corridor")` | DRIVE | Names the leg in the picture. |
 | `.wallContact()` | DRIVE | A note that the leg touches the field wall on purpose (sweeping the GARDEN POLLEN). It gives **no** extra room: the robot may touch a wall but never push into it. |
 | `.allowUnderHive()` | DRIVE | The leg may drive **under the HIVE**, along the lane between its two foot bars (see "Driving under the HIVE"). Off by default. |
-| `.retreat(8.0)` | FLOWER INTAKE | How far the robot backs straight out after the press (default 6 in; shorter is a WARN). |
+| `.retreat(8.0)` | FLOWER INTAKE | How far the robot backs straight out after the last cycle of the wiggle (default 6 in; shorter is a WARN). |
 | `.launchSeconds(5.0)` | SHOOT | The step takes exactly this long (instead of the estimate). |
 | `.note("why")` | any | Free text for people; shown on the page. |
 
@@ -166,8 +166,8 @@ Two rules of thumb that the validator enforces:
 | Start | G304 | outside the field (a start whose real outline pokes through a wall: the finding says how far the pose is from the wall and where the robot's edge that faces it lies), outside the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
 | Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the front corners sweep out to 13.22 in from the center of rotation), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
 | HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the two foot bars and the box between them, 49.466 x 38.944 in). By default the gaps under and inside the frame count as solid. A DRIVE that says `allowUnderHive()` is checked against the **exact solid** instead (the foot bars and the leg stubs, with 3 in to spare on both sides): it may drive along the lane, but never across a foot bar or into a leg. A DOWN cell hangs out past the frame by up to 5.66 in, but only 35.5 in up or higher, so it is not an obstacle | a DRIVE under the HIVE while the HIVE could still tip (G409/G417, next section) |
-| FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.871 x 5.95 in, its field-side edge 5.033 in from the wall; the 6.67 in long wall bracket above it counts too, see below). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its press-in (next row): the chassis, the other wheel and every other step stay out | |
-| FLOWER press-in | 9.7, G415 | the chassis comes within 0.5 in of the plate; the pressing wheel goes past the **press stop line**; the wheels are too short to reach it (the finding says how many inches are missing); the line-up heading is more than 5 degrees off "facing the wall squarely"; the middle of the pressing wheel is more than 1 in from the FLOWER's center line; the final approach is shorter than 6 in | the retreat is shorter than 6 in |
+| FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.871 x 5.95 in, its field-side edge 5.033 in from the wall; the 6.67 in long wall bracket above it counts too, see below). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its wiggle (next row): the chassis, the other wheel and every other step stay out | |
+| FLOWER wiggle | 9.7, G415 | at ANY pose of the straight approach, **the turn on the spot** or the retreat: the chassis comes within 0.5 in of the plate; the working wheel goes nearer the wall than the POLLEN's center line (the **press stop line**); the other wheel enters the plate; anything leaves the field. The wheel cannot REACH the POLLEN once the chassis has been stood far enough out to clear the plate through the swing (the finding says how many inches of wheel are missing). With the wheel left to `AUTO`: neither wheel is legal | the retreat is shorter than 6 in |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
 | POLLEN | G407 | more than 4 held (a volley that tips keeps its spare in the robot, so 4 pre-loads at the UP cell leave 1 and a GARDEN intake of 3 fits), firing more than held, taking from the other alliance's GARDEN or FLOWER | a source that is empty or that does not exist; a floor intake before anything was shot |
 | Time | G401 | the estimate is over 30 s | within 2 s of the limit |
@@ -246,64 +246,110 @@ every route goes **around** it.
 | The TeleOp planner, from the C1 start to the shooting pose in front of the red REAR cell (`PlannerLaneTest`) | 115.8 in | 148.5 in | 32.7 in |
 
 That is the loop of a partner route (the robot must get from the audience side to the cell that comes up on the rear side
-after the partner's tip): about 0.6 s at the placeholder cruise speed of 40 in/s, which is a seventh of the 4 s a FLOWER
-press-in is assumed to take. Worth having if the HIVE is known to be at rest; not worth a foul. Day one: measure the real
+after the partner's tip): about 0.6 s at the placeholder cruise speed of 40 in/s, which is a tenth of the 6 s a 3-POLLEN
+FLOWER pick-up is estimated to take. Worth having if the HIVE is known to be at rest; not worth a foul. Day one: measure the real
 lane with a tape before the first run (`docs/DAY_ONE_CHECKLIST.md`).
 
-## Taking POLLEN from a FLOWER (the press-in)
+## Taking POLLEN from a FLOWER (the wiggle)
 
 The bottom POLLEN of a FLOWER sits in the hole of a ring that is about 0.4 in tall (0.354 in in the official CAD, about
 0.43 in in the manual). The hole is 3.04 in wide in the CAD and 2.79 in in the manual: nobody has measured a real one, so
 every decision about how much room the ball has uses the **smaller** figure (a decision that works with 2.79 in also works
-with 3.04 in). To get the ball out, a wheel has to push it **up and over the edge of that ring** (the "lip"). Our two flat wheels can do that only if one of them **presses into
-the POLLEN**. So a FLOWER intake is not a drive-by and not a drive through the plate:
+with 3.04 in). To get the ball out, something has to roll it **up and over the edge of that ring** (the "lip"). Our two flat
+wheels are 12.2 in apart, so they cannot pinch a 2.8 in ball. **ONE wheel does it, with a small oscillation, a "wiggle"**:
+the spinning wheel and the push of the whole robot together roll the ball out, then the robot turns back so the next ball
+can drop down into the hole. In order:
 
-1. the robot lines up **facing the wall**, with the middle of ONE flat wheel on the FLOWER's center line (the other wheel
-   is 12.2 in away along the wall, too far to help: the two wheels cannot pinch a 2.8 in POLLEN);
-2. it drives **straight in, slowly** (30% speed) for at least 6 in until that wheel overlaps the POLLEN;
-3. it **stays pressed** with the intake running (the dwell);
-4. it **backs straight out** for 6 in.
+1. **Approach.** The robot lines up **facing the wall** and drives **straight in, slowly** (30 % speed, 6 in) standing
+   **off center**, so that one flat wheel ends up **beside** the bottom POLLEN, not on it: the middle of the wheel is
+   3.8 in from the middle of the ball along the wall (`Auto.FLOWER_WHEEL_START_OFFSET_IN`: the two radii plus 1.0 in of air),
+   with the ball between the wheel and the robot's center line (`Auto.FLOWER_WHEEL_BALL_INBOARD`).
+2. **Push.** It **turns on the spot** about its pose point (the point it spins about) **toward the ball**. The wheel is about
+   10.4 in from that point, so a turn of a few degrees swings it sideways, and a little forward, into the ball, until the
+   middle of the wheel is 1.8 in from the middle of the ball (`Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`: it overlaps the ball by
+   1.0 in). It holds there for 0.25 s with the wheel spinning (`FLOWER_WIGGLE_PUSH_HOLD_SEC`).
+3. **Release.** It turns **back the same angle, never past straight**, and holds for 0.4 s so the next POLLEN can drop
+   (`FLOWER_WIGGLE_RELEASE_HOLD_SEC`).
+4. **Repeat** once per POLLEN wanted (`FLOWER_WIGGLE_CYCLES_PER_POLLEN`, at most `FLOWER_WIGGLE_MAX_CYCLES`), then **back
+   straight out** 6 in.
 
-Top view, the wall at the bottom and the robot facing it (so its left side is on the right of the page). The robot's
-LEFT wheel does the pressing, so the robot stands 6.1 in to the left of the FLOWER on the page. `##` is a flat wheel,
-`(##)` the same wheel pressed onto the POLLEN. Distances are measured from the wall:
+Top view of what the working wheel does (the wall at the bottom, the robot facing it, wheels that stick out 4 in so that the
+wiggle works; distances from the wall in inches). `(L)` is the middle of the LEFT flat wheel, `( o )` the bottom POLLEN, 2.8 in
+wide with its middle 2.634 in from the wall. Not to scale:
 
 ```
-        +-----------------------------+
-        |           CHASSIS           |      the body, 17.8 in wide: never inside the plate
-        +-----------------------------+      <- chassis front: 5.533 in from the wall (plate edge 5.033 + 0.5)
-          ##                     ##          the two flat wheels stick out 2.7 in in front of the chassis
-          ##                  +--##---+      <- plate edge: 5.033 in from the wall. Only ONE wheel goes in
-                              | (##)  |      <- wheel tip: 2.833 in from the wall = 1.201 in into the POLLEN
-  =======================================    the field wall (the POLLEN is 1.234 to 4.034 in from it)
+ 5.4 in                                  (L)    start of the wiggle: the wheel is 3.8 in to the side of the ball's middle,
+                                          :                         the robot faces the wall, the chassis is 0.5 in off the plate
+                                          :
+                                          : the robot turns about its pose point (10.4 in from the wheel),
+                                          :  17 degrees toward the ball: the wheel sweeps sideways and a little forward
+ 4.0 in                  (L)  . . . . . .'     end of the push: 1.8 in from the ball's middle, 1.0 in into the ball
+                       ( o )                   the ball rolls out over the lip toward the robot (toward the top of the page)
+ 2.6 in
+ ======================== wall ==========================================================================
 ```
 
-What the validator holds you to (the numbers are `BioBuzzConstants`, all marked **ADD** because nobody has measured
-them on the robot yet):
+You write only `intakeFlower(2.634, 47.281, 4)` (the center of the FLOWER on the red wall and the count). **Everything else is
+derived from the constants**, so nobody computes it by hand:
 
-* **The chassis never touches a plate** (it stays 0.5 in off, `Auto.FLOWER_CHASSIS_CLEARANCE_IN`), and **only the one
-  pressing wheel may go into the plate**, and only as far as the **press stop line**: the POLLEN's far edge (4.034 in from
-  the wall) minus `Auto.FLOWER_PRESS_DEPTH_IN` (1.201 in) = 2.833 in, never closer than the POLLEN's center line (2.634 in).
-* **The wheels must be long enough.** With the chassis 5.533 in from the wall, the wheel tip is at 5.533 minus the
-  reach. `Robot.INTAKE_REACH_IN` is 2.7 in, which gives exactly 2.833 in. If the real wheels reach less, the validator
-  says **how many inches are missing**.
+* **The turn angle.** The middle of the wheel is the **lever arm** from the pose point, `hypot(how far ahead of it the wheel
+  is, how far to the side)` = hypot(8.37 in, 6.1 in) = **10.36 in**, so while the robot turns in place the wheel travels
+  on a circle of that radius. The turn is where that circle first gets within the press offset of the ball: the meeting
+  point of two circles, solved exactly (`FlowerWiggle`). It always carries the wheel **toward** the ball: clockwise for the
+  left wheel, counter-clockwise for the right one. It never exceeds `Auto.FLOWER_WIGGLE_MAX_TURN_DEG` (20 degrees).
+* **The standoff (how far from the wall the robot stands).** A turning rectangle's corner moves toward the wall: when the robot turns,
+  the corner of its body nearest the plate **swings toward it**. So the robot has to stand **farther out** than a straight
+  press would need. The program finds the smallest distance for which the chassis keeps `Auto.FLOWER_CHASSIS_CLEARANCE_IN`
+  (0.5 in) off the plate at **every pose of the swing**, the working wheel never goes nearer the wall than the POLLEN's center
+  line (2.634 in, the **press stop line**), and nothing goes through the wall. With wheels that stick out 4 in that is 13.8 in
+  from the wall to the pose point; the line-up pose is 6 in farther out (19.8 in). It uses the **same rules the validator uses**
+  (`PressRules`), so the validator accepts what it derives.
+* **Whether the wheel can still reach the ball.** Standing farther out costs reach. **With the numbers of the goBILDA drawing
+  (wheels that stick out 2.7 in) the wheel falls 0.77 in short**: the validator says so as an ERROR, with the missing inches:
+  *"the flat wheels would have to stick out 3.5 in in front of the chassis, 0.8 in more than they do"*. What helps is longer wheels,
+  or a smaller `Auto.FLOWER_CHASSIS_CLEARANCE_IN`, or a smaller `Auto.FLOWER_WHEEL_START_OFFSET_IN` (a smaller swing): **measure the
+  real robot** (the day-one checklist) before believing this ERROR, it follows from placeholder numbers. (If the wheel would
+  have to turn more than 20 degrees, no length of wheel helps and the finding says so.)
+* **Which wheel.** `intakeFlower(x, y, count)` leaves the wheel to `IntakeWheel.AUTO`; `LEFT` or `RIGHT` forces it. The program
+  plans the whole pick-up for each wheel and **keeps only the legal ones** (the wheel reaches, nothing breaks a rule on the
+  move in, the approach, the swing or the retreat, nor the HIVE or the center line). Among those it takes the **cheapest**:
+  *the move from where the robot is to the line-up pose + the pick-up itself + the move from the retreat pose to the first
+  pose of the next step* (one step ahead is looked at). A tie goes to the wheel with more room, then to the LEFT one. One shared
+  function (`WheelChoice.choose`) decides, and the validator, the diagram, the timing and the robot's runner all use its answer.
+  The gallery says why: *"chosen automatically: 0.1 s shorter than the LEFT wheel"*.
+* **The time.** `approach + cycles x (turn + push hold + turn back + release hold) + retreat`: with the placeholder numbers
+  3 POLLEN take about 6.1 s (2 x 1.0 s of slow driving, 3 x 1.35 s of wiggle). The gallery text reads *"FLOWER pick-up: 3 POLLEN
+  in about 6.1 s with the RIGHT wheel"*.
+
+What the validator holds you to (the numbers are `BioBuzzConstants`, the ones in the table below are marked **ADD** because
+nobody has measured them on the robot yet):
+
+* **The chassis never comes within 0.5 in of a plate**, at any pose of the approach, the swing or the retreat, and **only the one
+  working wheel may be over the plate**, never nearer the wall than the POLLEN's center line. Every pose of the turn is swept
+  with the real footprint, not only the two ends.
+* **The wheels must be long enough** (above): ERROR, with the missing inches. With the wheel left to AUTO the ERROR comes only
+  when **neither** wheel is legal.
 * **Mind the wall bracket.** The FLOWER is held to the wall by a black bracket that sticks out 1.67 in from the wall at 11.44
   to 11.84 in above the floor. That is inside the robot's 12.13 in, so any part of the robot that is taller than 11.44 in
   and within 1.67 in of the wall can touch it. The bracket is 6.67 in long, 0.36 in longer than the plate at each end: the
   0.5 in keep-out margin around the plate covers that for driving, and a start that stands clear of the plate but over the
   end of the bracket gets a WARN (G304.D).
-* **Square and centered.** The robot faces the wall within 5 degrees (`Auto.FLOWER_HEADING_TOLERANCE_DEG`) and the
-  middle of the pressing wheel is within 1 in of the FLOWER's center line (`Auto.FLOWER_ALIGN_TOLERANCE_IN`).
-* **Straight, slow in and out.** At least 6 in of straight final approach (`Auto.FLOWER_APPROACH_LENGTH_IN`) at 30 %
-  speed (`Auto.FLOWER_APPROACH_SPEED_FRACTION`), then the dwell, then a straight retreat of at least 6 in
-  (`Auto.FLOWER_RETREAT_LENGTH_IN`, shorter is a WARN). The time estimate includes all three phases.
+* **Straight, slow in and out.** The approach is square to the wall and the retreat is straight: they are **derived**, so they
+  hold by construction (`Auto.FLOWER_APPROACH_LENGTH_IN`, `Auto.FLOWER_APPROACH_SPEED_FRACTION`, `Auto.FLOWER_RETREAT_LENGTH_IN`; a
+  retreat shorter than 6 in is a WARN). The line-up pose is reached by a planned, checked straight move.
 * **Walls and the HIVE still count in every one of these moves.** Nothing of the robot goes into a wall, and the
-  body keeps out of the HIVE keep-out, during the press-in as everywhere else.
+  body keeps out of the HIVE keep-out, during the wiggle as everywhere else.
 
-You write only `intakeFlower(2.634, 47.281, IntakeWheel.LEFT, 4)` (the center of the FLOWER on the red wall); the program works out the line-up pose, the press pose
-and the retreat pose. The step ends at the retreat pose, where the next step continues. In the diagram the robot is
-drawn **pressed in**, the pressing wheel has a green ring, a short solid arrow runs along the wheel's path into the
-POLLEN and a dotted arrow shows the retreat.
+**On the robot.** `FlowerWiggleSequence` is the script the route runner follows once the robot stands at the start pose: the
+follower HOLDS the pose point and only the **target heading** alternates between "straight at the wall" and "turned toward
+the ball". A turn ends when the heading is within `Auto.FLOWER_WIGGLE_HEADING_TOLERANCE_DEG`, the holds are timers, the POLLEN
+count comes from the cycles done (never above 4, rule G407: the intake stops at 4), and it **fails closed**: if a turn does not get
+there within `Auto.FLOWER_WIGGLE_TURN_TIMEOUT_SEC` it turns back, backs out and skips the rest of that pick-up. It is tested in a
+closed loop against a simulated heading controller (`FlowerWiggleSequenceTest`), also with an overshooting one and with a stuck one.
+
+In the diagram a FLOWER INTAKE draws the robot where the wiggle **starts** (the working wheel has a green ring), a faint
+second outline where the push **ends**, a **curved arrow** for the sweep of the wheel, a small label such as `wiggle x4`, a short
+solid arrow for the straight approach and a dotted arrow for the retreat.
 
 ## How a HIVE tips
 
@@ -444,8 +490,10 @@ PARK) after the volley**, so they are done whether or not the tip comes.
 * **DRIVE legs** are solid lines or curves with arrowheads. **Dotted arrows** are the moves to a pose that a step makes
   by itself (a SHOOT pose, an INTAKE pose, a PARK pose).
 * Every step has a **numbered circle**, in route order. A red triangle on it is an ERROR, a yellow one a WARN.
-* **INTAKE** is a dashed circle around the target, labelled like `INTAKE GARDEN +4`. A FLOWER INTAKE shows the robot
-  pressed in (the pressing wheel ringed in green), a short solid arrow into the POLLEN and a dotted retreat arrow.
+* **INTAKE** is a dashed circle around the target, labelled like `INTAKE GARDEN +4`. A FLOWER INTAKE shows the robot where
+  the wiggle starts (the working wheel ringed in green), a faint second outline where the push ends, a curved arrow for the
+  sweep of the wheel, a label like `wiggle x4`, a short solid arrow for the straight approach and a dotted retreat arrow.
+  The step list on the page says `FLOWER pick-up: 4 POLLEN in about 6.1 s with the LEFT wheel` and why that wheel.
 * **SHOOT** is the robot at the shooting pose and a dashed arrow from the **ball exit** to the **aim point** in the
   cell opening, labelled `SHOOT 4`. A dashed footprint means the pose is the solver's *nominal* pose. `HIVE TIP +20`
   marks the volley that tips the HIVE.
@@ -470,11 +518,14 @@ PARK) after the volley**, so they are done whether or not the tip comes.
   `INTAKE_DWELL_*_SEC`, `AIM_SPINUP_SEC`, `TIME_PER_SHOT_SEC`. Compare routes with them, but do not trust a route
   that is within a few seconds of the limit. When you measure one, replace it, change its marker to VERIFY or TUNE
   and delete its name from `BioBuzzConstants.PLACEHOLDERS`, then regenerate the pictures.
-* **The FLOWER press-in numbers are placeholders too** (marked **ADD**): how far the wheel tips stick out in front
+* **The FLOWER wiggle numbers are placeholders too** (marked **ADD**): how far the wheel tips stick out in front
   of the chassis (`Robot.INTAKE_REACH_IN`, 2.7 in from the drawing), how far each wheel is from the center line
-  (`Robot.INTAKE_WHEEL_OFFSET_IN`, 6.1 in), how deep the wheel presses (`Auto.FLOWER_PRESS_DEPTH_IN`) and how far
-  the chassis stays off the plate (`Auto.FLOWER_CHASSIS_CLEARANCE_IN`). They are on the day-one checklist
-  (section C); measure them with the real robot at a real FLOWER.
+  (`Robot.INTAKE_WHEEL_OFFSET_IN`, 6.1 in), how far beside the ball the wheel starts (`Auto.FLOWER_WHEEL_START_OFFSET_IN`) and how
+  close it gets (`Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`), which side of the wheel the ball is on (`Auto.FLOWER_WHEEL_BALL_INBOARD`), the holds
+  and the cycles (`Auto.FLOWER_WIGGLE_*`), and how far the chassis stays off the plate (`Auto.FLOWER_CHASSIS_CLEARANCE_IN`). **With the
+  numbers of the drawing the validator reports that the wheel falls 0.77 in short of the ball** (see "Taking POLLEN from a
+  FLOWER"): that is the finding to check first with the real robot. They are on the day-one checklist (section C); measure
+  them with the real robot at a real FLOWER, both wheels.
 * **The tip figures** (`Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR` / `_DENOMINATOR` = 5/3 and `Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD` = 8,
   VERIFY) come from FIRST's calibration (see "How a HIVE tips"), not from the manual. `Auto.TIP_PLANNING_MARGIN_POLLEN` = 1 (TUNE) is
   the spare a route plans. `Auto.NECTAR_STAGED_IN_UP_CELL` = 3 is FIXED (Fig 10-2).
@@ -531,7 +582,7 @@ catalog deliberately does not "improve" them.
 
 | Package | What is in it |
 |---|---|
-| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`, `FirstTip`), the simulation (`RouteAnalysis`, `TimingModel`, and `TipModel` for the tip arithmetic), the checks (`RouteValidator`, `TipRules`, `Sweep`, `Issue`), what the Auto Route Picker says about the camera at INIT (`TipCameraPolicy`), the field geometry (`AllianceField`, `ShotGeometry`, `FlowerPress`) and the lists of routes: **`SelfTipRoutes`** (we shoot the first tip) and **`PartnerTipRoutes`** (the partner does), gathered by `RouteCatalog`. The robot's own shape (`RobotShape`: the four distances from the center of rotation to its edges; `Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`, together with the robot's camera-only decision that a HIVE has fully tipped (`TipConfirmation`, `TipWait`, `HiveTracker.cameraConfirmed()`). |
+| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`, `FirstTip`), the simulation (`RouteAnalysis`, `TimingModel`, and `TipModel` for the tip arithmetic), the checks (`RouteValidator`, `TipRules`, `Sweep`, `LegSweeps`, `PressRules`, `Issue`), what the Auto Route Picker says about the camera at INIT (`TipCameraPolicy`), the field geometry (`AllianceField`, `ShotGeometry`), the FLOWER wiggle (`FlowerWiggle`: the derived turn, standoff and reach; `FlowerPress`: one planned pick-up; `WheelChoice`: the one function that picks the wheel; `FlowerWiggleSequence`: the robot-side script, simulated in closed loop) and the lists of routes: **`SelfTipRoutes`** (we shoot the first tip) and **`PartnerTipRoutes`** (the partner does), gathered by `RouteCatalog`. The robot's own shape (`RobotShape`: the four distances from the center of rotation to its edges; `Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`, together with the robot's camera-only decision that a HIVE has fully tipped (`TipConfirmation`, `TipWait`, `HiveTracker.cameraConfirmed()`). |
 | `autoshoot.render` | `RouteSvgRenderer` (one route to one SVG), `RouteGallery` (the page), `RenderRoutesMain` (the command line), `SvgWriter` (escaping and number formatting). |
 | `tools/` | `render-autos.sh` and `render-autos.bat`. |
 | `docs/autos/` | The generated page and the SVG files. |

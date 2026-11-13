@@ -77,28 +77,46 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       the front edge of the frame, the part that must never touch a FLOWER plate, to the front tip of the wheel; the
       drawing says 2.7 in), `Robot.INTAKE_WHEEL_OFFSET_IN` is how far the middle of each wheel is from the robot's
       center line (6.1 in on the drawing), and `Robot.INTAKE_WHEEL_DIAMETER_IN` is how wide a wheel disc is (2.8 in).
-- [ ] **A FLOWER press-in** (robot at a real FLOWER, facing the wall; the auto routes assume this move, see
-      `docs/AUTOS.md`, "Taking POLLEN from a FLOWER"). Drive straight in slowly until one wheel rolls the bottom
-      POLLEN over the lip of its ring, and write down:
-      - Which wheel touches the POLLEN, the left or the right one (the routes name it: `IntakeWheel.LEFT` or `RIGHT`),
-        and how far the robot has to stand to that side of the FLOWER's center line (should equal the wheel offset).
-      - How far the wheel presses into the POLLEN: `Auto.FLOWER_PRESS_DEPTH_IN` (1.201 in is the guess: the wheel tip stops
-        1.2 in past the POLLEN's near edge, 2.83 in from the wall). Too shallow does not roll it, too deep jams it against the
-        closed wall.
-      - The **standoff**: with the wheel properly pressed in, the gap between the chassis frame and the FLOWER plate,
-        `Auto.FLOWER_CHASSIS_CLEARANCE_IN` (0.5 in is the guess). The plate's field-side edge is 5.033 in from the wall (the
-        CAD: 4.871 in deep, standing 0.162 in off the wall; the manual says 4.75), so the chassis front should stand at about
-        5.53 in from the wall; if it is closer, the chassis touches the plate.
+- [ ] **A FLOWER wiggle** (robot at a real FLOWER, facing the wall; the auto routes assume this move, see
+      `docs/AUTOS.md`, "Taking POLLEN from a FLOWER"). The robot drives in **off center** so that ONE flat wheel is beside the
+      bottom POLLEN, **turns on the spot** toward the ball (the spinning wheel and the push of the whole robot roll it over the
+      lip of its ring), turns back so the next ball drops into the hole, and repeats. Do it by hand first with **both** wheels
+      (left and right: the program picks the cheaper one, so BOTH must work) and write down, for each wheel, any difference:
+      - **Which side of the wheel the ball must be on**: between the wheel and the robot's center line ("inboard", the guess,
+        `Auto.FLOWER_WHEEL_BALL_INBOARD = true`) or on the far side of the wheel ("outboard", `false`). Turning toward the ball
+        should also swing the wheel a little forward, toward the wall; if the ball only comes out the other way, change the flag.
+      - **The start offset**: how far beside the ball, along the wall, the middle of the wheel has to be so that the robot can
+        drive straight in without the wheel touching or dragging the ball, but a small turn still reaches it:
+        `Auto.FLOWER_WHEEL_START_OFFSET_IN` (3.8 in is the guess: the two radii plus 1 in of air).
+      - **How far the turn must go**: the middle of the wheel must come this close to the middle of the ball for the ball to
+        roll out over the lip, without jamming it against the closed side of the FLOWER: `Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`
+        (1.8 in is the guess: the wheel overlaps the ball by 1 in). The program turns the robot just far enough (about 17 degrees
+        with the guesses); do NOT type the angle anywhere. If the real turn has to be more than `Auto.FLOWER_WIGGLE_MAX_TURN_DEG`
+        (20 degrees), the validator says so.
+      - **The holds**: how long to stay turned in with the wheel pressed on the ball (`Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC`, 0.25 s)
+        and how long to stay turned back so the next POLLEN drops down the chute (`Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC`, 0.4 s);
+        how long one half of the turn takes (`Auto.FLOWER_WIGGLE_TURN_SEC`, 0.35 s); how many cycles one POLLEN needs
+        (`Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN`, 1).
+      - **The wheel spin direction**: does the flat wheel spin so that it **pulls the ball toward the robot**, out over the lip
+        (check `RobotCheck` and the intake servo signs, `RobotCheck.INTAKE_LEFT_SERVO_SIGN` and `INTAKE_RIGHT_SERVO_SIGN`)? A
+        wheel that pushes the ball back into the hole defeats the whole wiggle. Check both wheels.
+      - **The standoff**: with the robot turned in and the wheel properly on the ball, the gap between the chassis frame and the
+        FLOWER plate, `Auto.FLOWER_CHASSIS_CLEARANCE_IN` (0.5 in is the guess). The plate's field-side edge is 5.033 in from the wall
+        (the CAD: 4.871 in deep, standing 0.162 in off the wall; the manual says 4.75). The corner of the chassis nearest the plate
+        swings toward it while the robot turns, so measure the gap at the **worst moment of the turn**, not only when standing
+        straight. **With the numbers of the drawing the validator reports that the wheel falls 0.77 in short of the ball** (the
+        wheels would have to stick out 3.5 in instead of 2.7 in once the chassis keeps 0.5 in off the plate through the swing):
+        measure `Robot.INTAKE_REACH_IN` and this clearance carefully, they decide whether a FLOWER pick-up is possible at all.
       - The real FLOWER, with a tape: the distance from the wall to the middle of the POLLEN stack (the CAD says 2.634 in, the
         manual 2.4 in), the diameter of the hole the bottom POLLEN sits in (CAD 3.04 in, manual 2.79 in: the code plans with the
         smaller one) and the height of the ring's lip (CAD 0.35 in, manual 0.43 in).
       - The wall bracket: which parts of YOUR robot are taller than 11.44 in, and how far from the front or side edge they are. The
         FLOWER's black bracket sticks out 1.67 in from the wall at 11.44 to 11.84 in above the floor and is 6.67 in long (0.36 in
         longer than the plate at each end); a robot part in that height band within 1.67 in of the wall touches it.
-      - How straight and how centered the robot must be for it to work: `Auto.FLOWER_HEADING_TOLERANCE_DEG` (5°)
-        and `Auto.FLOWER_ALIGN_TOLERANCE_IN` (1 in), and how long the slow approach and the retreat should be
-        (`FLOWER_APPROACH_LENGTH_IN`, `FLOWER_RETREAT_LENGTH_IN`, 6 in each) at what speed
-        (`FLOWER_APPROACH_SPEED_FRACTION`, 0.3), plus how long it takes (`INTAKE_DWELL_FLOWER_SEC`).
+      - How long the slow straight approach and the straight retreat should be (`FLOWER_APPROACH_LENGTH_IN`,
+        `FLOWER_RETREAT_LENGTH_IN`, 6 in each) at what speed (`FLOWER_APPROACH_SPEED_FRACTION`, 0.3). The robot's turn is checked
+        against `Auto.FLOWER_WIGGLE_HEADING_TOLERANCE_DEG` (2 degrees) and gives up after `Auto.FLOWER_WIGGLE_TURN_TIMEOUT_SEC` (1.5 s):
+        check on the real robot that a normal turn finishes well inside that, and that a blocked one really backs out.
 - [ ] Camera: `CAMERA_FORWARD_IN` and `CAMERA_LEFT_IN` (measured from the **center of rotation**, the tape mark above, not from the middle of the outline), `CAMERA_HEIGHT_IN`, `CAMERA_PITCH_UP_DEG` (+30 to +40°).
 - [ ] Launch angle `Robot.LAUNCH_ANGLE_DEG` is about 68.5° (team measurement): confirm it with a protractor or the CAD (it only feeds the physics check on the Shooter Tuner screen).
 - [ ] **The lane under the HIVE** (only if a route or `AutoShoot.ALLOW_UNDER_HIVE` will use it, see `docs/AUTOS.md`, "Driving under

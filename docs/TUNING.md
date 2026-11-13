@@ -114,4 +114,20 @@ cannot continue.
 | "Drift correction: ignored: camera disagrees by N in" | N is bigger than `POSE_CORRECTION_GATE_IN`: either the drift really is that big (press the pose-reset button on the start pose) or the camera constants are wrong |
 | Camera says DOWN for the up cell | `Vision.TX_POSITIVE_IS_RIGHT`; camera roll |
 
+### FLOWER pick-up (the wiggle, autonomous)
+
+The pick-up is derived from these numbers (`docs/AUTOS.md`, "Taking POLLEN from a FLOWER"); the turn angle and the standoff are
+never typed in.
+
+| What you see | Change |
+|---|---|
+| The validator says the wheel cannot reach the POLLEN, "N in more than they do" | measure `Robot.INTAKE_REACH_IN` (the wheels must stick out that much in front of the chassis); or `Auto.FLOWER_CHASSIS_CLEARANCE_IN` down if the chassis really can stay closer to the plate; or `Auto.FLOWER_WHEEL_START_OFFSET_IN` down (a smaller swing) |
+| The ball does not roll out over the lip | `Auto.FLOWER_WHEEL_PRESS_OFFSET_IN` down (the wheel overlaps the ball more), `Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC` up; check the flat wheel spins so that it pulls the ball toward the robot |
+| The ball is jammed against the closed side of the FLOWER | `Auto.FLOWER_WHEEL_PRESS_OFFSET_IN` up (a lighter push) |
+| The wheel drags the ball on the way in | `Auto.FLOWER_WHEEL_START_OFFSET_IN` up |
+| The wheel misses the ball: it only turns toward it and nothing happens | `Auto.FLOWER_WHEEL_BALL_INBOARD` (is the ball between the wheel and the center line, or outside the wheel?), the real `Robot.INTAKE_WHEEL_OFFSET_IN` |
+| The next POLLEN does not drop down the chute before the next push | `Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC` up |
+| The pick-up takes too long in the estimate | `Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN`, the holds, `FLOWER_WIGGLE_TURN_SEC`; the slow approach `FLOWER_APPROACH_SPEED_FRACTION` |
+| The robot gives up the pick-up and backs out | the heading never got within `Auto.FLOWER_WIGGLE_HEADING_TOLERANCE_DEG` of its target in `FLOWER_WIGGLE_TURN_TIMEOUT_SEC`: the robot is blocked (a chassis corner on the plate?) or the heading gains are too soft |
+
 If a value you want to change is not in `BioBuzzConstants`, that is a bug: add it there.
