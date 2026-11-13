@@ -9,6 +9,7 @@ import java.util.Locale;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
 import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
@@ -28,11 +29,22 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       {@code START_WALL_CONTACT_TOLERANCE_IN}), and is not in the own LOADING ZONE (G304.E), not touching
  *       a FLOWER (G304.D) and not attached to the HIVE frame (G304.B).</li>
  *   <li><b>Every leg, 9.2/G412, G417/G409, G415.</b> Every DRIVE leg and every unplanned move to an INTAKE,
- *       SHOOT or PARK pose is sampled every {@code PATH_SAMPLE_STEP_IN} (and every
- *       {@code TURN_SAMPLE_STEP_DEG} while turning in place). The footprint must stay inside the field (a
- *       small allowance only on steps marked wall-contact), out of the HIVE frame grown by
- *       {@code HIVE_KEEPOUT_MARGIN_IN}, and out of the FLOWER plates except the FLOWER an INTAKE step
- *       targets.</li>
+ *       SHOOT or PARK pose is swept by {@link Sweep}: sampled every {@code PATH_SAMPLE_STEP_IN} (and every
+ *       {@code TURN_SAMPLE_STEP_DEG} while turning) and proven not to miss anything between two samples. The footprint
+ *       (a rectangle: the corners count) must stay inside the field (it may touch a wall but never overlap it by more
+ *       than {@code FIELD_BOUNDS_TOLERANCE_IN}, on every step), out of the HIVE frame grown by
+ *       {@code HIVE_KEEPOUT_MARGIN_IN}, and out of every FLOWER plate (grown by {@code FLOWER_KEEPOUT_MARGIN_IN}) with
+ *       ONE exception: the one flat wheel that presses into the FLOWER an INTAKE step takes POLLEN from may enter that
+ *       plate, see the next item.</li>
+ *   <li><b>FLOWER press-in, 9.7/G415 ({@link FlowerPress}).</b> A FLOWER INTAKE is a straight approach into the wall,
+ *       a dwell and a straight retreat. During those legs the CHASSIS (the footprint without the front
+ *       {@code Robot.INTAKE_REACH_IN}, where only the two flat wheels stick out) stays {@code FLOWER_CHASSIS_CLEARANCE_IN}
+ *       off the plate, the pressing wheel's disc may enter the plate only up to the press stop line, and the other wheel
+ *       stays out of it. The wheels must be long enough to reach (ERROR, with the missing inches), the line-up must face
+ *       the wall within {@code FLOWER_HEADING_TOLERANCE_DEG}, put the middle of the pressing wheel within
+ *       {@code FLOWER_ALIGN_TOLERANCE_IN} of the FLOWER's center line and leave a straight approach of at least
+ *       {@code FLOWER_APPROACH_LENGTH_IN} (ERRORs); a retreat shorter than {@code FLOWER_RETREAT_LENGTH_IN} is a
+ *       WARN.</li>
  *   <li><b>AUTO sides, G402.</b> The robot center stays on the own side of the center line at all times.</li>
  *   <li><b>POLLEN, G407 and 10.3.1.</b> The robot starts with 4 pre-loads; an INTAKE adds, a SHOOT removes;
  *       more than 4 held, or firing more than is held, is an ERROR. Every FLOWER and GARDEN holds 4; taking
@@ -58,14 +70,25 @@ public final class RouteValidator {
 
     private final FieldModel model;
     private final TimingModel timing;
+    private final double intakeReachIn;
 
     public RouteValidator() {
         this(new FieldModel(), new TimingModel());
     }
 
     public RouteValidator(FieldModel model, TimingModel timing) {
+        this(model, timing, BioBuzzConstants.Robot.INTAKE_REACH_IN);
+    }
+
+    /**
+     * As {@link #RouteValidator(FieldModel, TimingModel)} for a robot whose flat intake wheels stick out
+     * {@code intakeReachIn} inches in front of the chassis instead of {@code Robot.INTAKE_REACH_IN}. Used to ask "what if
+     * the wheels are shorter than hoped?" and by the tests.
+     */
+    public RouteValidator(FieldModel model, TimingModel timing, double intakeReachIn) {
         this.model = model;
         this.timing = timing;
+        this.intakeReachIn = intakeReachIn;
     }
 
     /** Validates a route in the frame of its own alliance. */
@@ -157,119 +180,185 @@ public final class RouteValidator {
 
     // ---- 2 and 3. every leg: field, HIVE, FLOWERS, sides -----------------------------------------------
 
-    /** Collects the samples of one leg that break one rule, so the report shows one line per leg and rule. */
-    private static final class Run {
-        int count;
-        double firstArc;
-        double lastArc;
-        Pose2 firstPose;
-        double worst;
-
-        void add(double arc, Pose2 pose, double amount) {
-            if (count == 0) {
-                firstArc = arc;
-                firstPose = pose;
-            }
-            count++;
-            lastArc = arc;
-            worst = Math.max(worst, amount);
+    private void checkMotion(RouteAnalysis a, RouteAnalysis.StepInfo info, List<Issue> out) {
+        FlowerPress press = info.step instanceof Step.Intake ? FlowerPress.of((Step.Intake) info.step, a.field()) : null;
+        DrivePath leg = info.path != null ? info.path : info.approach;
+        if (leg != null) {
+            // a DRIVE, or the implicit move to a pose (for a FLOWER: to its line-up pose): the WHOLE robot is checked
+            checkLeg(a, info, leg, describe(info), null, out);
+        }
+        if (press != null) {
+            // the press-in itself: here, and only here, the ONE pressing wheel may enter the plate of this one FLOWER
+            checkLeg(a, info, press.approach, describe(info) + ", the straight approach into the FLOWER", press, out);
+            checkLeg(a, info, press.retreatPath, describe(info) + ", the retreat from the FLOWER", press, out);
+            checkPress(a, info, press, out);
         }
     }
 
-    private void checkMotion(RouteAnalysis a, RouteAnalysis.StepInfo info, List<Issue> out) {
-        DrivePath leg = info.path != null ? info.path : info.approach;
-        if (leg == null) {
-            return;
-        }
-        AllianceField f = a.field();
-        Step step = info.step;
-        boolean wallContact = (step instanceof Step.Drive && ((Step.Drive) step).isWallContact())
-                || (step instanceof Step.Intake && ((Step.Intake) step).source().isWallContact());
-        double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN
-                + (wallContact ? BioBuzzConstants.Auto.WALL_CONTACT_ALLOWANCE_IN : 0.0);
-        boolean[] exempt = exemptFlowers(a, info);
+    /**
+     * Sweeps every rule over one leg. With {@code press == null} the whole footprint must stay out of every FLOWER plate.
+     * With a press, the plate of THAT FLOWER is treated by the press-in invariants instead: the chassis may not come within
+     * {@code FLOWER_CHASSIS_CLEARANCE_IN} of it (I2), the pressing wheel disc may enter it only as far as the press stop
+     * line (I3) and the other wheel disc may not enter it at all. The walls, the HIVE keep-out, the other plates and the
+     * center line apply to the whole robot as always.
+     */
+    private void checkLeg(RouteAnalysis a, RouteAnalysis.StepInfo info, DrivePath leg, String what, FlowerPress press,
+                          List<Issue> out) {
+        final AllianceField f = a.field();
+        // A wall may be TOUCHED, never entered: one tolerance for every step, wall-contact legs and GARDEN/FLOWER
+        // intakes included (they are not allowed to poke through either).
+        final double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
+        final Rect field = f.fieldRect();
+        final Rect hiveKeepOut = f.hiveKeepOut();
+        final double reach = intakeReachIn;
 
-        List<Pose2> poses = new ArrayList<Pose2>(
-                leg.turnInPlaceSamples(Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG)));
-        List<Double> arcs = new ArrayList<Double>();
-        for (int i = 0; i < poses.size(); i++) {
-            arcs.add(0.0);
-        }
-        poses.addAll(leg.sample(BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN));
-        arcs.addAll(leg.sampleArcLengths(BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN));
-
-        Run bounds = new Run();
-        Run hive = new Run();
-        Run side = new Run();
-        Run[] flowers = new Run[f.flowerPlates().size()];
+        // Each rule is a "depth": how far the robot is into what it must stay out of (above 0 = rule broken). Sweep
+        // tests it at every sample of the leg AND proves nothing slips between two samples (see Sweep).
+        Sweep.Result bounds = Sweep.run(leg, new Sweep.Depth() {
+            @Override
+            public double at(Pose2 p) {
+                return Footprint.of(p).signedOvershoot(field) - fieldTol - EPS;
+            }
+        });
+        Sweep.Result hive = Sweep.run(leg, new Sweep.Depth() {
+            @Override
+            public double at(Pose2 p) {
+                return -Footprint.of(p).signedGap(hiveKeepOut) - EPS;
+            }
+        });
+        Sweep.Result side = Sweep.run(leg, new Sweep.Depth() {
+            @Override
+            public double at(Pose2 p) {
+                return f.pastCenterLine(p.x) - EPS;
+            }
+        });
+        Sweep.Result[] flowers = new Sweep.Result[f.flowerPlates().size()];
         for (int i = 0; i < flowers.length; i++) {
-            flowers[i] = new Run();
-        }
-        Rect hiveKeepOut = f.hiveKeepOut();
-        for (int k = 0; k < poses.size(); k++) {
-            Pose2 p = poses.get(k);
-            double arc = arcs.get(k);
-            Footprint fp = Footprint.of(p);
-            double over = fp.overshootOutside(f.fieldRect());
-            if (over > fieldTol + EPS) {
-                bounds.add(arc, p, over);
-            }
-            if (fp.overlaps(hiveKeepOut)) {
-                hive.add(arc, p, 0);
-            }
-            for (int i = 0; i < flowers.length; i++) {
-                if (!exempt[i] && fp.overlaps(f.flowerKeepOut(i))) {
-                    flowers[i].add(arc, p, 0);
+            final Rect keepOut = f.flowerKeepOut(i);
+            flowers[i] = (press != null && press.flower == i) ? new Sweep.Result() : Sweep.run(leg, new Sweep.Depth() {
+                @Override
+                public double at(Pose2 p) {
+                    return -Footprint.of(p).signedGap(keepOut) - EPS;
                 }
-            }
-            double past = f.pastCenterLine(p.x);
-            if (past > EPS) {
-                side.add(arc, p, past);
-            }
+            });
+        }
+        Sweep.Result chassis = new Sweep.Result();
+        Sweep.Result pressing = new Sweep.Result();
+        Sweep.Result otherWheel = new Sweep.Result();
+        if (press != null) {
+            final Rect chassisKeepOut = f.flowerChassisKeepOut(press.flower);
+            final Rect pressZone = f.flowerPressZone(press.flower);
+            final Rect plateKeepOut = f.flowerKeepOut(press.flower);
+            final IntakeWheel wheel = press.wheel;
+            // I2: the body stays off the plate (plus the clearance), even while the wheel presses in
+            chassis = Sweep.run(leg, new Sweep.Depth() {
+                @Override
+                public double at(Pose2 p) {
+                    return -Footprint.chassis(p, reach).signedGap(chassisKeepOut) - EPS;
+                }
+            });
+            // I3: the pressing wheel may enter the plate, but not the part nearer the wall than the press stop line
+            pressing = Sweep.run(leg, new Sweep.Depth() {
+                @Override
+                public double at(Pose2 p) {
+                    return -Footprint.wheelDisc(p, wheel).signedGap(pressZone) - EPS;
+                }
+            });
+            // I3: the other wheel never enters the plate
+            otherWheel = Sweep.run(leg, new Sweep.Depth() {
+                @Override
+                public double at(Pose2 p) {
+                    return -Footprint.wheelDisc(p, wheel.other()).signedGap(plateKeepOut) - EPS;
+                }
+            });
         }
 
-        String what = describe(info);
-        if (bounds.count > 0) {
+        if (bounds.broken()) {
             out.add(error(info.index, Rule.FIELD_BOUNDS, what + ": the robot footprint leaves the field by up to "
-                    + in(bounds.worst) + " (first at " + pose(bounds.firstPose) + "); a robot cannot drive or turn through"
+                    + in(bounds.worst + fieldTol + EPS) + " (first at " + pose(bounds.firstPose) + "); a robot cannot drive or turn through"
                     + " a wall"));
         }
-        if (hive.count > 0) {
+        if (hive.broken()) {
             out.add(error(info.index, Rule.HIVE_KEEPOUT, what + ": the robot footprint enters the HIVE frame keep-out ("
                     + "frame + " + in(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN) + ") from "
                     + in(hive.firstArc) + " to " + in(hive.lastArc) + " along the move, first at " + pose(hive.firstPose)));
         }
         for (int i = 0; i < flowers.length; i++) {
-            if (flowers[i].count > 0) {
+            if (flowers[i].broken()) {
                 out.add(error(info.index, Rule.FLOWER_KEEPOUT, what + ": the robot footprint runs into the plate of FLOWER "
-                        + (i + 1) + " (first at " + pose(flowers[i].firstPose) + "); only an INTAKE step may touch the"
-                        + " FLOWER it takes POLLEN from"));
+                        + (i + 1) + " (first at " + pose(flowers[i].firstPose) + "); only the wheels of an INTAKE step that"
+                        + " takes POLLEN from this FLOWER may enter its plate, and only on the press-in"));
             }
         }
-        if (side.count > 0) {
+        if (chassis.broken()) {
+            out.add(error(info.index, Rule.FLOWER_KEEPOUT, what + ": the CHASSIS (the robot body, without the " + in(reach)
+                    + " the flat wheels stick out in front) comes within " + in(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN)
+                    + " of the plate of FLOWER " + (press.flower + 1) + " by up to " + in(chassis.worst + EPS) + " (first at "
+                    + pose(chassis.firstPose) + "); only a wheel may enter the plate" + (press.reachMissingIn(reach) > EPS
+                    ? " (the wheels are too short, see the reach finding)" : "")));
+        }
+        if (pressing.broken()) {
+            out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the " + press.wheel + " wheel goes " + in(pressing.worst + EPS)
+                    + " past the press stop line of FLOWER " + (press.flower + 1) + " (" + in(press.stopLineIn)
+                    + " from the wall: the POLLEN's edge minus " + in(BioBuzzConstants.Auto.FLOWER_PRESS_DEPTH_IN) + "), first at "
+                    + pose(pressing.firstPose) + "; it must never get closer to the wall than the POLLEN's center line"));
+        }
+        if (otherWheel.broken()) {
+            out.add(error(info.index, Rule.FLOWER_KEEPOUT, what + ": the " + press.wheel.other() + " wheel (the one that does NOT"
+                    + " press) enters the plate of FLOWER " + (press.flower + 1) + " (first at " + pose(otherWheel.firstPose)
+                    + "); only the ONE pressing wheel may enter it"));
+        }
+        if (side.broken()) {
             out.add(error(info.index, Rule.SIDE_G402, what + ": the robot center crosses the center line into the opponent"
-                    + " half by up to " + in(side.worst) + " (first at " + pose(side.firstPose) + "); in AUTO a "
+                    + " half by up to " + in(side.worst + EPS) + " (first at " + pose(side.firstPose) + "); in AUTO a "
                     + a.route().alliance() + " robot must stay on its own side"));
         }
     }
 
-    /** FLOWERS the leg may touch: the one an INTAKE step right before or after (or the step itself) takes POLLEN from. */
-    private boolean[] exemptFlowers(RouteAnalysis a, RouteAnalysis.StepInfo info) {
-        boolean[] exempt = new boolean[a.field().flowerPlates().size()];
-        for (int idx = info.index - 1; idx <= info.index + 1; idx++) {
-            if (idx < 0 || idx >= a.steps().size()) {
-                continue;
-            }
-            Step s = a.step(idx).step;
-            boolean relevant = idx == info.index || (info.step instanceof Step.Drive);
-            if (relevant && s instanceof Step.Intake && ((Step.Intake) s).source() == IntakeSource.FLOWER) {
-                int f = a.field().nearestFlower(((Step.Intake) s).target());
-                if (f >= 0) {
-                    exempt[f] = true;
-                }
-            }
+    /** The invariants of a FLOWER press-in that depend on the step's own numbers: reach, heading, line-up, approach, retreat. */
+    private void checkPress(RouteAnalysis a, RouteAnalysis.StepInfo info, FlowerPress press, List<Issue> out) {
+        String what = describe(info) + " at FLOWER " + (press.flower + 1);
+        double reach = intakeReachIn;
+        if (press.reachMissingIn(reach) > EPS) {
+            // with the chassis standing its clearance off the plate, the wheel tip can get no closer to the wall than this
+            double tipFromWall = BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN - reach;
+            double pollenEdge = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0;
+            out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the flat wheels stick out only " + in(reach) + " in front of the"
+                    + " chassis (Robot.INTAKE_REACH_IN), too short for the press: with the chassis "
+                    + in(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN) + " off the " + in(BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN)
+                    + " deep plate the wheel tip reaches only " + in(tipFromWall) + " from the wall, "
+                    + (tipFromWall < pollenEdge ? "pressing the POLLEN in " + in(pollenEdge - tipFromWall)
+                    + " instead of the " + in(BioBuzzConstants.Auto.FLOWER_PRESS_DEPTH_IN) : "which does not even touch the POLLEN (its edge is "
+                    + in(pollenEdge) + " out)")
+                    + "; the press needs " + in(press.requiredReachIn) + " of reach: " + in(press.reachMissingIn(reach)) + " missing"));
         }
-        return exempt;
+        double tolDeg = BioBuzzConstants.Auto.FLOWER_HEADING_TOLERANCE_DEG;
+        if (press.headingErrorDeg() > tolDeg + EPS) {
+            out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the robot lines up at heading " + String.format(Locale.ROOT, "%.0f deg", press.lineUp.headingDegrees())
+                    + ", " + String.format(Locale.ROOT, "%.1f", press.headingErrorDeg()) + " deg away from facing the wall squarely ("
+                    + String.format(Locale.ROOT, "%.0f deg", Math.toDegrees(a.field().flowerFacingHeading(press.flower)))
+                    + "); the approach must be perpendicular to the wall, within "
+                    + String.format(Locale.ROOT, "%.1f", tolDeg) + " deg"));
+        }
+        double tolIn = BioBuzzConstants.Auto.FLOWER_ALIGN_TOLERANCE_IN;
+        if (Math.abs(press.lateralIn) > tolIn + EPS) {
+            out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the middle of the " + press.wheel + " wheel lines up "
+                    + in(Math.abs(press.lateralIn)) + " to the side of the FLOWER's center line; it must be within " + in(tolIn)
+                    + " (the robot stands " + in(BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN) + " to the side of the center line so that"
+                    + " ONE wheel is on the POLLEN), or the wheel presses the edge of the ball instead of its middle"));
+        }
+        double minApproach = BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN;
+        if (press.approachAxialIn < minApproach - EPS) {
+            out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the straight final approach is only " + in(press.approachAxialIn)
+                    + " long (from the line-up pose " + pose(press.lineUp) + " to the press pose " + pose(press.press)
+                    + "); it needs at least " + in(minApproach) + " at " + String.format(Locale.ROOT, "%.0f%%",
+                    BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION * 100.0) + " speed so the robot is straight and slow when the wheels touch"));
+        }
+        double minRetreat = BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN;
+        if (press.retreatLengthIn < minRetreat - EPS) {
+            out.add(warn(info.index, Rule.FLOWER_PRESS, what + ": the retreat is only " + in(press.retreatLengthIn)
+                    + "; back out straight for at least " + in(minRetreat) + " so the wheels are clear of the POLLEN and the plate"));
+        }
     }
 
     // ---- 4. POLLEN (G407, 10.3.1, G402) ----------------------------------------------------------------
@@ -384,9 +473,10 @@ public final class RouteValidator {
         }
         boolean explicit = info.step instanceof Step.Intake || info.step instanceof Step.Park
                 || (info.step instanceof Step.Shoot && !info.shootPoseIsNominal);
-        double d = info.from.distanceTo(info.to);
+        Pose2 target = info.approach.end();
+        double d = info.from.distanceTo(target);
         if (explicit && d > BioBuzzConstants.Auto.IMPLICIT_MOVE_WARN_IN) {
-            out.add(warn(info.index, Rule.IMPLICIT_MOVE, describe(info) + ": the pose " + pose(info.to) + " is " + in(d)
+            out.add(warn(info.index, Rule.IMPLICIT_MOVE, describe(info) + ": the pose " + pose(target) + " is " + in(d)
                     + " from where the previous step leaves the robot " + pose(info.from)
                     + "; add a DRIVE so that the path is planned and checked"));
         }

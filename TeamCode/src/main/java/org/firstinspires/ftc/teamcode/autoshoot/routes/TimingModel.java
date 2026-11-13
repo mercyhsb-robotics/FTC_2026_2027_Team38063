@@ -11,7 +11,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  *
  * <p>The model: a drive leg accelerates to the cruise speed, cruises and brakes (a trapezoid, or a
  * triangle on short legs); turning happens while driving, so a leg costs the longer of the two; every
- * leg that moved ends with a settle time. An INTAKE costs its dwell, a SHOOT costs the aim and
+ * leg that moved ends with a settle time. An INTAKE costs its dwell (a FLOWER press-in also costs its slow
+ * straight approach and its slow straight retreat), a SHOOT costs the aim and
  * spin-up plus one feed time per POLLEN (or its fixed duration), a WAIT costs its seconds, and START
  * and PARK are free (the drive before them already paid the settle).
  */
@@ -25,6 +26,8 @@ public final class TimingModel {
         public double settleSec = BioBuzzConstants.Auto.SETTLE_SEC;
         public double aimSpinUpSec = BioBuzzConstants.Auto.AIM_SPINUP_SEC;
         public double timePerShotSec = BioBuzzConstants.Auto.TIME_PER_SHOT_SEC;
+        /** Fraction of the cruise speed for the final approach to a FLOWER and for the retreat from it. */
+        public double flowerSpeedFraction = BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION;
     }
 
     private static final double TINY = 1e-9;
@@ -81,6 +84,15 @@ public final class TimingModel {
     /** Time spent at the intake pose with the intake running. */
     public double intakeSeconds(Step.Intake step) {
         return step.dwellSec();
+    }
+
+    /**
+     * Time of a FLOWER press-in after the robot is lined up: the slow straight approach, the dwell with the intake on and
+     * the slow straight retreat (each leg that moves ends with the settle time).
+     */
+    public double flowerSeconds(Step.Intake step, FlowerPress press) {
+        return legSeconds(press.approach, p.flowerSpeedFraction) + intakeSeconds(step)
+                + legSeconds(press.retreatPath, p.flowerSpeedFraction);
     }
 
     /** Aim and spin-up plus one feed time per POLLEN, or the step's fixed duration. */

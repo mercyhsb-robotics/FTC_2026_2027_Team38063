@@ -221,7 +221,9 @@ public final class RouteGallery {
                 .append(n(BioBuzzConstants.Field.SIZE_IN)).append(" in field, the AUDIENCE wall at the bottom, the red alliance on the left. ");
         h.append("A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a blue robot starts at the top. ");
         h.append("The robot is drawn to scale (").append(inches(BioBuzzConstants.Robot.LENGTH_IN)).append(" x ")
-                .append(inches(BioBuzzConstants.Robot.WIDTH_IN)).append("): its FRONT edge (the intake) is green, its BACK edge (the shooter) is orange. ");
+                .append(inches(BioBuzzConstants.Robot.WIDTH_IN)).append("): the body is tinted, the two flat intake wheels are the dark discs at the front, ");
+        h.append("its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. ");
+        h.append("A FLOWER is emptied by pressing ONE flat wheel into its bottom POLLEN: the arrow shows that straight press-in and the dotted arrow the straight retreat. ");
         h.append("Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>\n");
         h.append("</header>\n<main>\n");
 

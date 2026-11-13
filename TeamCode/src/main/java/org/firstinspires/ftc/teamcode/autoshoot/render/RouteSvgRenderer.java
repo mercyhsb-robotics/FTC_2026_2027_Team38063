@@ -11,6 +11,7 @@ import java.util.Set;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
@@ -18,6 +19,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.AllianceField;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.DrivePath;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.FlowerPress;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.IntakeSource;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
@@ -45,6 +47,13 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
  * {@code g.end-outline} when the route ends on a DRIVE), {@code #badges} with one {@code g.badge} per step,
  * {@code #step-labels} and {@code #issue-marks}; then {@code #legend} and {@code #footer}. The text of every step is
  * also in a {@code <title>} child, which browsers show as a tooltip.
+ *
+ * <p>Every robot footprint (start, INTAKE, SHOOT, PARK, end) is drawn in two tones: {@code polygon.outline} is the
+ * whole perimeter, {@code polygon.chassis} the body and {@code circle.wheel} the two flat intake wheels (the one that
+ * presses a FLOWER also has the class {@code pressing}); a footprint at a step with an ERROR gets the extra class
+ * {@code error} on its outline and is drawn in amber. A FLOWER INTAKE also contains {@code g.press-in}: a short arrow
+ * ({@code line.press-arrow}) along the pressing wheel's path into the FLOWER and a dotted one ({@code line.retreat-arrow})
+ * for the retreat.
  */
 public final class RouteSvgRenderer {
     private RouteSvgRenderer() {
@@ -81,6 +90,10 @@ public final class RouteSvgRenderer {
     private static final String ERROR_COLOR = "#b71c1c";
     private static final String WARN_COLOR = "#f9a825";
     private static final String HIGHLIGHT = "#ffffff";
+    /** The flat intake wheels: dark discs, so that they read as the second tone of the robot next to the body in ink. */
+    private static final String WHEEL_FILL = "#37474f";
+    private static final String CHASSIS_OPACITY = "0.2";
+    private static final double BROKEN_FILL_OPACITY = 0.3;
     private static final double LEGEND_ROW_SPACING_PX = 17.0;
     private static final double FOOTER_GAP_PX = 22.0;
     private static final double ISSUE_LINE_SPACING_PX = 11.2;
@@ -555,28 +568,68 @@ public final class RouteSvgRenderer {
 
         // ---- robot footprints -------------------------------------------------------------------
 
-        /** The robot to scale: outline in ink, FRONT edge in the front colour, BACK edge in the back colour. */
-        private void footprint(Pose2 pose, double fillOpacity, boolean dashed) {
+        /** True if the validator found an ERROR at this step: the robot drawn there breaks a rule and is drawn in the warning colour. */
+        private boolean broken(RouteAnalysis.StepInfo info) {
+            for (Issue i : issues) {
+                if (i.stepIndex == info.index && i.isError()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * The robot to scale, in two tones: the whole PERIMETER as a faint outline, the CHASSIS (the body) in the ink tone and
+         * the two flat intake WHEELS as dark discs at the front corners; the FRONT edge (wheel tips) is marked in the front
+         * colour and the BACK edge in the back colour. {@code pressing} (or null) is the wheel that presses a FLOWER: it is
+         * ringed in the front colour. A footprint that {@code broken} a rule (an ERROR at its step) gets an amber outline.
+         */
+        private void footprint(Pose2 pose, double fillOpacity, boolean dashed, boolean broken, IntakeWheel pressing) {
             Footprint fp = Footprint.of(pose);
-            w.empty("polygon", "class", "outline", "points", points(fp), "fill", ink, "fill-opacity", n(fillOpacity), "stroke", ink,
-                    "stroke-width", "1.8", "stroke-dasharray", dashed ? "6 3" : null, "stroke-linejoin", "round");
+            w.empty("polygon", "class", broken ? "outline error" : "outline", "points", points(fp), "fill", broken ? WARN_COLOR : ink,
+                    "fill-opacity", n(broken ? Math.max(fillOpacity, BROKEN_FILL_OPACITY) : fillOpacity), "stroke", broken ? WARN_COLOR : ink,
+                    "stroke-width", broken ? "3.4" : "1.8", "stroke-dasharray", dashed ? "6 3" : null, "stroke-linejoin", "round");
+            chassisBody(pose);
+            frontAndBackEdges(fp);
+            flatWheels(pose, pressing);
+        }
+
+        /** The front edge (the wheel tips) in the front colour and the back edge (the shooter) in the back colour. */
+        private void frontAndBackEdges(Footprint fp) {
             w.empty("line", "class", "front-edge", "x1", n(sx(fp.corner(0).x)), "y1", n(sy(fp.corner(0).y)), "x2", n(sx(fp.corner(3).x)),
                     "y2", n(sy(fp.corner(3).y)), "stroke", BioBuzzConstants.Auto.RENDER_FRONT_COLOR, "stroke-width", "4.5");
             w.empty("line", "class", "back-edge", "x1", n(sx(fp.corner(1).x)), "y1", n(sy(fp.corner(1).y)), "x2", n(sx(fp.corner(2).x)),
                     "y2", n(sy(fp.corner(2).y)), "stroke", BioBuzzConstants.Auto.RENDER_BACK_COLOR, "stroke-width", "4.5");
         }
 
+        /** The first tone: the chassis body, tinted in the alliance ink. */
+        private void chassisBody(Pose2 pose) {
+            w.empty("polygon", "class", "chassis", "points", points(Footprint.chassis(pose)), "fill", ink, "fill-opacity", CHASSIS_OPACITY,
+                    "stroke", ink, "stroke-width", "0.8", "stroke-linejoin", "round");
+        }
+
+        /** The second tone: the two flat intake wheels as dark discs. Drawn last so the wheel tips show over the front edge. */
+        private void flatWheels(Pose2 pose, IntakeWheel pressing) {
+            for (IntakeWheel wheel : IntakeWheel.values()) {
+                Point2 c = Footprint.wheelCenter(pose, wheel);
+                boolean presses = wheel == pressing;
+                w.empty("circle", "class", presses ? "wheel pressing" : "wheel", "data-wheel", wheel.name(), "cx", n(sx(c.x)), "cy", n(sy(c.y)),
+                        "r", n(len(BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0)), "fill", WHEEL_FILL, "fill-opacity", "0.88",
+                        "stroke", presses ? BioBuzzConstants.Auto.RENDER_FRONT_COLOR : WHEEL_FILL, "stroke-width", presses ? "2.2" : "0.8");
+            }
+        }
+
         private void startFootprint(RouteAnalysis.StepInfo info) {
             Pose2 p = info.to;
             w.open("g", "id", "start-footprint", "class", "footprint start", "data-step", "1");
             w.element("title", stepTitle(info));
-            footprint(p, 0.14, false);
+            footprint(p, 0.14, false, broken(info), null);
             // heading arrow from the center out past the front edge
             double dirX = Math.cos(p.heading);
             double dirY = -Math.sin(p.heading);
             double cx = sx(p.x);
             double cy = sy(p.y);
-            double reach = len(BioBuzzConstants.Robot.LENGTH_IN / 2.0) - 5.0;
+            double reach = len(Footprint.frontExtentIn()) - 5.0;
             w.empty("line", "class", "heading-arrow", "x1", n(cx + dirX * 11), "y1", n(cy + dirY * 11), "x2", n(cx + dirX * (reach - 8)), "y2",
                     n(cy + dirY * (reach - 8)), "stroke", ink, "stroke-width", "2.5");
             arrowhead(cx + dirX * reach, cy + dirY * reach, dirX, dirY, 10.0, ink, "arrowhead");
@@ -588,11 +641,50 @@ public final class RouteSvgRenderer {
             double radius = in.source() == IntakeSource.FLOWER ? BioBuzzConstants.Auto.RENDER_INTAKE_RING_FLOWER_IN
                     : in.source() == IntakeSource.GARDEN ? BioBuzzConstants.Auto.RENDER_INTAKE_RING_GARDEN_IN
                     : BioBuzzConstants.Auto.RENDER_INTAKE_RING_FLOOR_IN;
+            FlowerPress press = FlowerPress.of(in, f);
             w.open("g", "class", "intake", "data-step", Integer.toString(info.index + 1), "data-source", in.source().name());
             w.element("title", stepTitle(info));
-            footprint(in.robotPose(), 0.07, true);
+            // a FLOWER intake is drawn where it happens: at the press pose, the wheel on the POLLEN
+            footprint(press == null ? in.robotPose() : press.press, 0.07, true, broken(info), press == null ? null : press.wheel);
             w.empty("circle", "class", "intake-ring", "cx", n(sx(in.target().x)), "cy", n(sy(in.target().y)), "r", n(len(radius)), "fill",
                     "none", "stroke", ink, "stroke-width", "2.5", "stroke-dasharray", "7 4");
+            if (press != null) {
+                pressIn(info, press);
+            }
+            w.close("g");
+        }
+
+        /**
+         * The press-in of a FLOWER: a short solid arrow along the path of the pressing wheel, from where the final approach
+         * starts to the wheel's front tip inside the POLLEN, and a short dashed arrow for the retreat (the robot backs straight
+         * out along its own center line).
+         */
+        private void pressIn(RouteAnalysis.StepInfo info, FlowerPress press) {
+            Point2 from = Footprint.wheelCenter(press.lineUp, press.wheel);
+            Point2 wheel = Footprint.wheelCenter(press.press, press.wheel);
+            double radius = BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0;
+            double tipX = wheel.x + Math.cos(press.press.heading) * radius;      // the front tip of the wheel, in the POLLEN
+            double tipY = wheel.y + Math.sin(press.press.heading) * radius;
+            w.open("g", "class", "press-in", "data-step", Integer.toString(info.index + 1), "data-wheel", press.wheel.name(), "data-flower",
+                    Integer.toString(press.flower + 1));
+            w.element("title", "press-in: drive straight in, the " + press.wheel + " flat wheel presses the bottom POLLEN of FLOWER "
+                    + (press.flower + 1) + ", then back straight out " + String.format(Locale.ROOT, "%.0f", press.retreatLengthIn) + " in");
+            double ux = sx(tipX) - sx(from.x);
+            double uy = sy(tipY) - sy(from.y);
+            double norm = Math.hypot(ux, uy);
+            if (norm > 1.0) {
+                w.empty("line", "class", "press-arrow", "x1", n(sx(from.x)), "y1", n(sy(from.y)), "x2", n(sx(tipX) - ux / norm * 6.0), "y2",
+                        n(sy(tipY) - uy / norm * 6.0), "stroke", ink, "stroke-width", "3", "stroke-linecap", "round");
+                arrowhead(sx(tipX), sy(tipY), ux / norm, uy / norm, 9.0, ink, "arrowhead");
+            }
+            double rx = sx(press.retreat.x) - sx(press.press.x);
+            double ry = sy(press.retreat.y) - sy(press.press.y);
+            double rn = Math.hypot(rx, ry);
+            if (rn > 1.0) {
+                w.empty("line", "class", "retreat-arrow", "x1", n(sx(press.press.x)), "y1", n(sy(press.press.y)), "x2", n(sx(press.retreat.x) - rx / rn * 5.0),
+                        "y2", n(sy(press.retreat.y) - ry / rn * 5.0), "stroke", ink, "stroke-width", "2", "stroke-dasharray", "2 4", "stroke-linecap", "round");
+                arrowhead(sx(press.retreat.x), sy(press.retreat.y), rx / rn, ry / rn, 7.0, ink, "arrowhead");
+            }
             w.close("g");
         }
 
@@ -604,7 +696,7 @@ public final class RouteSvgRenderer {
             w.open("g", "class", "shoot-pose", "data-step", Integer.toString(info.index + 1), "data-nominal",
                     info.shootPoseIsNominal ? "true" : "false");
             w.element("title", stepTitle(info) + (info.shootPoseIsNominal ? " - pose drawn is the nominal standoff pose; the solver picks the real one" : ""));
-            footprint(info.shootPose, 0.10, info.shootPoseIsNominal);
+            footprint(info.shootPose, 0.10, info.shootPoseIsNominal, broken(info), null);
             double lx = sx(launch.x);
             double ly = sy(launch.y);
             double ax = sx(aim.x);
@@ -634,14 +726,15 @@ public final class RouteSvgRenderer {
         /** The final footprint of the route: a bold dashed outline (PARK: inside the LOADING ZONE) with the front and back edges. */
         private void finalOutline(String cls, RouteAnalysis.StepInfo info, Pose2 p) {
             Footprint fp = Footprint.of(p);
+            boolean broken = broken(info);
             w.open("g", "class", cls, "data-step", Integer.toString(info.index + 1));
             w.element("title", stepTitle(info));
-            w.empty("polygon", "points", points(fp), "fill", ink, "fill-opacity", "0.12", "stroke", ink, "stroke-width", "3",
+            w.empty("polygon", "class", broken ? "outline error" : "outline", "points", points(fp), "fill", broken ? WARN_COLOR : ink,
+                    "fill-opacity", n(broken ? BROKEN_FILL_OPACITY : 0.12), "stroke", broken ? WARN_COLOR : ink, "stroke-width", broken ? "3.8" : "3",
                     "stroke-dasharray", "9 4", "stroke-linejoin", "round");
-            w.empty("line", "class", "front-edge", "x1", n(sx(fp.corner(0).x)), "y1", n(sy(fp.corner(0).y)), "x2", n(sx(fp.corner(3).x)),
-                    "y2", n(sy(fp.corner(3).y)), "stroke", BioBuzzConstants.Auto.RENDER_FRONT_COLOR, "stroke-width", "4.5");
-            w.empty("line", "class", "back-edge", "x1", n(sx(fp.corner(1).x)), "y1", n(sy(fp.corner(1).y)), "x2", n(sx(fp.corner(2).x)),
-                    "y2", n(sy(fp.corner(2).y)), "stroke", BioBuzzConstants.Auto.RENDER_BACK_COLOR, "stroke-width", "4.5");
+            chassisBody(p);
+            frontAndBackEdges(fp);
+            flatWheels(p, null);
             w.close("g");
         }
 
@@ -655,6 +748,12 @@ public final class RouteSvgRenderer {
             }
             if (info.step.kind() == StepKind.SHOOT) {
                 return new double[] {sx(info.shootPose.x), sy(info.shootPose.y)};
+            }
+            if (info.step.kind() == StepKind.INTAKE) {
+                FlowerPress press = FlowerPress.of((Step.Intake) info.step, f);
+                if (press != null) {
+                    return new double[] {sx(press.press.x), sy(press.press.y)};     // the robot pressed in, not backed out
+                }
             }
             return new double[] {sx(info.to.x), sy(info.to.y)};
         }
@@ -871,17 +970,17 @@ public final class RouteSvgRenderer {
             x = legendItem(x, y1, "drive", "DRIVE leg");
             x = legendItem(x, y1, "approach", "move to a pose");
             x = legendItem(x, y1, "badge", "step number");
-            x = legendItem(x, y1, "robot", "robot, to scale");
+            x = legendItem(x, y1, "robot", "robot: body + 2 flat wheels");
             x = legendItem(x, y1, "front", "FRONT = intake");
             x = legendItem(x, y1, "back", "BACK = shooter");
             x = 24;
             x = legendItem(x, y2, "intake", "INTAKE");
-            x = legendItem(x, y2, "shoot", "SHOOT: launch point to aim point");
+            x = legendItem(x, y2, "shoot", "SHOOT: launch to aim point");
             x = legendItem(x, y2, "wait", "WAIT");
             x = legendItem(x, y2, "park", "PARK");
             x = legendItem(x, y2, "up", "UP cell");
             x = legendItem(x, y2, "down", "DOWN cell");
-            legendItem(x, y2, "issue", "validator finding");
+            legendItem(x, y2, "issue", "finding (amber robot = ERROR)");
             w.close("g");
         }
 
@@ -903,7 +1002,11 @@ public final class RouteSvgRenderer {
                     w.element("text", "1", "x", n(x + 12), "y", n(y + 3.5), "font-size", "10", "font-weight", "bold", "text-anchor", "middle", "fill", col);
                     break;
                 case "robot":
+                    // the outline, the body in the ink tone and the two flat wheels at the front (the right-hand end)
                     w.empty("rect", "x", n(x), "y", n(y - 6), "width", "24", "height", "12", "fill", ink, "fill-opacity", "0.14", "stroke", ink, "stroke-width", "1.4");
+                    w.empty("rect", "x", n(x), "y", n(y - 6), "width", "19", "height", "12", "fill", ink, "fill-opacity", CHASSIS_OPACITY);
+                    w.empty("circle", "cx", n(x + 20.5), "cy", n(y - 3.5), "r", "2.6", "fill", WHEEL_FILL);
+                    w.empty("circle", "cx", n(x + 20.5), "cy", n(y + 3.5), "r", "2.6", "fill", WHEEL_FILL);
                     break;
                 case "front":
                     w.empty("line", "x1", n(x), "y1", n(y), "x2", n(x + 24), "y2", n(y), "stroke", BioBuzzConstants.Auto.RENDER_FRONT_COLOR, "stroke-width", "4.5");
@@ -935,6 +1038,7 @@ public final class RouteSvgRenderer {
                             "stroke-width", "1.4", "stroke-dasharray", "5 3");
                     break;
                 case "issue":
+                    // the amber triangle (the same amber outlines a robot that breaks a rule)
                     w.empty("polygon", "points", n(x + 12) + "," + n(y - 8) + " " + n(x + 20) + "," + n(y + 6) + " " + n(x + 4) + "," + n(y + 6), "fill", WARN_COLOR);
                     w.element("text", "!", "x", n(x + 12), "y", n(y + 4.6), "font-size", "10", "font-weight", "bold", "text-anchor", "middle", "fill", "#222222");
                     break;

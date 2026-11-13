@@ -21,6 +21,8 @@ public final class Issue {
         HIVE_KEEPOUT("G417/G409", "keep out of the HIVE frame"),
         /** G304.D and G415/G416: no contact with a FLOWER except to retrieve POLLEN. */
         FLOWER_KEEPOUT("G304.D/G415", "keep out of FLOWER plates"),
+        /** 9.7 and G415: taking POLLEN from a FLOWER means pressing the intake wheels into the bottom POLLEN. */
+        FLOWER_PRESS("9.7/G415", "press into the FLOWER squarely"),
         /** G402: in AUTO a robot stays on its own side. */
         SIDE_G402("G402", "stay on the own side in AUTO"),
         /** G407: at most 4 POLLEN under control. */

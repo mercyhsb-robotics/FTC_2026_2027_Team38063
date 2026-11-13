@@ -42,6 +42,8 @@ public final class BioBuzzConstants {
     public static final String[] PLACEHOLDERS = {
             "Robot.LAUNCH_POINT_FORWARD_IN",
             "Robot.LAUNCH_POINT_LEFT_IN",
+            "Robot.INTAKE_REACH_IN",
+            "Robot.INTAKE_WHEEL_OFFSET_IN",
             "Shooter.SHOT_TABLE",
             "Vision.CAMERA_FORWARD_IN",
             "Vision.CAMERA_LEFT_IN",
@@ -53,6 +55,13 @@ public final class BioBuzzConstants {
             "Auto.SETTLE_SEC",
             "Auto.INTAKE_DWELL_FLOOR_SEC",
             "Auto.INTAKE_DWELL_FLOWER_SEC",
+            "Auto.FLOWER_PRESS_DEPTH_IN",
+            "Auto.FLOWER_HEADING_TOLERANCE_DEG",
+            "Auto.FLOWER_ALIGN_TOLERANCE_IN",
+            "Auto.FLOWER_APPROACH_LENGTH_IN",
+            "Auto.FLOWER_APPROACH_SPEED_FRACTION",
+            "Auto.FLOWER_RETREAT_LENGTH_IN",
+            "Auto.FLOWER_CHASSIS_CLEARANCE_IN",
             "Auto.INTAKE_DWELL_GARDEN_SEC",
             "Auto.AIM_SPINUP_SEC",
             "Auto.TIME_PER_SHOT_SEC"};
@@ -173,7 +182,10 @@ public final class BioBuzzConstants {
         public static final double SETTLE_SEC = 0.3;
         /** ADD: default time to scoop POLLEN off the floor (INTAKE step data may override it). */
         public static final double INTAKE_DWELL_FLOOR_SEC = 2.0;
-        /** ADD: default time to empty a FLOWER's POLLEN through its retrieval opening. */
+        /**
+         * ADD: default time the wheels stay pressed into a FLOWER's bottom POLLEN with the intake running (seconds): the
+         * dwell between the slow approach and the retreat of a FLOWER press-in.
+         */
         public static final double INTAKE_DWELL_FLOWER_SEC = 4.0;
         /** ADD: default time to sweep up the GARDEN POLLEN line. */
         public static final double INTAKE_DWELL_GARDEN_SEC = 2.5;
@@ -186,19 +198,116 @@ public final class BioBuzzConstants {
 
         /** TUNE: finish this long before the 30 s limit; an estimate inside the margin is a WARN. */
         public static final double TIME_SAFETY_MARGIN_SEC = 2.0;
-        /** FIXED: spacing of the samples that the validator checks along every leg. */
+        /**
+         * FIXED: spacing of the COARSE samples that the validator checks along every leg (inches). Between two coarse
+         * samples a corner of the robot can move up to {@code PATH_SAMPLE_STEP_IN + 12.59 in * TURN_SAMPLE_STEP_DEG in
+         * radians} (2.10 in); the validator grows every obstacle by half of that and cuts a gap in two whenever it
+         * cannot prove it is clear, so nothing can slip between two samples (see {@code routes/Sweep.java}).
+         */
         public static final double PATH_SAMPLE_STEP_IN = 1.0;
-        /** FIXED: angular spacing of the samples checked while the robot turns in place. */
+        /**
+         * FIXED: angular spacing of the coarse samples while the robot turns, whether in place or along a leg (degrees).
+         * Together with {@link #PATH_SAMPLE_STEP_IN} it sets how big the first, cheap clearance test is.
+         */
         public static final double TURN_SAMPLE_STEP_DEG = 5.0;
-        /** TUNE (G417 design guard): extra clearance kept around the HIVE frame footprint. */
+        /**
+         * FIXED: how finely the validator measures a collision once it is close to one (inches). A gap between two
+         * samples is cut in half until nothing deeper than this can hide in it, so every reported depth is right to
+         * within this much. It is numeric precision, not a safety margin.
+         */
+        public static final double SWEEP_RESOLUTION_IN = 0.001;
+        /**
+         * TUNE (G417 / G409 design guard): extra clearance, in inches, kept on EVERY side of the HIVE frame footprint.
+         * The validator's keep-out is the whole frame footprint (x 47.27 to 96.73, y 52.53 to 91.47) grown by this much.
+         *
+         * <p><b>What the 12.13 in tall robot can actually hit</b> (audit of field_layout.verified.md 2.1 and 2.1b):
+         * <ul>
+         *   <li>The only things of the HIVE below the robot's height are in the FRAME: two base rails on the floor along y,
+         *       at x about 47.3 to 49.3 and 94.7 to 96.7, and four legs that lean inward from the corners of those rails
+         *       up to the apexes above the HIVE axes (x 59.25 and 84.75, 43.95 in up). A leg is only 12.13 in high
+         *       where it is about 3.3 in in from the rail. A robot that stays out of the keep-out can touch neither a
+         *       rail nor a leg; one that drives into the frame hits a rail first.</li>
+         *   <li>The crossbar is 43.95 in up and the lowest point of any CELL is 30.6 in up (an UP cell's is about 46.6
+         *       in). The tallest part of the robot is 12.13 in (13.0 in with the camera), so no CELL, and no cell that
+         *       is swinging up or down, can touch it.</li>
+         *   <li>A DOWN cell hangs out past the frame footprint by up to 5.4 in (red rear cell: y up to 96.9, the frame ends at
+         *       91.47), but only at 30.6 in up or higher, so a robot passes UNDER that overhang. That is why the overhang is
+         *       not part of the keep-out. Standing under it is not forbidden by this check.</li>
+         *   <li>Nothing else on the field is lower than the robot except the FLOWER plates (4.75 in deep, handled
+         *       separately) and the loose POLLEN.</li>
+         * </ul>
+         *
+         * <p><b>Why the keep-out is the whole footprint and not just the rails.</b> There is an open window under the
+         * HIVE between the legs (a 17.80 in wide robot clears the legs from about x = 59.5 to 84.5 at its height), but
+         * the leg geometry was read off drawings (about +/- 1.5 in) and nobody has measured the real frame, G409 says a robot
+         * must not stand where a tipping HIVE drops things, and a wrong guess costs a match. So ANY gap under or inside
+         * the frame is treated as SOLID and a route never goes through it. (The only way to drive under it would be to
+         * measure the real frame first and then write a new rule.)
+         *
+         * <p><b>Why 3.0 in.</b> The frame as measured in the plan view of the field report reaches up to 0.63 in beyond the
+         * nominal 49.46 x 38.95 in footprint (rail thickness and figure error), and the field is only good to about
+         * +/- 1 in; 3.0 in covers both with about 1.4 in left for odometry drift and the robot's own stopping error. The
+         * test HiveKeepOutTest checks that this is a superset of the footprint and of that measured envelope, edge by edge and
+         * corner by corner.
+         */
         public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
-        /** TUNE: extra clearance kept around a FLOWER plate (the plate itself is in Field.FLOWER_KEEPOUT_*). */
+        /**
+         * TUNE: extra clearance kept around a FLOWER plate (the plate itself is {@code Field.FLOWER_PLATE_*}) by every part
+         * of the robot, except the one flat wheel that is pressing into that FLOWER's POLLEN.
+         */
         public static final double FLOWER_KEEPOUT_MARGIN_IN = 0.5;
+
+        // ---- FLOWER press-in (autoshoot.routes.FlowerPress) -------------------------------------------------------
+        // To take the bottom POLLEN out of a FLOWER the flat intake wheels (they spin parallel to the floor at the front
+        // corners) must PRESS INTO the POLLEN and roll it up and over the 0.43 in lip of the lower ring. The two wheels
+        // are 12.2 in apart, too far to pinch one 2.8 in POLLEN, so ONE wheel does the pressing while the robot stands
+        // to one side of the FLOWER's center line (Robot.INTAKE_WHEEL_OFFSET_IN). The robot faces the wall, drives
+        // straight in until that wheel overlaps the POLLEN, runs the intake while it stays pressed, then backs straight
+        // out. The numbers below describe that move. All distances are measured from the field wall the FLOWER stands on.
+
+        /**
+         * ADD: how far (inches) the pressing wheel pushes into the bottom POLLEN, past the POLLEN's field-side edge (which
+         * is 2.4 + 1.4 = 3.8 in from the wall). The front tip of the wheel stops at 3.8 - this = 2.55 in from the wall and
+         * never closer than the POLLEN's center line (2.4 in). 1.25 in is what the drawing gives when the chassis stands
+         * its clearance off the plate and the wheels reach {@code Robot.INTAKE_REACH_IN}: 4.75 + 0.5 - 2.7 = 2.55. Measure
+         * how far the wheel must overlap the ball to roll it over the lip without jamming it against the closed wall
+         * side.
+         */
+        public static final double FLOWER_PRESS_DEPTH_IN = 1.25;
+        /**
+         * ADD: how far (degrees) the robot's heading may be from "facing the wall squarely" when it lines up for a
+         * FLOWER. A crooked robot presses the wheel in at an angle and lets the chassis corner swing toward the plate.
+         */
+        public static final double FLOWER_HEADING_TOLERANCE_DEG = 5.0;
+        /**
+         * ADD: how far (inches) along the wall the MIDDLE OF THE PRESSING WHEEL may be from the FLOWER's center line when
+         * the robot lines up. A wheel that is off to the side presses the edge of the POLLEN instead of its middle.
+         */
+        public static final double FLOWER_ALIGN_TOLERANCE_IN = 1.0;
+        /**
+         * ADD: the straight final approach (inches) from the line-up pose to the press pose must be at least this long, so
+         * the robot is already straight and slow when the wheel touches the POLLEN.
+         */
+        public static final double FLOWER_APPROACH_LENGTH_IN = 6.0;
+        /** ADD: fraction (0-1) of the cruise speed used for the final approach and for the retreat. */
+        public static final double FLOWER_APPROACH_SPEED_FRACTION = 0.3;
+        /** ADD: how far (inches) the robot backs straight out after the dwell. Shorter than this is a WARN. */
+        public static final double FLOWER_RETREAT_LENGTH_IN = 6.0;
+        /**
+         * ADD: the gap (inches) the CHASSIS (the robot without its two flat wheels) keeps from the FLOWER plate while the
+         * wheel is pressed in. The plate is 4.75 in deep, so the chassis front stands at least 4.75 + this from the
+         * wall and the wheel must reach the rest of the way: see {@code Robot.INTAKE_REACH_IN}. Measure the standoff
+         * between the wall and the robot's chassis front when the wheel is properly pressed into the POLLEN.
+         */
+        public static final double FLOWER_CHASSIS_CLEARANCE_IN = 0.5;
         /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
         public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
-        /** TUNE: how far the footprint may poke past the field edge on a step marked wall-contact. */
-        public static final double WALL_CONTACT_ALLOWANCE_IN = 1.0;
-        /** TUNE: footprint overshoot past a wall that is ignored everywhere (rounding, field tolerance). */
+        /**
+         * TUNE: how far (inches) any part of the robot may overlap a field wall before the validator reports it.
+         * Touching a wall is legal; pushing into it is not. This tiny value only absorbs rounding in the numbers a
+         * route is written with, so it is NOT permission to clip a wall. It is the same for every step: the start,
+         * every DRIVE leg (marked wall-contact or not), every INTAKE, the PARK pose and the end pose.
+         */
         public static final double FIELD_BOUNDS_TOLERANCE_IN = 0.1;
         /** TUNE (field report 3.3): LEAVE needs the whole footprint at least this far off every wall. */
         public static final double LEAVE_WALL_MARGIN_IN = 1.5;
@@ -265,7 +374,11 @@ public final class BioBuzzConstants {
         private Robot() {
         }
 
-        /** FIXED (goBILDA mecanum StarterBot drawing 3200-2627-0004): overall length, front to back, 452 mm. */
+        /**
+         * FIXED (goBILDA mecanum StarterBot drawing 3200-2627-0004): overall length, front to back, 452 mm. It is
+         * assumed to INCLUDE the flat intake wheels at the front (see {@link #INTAKE_REACH_IN}), so everything that plans
+         * with the footprint (the TeleOp auto-shoot, the route validator) sees the same rectangle.
+         */
         public static final double LENGTH_IN = 17.80;
         /** FIXED (same drawing): overall width, side to side, 452 mm. The robot is square, so it fits the 18 in start cube (rule R102) with 0.2 in to spare. */
         public static final double WIDTH_IN = 17.80;
@@ -281,6 +394,37 @@ public final class BioBuzzConstants {
         public static final double LAUNCH_POINT_FORWARD_IN = -8.90;
         /** ADD: sideways offset of the exit from the center line (positive = robot's left). */
         public static final double LAUNCH_POINT_LEFT_IN = 0.0;
+
+        // ---- the two flat intake wheels --------------------------------------------------------------------
+        // The intake has two small wheels that lie FLAT (their discs are parallel to the floor, like coins on a table)
+        // at the two front corners, one left and one right of the center line. In front of the chassis frame only these
+        // two discs exist: there is no full-width strip. To take a FLOWER's bottom POLLEN, ONE of them presses into it
+        // (see autoshoot.routes.FlowerPress). The numbers below were read off the goBILDA drawing and must be measured
+        // on the real robot.
+
+        /**
+         * ADD: how far (inches) the flat intake wheels stick out in FRONT of the chassis frame. Measure from the front
+         * edge of the frame (the part that must never touch a FLOWER plate) to the front tip of a wheel. 2.7 in = 68 mm
+         * read off the drawing: the outer perimeter reaches 9.77 in ahead of the center of rotation and the frame 7.1 in.
+         * {@link #LENGTH_IN} INCLUDES these wheels, so everything that plans with the footprint (the TeleOp auto-shoot,
+         * the route validator) sees the same rectangle. The wheels must reach at least
+         * {@code Field.FLOWER_PLATE_DEPTH_IN + Auto.FLOWER_CHASSIS_CLEARANCE_IN - the press stop line} = 2.7 in to press
+         * a FLOWER's POLLEN with the chassis kept off its plate; the route validator checks it and says how many
+         * inches are missing.
+         */
+        public static final double INTAKE_REACH_IN = 2.7;
+        /**
+         * ADD: how far (inches) the middle of each flat wheel is from the robot's center line, to the left for the left
+         * wheel and to the right for the right one. 6.1 in read off the drawing (the two wheels are 12.2 in apart, center to
+         * center, with a 9.45 in gap between them). Too far apart to straddle a 2.8 in POLLEN, so the robot stands to
+         * one side of a FLOWER and presses one wheel into the POLLEN: this number is how far to one side.
+         */
+        public static final double INTAKE_WHEEL_OFFSET_IN = 6.1;
+        /**
+         * VERIFY: diameter (inches) of a flat intake wheel, about 2.8 in from the drawing. It sets how big the square
+         * around a wheel is that the validator keeps out of FLOWER plates.
+         */
+        public static final double INTAKE_WHEEL_DIAMETER_IN = 2.8;
 
         /**
          * VERIFY: height of the ball exit above the floor, used only for the diagnostic ballistics
@@ -735,6 +879,19 @@ public final class BioBuzzConstants {
          */
         public static final double[][] FLOWER_CENTERS_IN = {
                 {2.4, 48.0}, {48.0, 141.6}, {141.6, 96.0}, {96.0, 2.4}};
+        /**
+         * FIXED (manual Fig 9-12): the FLOWER base plate, 4.75 in deep (out from the wall) ...
+         * The plate is what the robot must not touch; the POLLEN stack stands in its middle.
+         */
+        public static final double FLOWER_PLATE_DEPTH_IN = 4.75;
+        /** FIXED (manual Fig 9-12): ... and 5.87 in long along the wall, centered on the FLOWER's center point. */
+        public static final double FLOWER_PLATE_ALONG_WALL_IN = 5.87;
+        /**
+         * FIXED (manual Fig 9-12 / 9.7): the center line of the POLLEN stack is this far (inches) out from the wall. The
+         * bottom POLLEN is 2.8 in across ({@code Auto.POLLEN_DIAMETER_IN}), so it spans 1.0 to 3.8 in from the wall.
+         * (The FLOWER centers below are on this line.)
+         */
+        public static final double FLOWER_POLLEN_CENTER_FROM_WALL_IN = 2.4;
         /** FIXED (manual Fig 9-12): FLOWER plate extent measured along the wall; used as a planning keep-out. */
         public static final double FLOWER_KEEPOUT_ALONG_WALL_IN = 6.0;
         /** FIXED (manual Fig 9-12): FLOWER plate depth out from the wall; used as a planning keep-out. */

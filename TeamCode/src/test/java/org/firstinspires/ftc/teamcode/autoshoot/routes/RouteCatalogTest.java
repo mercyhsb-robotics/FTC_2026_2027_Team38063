@@ -316,4 +316,36 @@ public class RouteCatalogTest {
         assertEquals("own GARDEN", a.step(4).sourceName);
         assertTrue(a.totalSeconds() < BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC);
     }
+
+    @Test
+    public void gardenCycleTouchesTheWallsButNeverClipsThemAndTheSameSweepADeeperIsStillAnError() {
+        AutoRoute r = RouteCatalog.byId("garden_cycle");
+        Step.Intake garden = (Step.Intake) r.step(4);
+        Rect b = Footprint.of(garden.robotPose()).bounds();
+        double tol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
+        assertTrue("the left edge is on or inside the red wall: " + b, b.minX >= -tol);
+        assertTrue("the front edge is on or inside the audience wall: " + b, b.minY >= -tol);
+        assertTrue("but it really is at the wall, on the row of GARDEN POLLEN: " + b, b.minX < 1.5 && b.minY < 1.5);
+        // wallContact() is only a note: the same sweep with the robot 0.5 in closer to the audience wall pushes the front edge
+        // 0.2 in into it, and that is an ERROR on the drive...
+        AutoRoute deeper = AutoRoute.builder("deeper").start(35.0, 9.2, -90).shootUp(4)
+                .driveConstant(9.0, 18.0, -90).driveConstant(9.0, 8.7, -90).wallContact()
+                .intakeGarden(5.9, 1.4, 9.0, 8.7, -90, 4).build();
+        assertTrue(wallErrorAt(RouteValidator.check(deeper), 3));
+        // ...and on an INTAKE that makes the move itself (here the drive stops short and the INTAKE steps into the wall)
+        AutoRoute intakeDeeper = AutoRoute.builder("intake_deeper").start(35.0, 9.2, -90).shootUp(4)
+                .driveConstant(9.0, 18.0, -90).intakeGarden(5.9, 1.4, 9.0, 8.7, -90, 4).build();
+        assertTrue(wallErrorAt(RouteValidator.check(intakeDeeper), 3));
+        // the real one is clean
+        assertFalse(wallErrorAt(RouteValidator.check(r), 3) || wallErrorAt(RouteValidator.check(r), 4));
+    }
+
+    private static boolean wallErrorAt(List<Issue> issues, int stepIndex) {
+        for (Issue i : issues) {
+            if (i.rule == Rule.FIELD_BOUNDS && i.severity == Severity.ERROR && i.stepIndex == stepIndex) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

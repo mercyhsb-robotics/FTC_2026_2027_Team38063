@@ -34,7 +34,10 @@ public final class RouteAnalysis {
         public final Pose2 to;
         /** The DRIVE leg's path, else null. */
         public final DrivePath path;
-        /** The implicit straight move to the pose of an INTAKE, SHOOT or PARK step, or null if the robot is already there. */
+        /**
+         * The implicit straight move to the pose of an INTAKE, SHOOT or PARK step (for a FLOWER: to its line-up pose), or
+         * null if the robot is already there.
+         */
         public final DrivePath approach;
         public final double startSec;
         public final double durationSec;
@@ -185,9 +188,13 @@ public final class RouteAnalysis {
                 }
                 case INTAKE: {
                     Step.Intake in = (Step.Intake) step;
-                    to = in.robotPose();
-                    approach = approachOrNull(from, to);
-                    duration = (approach == null ? 0.0 : timing.moveSeconds(from, to)) + timing.intakeSeconds(in);
+                    // A FLOWER is a press-in: the robot pose is the line-up pose, then the robot presses in and backs out,
+                    // so the step ends at the retreat pose and costs the slow approach and retreat as well.
+                    FlowerPress press = FlowerPress.of(in, field);
+                    approach = approachOrNull(from, in.robotPose());
+                    duration = (approach == null ? 0.0 : timing.moveSeconds(from, in.robotPose()))
+                            + (press == null ? timing.intakeSeconds(in) : timing.flowerSeconds(in, press));
+                    to = press == null ? in.robotPose() : press.retreat;
                     held += in.expectedCount();
                     gained += in.expectedCount();
                     switch (in.source()) {
