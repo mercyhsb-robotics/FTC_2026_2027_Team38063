@@ -347,8 +347,8 @@ public final class PartnerTipRoutes {
 
         // ---- Aggressive -------------------------------------------------------------------------------------------------------------------
         routes.add(make(AGGRESSIVE_REAR_EDGE, "Aggressive: start as near the cell as the placement margin allows, shoot from the left of the axis, park by the shortest way",
-                "WHY THIS START: it is the closest straight start to the cell that still keeps the 1 in and 3 degree placement margin, on the rear wall, a little left of the FLOWER's "
-                        + "limit. The robot is therefore ready sooner than from any other straight start in these routes, which matters for a partner that tips EARLY. It then shoots from 10 degrees "
+                "WHY THIS START: it is the closest straight start to the cell that still keeps the 1 in and 3 degree placement margin, on the rear wall, as near the rear FLOWER as a robot placed by hand can safely stand. The "
+                        + "robot is therefore ready sooner than from any other straight start in these routes, which matters for a partner that tips EARLY. It then shoots from 10 degrees "
                         + "left of the cell's axis (inside the 20 degree cone), the point of the allowed shots nearest the LOADING ZONE, so the way out is the shortest too.",
                 "WE DO: 1) roll a short way east along the rear side into a shooting pose left of the cell's axis, while the partner shoots; 2) wait there until the camera has "
                         + "seen the rear cell up and steady; 3) shoot 4; 4) drive off the wall and park front first, with the shortest drive of any route here.",
@@ -429,9 +429,10 @@ public final class PartnerTipRoutes {
     }
 
     private static String secondTipText() {
-        return "WHY NO SECOND TIP: our own tip needs 8 POLLEN landed in that cell, our 4 and 4 more fetched from the rear FLOWER and shot in a second volley. After a partner that tips at "
-                + "12 s that is more than the 30 s of AUTO in the timing estimate, and real robots land only about 60 percent of their shots, so 8 landed out of 8 shot is unlikely. "
-                + "The safe alternative, which this route takes: bank 4, and take the sure 8 points.";
+        return String.format(Locale.ROOT, "WHY NO SECOND TIP: our own tip needs 8 POLLEN landed in that cell, our 4 and 4 more fetched from the rear FLOWER and shot in a second volley. "
+                + "After a partner that tips at %.0f s that is more than the %.0f s of AUTO in the timing estimate, and real robots land only about 60 percent of their shots, "
+                + "so 8 landed out of 8 shot is unlikely. The safe alternative, which this route takes: bank 4, and take the sure 8 points.",
+                BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC, BioBuzzConstants.Auto.AUTO_DURATION_SEC);
     }
 
     private static String waitNote(double giveUp) {
