@@ -74,7 +74,10 @@ public final class FlowerPress {
     public final Pose2 retreat;
     /** How many POLLEN the pick-up is for. */
     public final int count;
-    /** How many push-and-release cycles it makes. */
+    /**
+     * How many push-and-release cycles it makes (capped by {@code Auto.FLOWER_WIGGLE_MAX_CYCLES}, so with several cycles per POLLEN it can be fewer than
+     * the {@link #count} asked for needs, see {@link #pollenDelivered}).
+     */
     public final int cycles;
     /** How far the straight final approach is, in inches. */
     public final double approachLengthIn;
@@ -86,6 +89,14 @@ public final class FlowerPress {
     public final DrivePath swing;
     /** The straight, slow retreat {@code start -> retreat}. */
     public final DrivePath retreatPath;
+
+    /**
+     * How many POLLEN this pick-up really delivers: the POLLEN its {@link #cycles} take out of the FLOWER, but never more than {@link #count}, the number
+     * asked for. It is less than {@code count} when the cycles were capped ({@code Auto.FLOWER_WIGGLE_MAX_CYCLES}). The robot-side script counts the same way.
+     */
+    public int pollenDelivered() {
+        return Math.min(count, FlowerWiggle.pollenFor(spec, cycles));
+    }
 
     private FlowerPress(int flower, IntakeWheel wheel, IntakeWheel requested, FlowerWiggle.Spec spec, FlowerWiggle.Solution solution,
                         Pose2 lineUp, Pose2 start, Pose2 pushed, Pose2 retreat, int count, int cycles, double approachLengthIn,

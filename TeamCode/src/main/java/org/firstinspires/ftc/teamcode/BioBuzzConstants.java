@@ -407,10 +407,15 @@ public final class BioBuzzConstants {
         public static final double FLOWER_WIGGLE_RELEASE_HOLD_SEC = 0.4;
         /**
          * ADD: how many push-and-release cycles it takes to get ONE POLLEN out (1 is the guess). A FLOWER pick-up of 4 POLLEN makes
-         * 4 times this many cycles.
+         * 4 times this many cycles, up to {@link #FLOWER_WIGGLE_MAX_CYCLES}: the cap must be at least 4 times this number (ConstantsCheck says so
+         * at INIT), or a pick-up of a whole FLOWER stops early and delivers fewer POLLEN than it was asked for (the route plan counts only the
+         * POLLEN the cycles deliver, and the validator warns).
          */
         public static final int FLOWER_WIGGLE_CYCLES_PER_POLLEN = 1;
-        /** TUNE: never plan more than this many cycles for one pick-up, so a bad number cannot make a pick-up swallow the match. */
+        /**
+         * TUNE: never plan more than this many cycles for one pick-up, so a bad number cannot make a pick-up swallow the match. Keep it at least
+         * {@link #FLOWER_POLLEN} (4) times {@link #FLOWER_WIGGLE_CYCLES_PER_POLLEN}, so that a whole FLOWER can be emptied.
+         */
         public static final int FLOWER_WIGGLE_MAX_CYCLES = 6;
         /**
          * ADD: how long (seconds) ONE half of a cycle's turn takes: turning in to the ball, or turning back out. (The estimate never

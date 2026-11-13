@@ -173,8 +173,10 @@ public final class RouteAnalysis {
             if (press == null) {
                 return "";
             }
-            return "FLOWER pick-up: " + ((Step.Intake) step).expectedCount() + " POLLEN in about " + String.format(java.util.Locale.ROOT, "%.1f", pickupSec)
-                    + " s with the " + press.wheel + " wheel";
+            int asked = ((Step.Intake) step).expectedCount();
+            int delivered = Math.min(asked, press.pollenDelivered());
+            return "FLOWER pick-up: " + delivered + (delivered < asked ? " POLLEN (" + asked + " asked for, the cycle limit allows only " + delivered + ")" : " POLLEN")
+                    + " in about " + String.format(java.util.Locale.ROOT, "%.1f", pickupSec) + " s with the " + press.wheel + " wheel";
         }
 
         public double endSec() {
@@ -418,8 +420,11 @@ public final class RouteAnalysis {
                         duration = (approach == null ? 0.0 : timing.moveSeconds(from, in.robotPose())) + timing.intakeSeconds(in);
                         to = in.robotPose();
                     }
+                    // A FLOWER pick-up delivers what its cycles take out, which is less than asked for when the cycles are capped
+                    // (FlowerPress.pollenDelivered: the robot-side script counts the same way); everything else delivers what the step says.
+                    int delivers = press != null ? Math.min(in.expectedCount(), press.pollenDelivered()) : in.expectedCount();
                     // in the give-up plan a volley was left out, so the robot may hold more than planned: it stops taking at 4 (G407)
-                    int taken = skip == null ? in.expectedCount() : Math.min(in.expectedCount(), Math.max(0, BioBuzzConstants.Auto.POLLEN_CAPACITY - held));
+                    int taken = skip == null ? delivers : Math.min(delivers, Math.max(0, BioBuzzConstants.Auto.POLLEN_CAPACITY - held));
                     held += taken;
                     gained += taken;
                     switch (in.source()) {
@@ -429,7 +434,7 @@ public final class RouteAnalysis {
                                 sourceName = "FLOWER " + (f + 1);
                                 sourceLeft = flowerLeft[f];
                                 offLimits = !field.isOwnFlower(f);
-                                flowerLeft[f] = Math.max(0, flowerLeft[f] - in.expectedCount());
+                                flowerLeft[f] = Math.max(0, flowerLeft[f] - delivers);
                             }
                             break;
                         }

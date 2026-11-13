@@ -97,7 +97,7 @@ public final class FlowerWiggleSequence {
 
     /** How many POLLEN the cycles done have taken out of the FLOWER (never more than were asked for, never more than fit in the robot). */
     public int pollenTaken() {
-        int byCycles = cyclesDone / Math.max(1, press.spec.cyclesPerPollen);
+        int byCycles = FlowerWiggle.pollenFor(press.spec, cyclesDone);
         int room = Math.max(0, BioBuzzConstants.Auto.POLLEN_CAPACITY - pollenHeldAtStart);
         return Math.min(Math.min(byCycles, press.count), room);
     }

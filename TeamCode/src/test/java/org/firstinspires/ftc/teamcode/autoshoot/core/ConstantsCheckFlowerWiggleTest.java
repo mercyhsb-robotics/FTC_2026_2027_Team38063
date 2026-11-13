@@ -134,6 +134,24 @@ public class ConstantsCheckFlowerWiggleTest {
         assertOneError("CYCLES_PER_POLLEN", v.check());
     }
 
+    /**
+     * Situation: 2 cycles per POLLEN (a plausible day-one measurement) with the shipped cap of 6 cycles; a whole FLOWER (4 POLLEN) needs 8.
+     * Expected: an ERROR that says the cap is less than a whole FLOWER needs and what to raise it to; with a cap of 8 there is none.
+     * Why: the cap used to be compared only with the cycles of ONE POLLEN, so 2 / 6 passed and a pick-up of 4 POLLEN silently delivered 3.
+     */
+    @Test
+    public void theCycleLimitMustBeEnoughForAWholeFlower() {
+        Values v = new Values();
+        v.cyclesPerPollen = 2;
+        v.maxCycles = 6;
+        assertOneError("less than a whole FLOWER needs", v.check());
+        assertTrue(v.check().errors.get(0), v.check().errors.get(0).contains("at least 8"));
+        v.maxCycles = 8;
+        assertTrue(v.check().errors.toString(), v.check().errors.isEmpty());
+        // the shipped numbers (1 per POLLEN, cap 6) have room for the 4 POLLEN of a FLOWER
+        assertTrue(new Values().check().errors.isEmpty());
+    }
+
     @Test
     public void theApproachTheRetreatTheSpeedAndTheClearanceMustMakeSense() {
         Values v = new Values();

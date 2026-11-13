@@ -514,6 +514,12 @@ public final class ConstantsCheck {
         if (cyclesPerPollen < 1 || maxCycles < cyclesPerPollen) {
             r.errors.add("Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN (" + cyclesPerPollen + ") must be at least 1 and no more than FLOWER_WIGGLE_MAX_CYCLES ("
                     + maxCycles + ").");
+        } else if (maxCycles < BioBuzzConstants.Auto.FLOWER_POLLEN * cyclesPerPollen) {
+            // The cap would cut a pick-up of a whole FLOWER short: 4 POLLEN x 2 cycles = 8 cycles, but the limit says 6, so only 3 POLLEN come out.
+            int needed = BioBuzzConstants.Auto.FLOWER_POLLEN * cyclesPerPollen;
+            r.errors.add("Auto.FLOWER_WIGGLE_MAX_CYCLES (" + maxCycles + ") is less than a whole FLOWER needs (" + BioBuzzConstants.Auto.FLOWER_POLLEN
+                    + " POLLEN x " + cyclesPerPollen + " cycles per POLLEN = " + needed + "): a pick-up of all " + BioBuzzConstants.Auto.FLOWER_POLLEN
+                    + " POLLEN would stop after " + (maxCycles / cyclesPerPollen) + ". Raise FLOWER_WIGGLE_MAX_CYCLES to at least " + needed + ".");
         }
         if (!(approachLen > 0.0) || !(retreatLen > 0.0) || !(approachSpeed > 0.0) || approachSpeed > 1.0 || clearance < 0.0) {
             r.errors.add("Auto.FLOWER_APPROACH_LENGTH_IN and FLOWER_RETREAT_LENGTH_IN must be positive, FLOWER_APPROACH_SPEED_FRACTION must be"

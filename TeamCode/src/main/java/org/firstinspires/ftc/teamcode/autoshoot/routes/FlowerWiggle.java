@@ -169,6 +169,16 @@ public final class FlowerWiggle {
         return Math.min(spec.maxCycles, Math.max(1, pollen * spec.cyclesPerPollen));
     }
 
+    /**
+     * How many POLLEN {@code cycles} push-and-release cycles take out of a FLOWER: one POLLEN for every {@code Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN}
+     * cycles, whole POLLEN only. The route plan ({@link FlowerPress#pollenDelivered}) and the robot-side script ({@link FlowerWiggleSequence#pollenTaken})
+     * both count with this one function, so they can never disagree about how many POLLEN a pick-up delivers. It matters because
+     * {@link #cyclesFor} caps the cycles: with 2 cycles per POLLEN and a cap of 6, a pick-up of 4 POLLEN makes 6 cycles and delivers 3.
+     */
+    public static int pollenFor(Spec spec, int cycles) {
+        return cycles / Math.max(1, spec.cyclesPerPollen);
+    }
+
     // ---------------------------------------------------------------------------------------------------------------
     // the answer
     // ---------------------------------------------------------------------------------------------------------------

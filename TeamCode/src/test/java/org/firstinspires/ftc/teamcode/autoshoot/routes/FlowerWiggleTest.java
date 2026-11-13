@@ -295,6 +295,15 @@ public class FlowerWiggleTest {
 
     // ---- cycles and poses ---------------------------------------------------------------------------------------------------
 
+    /** Situation: cycles turned back into POLLEN. Expected: one POLLEN per cyclesPerPollen cycles, whole POLLEN only (the cap makes 6 cycles of a 4-POLLEN pick-up at 2 per POLLEN deliver 3). */
+    @Test
+    public void cyclesAreTurnedBackIntoWholePollen() {
+        assertEquals(4, FlowerWiggle.pollenFor(LONG.withCycles(1, 6), 4));
+        assertEquals(3, FlowerWiggle.pollenFor(LONG.withCycles(2, 6), FlowerWiggle.cyclesFor(LONG.withCycles(2, 6), 4)));
+        assertEquals("one cycle of two is not a POLLEN yet", 0, FlowerWiggle.pollenFor(LONG.withCycles(2, 6), 1));
+        assertEquals(4, FlowerWiggle.pollenFor(LONG.withCycles(2, 8), FlowerWiggle.cyclesFor(LONG.withCycles(2, 8), 4)));
+    }
+
     @Test
     public void theCyclesComeFromTheCountAndAreCapped() {
         assertEquals(1, FlowerWiggle.cyclesFor(REAL, 1));

@@ -340,6 +340,15 @@ public final class RouteValidator {
         } else if (!press.reaches()) {
             out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the " + press.wheel + " wheel cannot reach the POLLEN: " + press.solution.shortfallText()));
         }
+        int asked = ((Step.Intake) info.step).expectedCount();
+        if (press.pollenDelivered() < asked) {
+            // The plan counts only what the cycles deliver (RouteAnalysis), so everything after this step is honest; the route author must still be told.
+            int needed = asked * press.spec.cyclesPerPollen;
+            out.add(warn(info.index, Rule.FLOWER_PRESS, what + ": asks for " + asked + " POLLEN, but " + press.spec.cyclesPerPollen + " wiggle cycle"
+                    + (press.spec.cyclesPerPollen == 1 ? "" : "s") + " per POLLEN needs " + needed + " cycles and the limit is " + press.spec.maxCycles
+                    + " (Auto.FLOWER_WIGGLE_MAX_CYCLES), so the pick-up makes " + press.cycles + " cycles and takes out only " + press.pollenDelivered()
+                    + ". The plan counts " + press.pollenDelivered() + ". Ask for " + press.pollenDelivered() + ", or raise the limit to " + needed));
+        }
         double minRetreat = BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN;
         if (press.retreatLengthIn < minRetreat - EPS) {
             out.add(warn(info.index, Rule.FLOWER_PRESS, what + ": the retreat is only " + in(press.retreatLengthIn)
