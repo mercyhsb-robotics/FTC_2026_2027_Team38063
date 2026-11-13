@@ -35,19 +35,37 @@ import org.firstinspires.ftc.teamcode.pedro.procedures.Tests;
  * every run ends with the robot coasting past its target. The values already in
  * {@link Constants#foresightConfig} are the example values from Pedro's documentation and are
  * only a working starting point until this tuner has been run on the real robot.
+ *
+ * <p><b>What this class is.</b> It is only a list: it tells Pedro's tuning menu which procedures exist. The procedures
+ * themselves are in the {@code pedro/procedures} folder. Pedro finds the methods below by their {@code @Tuner}
+ * annotation (all four are {@code public static} and return a {@code Procedure}). The tuning menu is listed with the
+ * other OpModes on the Driver Station (see README.md); there you run a procedure, answer its questions, and it shows
+ * the numbers and the Java code to paste into {@code Constants.java}. See docs/TUNING.md for the full guide.
+ *
+ * <p><b>Words used here.</b> <b>Pedro Pathing</b> is the library that drives the robot along paths using its
+ * measured position. The <b>Pinpoint</b> is the goBILDA odometry computer that measures that position.
+ * <b>Mecanum</b> wheels have angled rollers so the robot can move sideways. <b>Foresight</b> is Pedro's
+ * path-following algorithm; it needs to know how this robot accelerates and brakes. A "localizer" is Pedro's word for
+ * the part that works out where the robot is.
  */
 public class Tuning {
     // Tuners go here
+    // Step 1: finds the wheel motor directions (result goes to Constants.drivetrainConfig).
     @Tuner
     public static Procedure mecanumTuner() {
         return new MecanumTuner();
     }
 
+    // Step 2: checks the Pinpoint pods and measures their offsets (result goes to Constants.localizerConfig).
     @Tuner
     public static Procedure pinpointTuner() {
         return new PinpointTuner();
     }
 
+    // Step 3: measures speed, braking and gains (result goes to Constants.foresightConfig). It needs to build the
+    // localizer and the drivetrain itself. The two arrows below are small functions that do that when the
+    // procedure runs: given the robot's hardwareMap (the list of connected devices), they build a Pinpoint localizer
+    // and a mecanum drivetrain from the settings currently in Constants.
     @Tuner
     public static Procedure foresightTuner() {
         return new ForesightTuner(
@@ -55,6 +73,9 @@ public class Tuning {
                 hardwareMap -> new Mecanum(hardwareMap, Constants.drivetrainConfig));
     }
 
+    // Step 4: hold test, line test and so on, using the tuned values. It builds its drivetrain, localizer and
+    // Foresight algorithm from Constants in the same way (the last function takes no arguments because Foresight needs
+    // no hardware).
     @Tuner
     public static Procedure tests() {
         return new Tests(
