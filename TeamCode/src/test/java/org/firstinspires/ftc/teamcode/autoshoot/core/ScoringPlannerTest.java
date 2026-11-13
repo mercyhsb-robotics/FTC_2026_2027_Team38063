@@ -12,20 +12,66 @@ import java.util.List;
 
 import org.junit.Test;
 
+/**
+ * Checks where the robot decides to stand when you hold the shoot button: {@link ShotGeometry} (distances and angles
+ * between the robot, its ball exit and the aim point), {@link PathPlanner} (a route around obstacles) and
+ * {@link ScoringPlanner} (picks the cheapest standing pose that is allowed).
+ *
+ * <p>How it works: no robot. Each test builds the real field map and shot table, asks the planner for a pose from a
+ * chosen starting pose, and checks the answer two ways: against numbers worked out by hand, and against rules that
+ * every answer must obey (inside the shooting cone, clear of the HIVE frame, shooter pointed at the aim point).
+ *
+ * <p>Run it with {@code ./gradlew :TeamCode:testDebugUnitTest} (add {@code --tests "*ScoringPlannerTest"} to run only
+ * this class).
+ *
+ * <p>Words used in this file:
+ * <ul>
+ *   <li><b>Aim point:</b> the center of an UP cell's opening, the spot a ball should pass through.</li>
+ *   <li><b>Ball exit (launch point):</b> where the ball leaves the shooter. The shooter fires out the BACK, so the
+ *       exit is behind the robot's center (forward is negative).</li>
+ *   <li><b>Range:</b> the horizontal distance in inches from the ball exit to the aim point.</li>
+ *   <li><b>Cone, azimuth:</b> the robot may stand anywhere inside a cone around the opening's center line. Azimuth
+ *       is how many degrees off that center line a pose is.</li>
+ *   <li><b>Footprint:</b> the floor space the robot covers. The planner uses the rectangle that just contains it
+ *       (its 'axis-aligned box').</li>
+ *   <li><b>Keep-out:</b> an area the robot must stay out of (the HIVE frame, the FLOWERS, the walls).</li>
+ *   <li><b>Waypoint:</b> one point on a route. The robot drives through them in order.</li>
+ *   <li><b>Feasible:</b> a standing pose that obeys every rule and has a clear route to it.</li>
+ *   <li><b>Tolerance / EPS (epsilon):</b> how far two decimal numbers may differ and still count as equal, to allow
+ *       for rounding. Here one millionth.</li>
+ *   <li><b>Fixture:</b> the shared setup for the tests (the fields below). JUnit builds a fresh copy for every
+ *       test.</li>
+ * </ul>
+ */
 public class ScoringPlannerTest {
+    /** Allowed rounding error when comparing two decimal numbers: one millionth. */
     private static final double EPS = 1e-6;
 
+    /**
+     * The shared fixture (these four fields): the real field map, shot table, planner settings and planner, all built
+     * from BioBuzzConstants.
+     */
     private final FieldModel field = new FieldModel();
     private final ShotTable table = ShotTable.fromConstants();
     private final ScoringPlanner.Config cfg = ScoringPlanner.Config.fromConstants(table);
     private final ScoringPlanner planner = new ScoringPlanner(field, cfg);
 
+    /** The robot's length in inches, as the planner is configured. */
     private double lengthIn() {
         return cfg.robotLengthIn;
     }
 
     // ---------------------------------------------------------------- ShotGeometry
 
+    /**
+     * Situation: the robot at the C1 autonomous start (58, 9.2) facing -90 degrees, with the RED audience cell as the
+     *     target.
+     * Expected: the range from the ball exit to the aim point is about 37.4 in, and the shooter is within 3.5 degrees
+     *     of pointing at it.
+     * Why: the shooter is on the back, so aiming means heading = bearing + half a turn. Getting that wrong would aim
+     *     every shot 180 degrees away. Tolerances: 0.05 in on the range (the verified figure is quoted to a tenth of an
+     *     inch); 3.5 degrees allows the real error of about 2 degrees (C1 is 1.25 in off the HIVE axis).
+     */
     @Test
     public void shooterPointsAtTheAimPointWhenHeadingIsBearingPlusHalfATurn() {
         // Robot at C1 facing -90: the back faces +y, straight at the red audience cell's aim point.
@@ -38,6 +84,13 @@ public class ScoringPlannerTest {
         assertTrue("C1 is nearly in line: " + err, Math.abs(err) < 3.5);
     }
 
+    /**
+     * Situation: ask for the pose whose ball exit is at (50, 20) with the shooter pointing at the aim point
+     *     (59.25, 55.52), using a launch point 8.9 in behind and 1.5 in to the left of the robot center.
+     * Expected: working out the ball exit of that pose gives back (50, 20), and the aim error is zero.
+     * Why: the planner works backward from 'where the ball exit should be' to 'where the robot center goes'. This
+     *     proves the forward and backward calculations agree. 1e-6 is rounding only.
+     */
     @Test
     public void poseForLaunchPointRoundTripsTheExitAndAimDirection() {
         Pose2 p = ShotGeometry.poseForLaunchPoint(50, 20, 59.25, 55.52, -8.9, 1.5);
@@ -48,6 +101,12 @@ public class ScoringPlannerTest {
 
     // ---------------------------------------------------------------- PathPlanner
 
+    /**
+     * Situation: a 100 x 100 in field with one 20 x 20 in box in the middle; start (10, 10), goal (90, 20), a line that
+     *     misses the box.
+     * Expected: the route is just the goal point.
+     * Why: the planner must not invent detours. A straight line is shortest.
+     */
     @Test
     public void straightRouteWhenNothingIsInTheWay() {
         PathPlanner pp = new PathPlanner(new Rect(0, 100, 0, 100), Collections.singletonList(new Rect(40, 60, 40, 60)));
@@ -58,6 +117,12 @@ public class ScoringPlannerTest {
         assertEquals(20, r.get(0)[1], EPS);
     }
 
+    /**
+     * Situation: the same field; start (10, 50) and goal (90, 50) with the box directly in between.
+     * Expected: the route has at least 2 points (it bends around a corner of the box), its length is between 80 in (the
+     *     blocked straight line) and 95 in, and no leg of it crosses the box.
+     * Why: the robot must go around the HIVE frame, not through it, and without a silly long detour.
+     */
     @Test
     public void routeBendsAroundAnObstacleThroughItsCorners() {
         PathPlanner pp = new PathPlanner(new Rect(0, 100, 0, 100), Collections.singletonList(new Rect(40, 60, 40, 60)));
@@ -77,6 +142,11 @@ public class ScoringPlannerTest {
         }
     }
 
+    /**
+     * Situation: a goal inside the box, and a goal outside the field.
+     * Expected: plan() returns null (no route) for both.
+     * Why: the planner must say 'impossible' instead of driving the robot into a keep-out or off the field.
+     */
     @Test
     public void noRouteIntoAnObstacleOrOutOfBounds() {
         PathPlanner pp = new PathPlanner(new Rect(0, 100, 0, 100), Collections.singletonList(new Rect(40, 60, 40, 60)));
@@ -84,6 +154,11 @@ public class ScoringPlannerTest {
         assertNull(pp.plan(10, 10, 150, 50));     // goal outside
     }
 
+    /**
+     * Situation: the START point (42, 50) is inside the box (as if the robot had been nudged into a keep-out margin).
+     * Expected: the first waypoint is just outside the box, and the route goes on from there to the goal.
+     * Why: the robot cannot be assumed to start in free space. It has to step out first.
+     */
     @Test
     public void startInsideAnObstacleStepsOutFirst() {
         PathPlanner pp = new PathPlanner(new Rect(0, 100, 0, 100), Collections.singletonList(new Rect(40, 60, 40, 60)));
@@ -94,6 +169,11 @@ public class ScoringPlannerTest {
         assertFalse(new Rect(40, 60, 40, 60).containsStrictly(first[0], first[1]));
     }
 
+    /**
+     * Situation: a barrier that spans the whole field width between the start (50, 10) and the goal (50, 90).
+     * Expected: plan() returns null.
+     * Why: no route exists, so the planner must not return a path through the barrier.
+     */
     @Test
     public void wallsOffGoalIsUnreachable() {
         // A full-width wall splits the field.
@@ -103,14 +183,22 @@ public class ScoringPlannerTest {
 
     // ---------------------------------------------------------------- ScoringPlanner
 
+    /**
+     * The rules every planner answer must obey, whatever the start: it is a real solution; the range is inside the
+     * allowed band; the pose is inside the shooting cone; the shooter points exactly at the aim point; the robot's
+     * footprint is clear of the HIVE frame, the FLOWERS and the walls; the route ends at the pose; and the ball exit is
+     * on the side the opening faces. Used by several tests below.
+     */
     private void assertGoodSolution(ScoringPlanner.Solution s, CellSpec cell) {
         assertTrue("expected a solution: " + s, s.ok());
         // Range inside the allowed band.
+        // (1e-6 in of slack so rounding at the edges of the band is not a failure.)
         assertTrue(s.rangeIn >= cfg.rangeMinIn - 1e-6 && s.rangeIn <= cfg.rangeMaxIn + 1e-6);
         // Inside the cone.
         assertTrue(Math.abs(s.azimuthDeg) <= cfg.coneHalfAngleDeg + 1e-6);
         // Shooter really points at the aim point.
         double err = ShotGeometry.aimError(s.pose, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
+        // (1e-6 radians: rounding only. The planner builds the pose so the aim error is exactly zero.)
         assertEquals(0.0, err, 1e-6);
         // Footprint is free of the HIVE frame, the FLOWERS and the walls.
         assertTrue(planner.standingPoseFree(s.pose));
@@ -131,6 +219,13 @@ public class ScoringPlannerTest {
         }
     }
 
+    /**
+     * Situation: the robot starts at the C1 autonomous start (58, 9.2, -90), almost already in place for the RED
+     *     audience cell.
+     * Expected: a good solution, under 5 in of travel, ending at a heading within 4 degrees of -90.
+     * Why: if the robot is nearly in place, auto-shoot must not make big, pointless moves. The 4 degrees allows the
+     *     small turn needed to point exactly at the aim point.
+     */
     @Test
     public void fromTheC1StartTheRedAudienceCellNeedsAlmostNoMovement() {
         Pose2 c1 = Pose2.ofDegrees(58.0, 9.2, -90);
@@ -141,6 +236,13 @@ public class ScoringPlannerTest {
         assertEquals(-90.0, s.pose.headingDegrees(), 4.0);
     }
 
+    /**
+     * Situation: the robot starts at the B1 autonomous start (35, 9.2, -90), about 24 in from the HIVE axis (x =
+     *     59.25), toward the red wall.
+     * Expected: a good solution that ends further toward the HIVE axis (larger x) with less than 25 in of travel.
+     * Why: it should step sideways into the shooting cone, but it need not go all the way to the axis because the cone
+     *     allows some angle off the center line.
+     */
     @Test
     public void fromTheB1StartTheRobotMovesTowardTheCellAxisAndStaysInTheCone() {
         Pose2 b1 = Pose2.ofDegrees(35.0, 9.2, -90);
@@ -151,6 +253,13 @@ public class ScoringPlannerTest {
         assertTrue("travel " + s.travelIn, s.travelIn < 25.0);
     }
 
+    /**
+     * Situation: a RED start (40, 15, -100) planning for the RED audience cell, and the half-turned BLUE start planning
+     *     for the BLUE rear cell.
+     * Expected: the blue answer is exactly the half-turn of the red answer: same range, and a pose rotated half a turn
+     *     about the field center.
+     * Why: the numbers are written once, for RED. BLUE must behave identically on the opposite side.
+     */
     @Test
     public void theBlueSolutionIsTheHalfTurnOfTheRedSolution() {
         Pose2 red = Pose2.ofDegrees(40.0, 15.0, -100);
@@ -165,6 +274,13 @@ public class ScoringPlannerTest {
         assertEquals(sr.rangeIn, sb.rangeIn, 1e-6);
     }
 
+    /**
+     * Situation: for each alliance and each of its two cells (4 cases), start from that alliance's version of the C1
+     *     start pose.
+     * Expected: every one of the four gets a good solution.
+     * Why: this covers the far-side cells (which need a route around the HIVE) and the blue alliance's rotated geometry
+     *     in one sweep.
+     */
     @Test
     public void everyCellOfEveryAlliancePlansFromItsOwnStartingCorner() {
         for (Alliance a : Alliance.values()) {
@@ -177,6 +293,15 @@ public class ScoringPlannerTest {
         }
     }
 
+    /**
+     * Situation: from the C1 start on the audience side to the RED REAR cell, on the other side of the HIVE.
+     * Expected: a route of at least 2 points around the HIVE frame; the final pose is beyond the frame's far edge (y
+     *     above 91.475); it faces about +90 degrees (within 30); the travel is between 100 and 175 in; and no leg
+     *     crosses the HIVE frame grown by half the robot's diagonal.
+     * Why: the far cell is reached by going around the HIVE. The grown box is how far the robot can reach while it
+     *     turns on the way. The distance band is a loose sanity check: the straight-line distance is already well over
+     *     100 in, and more than 175 in would be a silly detour.
+     */
     @Test
     public void reachingTheFarSideGoesAroundTheHiveFrameAndStaysClear() {
         Pose2 c1 = Pose2.ofDegrees(58.0, 9.2, -90);
@@ -199,6 +324,13 @@ public class ScoringPlannerTest {
         }
     }
 
+    /**
+     * Situation: a test-only planner setting that insists on shooting from 45 to 60 in away, from C1 at the audience
+     *     wall.
+     * Expected: status NO_FEASIBLE_POSE, and ok() is false.
+     * Why: the planner must say 'impossible' rather than return a pose that breaks the wall or cone rules. The
+     *     controller then stops with a fault instead of driving nowhere.
+     */
     @Test
     public void aRangeBandBeyondWhatTheWallAllowsHasNoFeasiblePose() {
         // The audience wall limits the shooter to about 37.7 in from the cell aim point; a 45-60 in band cannot be reached.
@@ -211,6 +343,13 @@ public class ScoringPlannerTest {
         assertFalse(s.ok());
     }
 
+    /**
+     * Situation: ranges from 36 to 60 in are allowed, but only in line with the opening (cone of 0 degrees), starting
+     *     from C1.
+     * Expected: a pose is found, but its range is under 38 in.
+     * Why: this shows the limit comes from the geometry (the wall), not just from the shot table. The 38 in bound is
+     *     the 37.7 in figure rounded up; the planner searches ranges in 1 in steps.
+     */
     @Test
     public void theWallLimitOnRangeMatchesTheVerifiedGeometry() {
         // With the ball exit at the rear face and the robot against the audience wall the exit is 17.8 in from
@@ -226,8 +365,15 @@ public class ScoringPlannerTest {
     }
 
     /**
-     * The team's one measured good shot: robot front against the audience wall, in line with the HIVE. The ball
-     * exit is then exactly the verified wall-limit range from the aim point, and the shot table is anchored there.
+     * The team's one measured good shot: robot front against the audience wall, in line with the HIVE. The ball exit is
+     * then exactly the verified wall-limit range from the aim point, and the shot table is anchored there.
+     *
+     * Situation: the robot with its front against the audience wall and exactly in line with the RED audience cell.
+     * Expected: the range is 37.7 in (within 0.05) and the shot table gives 1200 tps there; the shooter is exactly in
+     *     line (0 degrees off the opening's center line); from there the planner moves under 2.5 in and picks a range
+     *     within 1.1 in of 37.0.
+     * Why: the planner tries ranges in 1 in steps and keeps the robot a small WALL_CLEARANCE_IN off the wall, so it
+     *     lands a little short of 37.7 in instead of exactly on it. That is why the range tolerance is 1.1 in.
      */
     @Test
     public void theRobotFrontAgainstTheWallInLineIsTheMeasuredAnchorShot() {
@@ -244,6 +390,14 @@ public class ScoringPlannerTest {
         assertEquals(37.0, s.rangeIn, 1.1);
     }
 
+    /**
+     * Situation: the axis-aligned box (the rectangle lined up with the field's x and y axes) that just contains the
+     *     17.8 x 17.8 in square robot, for a robot turned different amounts.
+     * Expected: facing along an axis (-90 degrees) the box is 17.8 in wide; turned 30 degrees it is 17.8 x (cos 30 +
+     *     sin 30), about 24.3 in. The last line only confirms that the lengthIn() helper returns the configured length.
+     * Why: the planner checks that this box is clear of walls and the HIVE frame, and a turned robot takes more room (a
+     *     square's corner-to-corner distance is about 1.41 times its side).
+     */
     @Test
     public void footprintBoxGrowsWhenTheRobotIsTurned() {
         assertEquals(17.8, ShotGeometry.footprintExtentX(17.8, 17.8, Math.toRadians(-90)), 1e-9);

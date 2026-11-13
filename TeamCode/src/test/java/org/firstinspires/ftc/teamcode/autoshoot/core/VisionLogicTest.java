@@ -12,9 +12,52 @@ import java.util.Random;
 
 import org.junit.Test;
 
+/**
+ * Checks how the robot turns what the Limelight camera sees into facts it can act on: {@link CameraModel} (where the
+ * camera sits and how to convert between camera and robot frames), {@link ClusterAnalyzer} (from AprilTags to 'is this
+ * cell UP or DOWN, how far is the aim point, where am I standing?') and {@link HiveTracker} (the robot's belief about
+ * which cell is UP, kept steady against noise).
+ *
+ * <p>How it works: there is no real camera. The helpers {@code tagWorld} and {@code observe} below are a 'virtual
+ * camera': for a robot position we choose, they work out where each AprilTag would appear (its tx/ty angles and its
+ * position in the robot's frame) and hand that to the real analyzer. Because we chose the position, we know the right
+ * answer and can check it. The HiveTracker tests skip the camera and feed the tracker hand-made readings, one frame at
+ * a time.
+ *
+ * <p>Run it with {@code ./gradlew :TeamCode:testDebugUnitTest} (add {@code --tests "*VisionLogicTest"} to run only this
+ * class).
+ *
+ * <p>Words used in this file:
+ * <ul>
+ *   <li><b>AprilTag, cluster:</b> an AprilTag is a square black-and-white code the camera can read. The four tags
+ *       on one HIVE cell are a 'cluster'.</li>
+ *   <li><b>UP / DOWN:</b> whether a cell is tipped up (scorable) or down. The analyzer says UNKNOWN when it cannot
+ *       tell.</li>
+ *   <li><b>tx, ty:</b> where a tag appears in the camera image, in degrees: tx is how far right of the crosshair,
+ *       ty how far above it.</li>
+ *   <li><b>Azimuth, bearing:</b> the direction to something in the floor plan, as an angle from the robot's forward
+ *       direction (counter-clockwise positive).</li>
+ *   <li><b>Frame:</b> one camera snapshot. A frame is 'new' once and then repeats until the camera delivers the
+ *       next one.</li>
+ *   <li><b>Virtual camera:</b> test code that computes what a real camera WOULD report, so no camera is
+ *       needed.</li>
+ *   <li><b>Hysteresis:</b> the rules for changing a decision are stricter than the rules for keeping it, so one bad
+ *       reading cannot flip it back and forth. HiveTracker needs several agreeing frames before it changes its
+ *       mind.</li>
+ *   <li><b>Tolerance / EPS (epsilon):</b> how far two decimal numbers may differ and still count as equal, to allow
+ *       for rounding. Here one millionth.</li>
+ *   <li><b>Fixture:</b> the shared setup for the tests (the fields below). JUnit builds a fresh copy for every
+ *       test.</li>
+ * </ul>
+ */
 public class VisionLogicTest {
+    /** Allowed rounding error when comparing two decimal numbers: one millionth (inches or radians). */
     private static final double EPS = 1e-6;
 
+    /**
+     * The shared fixture (these four fields): the field map, the camera as mounted (from BioBuzzConstants), the
+     * analyzer settings and the analyzer under test.
+     */
     private final FieldModel field = new FieldModel();
     private final CameraModel camera = CameraModel.fromConstants();
     private final ClusterAnalyzer.Config cfg = ClusterAnalyzer.Config.fromConstants();
@@ -22,7 +65,11 @@ public class VisionLogicTest {
 
     // ------------------------------------------------------------------ a virtual camera
 
-    /** Where tag {@code index} of a cell is in the field for a cell that is UP (row y/z) or DOWN. */
+    /**
+     * Where tag {@code index} of a cell is in the field for a cell that is UP (row y/z) or DOWN.
+     *
+     * @return {x, y, z}: field x, field y and height above the floor, in inches
+     */
     private double[] tagWorld(CellSpec cell, int index, boolean cellIsUp) {
         double x = cell.tagFieldX(index);
         if (cellIsUp) {
@@ -33,13 +80,24 @@ public class VisionLogicTest {
         return new double[]{x, y, cell.downTagRowZ};
     }
 
-    /** What the camera would report for the chosen tags of a cell, seen from the given robot pose. */
+    /**
+     * What the camera would report for the chosen tags of a cell, seen from the given robot pose.
+     *
+     * <p>This is the virtual camera. For each tag it takes the tag's true field position, converts it to the robot's
+     * frame (forward, left, height), optionally adds random noise, and then computes the tx/ty angles a real Limelight
+     * would show, using the real CameraModel. It simplifies: no lens distortion, no tags missed or out of the camera's
+     * view, the tag area is a fixed 0.5, and the noise is added to the 3D position, not to the image pixels.
+     *
+     * @param noiseIn standard deviation of the random noise, in inches (0 = perfect measurements)
+     * @param seed picks the noise pattern; the same seed gives the same numbers, so a test is repeatable
+     */
     private List<TagObservation> observe(Pose2 robot, CellSpec cell, boolean cellIsUp, int[] indexes,
                                          double noiseIn, long seed) {
         Random rng = new Random(seed);
         List<TagObservation> out = new ArrayList<TagObservation>();
         for (int i : indexes) {
             double[] w = tagWorld(cell, i, cellIsUp);
+            // Add bell-curve noise (standard deviation noiseIn inches) to the tag's measured robot-frame position.
             double f = robot.forwardOf(w[0], w[1]) + noiseIn * rng.nextGaussian();
             double l = robot.leftOf(w[0], w[1]) + noiseIn * rng.nextGaussian();
             double u = w[2] + noiseIn * rng.nextGaussian();
@@ -50,10 +108,18 @@ public class VisionLogicTest {
         return out;
     }
 
+    /** The indexes of all four tags of a cell (the tags are numbered 0 to 3 in ID order). */
     private static final int[] ALL = {0, 1, 2, 3};
 
     // ------------------------------------------------------------------ CameraModel
 
+    /**
+     * Situation: 50 random points in the robot frame (a fixed seed, so the same 50 every run) are converted
+     *     robot-to-camera and back again.
+     * Expected: every point comes back to where it started, within 1e-6 in.
+     * Why: if the two conversions are not exact inverses, every distance the camera reports would be off. 1e-6 in is
+     *     floating-point rounding only.
+     */
     @Test
     public void cameraAndRobotFramesRoundTrip() {
         Random rng = new Random(7);
@@ -69,6 +135,15 @@ public class VisionLogicTest {
         }
     }
 
+    /**
+     * Situation: a camera at the robot center, 10 in up, looking out the BACK (yaw 180 degrees) and tilted up
+     *     30 degrees.
+     * Expected: a point 10 in to the image's right is 10 in to the robot's LEFT; a point 100 in along the optical axis
+     *     (the line straight out of the lens) is behind the robot (-100 x cos 30 degrees) and up by 100 x sin
+     *     30 degrees plus the camera height.
+     * Why: our Limelight faces backward like the shooter, so left and right are swapped compared with a front camera.
+     *     Getting that wrong would turn the robot the wrong way when it aligns.
+     */
     @Test
     public void aRearCameraSeesImageRightAsRobotLeftAndTheOpticalAxisPointsBackAndUp() {
         CameraModel rear = new CameraModel(0, 0, 10, 180, 30);
@@ -81,6 +156,13 @@ public class VisionLogicTest {
         assertEquals(10 + 100 * Math.sin(Math.toRadians(30)), ahead[2], EPS); // and up
     }
 
+    /**
+     * Situation: the real camera mount from BioBuzzConstants; a tag exactly in the center of the image, then a tag
+     *     10 degrees to the right of the crosshair.
+     * Expected: the center tag is straight behind the robot (azimuth +180 or -180 degrees, either sign because of tiny
+     *     rounding); the right-of-center tag is back-and-LEFT (between 90 and 180 degrees).
+     * Why: this turns the camera's tx into a direction on the floor, which is what the aiming logic uses.
+     */
     @Test
     public void txOnARearCameraTurnsIntoABearingTowardTheRobotsLeft() {
         double straightBack = camera.azimuthOf(0, 0);
@@ -90,6 +172,14 @@ public class VisionLogicTest {
                 a > Math.PI / 2 && a < Math.PI);
     }
 
+    /**
+     * Situation: a camera tilted up 50 degrees and a tag that is high up (40 in), 40 in behind and 10 in to the side.
+     * Expected: tx, the sideways angle measured in the IMAGE, is smaller than the true floor bearing, atan(10/40) =
+     *     14 degrees.
+     * Why: when the camera looks steeply up, the same sideways distance covers fewer degrees of image width. The camera
+     *     model must account for pitch or the aim error would be wrong. (The 'critic' in the name is a reviewer's
+     *     earlier prediction of this effect.)
+     */
     @Test
     public void txScaleShrinksWithCameraPitchLikeTheCriticPredicted() {
         // A tag straight behind and 10 in to the side, elevated: a pitched camera sees less tx than the real bearing.
@@ -101,6 +191,14 @@ public class VisionLogicTest {
 
     // ------------------------------------------------------------------ ClusterAnalyzer
 
+    /**
+     * Situation: a robot at (55, 14) facing -97 degrees in front of the RED audience cell. The virtual camera shows any
+     *     subset of that cell's four tags (all four, pairs, even a single tag) with zero noise.
+     * Expected: exactly one view, for that cell, reading UP with full geometry; its range to the aim point, its aim
+     *     error and the robot position it implies all equal the true values.
+     * Why: this proves the geometry maths is right and that any subset of tags works, because tags can be hidden by
+     *     other robots or leave the camera's view. 1e-6 is rounding error only, since there is no noise.
+     */
     @Test
     public void anUpClusterGivesExactRangeBearingAndImpliedPositionFromAnyVisibleSubset() {
         Pose2 robot = Pose2.ofDegrees(55.0, 14.0, -97.0);
@@ -108,6 +206,7 @@ public class VisionLogicTest {
         double trueRange = ShotGeometry.rangeTo(robot, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
         double trueAimError = ShotGeometry.aimError(robot, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
 
+        // Every kind of partial view: all four tags, neighbouring pairs, the outer pair, and a single tag.
         int[][] subsets = {ALL, {0, 1}, {2, 3}, {1, 2}, {0, 3}, {3}};
         for (int[] subset : subsets) {
             List<ClusterView> views = analyzer.analyze(Alliance.RED, robot.heading,
@@ -124,6 +223,13 @@ public class VisionLogicTest {
         }
     }
 
+    /**
+     * Situation: a robot at (62, 124) facing 84 degrees, behind the RED rear cell, seeing all four of its tags.
+     * Expected: the same results as on the audience side: reading UP, the implied position equals the true position,
+     *     and the range is correct.
+     * Why: the rear cluster's sticker is turned half a turn, so its tag IDs run the other way. This checks the code
+     *     handles that.
+     */
     @Test
     public void theFarSideClusterWorksTheSameWayFromTheRearOfTheHive() {
         Pose2 robot = Pose2.ofDegrees(62.0, 124.0, 84.0);
@@ -138,6 +244,13 @@ public class VisionLogicTest {
                 v.rangeIn, 1e-6);
     }
 
+    /**
+     * Situation: the BLUE robot (the half-turn of a red pose) sees BLUE's rear cluster and, in the same frame, an
+     *     opponent (RED audience) cluster.
+     * Expected: analyzing for BLUE returns only BLUE's cell, reading UP, with the true implied position; analyzing the
+     *     same tags for RED returns exactly one view (the red cluster).
+     * Why: only our own alliance's HIVE should drive decisions. The opponent's tags must be ignored.
+     */
     @Test
     public void blueClustersAreHandledIdenticallyAndRedTagsAreIgnoredForBlue() {
         Pose2 red = Pose2.ofDegrees(55.0, 14.0, -97.0);
@@ -155,6 +268,12 @@ public class VisionLogicTest {
         assertEquals(1, analyzer.analyze(Alliance.RED, red.heading, tags).size());
     }
 
+    /**
+     * Situation: the robot is on the audience side; the RED rear cell is DOWN and its sticker is seen across the gap.
+     * Expected: one view reading DOWN, with no geometry (no range or implied position is computed for a DOWN cell).
+     * Why: a DOWN cell cannot be shot into. Its tags give themselves away twice: the IDs run right to left, and they
+     *     are lower (about 36 in instead of 50 in).
+     */
     @Test
     public void aDownClusterSeenAcrossTheGapReadsDownByOrderAndHeight() {
         // Robot on the audience side; the red REAR cell is DOWN, its sticker seen across the gap.
@@ -166,6 +285,12 @@ public class VisionLogicTest {
         assertFalse(views.get(0).hasGeometry);
     }
 
+    /**
+     * Situation: only tag 1 of a cell is visible (once an UP cell, once a DOWN cell).
+     * Expected: with no second tag to judge the left-to-right order, height alone decides: the UP tag reads UP and the
+     *     DOWN tag reads DOWN.
+     * Why: the camera often sees just one tag.
+     */
     @Test
     public void aSingleTagIsClassifiedByItsHeightAlone() {
         Pose2 robot = Pose2.ofDegrees(59.0, 15.0, -90.0);
@@ -177,6 +302,13 @@ public class VisionLogicTest {
         assertEquals(ClusterView.Orientation.DOWN, down.orientation);
     }
 
+    /**
+     * Situation: tags whose left-to-right ORDER looks like an UP cell but whose measured HEIGHT is the DOWN height.
+     * Expected: the reading is UNKNOWN.
+     * Why: the two clues are independent. When they disagree something is wrong (a reflection, a bad 3D estimate), so
+     *     the robot says 'unknown' instead of guessing. An UNKNOWN reading never counts as evidence that a cell is UP
+     *     (rule G417: only launch into an UP cell).
+     */
     @Test
     public void disagreementBetweenOrderAndHeightMeansUnknown() {
         Pose2 robot = Pose2.ofDegrees(59.0, 15.0, -90.0);
@@ -195,10 +327,18 @@ public class VisionLogicTest {
         assertEquals(ClusterView.Orientation.UNKNOWN, v.orientation);
     }
 
+    /** Returns the cell it is given (an identity helper; it only makes the line above read as 'the cell'). */
     private static CellSpec cell(CellSpec c) {
         return c;
     }
 
+    /**
+     * Situation: four tags whose measured height is 5 in, far from both the UP row (about 50 in) and the DOWN row
+     *     (about 36 in) by more than TAG_HEIGHT_TOLERANCE_IN.
+     * Expected: the reading is UNKNOWN.
+     * Why: a tag that low is probably a reflection or a false detection. It must not be used to locate the robot or to
+     *     approve a shot.
+     */
     @Test
     public void implausibleTagHeightsAreRejected() {
         Pose2 robot = Pose2.ofDegrees(59.0, 15.0, -90.0);
@@ -214,6 +354,14 @@ public class VisionLogicTest {
         assertEquals(ClusterView.Orientation.UNKNOWN, analyzer.analyze(Alliance.RED, robot.heading, tags).get(0).orientation);
     }
 
+    /**
+     * Situation: 40 runs, each with different random noise (standard deviation 0.5 in) added to every tag's measured
+     *     position.
+     * Expected: every run still reads UP, and the worst range error over the 40 runs is under 1.5 in.
+     * Why: real 3D tag positions are noisy, and the flywheel speed depends on the range, so the logic must still give a
+     *     usable range. The fixed seeds 1 to 40 make the result the same on every run, so the test cannot fail at
+     *     random.
+     */
     @Test
     public void halfAnInchOfMeasurementNoiseGivesAnInchOfRangeAccuracy() {
         Pose2 robot = Pose2.ofDegrees(55.0, 14.0, -97.0);
@@ -225,9 +373,18 @@ public class VisionLogicTest {
             assertEquals(ClusterView.Orientation.UP, v.orientation);
             worst = Math.max(worst, Math.abs(v.rangeIn - trueRange));
         }
+        // 1.5 in is three times the 0.5 in noise: a generous bound that averaging four tags normally beats.
         assertTrue("worst range error " + worst, worst < 1.5);
     }
 
+    /**
+     * Situation: a robot at (52, 14) facing -90 degrees sees all four tags of the RED audience cell, but they are
+     *     stripped down to bearing only (angles tx/ty, no 3D position).
+     * Expected: the reading is still UP (from the left-to-right tag order alone), hasGeometry is false (no range),
+     *     hasBearing is true, and the aim error is under 20 degrees.
+     * Why: if the camera gives only angles, the robot can still turn toward the HIVE even though it cannot measure the
+     *     distance.
+     */
     @Test
     public void bearingOnlyTagsStillGiveAnAimErrorButNoRange() {
         Pose2 robot = Pose2.ofDegrees(52.0, 14.0, -90.0);
@@ -242,24 +399,44 @@ public class VisionLogicTest {
         assertEquals(ClusterView.Orientation.UP, v.orientation);
         assertFalse(v.hasGeometry);
         assertTrue(v.hasBearing);
-        // The cluster centre is 7.2 in to the robot's right here, so the shooter must turn to bring it behind.
+        // The cluster center (x = 59.25) is about 7 in to the robot's LEFT here (heading -90 degrees, so robot-left is
+        // field +x; on the rear camera's image it appears on the right) and about 39 in behind the camera, so the true
+        // bearing is about 10 degrees. The shooter must turn that much to point at it. 20 degrees is a loose bound.
         assertTrue(Math.abs(Math.toDegrees(v.aimErrorRad)) < 20);
     }
 
     // ------------------------------------------------------------------ HiveTracker
 
+    /**
+     * A camera snapshot with a healthy link, no tags and a 0.03 s old image, read at time {@code now}. {@code fresh}
+     * says whether it is a NEW image (true) or a repeat of the previous one (false).
+     */
     private static VisionFrame frame(double now, boolean fresh) {
         return new VisionFrame(VisionFrame.Status.OK, fresh, 0.03, now, Collections.<TagObservation>emptyList());
     }
 
+    /**
+     * A hand-made ClusterView that carries only the cell and the UP/DOWN/UNKNOWN reading (four tags, no geometry), so
+     * the tracker tests need no camera simulation.
+     */
     private ClusterView view(CellSpec cell, ClusterView.Orientation o) {
         return new ClusterView(cell, 4, o, false, Double.NaN, Double.NaN, Double.NaN, Double.NaN, false, Double.NaN, Double.NaN);
     }
 
+    /**
+     * A fresh HiveTracker for the RED alliance with the real settings. It starts believing the AUDIENCE cell is up,
+     * unconfirmed.
+     */
     private HiveTracker tracker() {
         return new HiveTracker(field, Alliance.RED, HiveTracker.Config.fromConstants());
     }
 
+    /**
+     * Situation: a new tracker for RED, then one new frame in which the AUDIENCE cell reads UP.
+     * Expected: before the frame it believes AUDIENCE is up (the match-start state) but unconfirmed; the matching
+     *     sighting returns CONFIRMED and the tracker becomes confirmed, still on AUDIENCE.
+     * Why: the controller will not feed until the camera (or the driver) has confirmed which cell is up (rule G417).
+     */
     @Test
     public void theTrackerStartsFromTheSetupFigureAndGetsConfirmedByTheFirstSighting() {
         HiveTracker t = tracker();
@@ -271,6 +448,14 @@ public class VisionLogicTest {
         assertEquals(Side.AUDIENCE, t.upSide());
     }
 
+    /**
+     * Situation: the tracker believes AUDIENCE, but frames keep saying the REAR cell is UP: new frames at 1.00 s and
+     *     1.05 s, a repeated (not new) frame at 1.06 s, and a new frame at 1.20 s.
+     * Expected: nothing changes until the third new frame; then the result is CHANGED_BY_VISION, the belief is REAR, it
+     *     is confirmed, and changeCount is 1.
+     * Why: hysteresis: one bad frame must not send the robot to the far side of the field. The tracker wants
+     *     HIVE_CONFIRM_FRAMES agreeing new frames spread over at least HIVE_CONFIRM_SEC.
+     */
     @Test
     public void disagreementNeedsSeveralNewFramesAndTimeBeforeTheBeliefChanges() {
         HiveTracker t = tracker();
@@ -285,6 +470,11 @@ public class VisionLogicTest {
         assertEquals(1, t.changeCount());
     }
 
+    /**
+     * Situation: three new frames in which the AUDIENCE cell reads DOWN while the tracker believes AUDIENCE is up.
+     * Expected: after the third frame (0.2 s after the first) the belief switches to REAR (CHANGED_BY_VISION).
+     * Why: the two cells of a HIVE are always opposite, so 'this one is DOWN' means 'the other one is UP'.
+     */
     @Test
     public void aDownReadingOfOneCellMeansTheOtherCellIsUp() {
         HiveTracker t = tracker();
@@ -295,6 +485,11 @@ public class VisionLogicTest {
         assertEquals(Side.REAR, t.upSide());
     }
 
+    /**
+     * Situation: ten new frames in which BOTH cells read UP (impossible).
+     * Expected: no event at all; the belief stays AUDIENCE and stays unconfirmed.
+     * Why: contradictory evidence is thrown away rather than guessed at.
+     */
     @Test
     public void conflictingClustersInOneFrameAreIgnored() {
         HiveTracker t = tracker();
@@ -308,6 +503,13 @@ public class VisionLogicTest {
         assertFalse(t.confirmed());
     }
 
+    /**
+     * Situation: the UP cluster is seen steadily for about 0.6 s; then every frame is empty while the robot stays on
+     *     that side with a healthy camera.
+     * Expected: within 0.8 s the tracker reports SUSPECTED_TIP, flips its belief to REAR and marks it unconfirmed.
+     * Why: when a HIVE tips, its tags turn away and vanish. That is how the robot learns that the cell it was shooting
+     *     into is no longer UP (rules G417 and G409).
+     */
     @Test
     public void tagsSeenSteadilyThenLostFromTheUpSideSuggestATip() {
         HiveTracker t = tracker();
@@ -328,6 +530,14 @@ public class VisionLogicTest {
         assertFalse(t.confirmed());
     }
 
+    /**
+     * Situation: three trackers that each saw the UP cluster steadily and then lost it: (1) the robot is on the OTHER
+     *     side of the HIVE, (2) the camera link has stalled, (3) the tags are missing for only 0.2 s and then come
+     *     back.
+     * Expected: no tip is suspected in any case; the belief stays AUDIENCE.
+     * Why: tags also vanish for harmless reasons (we cannot see that cluster from the other side, no camera data, a
+     *     one-frame glitch). Flipping the belief then would send the robot off to the wrong side.
+     */
     @Test
     public void lossIsNotATipFromTheWrongSideOrWithADeadCameraOrAfterABriefGlitch() {
         List<ClusterView> seen = Collections.singletonList(view(field.cell(Alliance.RED, Side.AUDIENCE), ClusterView.Orientation.UP));
@@ -372,6 +582,15 @@ public class VisionLogicTest {
         assertEquals(Side.AUDIENCE, glitch.upSide());
     }
 
+    /**
+     * Situation: the driver toggles the belief (D-pad down); then the 'cell never seen' flip happens; then the driver
+     *     forces a side. Finally the tracker is asked which side of the HIVE a pose is on.
+     * Expected: toggle gives REAR with CHANGED_BY_DRIVER, and the driver's word counts as confirmed; flipBecauseUnseen
+     *     goes back to AUDIENCE, unconfirmed; forceUp(AUDIENCE) keeps AUDIENCE. sideOf says AUDIENCE for y = 20 and
+     *     REAR for y = 110 (the field center is y = 72).
+     * Why: the driver can see the real HIVE, so their word wins. It is also the way forward when the camera is not
+     *     working.
+     */
     @Test
     public void theDriverCanForceOrToggleTheBelief() {
         HiveTracker t = tracker();
