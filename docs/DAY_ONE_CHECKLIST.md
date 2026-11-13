@@ -74,11 +74,19 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       POLLEN over the lip of its ring, and write down:
       - Which wheel touches the POLLEN, the left or the right one (the routes name it: `IntakeWheel.LEFT` or `RIGHT`),
         and how far the robot has to stand to that side of the FLOWER's center line (should equal the wheel offset).
-      - How far the wheel presses into the POLLEN: `Auto.FLOWER_PRESS_DEPTH_IN` (1.25 in is the guess: the wheel tip stops
-        1.25 in past the POLLEN's near edge). Too shallow does not roll it, too deep jams it against the closed wall.
+      - How far the wheel presses into the POLLEN: `Auto.FLOWER_PRESS_DEPTH_IN` (1.201 in is the guess: the wheel tip stops
+        1.2 in past the POLLEN's near edge, 2.83 in from the wall). Too shallow does not roll it, too deep jams it against the
+        closed wall.
       - The **standoff**: with the wheel properly pressed in, the gap between the chassis frame and the FLOWER plate,
-        `Auto.FLOWER_CHASSIS_CLEARANCE_IN` (0.5 in is the guess). The plate is 4.75 in deep, so the chassis front
-        should stand at about 5.25 in from the wall; if it is closer, the chassis touches the plate.
+        `Auto.FLOWER_CHASSIS_CLEARANCE_IN` (0.5 in is the guess). The plate's field-side edge is 5.033 in from the wall (the
+        CAD: 4.871 in deep, standing 0.162 in off the wall; the manual says 4.75), so the chassis front should stand at about
+        5.53 in from the wall; if it is closer, the chassis touches the plate.
+      - The real FLOWER, with a tape: the distance from the wall to the middle of the POLLEN stack (the CAD says 2.634 in, the
+        manual 2.4 in), the diameter of the hole the bottom POLLEN sits in (CAD 3.04 in, manual 2.79 in: the code plans with the
+        smaller one) and the height of the ring's lip (CAD 0.35 in, manual 0.43 in).
+      - The wall bracket: which parts of YOUR robot are taller than 11.44 in, and how far from the front or side edge they are. The
+        FLOWER's black bracket sticks out 1.67 in from the wall at 11.44 to 11.84 in above the floor and is 6.67 in long (0.36 in
+        longer than the plate at each end); a robot part in that height band within 1.67 in of the wall touches it.
       - How straight and how centered the robot must be for it to work: `Auto.FLOWER_HEADING_TOLERANCE_DEG` (5°)
         and `Auto.FLOWER_ALIGN_TOLERANCE_IN` (1 in), and how long the slow approach and the retreat should be
         (`FLOWER_APPROACH_LENGTH_IN`, `FLOWER_RETREAT_LENGTH_IN`, 6 in each) at what speed

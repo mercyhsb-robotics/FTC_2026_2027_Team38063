@@ -93,6 +93,16 @@ public final class AllianceField {
         return plates.get(index).inflate(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN);
     }
 
+    /**
+     * The footprint of the wall bracket of FLOWER {@code index}: a box from the wall out to {@code Field.FLOWER_BRACKET_PROTRUSION_IN}
+     * (1.67 in), {@code FLOWER_BRACKET_ALONG_WALL_IN} (6.67 in) long, centered on the FLOWER. It is at 11.44 to 11.84 in above the
+     * tile, so only a part of the robot taller than that can touch it; it reaches 0.36 in past each end of the plate.
+     */
+    public Rect flowerBracket(int index) {
+        return alongWallBox(flowerWallPoint(index), flowerInward(index), BioBuzzConstants.Field.FLOWER_BRACKET_ALONG_WALL_IN / 2.0,
+                BioBuzzConstants.Field.FLOWER_BRACKET_PROTRUSION_IN);
+    }
+
     /** The center of FLOWER {@code index}. */
     public Point2 flowerCenter(int index) {
         double[] c = BioBuzzConstants.Field.FLOWER_CENTERS_IN[index];

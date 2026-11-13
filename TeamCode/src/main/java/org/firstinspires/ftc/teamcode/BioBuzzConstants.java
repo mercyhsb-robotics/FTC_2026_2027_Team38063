@@ -1119,6 +1119,47 @@ public final class BioBuzzConstants {
         public static final double FLOWER_KEEPOUT_ALONG_WALL_IN = FLOWER_PLATE_ALONG_WALL_IN;
         /** Derived (the plate): FLOWER keep-out depth out from the wall, 5.033 in. */
         public static final double FLOWER_KEEPOUT_DEPTH_IN = FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN;
+
+        // ---- the rest of the FLOWER, from the CAD (what a 12.13 in tall robot can meet) ---------------------------------
+        // The FLOWER stands on the wall as a stack: the bottom ring on the tile (z 0 to 0.354 in), two supports with the retrieval
+        // opening between them (z 0.354 to 3.904), the middle ring (z 3.904 to 5.254), four green pipes (z 4.25 to 21.25) and the
+        // top ring (z 20.254 to 21.404, hole 3.99 in), with the backstop 1 in above it. The robot meets only the part below its own
+        // height: the plate, the supports, the middle ring, the pipes (their centers are 1.725 in either side of the POLLEN stack,
+        // 2.40 in apart, closer than a POLLEN is wide) and the wall bracket.
+
+        /** FIXED (CAD, the hole of the bottom ring; the CAD POLLEN, 2.80 in, sits on the tile inside it): 3.04 in. The manual disagrees, see below. */
+        public static final double FLOWER_BOTTOM_HOLE_CAD_IN = 3.04;
+        /** FIXED (manual 9.7, "Bottom Ring ID"): 2.79 in, 0.25 in smaller than the CAD (we could not reconcile them: the CAD researcher trusts the CAD, because a 2.80 in ball cannot sit in a 2.79 in hole). */
+        public static final double FLOWER_BOTTOM_HOLE_MANUAL_IN = 2.79;
+        /**
+         * The hole diameter used for ANY clearance decision: the SMALLER of the two figures, 2.79 in. The two sources disagree by
+         * 0.25 in and nobody has measured a real ring, so a decision that depends on how much room the bottom POLLEN has (how hard a
+         * wheel must push to roll it out, whether a part of the robot can reach into the ring) must assume the tight one: if it works
+         * with 2.79 in it works with 3.04 in too. (A POLLEN is 2.8 in, so with the manual's hole it is held, not loose.)
+         */
+        public static final double FLOWER_BOTTOM_HOLE_PLANNING_IN = FLOWER_BOTTOM_HOLE_CAD_IN < FLOWER_BOTTOM_HOLE_MANUAL_IN
+                ? FLOWER_BOTTOM_HOLE_CAD_IN : FLOWER_BOTTOM_HOLE_MANUAL_IN;
+        /** FIXED (CAD; the manual says about 0.43 in): the lip of the bottom ring stands 0.354 in above the tile; the POLLEN has to be rolled over it. Use 0.43 in when you size a lift. */
+        public static final double FLOWER_BOTTOM_RING_LIP_CAD_IN = 0.354;
+        /** FIXED (CAD, manual 9.7 agrees: 3.55): the retrieval opening, between the bottom ring and the middle ring, is 3.55 in tall ... */
+        public static final double FLOWER_RETRIEVAL_OPENING_HEIGHT_IN = 3.55;
+        /** FIXED (CAD; the manual says 3.57): ... and 3.58 in deep, measured from the supports' field-side face to the edge of the ring. The POLLEN leaves toward the field and along the wall. */
+        public static final double FLOWER_RETRIEVAL_OPENING_DEPTH_IN = 3.58;
+        /** FIXED (CAD, verified by a second derivation): the middle ring's hole is at least 3.76 in wide anywhere and about 3.86 to 3.91 in through most of its height (not 3.4 as a first reading said), so even a 3.6 in NECTAR passes it: what keeps NECTAR in is the bottom hole and the retrieval opening. */
+        public static final double FLOWER_MIDDLE_RING_HOLE_MIN_IN = 3.76;
+
+        /**
+         * FIXED (CAD, the black "Field Bracket" that holds the FLOWER to the wall): the bracket sticks out 1.67 in from the wall face ...
+         * It is only 0.4 in tall, at 11.437 to 11.837 in above the tile, which is INSIDE the 12.13 in the robot is tall: a part of
+         * the robot that is taller than 11.44 in and within 1.67 in of the wall next to a FLOWER can touch it.
+         */
+        public static final double FLOWER_BRACKET_PROTRUSION_IN = 1.67;
+        /** FIXED (CAD): ... and the bracket is 6.67 in long along the wall (the plate is 5.95), so it reaches 0.36 in past each end of the plate. */
+        public static final double FLOWER_BRACKET_ALONG_WALL_IN = 6.67;
+        /** FIXED (CAD): the bottom of the bracket, 11.437 in above the tile ... */
+        public static final double FLOWER_BRACKET_BOTTOM_Z_IN = 11.437;
+        /** FIXED (CAD): ... and its top, 11.837 in. */
+        public static final double FLOWER_BRACKET_TOP_Z_IN = 11.837;
     }
 
     // =========================================================================================

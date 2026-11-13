@@ -28,7 +28,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *   <li><b>START, G304.</b> The whole robot footprint (the perimeter rectangle, NOT centered on the pose point: see {@code RobotShape}, at the
  *       start heading) is inside the field and inside the own half, touches a perimeter wall (within
  *       {@code START_WALL_CONTACT_TOLERANCE_IN}), and is not in the own LOADING ZONE (G304.E), not touching
- *       a FLOWER (G304.D) and not attached to the HIVE frame (G304.B).</li>
+ *       a FLOWER (G304.D) and not attached to the HIVE frame (G304.B). A start that stands clear of a FLOWER plate but over
+ *       the end of its wall bracket (it is 0.36 in longer than the plate, at a height the robot reaches) is a WARN.</li>
  *   <li><b>Every leg, 9.2/G412, G417/G409, G415.</b> Every DRIVE leg and every unplanned move to an INTAKE,
  *       SHOOT or PARK pose is swept by {@link Sweep}: sampled every {@code PATH_SAMPLE_STEP_IN} (and every
  *       {@code TURN_SAMPLE_STEP_DEG} while turning) and proven not to miss anything between two samples. The footprint
@@ -180,6 +181,14 @@ public final class RouteValidator {
             if (fp.overlaps(f.flowerPlates().get(i))) {
                 out.add(error(0, Rule.START_G304, at + " touches FLOWER " + (i + 1)
                         + "; a start may not contact a FLOWER (G304.D)"));
+            } else if (BioBuzzConstants.Robot.HEIGHT_IN > BioBuzzConstants.Field.FLOWER_BRACKET_BOTTOM_Z_IN
+                    && fp.overlaps(f.flowerBracket(i))) {
+                // The bracket is longer than the plate, so a robot can stand clear of the plate and still be over the bracket.
+                out.add(warn(0, Rule.START_G304, at + " is over the wall bracket of FLOWER " + (i + 1) + " (it sticks out "
+                        + in(BioBuzzConstants.Field.FLOWER_BRACKET_PROTRUSION_IN) + " from the wall, " + in(BioBuzzConstants.Field.FLOWER_BRACKET_ALONG_WALL_IN)
+                        + " along it, at " + in(BioBuzzConstants.Field.FLOWER_BRACKET_BOTTOM_Z_IN) + " to " + in(BioBuzzConstants.Field.FLOWER_BRACKET_TOP_Z_IN)
+                        + " above the floor): any part of the robot taller than " + in(BioBuzzConstants.Field.FLOWER_BRACKET_BOTTOM_Z_IN)
+                        + " there would be touching the FLOWER (G304.D). Slide the start along the wall"));
             }
         }
         if (fp.overlaps(f.hiveFrame())) {

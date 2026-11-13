@@ -154,7 +154,7 @@ Two rules of thumb that the validator enforces:
 | Start | G304 | outside the field (a start whose real outline pokes through a wall: the finding says how far the pose is from the wall and where the robot's edge that faces it lies), outside the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
 | Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the front corners sweep out to 13.22 in from the center of rotation), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
 | HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the floor area of its rails and legs, 49.46 x 38.95 in). The gaps under and inside the frame count as solid: a 12.13 in robot might physically fit between the legs, but nobody has measured the real frame, so no route goes there. A DOWN cell hangs out past the frame by up to 5.4 in, but only 30.6 in up or higher, so it is not an obstacle | |
-| FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.75 x 5.87 in). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its press-in (next row): the chassis, the other wheel and every other step stay out | |
+| FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.871 x 5.95 in, its field-side edge 5.033 in from the wall; the 6.67 in long wall bracket above it counts too, see below). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its press-in (next row): the chassis, the other wheel and every other step stay out | |
 | FLOWER press-in | 9.7, G415 | the chassis comes within 0.5 in of the plate; the pressing wheel goes past the **press stop line**; the wheels are too short to reach it (the finding says how many inches are missing); the line-up heading is more than 5 degrees off "facing the wall squarely"; the middle of the pressing wheel is more than 1 in from the FLOWER's center line; the final approach is shorter than 6 in | the retreat is shorter than 6 in |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
 | POLLEN | G407 | more than 4 held, firing more than held, taking from the other alliance's GARDEN or FLOWER | a source that is empty or that does not exist; a floor intake before anything was shot |
@@ -181,8 +181,10 @@ the last pose of every leg are always tested, and so is the last pose of a turn 
 
 ## Taking POLLEN from a FLOWER (the press-in)
 
-The bottom POLLEN of a FLOWER sits in a small hole of a ring that is 0.43 in tall. To get it out, a wheel has to push it
-**up and over the edge of that ring** (the "lip"). Our two flat wheels can do that only if one of them **presses into
+The bottom POLLEN of a FLOWER sits in the hole of a ring that is about 0.4 in tall (0.354 in in the official CAD, about
+0.43 in in the manual). The hole is 3.04 in wide in the CAD and 2.79 in in the manual: nobody has measured a real one, so
+every decision about how much room the ball has uses the **smaller** figure (a decision that works with 2.79 in also works
+with 3.04 in). To get the ball out, a wheel has to push it **up and over the edge of that ring** (the "lip"). Our two flat wheels can do that only if one of them **presses into
 the POLLEN**. So a FLOWER intake is not a drive-by and not a drive through the plate:
 
 1. the robot lines up **facing the wall**, with the middle of ONE flat wheel on the FLOWER's center line (the other wheel
@@ -198,22 +200,27 @@ LEFT wheel does the pressing, so the robot stands 6.1 in to the left of the FLOW
 ```
         +-----------------------------+
         |           CHASSIS           |      the body, 17.8 in wide: never inside the plate
-        +-----------------------------+      <- chassis front: 5.25 in from the wall (plate 4.75 + 0.5)
+        +-----------------------------+      <- chassis front: 5.533 in from the wall (plate edge 5.033 + 0.5)
           ##                     ##          the two flat wheels stick out 2.7 in in front of the chassis
-          ##                  +--##---+      <- plate top: 4.75 in from the wall. Only ONE wheel goes in
-                              | (##)  |      <- wheel tip: 2.55 in from the wall = 1.25 in into the POLLEN
-  =======================================    the field wall (the POLLEN is 1.0 to 3.8 in from it)
+          ##                  +--##---+      <- plate edge: 5.033 in from the wall. Only ONE wheel goes in
+                              | (##)  |      <- wheel tip: 2.833 in from the wall = 1.201 in into the POLLEN
+  =======================================    the field wall (the POLLEN is 1.234 to 4.034 in from it)
 ```
 
 What the validator holds you to (the numbers are `BioBuzzConstants`, all marked **ADD** because nobody has measured
 them on the robot yet):
 
 * **The chassis never touches a plate** (it stays 0.5 in off, `Auto.FLOWER_CHASSIS_CLEARANCE_IN`), and **only the one
-  pressing wheel may go into the plate**, and only as far as the **press stop line**: the POLLEN's far edge (3.8 in from
-  the wall) minus `Auto.FLOWER_PRESS_DEPTH_IN` (1.25 in) = 2.55 in, never closer than the POLLEN's center line (2.4 in).
-* **The wheels must be long enough.** With the chassis 5.25 in from the wall, the wheel tip is at 5.25 minus the
-  reach. `Robot.INTAKE_REACH_IN` is 2.7 in, which gives exactly 2.55 in. If the real wheels reach less, the validator
+  pressing wheel may go into the plate**, and only as far as the **press stop line**: the POLLEN's far edge (4.034 in from
+  the wall) minus `Auto.FLOWER_PRESS_DEPTH_IN` (1.201 in) = 2.833 in, never closer than the POLLEN's center line (2.634 in).
+* **The wheels must be long enough.** With the chassis 5.533 in from the wall, the wheel tip is at 5.533 minus the
+  reach. `Robot.INTAKE_REACH_IN` is 2.7 in, which gives exactly 2.833 in. If the real wheels reach less, the validator
   says **how many inches are missing**.
+* **Mind the wall bracket.** The FLOWER is held to the wall by a black bracket that sticks out 1.67 in from the wall at 11.44
+  to 11.84 in above the floor. That is inside the robot's 12.13 in, so any part of the robot that is taller than 11.44 in
+  and within 1.67 in of the wall can touch it. The bracket is 6.67 in long, 0.36 in longer than the plate at each end: the
+  0.5 in keep-out margin around the plate covers that for driving, and a start that stands clear of the plate but over the
+  end of the bracket gets a WARN (G304.D).
 * **Square and centered.** The robot faces the wall within 5 degrees (`Auto.FLOWER_HEADING_TOLERANCE_DEG`) and the
   middle of the pressing wheel is within 1 in of the FLOWER's center line (`Auto.FLOWER_ALIGN_TOLERANCE_IN`).
 * **Straight, slow in and out.** At least 6 in of straight final approach (`Auto.FLOWER_APPROACH_LENGTH_IN`) at 30 %
@@ -222,7 +229,7 @@ them on the robot yet):
 * **Walls and the HIVE still count in every one of these moves.** Nothing of the robot goes into a wall, and the
   body keeps out of the HIVE keep-out, during the press-in as everywhere else.
 
-You write only `intakeFlower(2.4, 48.0, IntakeWheel.LEFT, 4)`; the program works out the line-up pose, the press pose
+You write only `intakeFlower(2.634, 47.281, IntakeWheel.LEFT, 4)` (the center of the FLOWER on the red wall); the program works out the line-up pose, the press pose
 and the retreat pose. The step ends at the retreat pose, where the next step continues. In the diagram the robot is
 drawn **pressed in**, the pressing wheel has a green ring, a short solid arrow runs along the wheel's path into the
 POLLEN and a dotted arrow shows the retreat.
