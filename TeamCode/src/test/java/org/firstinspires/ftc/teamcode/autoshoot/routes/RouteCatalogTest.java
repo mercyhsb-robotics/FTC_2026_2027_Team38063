@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
 import org.junit.Test;
@@ -197,6 +198,28 @@ public class RouteCatalogTest {
         assertEquals(91.5, p2.target().y, 1e-9);
         for (Step s : r.steps()) {
             assertFalse("the old LeavePark never shoots", s.kind() == StepKind.SHOOT);
+        }
+    }
+
+    /**
+     * The notes of the converted autos quote how far the final footprint reaches into the LOADING ZONE. Those numbers
+     * depend on the robot size, so they went stale once already: this keeps them honest.
+     */
+    @Test
+    public void theParkNotesQuoteTheOverlapsTheGeometryGives() {
+        for (String id : new String[] {RouteCatalog.RED_B1, RouteCatalog.RED_C1, RouteCatalog.RED_LEAVE_PARK}) {
+            AutoRoute r = RouteCatalog.byId(id);
+            RouteAnalysis a = r.analyze();
+            Rect c = Footprint.of(a.endPose()).clippedBounds(a.field().ownLoadingZone());
+            String w = String.format(java.util.Locale.ROOT, "%.1f", c.maxX - c.minX);
+            String h = String.format(java.util.Locale.ROOT, "%.1f", c.maxY - c.minY);
+            String shallow = String.format(java.util.Locale.ROOT, "%.1f", Math.min(c.maxX - c.minX, c.maxY - c.minY));
+            String note = r.step(r.size() - 1).note();
+            if (id.equals(RouteCatalog.RED_C1)) {
+                assertTrue(note, note.contains(w + " x " + h + " in"));
+            } else {
+                assertTrue(id + ": " + note, note.contains(shallow + " in"));
+            }
         }
     }
 

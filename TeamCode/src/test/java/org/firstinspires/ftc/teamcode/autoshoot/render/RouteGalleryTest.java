@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
@@ -181,7 +182,8 @@ public class RouteGalleryTest {
             assertEquals(2, imgs.size());
             assertEquals(r.id() + "_red.svg", imgs.get(0).getAttribute("src"));
             assertEquals(r.id() + "_blue.svg", imgs.get(1).getAttribute("src"));
-            assertEquals("900", imgs.get(0).getAttribute("width"));
+            assertEquals(SvgWriter.n(BioBuzzConstants.Auto.RENDER_CANVAS_PX), imgs.get(0).getAttribute("width"));
+            assertEquals(SvgWriter.n(BioBuzzConstants.Auto.RENDER_CANVAS_PX), imgs.get(0).getAttribute("height"));
             for (Element img : imgs) {
                 assertTrue("alt text names the route and the alliance: " + img.getAttribute("alt"),
                         img.getAttribute("alt").contains(r.title()) && img.getAttribute("alt").contains("alliance"));
@@ -249,7 +251,8 @@ public class RouteGalleryTest {
         assertTrue(html.contains("@media (prefers-color-scheme: dark)"));
         assertTrue(html.contains("color-scheme: light dark"));
         assertTrue(html.contains("var(--bg)"));
-        assertTrue(html.contains("--red: #c62828"));
+        assertTrue("the page uses the same inks as the diagrams", html.contains("--red: " + BioBuzzConstants.Auto.RENDER_INK_RED)
+                && html.contains("--blue: " + BioBuzzConstants.Auto.RENDER_INK_BLUE));
         assertFalse("no scripts", html.contains("<script"));
         assertFalse("nothing is fetched from the internet", html.contains("http://") || html.contains("https://") || html.contains("//cdn"));
         assertFalse("no @import", html.contains("@import"));
