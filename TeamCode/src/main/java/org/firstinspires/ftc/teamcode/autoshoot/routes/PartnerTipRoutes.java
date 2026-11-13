@@ -10,9 +10,12 @@ import java.util.List;
  * tip needs 8 POLLEN: two volleys of 4, with a fetch from a FLOWER in between.
  *
  * <p>To add a route, write ONE entry in {@link #routes()} that starts with {@code partnerTipsFirst()}, uses
- * {@code waitForTip(timeoutSeconds)} before the first shot at the cell that comes up, and stays out of the spill zone
- * of the cell that tips (rule G409; the validator checks both). The drive team must agree the assumed tip time with
- * the partner team before the match. Routes that shoot the first tip themselves go to {@link SelfTipRoutes}.
+ * {@code waitForTip(giveUpSec)} before the first shot at the cell that comes up, and stays out of the spill zone of
+ * the cell that tips (rule G409; the validator checks both, and refuses a shot at that cell without the wait: the
+ * robot shoots after its camera has SEEN the cell UP, never because of a time). {@code giveUpSec} is a time on the
+ * route clock; the gallery shows the latest one that still lets the route finish and the latest partner tip that
+ * still works. The drive team must agree the assumed tip time with the partner team before the match. Routes that
+ * shoot the first tip themselves go to {@link SelfTipRoutes}.
  * {@link RouteCatalog#all()} lists the routes of this file last; route ids must be unique across the catalog.
  *
  * <p>No route is in this file yet.

@@ -51,10 +51,13 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       it by less than {@code PARK_MIN_OVERLAP_IN} is a WARN.</li>
  *   <li><b>Unplanned moves.</b> An explicit INTAKE/SHOOT/PARK pose farther than {@code IMPLICIT_MOVE_WARN_IN}
  *       from where the robot is gets a WARN: add a DRIVE so the path is planned and checked.</li>
- *   <li><b>HIVE tips, G417 and G409.</b> A SHOOT must aim at a cell that faces UP when the POLLEN leave (an ERROR
- *       in a route that assumes the partner shoots the first tip and the SHOOT starts before that tip, a WARN
- *       otherwise), a volley must not go on firing after the tip, and for {@code TIP_SPILL_CLEAR_SEC} after every tip
- *       the robot stays out of the spill zone of the cell that tipped. These live in {@link TipRules}.</li>
+ *   <li><b>HIVE tips, G417 and G409.</b> A SHOOT must aim at a cell that faces UP when the POLLEN leave (a WARN for
+ *       a cell that is DOWN; in a route that assumes the partner shoots the first tip, a SHOOT at the cell that comes
+ *       up with the partner's tip is an ERROR unless a WAIT_FOR_TIP before it lasts until that tip, because the robot
+ *       shoots only after its camera has SEEN the cell UP), a volley must not go on firing after the tip, and for
+ *       {@code TIP_SPILL_CLEAR_SEC} after every tip the robot stays out of the spill zone of the cell that tipped. A
+ *       partner route with little slack (the latest partner tip that still works is close to the assumed one) gets a
+ *       WARN. These live in {@link TipRules}.</li>
  * </ol>
  */
 public final class RouteValidator {
