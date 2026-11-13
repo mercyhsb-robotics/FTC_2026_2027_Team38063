@@ -160,6 +160,7 @@ public final class ConstantsCheck {
         checkSpillZone(r, BioBuzzConstants.Auto.TIP_SPILL_REACH_IN, BioBuzzConstants.Auto.DOWN_CELL_PLAN_OUT_FAR_IN,
                 BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN, BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
         checkTipStop(r, BioBuzzConstants.Auto.BALL_FLIGHT_SEC, BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC, BioBuzzConstants.Auto.TIME_PER_SHOT_SEC);
+        checkStartSearch(r, BioBuzzConstants.Auto.START_SEARCH_STEP_IN, BioBuzzConstants.Auto.START_SEARCH_HEADING_STEP_DEG);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -322,6 +323,26 @@ public final class ConstantsCheck {
         }
         if (stopLatencySec < 0.0) {
             r.errors.add("Auto.TIP_STOP_LATENCY_SEC (" + stopLatencySec + ") cannot be negative: it is the time from the tipping POLLEN landing until the feeder has stopped.");
+        }
+    }
+
+    /**
+     * The grid of the search for a legal start (rule G304): a place every {@code stepIn} inches along the walls and a heading every {@code headingStepDeg}
+     * degrees. Both must be positive, or the search would never move on; a heading step above 90 degrees would try fewer than four headings; and a heading step that
+     * does not divide 90 evenly skips the headings that point the robot straight at a wall (0, 90, 180 and -90 degrees), the ones a person can place most exactly.
+     */
+    static void checkStartSearch(Report r, double stepIn, double headingStepDeg) {
+        if (!(stepIn > 0.0)) {
+            r.errors.add("Auto.START_SEARCH_STEP_IN (" + stepIn + " in) must be positive: it is the distance between two places the search for a start tries along a wall.");
+        }
+        if (!(headingStepDeg > 0.0) || headingStepDeg > 90.0) {
+            r.errors.add("Auto.START_SEARCH_HEADING_STEP_DEG (" + headingStepDeg + " degrees) must be more than 0 and at most 90: it is the distance between two headings the search tries.");
+        } else {
+            double times = 90.0 / headingStepDeg;
+            if (Math.abs(times - Math.rint(times)) > 1e-9) {
+                r.warnings.add("Auto.START_SEARCH_HEADING_STEP_DEG (" + headingStepDeg + " degrees) does not divide 90 evenly, so the search never tries the headings"
+                        + " that point the robot straight at a wall (0, 90, 180 and -90 degrees). Use 1, 2, 3, 5, 6, 9, 10 or 15.");
+            }
         }
     }
 

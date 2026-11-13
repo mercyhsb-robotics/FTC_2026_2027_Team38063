@@ -492,6 +492,23 @@ public final class BioBuzzConstants {
         public static final double FLOWER_CHASSIS_CLEARANCE_IN = 0.5;
         /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
         public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
+
+        // ---- where to set the robot up: the search over every legal start (rule G304; autoshoot.routes.StartPoseSearch) ------------
+        // G304 has no start lines and no required heading: the robot may stand anywhere on its own half of the field as long as it touches a perimeter
+        // wall and stays clear of the HIVE, the FLOWERS and the LOADING ZONE. So the start is a free choice, and a good one saves driving. The search
+        // tries places along the three own walls (the own side wall, the audience wall and the rear wall) with the robot pushed against the wall.
+
+        /**
+         * TUNE: the search tries a start every this many inches along each own wall (0.25 in: a student cannot place a robot more exactly than a quarter
+         * of an inch with a tape measure, so a finer step finds nothing a person could use). A smaller step makes the search slower in proportion.
+         */
+        public static final double START_SEARCH_STEP_IN = 0.25;
+        /**
+         * TUNE: ... and for every heading this many degrees apart (1 to 5 is useful: a heading is set with a protractor or by eye, never to better than a
+         * degree). It should divide 90 evenly, so that the four headings that point the robot straight at a wall (0, 90, 180 and -90) are among those
+         * tried: ConstantsCheck says so if it does not.
+         */
+        public static final double START_SEARCH_HEADING_STEP_DEG = 5.0;
         /**
          * TUNE: how far (inches) any part of the robot may overlap a field wall before the validator reports it.
          * Touching a wall is legal; pushing into it is not. This tiny value only absorbs rounding in the numbers a
