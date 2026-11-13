@@ -515,6 +515,39 @@ public class RouteExecutorSimTest {
         assertTrue(s.line(), s.line().contains("step " + s.stepNumber + "/" + s.stepCount) && s.line().contains("POLLEN") && s.line().contains("s left"));
     }
 
+    @Test
+    public void aRouteThatNeedsNoCameraStillShootsItsFirstVolleyAndParksWithoutOne() {
+        for (AutoRoute r : runnableRoutes()) {
+            if (r.firstTip() != FirstTip.SELF || r.analyze().pollenShot() == 0) {
+                continue;
+            }
+            RouteWorld w = worldFor(r);
+            w.cameraAlive = false;
+            w.runUntilFinished(LIMIT + 1.0);
+            String what = name(r) + ", dead camera";
+            assertSafeRun(what, w);
+            assertTrue(what + ": the volley at the cell that is up from the start needs no camera: " + w.shotsFired, w.shotsFired >= 3);
+            assertEquals(what, "", w.executor.stoppedBy());
+            assertFalse(what + ": nothing was left out for want of a tip", w.executor.tipNeverConfirmed());
+        }
+    }
+
+    @Test
+    public void aRunnerThatLosesTheOdometryStopsEverythingAndSaysWhy() {
+        RouteExecutor ex = new RouteExecutor(RouteCatalog.byId(RouteCatalog.WALL_SHOOT_PARK).analyze());
+        RouteExecutor.Inputs in = new RouteExecutor.Inputs();
+        in.pose = RouteCatalog.byId(RouteCatalog.WALL_SHOOT_PARK).startPose();
+        in.nowSec = 0.02;
+        ex.update(in);
+        in.nowSec = 0.04;
+        in.pose = null;
+        RouteExecutor.Outputs out = ex.update(in);
+        assertTrue(out.finished);
+        assertTrue(ex.stoppedBy(), ex.stoppedBy().contains("odometry"));
+        assertEquals(0.0, out.flywheelTps, 0.0);
+        assertFalse(out.feederOn || out.intakeOn);
+    }
+
     // ---- the DRIVE legs: the turn first, then the leg the validator swept ---------------------------------------------------------------
 
     @Test

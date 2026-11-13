@@ -274,9 +274,11 @@ public final class PedroDrive {
 
     /**
      * The Pedro path of a DRIVE leg: the leg's control points (two = a line, more = a Bezier curve whose control points the path is pulled toward)
-     * with Pedro's heading interpolator for the leg's heading mode. The names match one to one ({@code HeadingMode} says so).
+     * with Pedro's heading interpolator for the leg's heading mode. The names match one to one ({@code HeadingMode} says so), and
+     * {@code PedroLegPathTest} checks it: at every point of the leg Pedro's path has the same place and the same heading as the {@link DrivePath}
+     * the route checker swept. (Package-private only so that test can reach it.)
      */
-    private static Path legPath(DrivePath leg) {
+    static Path legPath(DrivePath leg) {
         List<Point2> control = leg.controlPoints();
         Pose[] points = new Pose[control.size()];
         for (int i = 0; i < points.length; i++) {
