@@ -877,6 +877,14 @@ public final class BioBuzzConstants {
         public static final double ALIGN_TIMEOUT_SEC = 3.0;
         /** TUNE: if pushed this far from the scoring pose after alignment, drive back to it (inches). */
         public static final double REAPPROACH_IN = 8.0;
+        /**
+         * TUNE: if the robot is turned this far (degrees) away from its hold heading while it is aligning or feeding (a shove, a collision),
+         * the controller plans a NEW route instead of letting the drive spin it back in place. Why: turning a robot in place next to a wall
+         * swings a corner through the wall, and only a PLANNED route is checked for that (the planner checks the turn and, if there is no room,
+         * drives out to open floor first). Must be MORE than {@link #APPROACH_HANDOFF_DEG}: a robot that has just been handed over to ALIGN is
+         * up to that many degrees off, and must not be sent straight back to PLAN.
+         */
+        public static final double REAPPROACH_HEADING_DEG = 45.0;
 
         /** TUNE: let the camera nudge the hold pose (heading toward the aim point, range toward the planned range). */
         public static final boolean VISION_TRIM_ENABLED = true;

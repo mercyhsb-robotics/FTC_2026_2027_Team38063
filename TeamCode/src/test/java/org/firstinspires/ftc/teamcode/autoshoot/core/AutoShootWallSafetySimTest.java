@@ -325,6 +325,8 @@ public class AutoShootWallSafetySimTest {
             {1, 60, 90},      // rear wall, front toward the wall: a long drive around the HIVE
             {1, 100, -45},    // rear wall at a diagonal
             {3, 80, 90},      // far wall (blue side), sideways
+            {0, 57.92, 15},   // audience wall right at the shooting spot, 0.4 in from a candidate pose: the route has NO legs but must turn 105 degrees
+            {0, 57.92, 90},   // the same, facing the field: 180 degrees to turn, with the back already at the wall
     };
 
     /** The robot's start for a row of {@link #STARTS}, built for the given alliance (BLUE gets the half-turn image). */
@@ -340,7 +342,7 @@ public class AutoShootWallSafetySimTest {
     }
 
     /**
-     * Situation: for each of 8 starts against a wall (see STARTS) and both alliances, 16 runs, the button is held for up
+     * Situation: for each of 10 starts against a wall (see STARTS) and both alliances, 20 runs, the button is held for up
      *     to 40 simulated seconds.
      * Expected: in every run, at every tick, no part of the robot is through a wall, the HIVE frame or a FLOWER plate;
      *     and the volley still finishes: DONE with 4 shots, none into a DOWN cell. The runs from the first start (the
@@ -425,5 +427,46 @@ public class AutoShootWallSafetySimTest {
         assertEquals(4, s.shotsFired);
         assertTrue("the recovery used a turn window", s.usedTurnWindow);
         assertFalse(s.visited.contains(FAULT));
+    }
+
+    /**
+     * Situation: a RED robot starts at the TeleOp default, drives to the shooting pose and is aligning there. It is then TURNED 90 degrees on
+     *     the spot (its position is not changed at all), as if another robot had hit one of its corners.
+     * Expected: the controller plans a new route (the heading is off by more than REAPPROACH_HEADING_DEG), the planner checks the turn, the
+     *     robot never clips a wall, and the volley still ends DONE with 4 shots.
+     * Why: ALIGN used to re-plan only when the robot was pushed more than 8 in away. A robot that was only turned was spun back by holding the
+     *     pose, which swings a corner through the audience wall (up to 3 in) with no check at all.
+     * Negative twin: with the new heading trigger switched off the same shove clips the wall, so the clean run means something.
+     */
+    @Test
+    public void aRobotThatIsOnlyTurnedAtTheShootingSpotIsReplannedNotSpunAgainstTheWall() {
+        Pose2 start = Pose2.ofDegrees(BioBuzzConstants.Controls.DEFAULT_START_X_IN,
+                BioBuzzConstants.Controls.DEFAULT_START_Y_IN, BioBuzzConstants.Controls.DEFAULT_START_HEADING_DEG);
+        Sim fixed = turnedAtTheShootingSpot(start, BioBuzzConstants.AutoShoot.REAPPROACH_HEADING_DEG);
+        assertNull("clipped: " + fixed.firstClip, fixed.firstClip);
+        assertEquals(DONE, fixed.controller.state());
+        assertEquals(4, fixed.shotsFired);
+        assertFalse(fixed.visited.contains(FAULT));
+
+        Sim old = turnedAtTheShootingSpot(start, 1.0e9);
+        assertTrue("without the trigger the spin clips the wall: " + old.clipTicks, old.clipTicks > 0);
+        assertTrue("worst gap " + old.worstWallGapIn, old.worstWallGapIn < -1.0);
+    }
+
+    /** Runs the default start to ALIGN, turns the robot 90 degrees without moving it, and runs on. */
+    private static Sim turnedAtTheShootingSpot(Pose2 start, double reapproachHeadingDeg) {
+        Sim s = new Sim(Alliance.RED, start, true);
+        s.ctrlCfg.reapproachHeadingDeg = reapproachHeadingDeg;
+        s.held = true;
+        while (s.t < 20.0 && s.controller.state() != ALIGN) {
+            s.step();
+        }
+        assertEquals(ALIGN, s.controller.state());
+        s.heading = Angles.normalize(s.heading + Math.toRadians(90.0));
+        s.vx = 0.0;
+        s.vy = 0.0;
+        s.omega = 0.0;
+        s.run(40.0);
+        return s;
     }
 }

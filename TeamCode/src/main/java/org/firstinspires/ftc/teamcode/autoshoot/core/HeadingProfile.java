@@ -54,12 +54,21 @@ public final class HeadingProfile {
     // The heading at each corner, radians. These are NOT wrapped into (-PI, PI]: start + a share of the turn can
     // run past PI, which is fine for Pedro and keeps the blend between two corners a plain straight line.
     private final double[] headings;
+    // What was ASKED for, which an EMPTY profile (no waypoint far enough away) would otherwise lose: the heading the robot
+    // is to end with, and the point it is sent to (the last waypoint asked for, or the start if there were none).
+    private final double requestedEndHeading;
+    private final double holdX;
+    private final double holdY;
 
-    private HeadingProfile(double[] xs, double[] ys, double[] along, double[] headings) {
+    private HeadingProfile(double[] xs, double[] ys, double[] along, double[] headings, double requestedEndHeading,
+                           double holdX, double holdY) {
         this.xs = xs;
         this.ys = ys;
         this.along = along;
         this.headings = headings;
+        this.requestedEndHeading = requestedEndHeading;
+        this.holdX = holdX;
+        this.holdY = holdY;
     }
 
     /**
@@ -152,7 +161,8 @@ public final class HeadingProfile {
             }
             headings[i] = start.heading + (total > 0 ? turn * share : 0.0);
         }
-        return new HeadingProfile(xs, ys, along, headings);
+        double[] lastAsked = waypoints.isEmpty() ? new double[]{start.x, start.y} : waypoints.get(waypoints.size() - 1);
+        return new HeadingProfile(xs, ys, along, headings, endHeadingRad, lastAsked[0], lastAsked[1]);
     }
 
     /**
@@ -178,9 +188,34 @@ public final class HeadingProfile {
         return s;
     }
 
-    /** True if there is nothing to follow: no waypoint was far enough from the start. */
+    /**
+     * True if there is nothing to follow: no waypoint was far enough from the start.
+     *
+     * <p>CAREFUL: an empty profile is NOT "the robot stays as it is". {@code PedroDrive} still sends the robot to the point it was asked for
+     * and turns it to the heading it was asked for, by holding that pose, and a robot that is next to a wall can swing a corner through it
+     * while it turns. {@link #turnInPlaceRad}, {@link #holdX} and {@link #holdY} say what that move is, and {@code RouteSweep} checks it.
+     */
     public boolean isEmpty() {
         return xs.length < 2;
+    }
+
+    /**
+     * The turn the robot makes when the profile is EMPTY: the shortest way round (radians, positive = counter-clockwise) from its start
+     * heading to the heading it was asked to end with. 0 for a profile that has a route to follow (that one turns along the route, see
+     * {@link #headingAtVertex}).
+     */
+    public double turnInPlaceRad() {
+        return isEmpty() ? Angles.error(headings[0], requestedEndHeading) : 0.0;
+    }
+
+    /** Field x, inches, of the point an EMPTY profile sends the robot to: the last waypoint it was asked for (the start if there was none). */
+    public double holdX() {
+        return holdX;
+    }
+
+    /** Field y, inches, of the point an EMPTY profile sends the robot to; see {@link #holdX}. */
+    public double holdY() {
+        return holdY;
     }
 
     /** Number of corners, the start included (so the route has {@code vertexCount() - 1} straight legs). */

@@ -152,7 +152,7 @@ final class BruteForceFootprint {
     static String firstClip(HeadingProfile profile, RobotShape robot, Rect field, List<Rect> boxes,
                             double tol, double stepIn, double stepDeg) {
         if (profile.isEmpty()) {
-            return null;
+            return firstClipOfSpin(profile, robot, field, boxes, tol, stepIn, stepDeg);
         }
         for (int leg = 0; leg < profile.vertexCount() - 1; leg++) {
             double sA = profile.distanceAtVertex(leg);
@@ -172,6 +172,37 @@ final class BruteForceFootprint {
                     if (overlaps(pose, robot, b, tol)) {
                         return String.format(Locale.ROOT, "overlaps %s at %s (%.2f in along the route)", b, pose, s);
                     }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * What the drive does with an EMPTY profile (no waypoint far enough from the start): PedroDrive holds the pose it was asked for, so the
+     * robot slides to that point (less than the short-leg limit away) and turns to the wanted heading, all at once. This walks that move in
+     * tiny steps: the position goes in a straight line from the start to the hold point while the heading turns the shortest way round.
+     * (An empty profile used to be skipped, "the robot does not move", which hid a 2.6 in poke through the audience wall.)
+     */
+    private static String firstClipOfSpin(HeadingProfile profile, RobotShape robot, Rect field, List<Rect> boxes,
+                                          double tol, double stepIn, double stepDeg) {
+        double x0 = profile.x(0);
+        double y0 = profile.y(0);
+        double h0 = profile.startHeading();
+        double turn = profile.turnInPlaceRad();
+        double moveIn = Math.hypot(profile.holdX() - x0, profile.holdY() - y0);
+        int n = (int) Math.max(1.0, Math.max(Math.ceil(moveIn / stepIn), Math.ceil(Math.abs(Math.toDegrees(turn)) / stepDeg)));
+        for (int k = 0; k <= n; k++) {
+            double u = (double) k / n;
+            Pose2 pose = new Pose2(x0 + (profile.holdX() - x0) * u, y0 + (profile.holdY() - y0) * u, h0 + turn * u);
+            double poke = wallPoke(pose, robot, field);
+            if (poke > tol) {
+                return String.format(Locale.ROOT, "pokes %.2f in through a wall at %s while turning in place (%.0f%% of the turn)",
+                        poke, pose, 100.0 * u);
+            }
+            for (Rect b : boxes) {
+                if (overlaps(pose, robot, b, tol)) {
+                    return String.format(Locale.ROOT, "overlaps %s at %s while turning in place", b, pose);
                 }
             }
         }

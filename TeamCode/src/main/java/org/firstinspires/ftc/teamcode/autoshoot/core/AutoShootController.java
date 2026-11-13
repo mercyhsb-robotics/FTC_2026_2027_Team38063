@@ -181,8 +181,10 @@ public final class AutoShootController {
         // seconds. If that has not happened after alignTimeoutSec seconds, ALIGN gives up (or shoots on relaxed
         // limits).
         public double alignPosTol, alignHeadingTolDeg, alignSpeedTol, alignOmegaTolDegS, alignSettleSec, alignTimeoutSec;
-        // If the robot is pushed more than this many inches from its hold pose, it drives back to it.
-        public double reapproachIn;
+        // If the robot is pushed more than this many inches from its hold pose, it drives back to it. If it is turned more than
+        // reapproachHeadingDeg degrees away from the hold heading, it plans a new (wall-checked) route too: the drive would otherwise
+        // spin it back in place, which swings a corner through a wall when one is close.
+        public double reapproachIn, reapproachHeadingDeg;
         // Master switch for the camera trims (small heading and range corrections applied while in ALIGN).
         public boolean visionTrim;
         // Camera trim shape. Each update moves the hold heading by headingGain (a fraction, 0..1) of the camera's
@@ -252,6 +254,7 @@ public final class AutoShootController {
             c.alignSettleSec = BioBuzzConstants.AutoShoot.ALIGN_SETTLE_SEC;
             c.alignTimeoutSec = BioBuzzConstants.AutoShoot.ALIGN_TIMEOUT_SEC;
             c.reapproachIn = BioBuzzConstants.AutoShoot.REAPPROACH_IN;
+            c.reapproachHeadingDeg = BioBuzzConstants.AutoShoot.REAPPROACH_HEADING_DEG;
             c.visionTrim = BioBuzzConstants.AutoShoot.VISION_TRIM_ENABLED;
             c.headingGain = BioBuzzConstants.AutoShoot.VISION_HEADING_GAIN;
             c.headingStepDeg = BioBuzzConstants.AutoShoot.VISION_HEADING_STEP_DEG;
@@ -741,8 +744,10 @@ public final class AutoShootController {
 
         // Pushed far away (for example by another robot): drive back to the pose first. This plans a NEW route from
         // where the robot is now. Re-using the old route would send the robot from here to the old route's first
-        // point along a line nobody checked against the walls and the HIVE.
-        if (posErr > cfg.reapproachIn) {
+        // point along a line nobody checked against the walls and the HIVE. The same for a robot that was only TURNED a long way (its
+        // position is fine): holding the pose would spin it back in place, which swings a corner through a wall when one is close, and
+        // only a planned route is checked for that (the plan drives out to open floor first when there is no room to turn).
+        if (posErr > cfg.reapproachIn || headErr > cfg.reapproachHeadingDeg) {
             plan(in, out);
             return;
         }
@@ -871,8 +876,9 @@ public final class AutoShootController {
         out.flywheelTargetTps = frozenTps;
         out.rangeIn = frozenRange;
 
-        // Pushed out of place: stop feeding and align again.
-        if (in.pose.distanceTo(hold) > cfg.reapproachIn) {
+        // Pushed out of place, or turned a long way: stop feeding and align again (ALIGN plans a new route for either).
+        if (in.pose.distanceTo(hold) > cfg.reapproachIn
+                || Math.toDegrees(Angles.distance(in.pose.heading, hold.heading)) > cfg.reapproachHeadingDeg) {
             enter(State.ALIGN, in.nowSec);
             align(in, out);
             return;

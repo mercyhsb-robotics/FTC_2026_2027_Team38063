@@ -214,19 +214,21 @@ public final class RouteSweep {
     /**
      * Checks a whole route.
      *
+     * <p>A route with NO legs (every waypoint was closer than the short-leg limit, so {@link HeadingProfile#isEmpty()}) is not
+     * "nothing to drive": the drive still sends the robot to the point it was asked for and turns it to the heading it was asked for,
+     * all at once, in place. That move is checked as a spin, see {@link #checkSpin}.
+     *
      * @return null if the robot's rectangle stays clear everywhere along the route (see the class note for what clear
      *         means); otherwise the first place it does not
      */
     public Violation check(HeadingProfile profile) {
         if (profile.isEmpty()) {
-            return null;                    // nothing to drive: the robot does not move
+            return checkSpin(profile);
         }
+        Along along = new OnRoute(profile);
         // The gaps at the start decide what is required: never squeeze harder than at the start (class note).
-        double[] startGaps = gapsAt(profile, 0.0);
-        double[] need = new double[count];
-        for (int c = 0; c < count; c++) {
-            need[c] = Math.min(clearance[c], startGaps[c]) - settings.toleranceIn;
-        }
+        double[] startGaps = gapsAt(along, 0.0);
+        double[] need = need(startGaps);
         double stepRad = Math.toRadians(settings.stepDeg);
         double[] previous = startGaps;
         for (int leg = 0; leg < profile.vertexCount() - 1; leg++) {
@@ -243,8 +245,8 @@ public final class RouteSweep {
             double sPrev = sA;
             for (int k = 1; k <= pieces; k++) {
                 double s = sA + length * k / pieces;
-                double[] here = gapsAt(profile, s);
-                Violation v = piece(profile, sPrev, previous, s, here, rate, need);
+                double[] here = gapsAt(along, s);
+                Violation v = piece(along, sPrev, previous, s, here, rate, need);
                 if (v != null) {
                     return v;
                 }
@@ -253,6 +255,107 @@ public final class RouteSweep {
             }
         }
         return null;
+    }
+
+    /**
+     * Checks what the drive does with a route that has no legs. {@code PedroDrive} then HOLDS the pose it was asked for: the robot goes to
+     * that point (it is less than the short-leg limit away) and turns to the wanted heading at once, with no turn window and no path to
+     * keep the corners off the wall. A robot standing 0.3 in from the audience wall that is asked to turn 105 degrees swings a corner
+     * 2.6 in through it. So the turn is swept here with the same rules as a route: the robot's pose goes from the start pose to the hold
+     * point while its heading goes from the start heading to the wanted one, every corner is judged, and a robot that starts touching a wall
+     * may stay as close as it started but never closer.
+     *
+     * @return null if the robot does not move or the spin stays clear; otherwise the first place it does not (the distance in the answer
+     *         counts the spin as inches of travel: the move plus the arc of the farthest corner)
+     */
+    private Violation checkSpin(HeadingProfile profile) {
+        double turn = profile.turnInPlaceRad();
+        double moveIn = Math.hypot(profile.holdX() - profile.x(0), profile.holdY() - profile.y(0));
+        // How far the farthest corner of the robot travels in all: the move plus its arc while the robot turns.
+        double travel = moveIn + reachIn * Math.abs(turn);
+        if (travel <= TINY) {
+            return null;                    // the robot is where it should be and faces the right way: nothing happens
+        }
+        Along spin = new Spin(profile.x(0), profile.y(0), profile.startHeading(), profile.holdX(), profile.holdY(), turn, travel);
+        double[] startGaps = gapsAt(spin, 0.0);
+        double[] need = need(startGaps);
+        double stepRad = Math.toRadians(settings.stepDeg);
+        int pieces = (int) Math.max(1.0, Math.max(Math.ceil(travel / settings.stepIn - TINY),
+                Math.ceil(Math.abs(turn) / stepRad - TINY)));
+        double[] previous = startGaps;
+        double sPrev = 0.0;
+        for (int k = 1; k <= pieces; k++) {
+            double s = travel * k / pieces;
+            double[] here = gapsAt(spin, s);
+            // s counts the travel of the farthest corner, so a piece of length ds moves no part of the robot more than ds: rate 0.
+            Violation v = piece(spin, sPrev, previous, s, here, 0.0, need);
+            if (v != null) {
+                return v;
+            }
+            sPrev = s;
+            previous = here;
+        }
+        return null;
+    }
+
+    private static final double TINY = 1e-9;
+
+    /** The gap each wall and obstacle must keep: the clearance, but never more than the robot has at the start of the route (class note). */
+    private double[] need(double[] startGaps) {
+        double[] need = new double[count];
+        for (int c = 0; c < count; c++) {
+            need[c] = Math.min(clearance[c], startGaps[c]) - settings.toleranceIn;
+        }
+        return need;
+    }
+
+    /** Where the robot is after some distance of something it does: a route (inches driven) or a spin (inches of corner travel). */
+    private interface Along {
+        Pose2 poseAt(double distance);
+    }
+
+    /** A driven route, asked through its {@link HeadingProfile}. */
+    private static final class OnRoute implements Along {
+        private final HeadingProfile profile;
+
+        OnRoute(HeadingProfile profile) {
+            this.profile = profile;
+        }
+
+        @Override
+        public Pose2 poseAt(double distance) {
+            return profile.poseAt(distance);
+        }
+    }
+
+    /**
+     * The move of an empty route: from the start pose to the hold point while the heading turns by {@code turnRad}, spread evenly over
+     * {@code travel} (the move plus the arc of the farthest corner), so a step of d along it moves no corner more than d.
+     */
+    private static final class Spin implements Along {
+        private final double x0;
+        private final double y0;
+        private final double heading0;
+        private final double x1;
+        private final double y1;
+        private final double turnRad;
+        private final double travel;
+
+        Spin(double x0, double y0, double heading0, double x1, double y1, double turnRad, double travel) {
+            this.x0 = x0;
+            this.y0 = y0;
+            this.heading0 = heading0;
+            this.x1 = x1;
+            this.y1 = y1;
+            this.turnRad = turnRad;
+            this.travel = travel;
+        }
+
+        @Override
+        public Pose2 poseAt(double distance) {
+            double u = Math.max(0.0, Math.min(1.0, distance / travel));
+            return new Pose2(x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, heading0 + turnRad * u);
+        }
     }
 
     /** True if {@link #check} finds nothing wrong with the route. */
@@ -264,7 +367,7 @@ public final class RouteSweep {
      * Checks the piece of route between two samples whose gaps are already known, cutting it in half where the two end
      * gaps cannot prove it safe. {@code rate} is the turn rate along the piece, radians per inch.
      */
-    private Violation piece(HeadingProfile profile, double sA, double[] gapsA, double sB, double[] gapsB,
+    private Violation piece(Along along, double sA, double[] gapsA, double sB, double[] gapsB,
                             double rate, double[] need) {
         // Between the two samples every point of the robot moves along a path of at most (inches driven + corner
         // radius x radians turned), so it is never farther than HALF of that from the nearer end sample. If even
@@ -287,27 +390,27 @@ public final class RouteSweep {
             // sample was checked as the end of the piece before).
             for (int c = 0; c < count; c++) {
                 if (gapsB[c] < need[c]) {
-                    return violation(profile, sB, c, gapsB[c], need[c]);
+                    return violation(along, sB, c, gapsB[c], need[c]);
                 }
             }
             return null;
         }
         double sM = 0.5 * (sA + sB);
-        double[] gapsM = gapsAt(profile, sM);
-        Violation first = piece(profile, sA, gapsA, sM, gapsM, rate, need);
+        double[] gapsM = gapsAt(along, sM);
+        Violation first = piece(along, sA, gapsA, sM, gapsM, rate, need);
         if (first != null) {
             return first;
         }
-        return piece(profile, sM, gapsM, sB, gapsB, rate, need);
+        return piece(along, sM, gapsM, sB, gapsB, rate, need);
     }
 
-    private Violation violation(HeadingProfile profile, double s, int c, double gap, double required) {
-        return new Violation(s, profile.poseAt(s), names[c], gap, required + settings.toleranceIn);
+    private Violation violation(Along along, double s, int c, double gap, double required) {
+        return new Violation(s, along.poseAt(s), names[c], gap, required + settings.toleranceIn);
     }
 
-    /** The gap to every wall and obstacle for the robot at a distance along the route. */
-    private double[] gapsAt(HeadingProfile profile, double s) {
-        Footprint f = footprintAt(profile.poseAt(s));
+    /** The gap to every wall and obstacle for the robot at a distance along the route (or the spin). */
+    private double[] gapsAt(Along along, double s) {
+        Footprint f = footprintAt(along.poseAt(s));
         double[] g = new double[count];
         Rect b = f.bounds();
         g[0] = b.minX - field.minX;

@@ -173,14 +173,80 @@ public class RouteSweepTest {
     }
 
     /**
-     * Situation: the check is asked about an empty route (nothing to drive).
+     * Situation: the check is asked about an empty route (nothing to drive) that also asks for no turn.
      * Expected: null (safe).
-     * Why: the robot does not move, so it cannot hit anything new.
+     * Why: the robot does not move and does not turn, so it cannot hit anything new. (An empty route that asks for a TURN is a different
+     *     matter, see the next tests: PedroDrive spins the robot in place for it.)
      */
     @Test
-    public void anEmptyRouteIsSafe() {
+    public void anEmptyRouteThatDoesNotTurnIsSafe() {
         HeadingProfile none = HeadingProfile.build(Pose2.ofDegrees(5, 5, 0), Collections.<double[]>emptyList(), 0.0);
         assertNull(plain().check(none));
+        // a nudge shorter than the short-leg limit, facing the same way
+        assertNull(plain().check(route(Pose2.ofDegrees(5, 5, 0), 0, 5.3, 5)));
+    }
+
+    /**
+     * Situation: the real robot 0.33 in clear of the audience wall (position 58, 11, facing +15 degrees) is asked for the point (57.92, 10.63),
+     *     0.4 in away, facing -90 degrees. The point is nearer than the 0.5 in short-leg limit, so the route has no legs at all.
+     * Expected: the check reports a violation of the audience wall. The slow referee agrees: spinning 105 degrees there swings a corner
+     *     more than 2 in through the wall.
+     * Why: this is the hole the check used to have. An empty route was called "the robot does not move", but PedroDrive holds the asked-for
+     *     pose, which turns the robot in place with nothing to keep it off the wall. The wall-safety guarantee was false whenever the planner's
+     *     pose was within 0.5 in of the robot, the robot had to turn a long way and a wall was close (a few percent of the poses next to the
+     *     audience wall).
+     * Negative twins: the same 0.4 in move with NO turn is safe; so is the same spin 30 in away from any wall.
+     */
+    @Test
+    public void anEmptyRouteThatTurnsTheRobotNextToTheWallSwingsACornerThroughIt() {
+        FieldModel field = new FieldModel();
+        RobotShape real = RobotShape.fromConstants();
+        RouteSweep s = new RouteSweep(field.fieldRect(), CLEAR, field.hardObstacles(),
+                BioBuzzConstants.AutoShoot.KEEPOUT_MARGIN_IN, real, RouteSweep.Settings.fromConstants());
+        Pose2 start = Pose2.ofDegrees(58.0, 11.0, 15);
+        HeadingProfile spin = HeadingProfile.build(start, Collections.singletonList(new double[]{57.92, 10.63}), Math.toRadians(-90));
+        assertTrue("the premise: no legs", spin.isEmpty());
+        RouteSweep.Violation v = s.check(spin);
+        assertNotNull("a 105 degree spin 0.33 in from the wall must be caught", v);
+        assertTrue(v.what, v.what.startsWith("wall y = 0.0"));
+        assertTrue(v.gapIn < v.requiredIn);
+        String clip = BruteForceFootprint.firstClip(spin, real, field.fieldRect(), field.hardObstacles(), TOL);
+        assertNotNull("the referee must see the clip too", clip);
+        assertTrue(clip, clip.contains("turning in place"));
+
+        // Negative twins.
+        // (the nudge goes 0.4 in AWAY from the wall: moving toward a wall that is already inside the clearance would be a violation of its own)
+        HeadingProfile noTurn = HeadingProfile.build(start, Collections.singletonList(new double[]{57.92, 11.37}), start.heading);
+        assertTrue(noTurn.isEmpty());
+        assertNull(s.check(noTurn));
+        HeadingProfile farFromTheWall = HeadingProfile.build(Pose2.ofDegrees(58.0, 30.0, 15),
+                Collections.singletonList(new double[]{57.92, 29.63}), Math.toRadians(-90));
+        assertTrue(farFromTheWall.isEmpty());
+        assertNull(s.check(farFromTheWall));
+        assertNull(BruteForceFootprint.firstClip(farFromTheWall, real, field.fieldRect(), field.hardObstacles(), TOL));
+    }
+
+    /**
+     * Situation: the real robot standing with its front edge touching the audience wall is asked to turn 180 degrees by a hold of the pose it
+     *     already has (no waypoint): its back swings toward the wall.
+     * Expected: a violation, although the robot starts touching the wall. A robot that starts touching a wall may stay that close, but a spin
+     *     that pushes a corner through it is not "staying".
+     * Why: the "never squeeze harder than at the start" rule must also apply to a spin; otherwise the start-at-the-wall exception would hide it.
+     */
+    @Test
+    public void aSpinThatStartsTouchingTheWallMayNotPushThroughIt() {
+        FieldModel field = new FieldModel();
+        RobotShape real = RobotShape.fromConstants();
+        RouteSweep s = new RouteSweep(field.fieldRect(), CLEAR, field.hardObstacles(),
+                BioBuzzConstants.AutoShoot.KEEPOUT_MARGIN_IN, real, RouteSweep.Settings.fromConstants());
+        Pose2 touching = WallStarts.againstWall(field, real, 0, 58.0, -90, 0.0);
+        HeadingProfile flip = HeadingProfile.build(touching, Collections.<double[]>emptyList(), Math.toRadians(90));
+        RouteSweep.Violation v = s.check(flip);
+        assertNotNull(v);
+        assertTrue(v.what, v.what.startsWith("wall y = 0.0"));
+        assertNotNull(BruteForceFootprint.firstClip(flip, real, field.fieldRect(), field.hardObstacles(), TOL));
+        // ...while holding still against the wall, facing the same way, is fine
+        assertNull(s.check(HeadingProfile.build(touching, Collections.<double[]>emptyList(), touching.heading)));
     }
 
     // ---------------------------------------------------------------- obstacles

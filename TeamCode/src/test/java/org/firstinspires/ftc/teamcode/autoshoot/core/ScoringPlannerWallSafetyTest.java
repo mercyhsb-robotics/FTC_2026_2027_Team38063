@@ -183,6 +183,61 @@ public class ScoringPlannerWallSafetyTest {
     }
 
     /**
+     * Situation: a robot standing 0.3 to 1.5 in off the audience wall, at 4 headings, at 21 places along the wall around the shooting spot
+     *     (x 57 to 59 in), RED, asked for the audience cell. The shooting lattice has a pose every 1 in, so many of these robots stand
+     *     less than 0.5 in from a candidate pose: the planned route is then SHORTER than the 0.5 in limit and has no legs, but it still has
+     *     to turn the robot (the drive spins it in place by holding the pose).
+     * Expected: every plan that comes back OK is clear of the walls according to the slow referee, which also walks the in-place spin of an
+     *     empty route.
+     * Why: the planner calls a plan wall-safe when the sweep says so, and the sweep used to treat an empty route as "the robot does not
+     *     move". PedroDrive does move it: it turns it in place, and a few percent of the starts below clipped the audience wall by up to 2.6 in.
+     * Negative twin: the planner with the check switched off still plans some of those starts as an EMPTY route that turns the robot more
+     *     than 25 degrees and clips the wall (the referee sees it), so the clean result above means something.
+     */
+    @Test
+    public void aShortRouteThatTurnsTheRobotNextToTheWallIsNeverPlannedUnlessTheSpinIsClear() {
+        CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
+        ScoringPlanner.Config offCfg = ScoringPlanner.Config.fromConstants(table);
+        offCfg.sweepToleranceIn = 1.0e6;
+        ScoringPlanner unchecked = new ScoringPlanner(field, offCfg);
+        int emptySpinsThatClipWithoutTheCheck = 0;
+        int plans = 0;
+        List<String> clips = new ArrayList<String>();
+        double[] gaps = {0.3, 0.7, 1.5};
+        double[] headings = {0.0, 15.0, 90.0, 180.0};
+        for (double gap : gaps) {
+            for (double heading : headings) {
+                for (int i = 0; i <= 20; i++) {
+                    Pose2 start = againstWall(0, 57.0 + 0.1 * i, heading, gap);
+                    if (!planner.standingPoseFree(start)) {
+                        continue;
+                    }
+                    ScoringPlanner.Solution s = planner.solve(start, cell);
+                    if (s.ok()) {
+                        plans++;
+                        String why = clip(start, s);
+                        if (why != null && clips.size() < 5) {
+                            clips.add("start " + start + ": " + why);
+                        }
+                    }
+                    ScoringPlanner.Solution off = unchecked.solve(start, cell);
+                    if (off.ok()) {
+                        HeadingProfile p = driven(start, off);
+                        if (p.isEmpty() && Math.toDegrees(Math.abs(p.turnInPlaceRad())) > BioBuzzConstants.AutoShoot.APPROACH_HANDOFF_DEG
+                                && clip(start, off) != null) {
+                            emptySpinsThatClipWithoutTheCheck++;
+                        }
+                    }
+                }
+            }
+        }
+        assertTrue("plans " + plans, plans > 100);
+        assertTrue("routes that clip: " + clips, clips.isEmpty());
+        assertTrue("without the check some starts are planned as an empty route that spins the robot through the wall ("
+                + emptySpinsThatClipWithoutTheCheck + ")", emptySpinsThatClipWithoutTheCheck > 0);
+    }
+
+    /**
      * Situation: the TeleOp default start (the center of tile C1: x 58.924, y 9.77, facing -90, front against the audience
      *     wall) and the measured anchor shot (front against the wall, exactly in line with the HIVE), each asking for
      *     the RED audience cell, which is the cell that is up at the start of the match.

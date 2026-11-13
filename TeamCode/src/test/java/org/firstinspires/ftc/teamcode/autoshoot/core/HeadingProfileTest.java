@@ -204,6 +204,36 @@ public class HeadingProfileTest {
     }
 
     /**
+     * Situation: a robot facing 15 degrees is asked for a point 0.4 in away (closer than the 0.5 in short-leg limit) and a final heading of
+     *     -90 degrees; and, for contrast, the same with no waypoint at all and with a route that has a real leg.
+     * Expected: the profile is empty, yet it still remembers WHAT WAS ASKED: a turn in place of -105 degrees (the short way round) and the
+     *     point to go to. A profile that has a leg reports no turn in place; a profile with no waypoint holds the start.
+     * Why: PedroDrive holds the asked-for pose when the profile is empty, so the robot really turns 105 degrees there. RouteSweep must be able
+     *     to ask what that turn is, or the checker would call a spin next to a wall "nothing to drive".
+     */
+    @Test
+    public void anEmptyProfileStillRemembersTheTurnAndThePointItWasAskedFor() {
+        Pose2 start = Pose2.ofDegrees(58.0, 11.0, 15);
+        HeadingProfile close = HeadingProfile.build(start, route(57.92, 10.63), Math.toRadians(-90));
+        assertTrue(close.isEmpty());
+        assertEquals(-105.0, Math.toDegrees(close.turnInPlaceRad()), EPS);
+        assertEquals(57.92, close.holdX(), EPS);
+        assertEquals(10.63, close.holdY(), EPS);
+        // the short way round across the seam: 170 degrees to -170 degrees is +20, not -340
+        HeadingProfile seam = HeadingProfile.build(Pose2.ofDegrees(5, 5, 170), route(5.1, 5), Math.toRadians(-170));
+        assertEquals(20.0, Math.toDegrees(seam.turnInPlaceRad()), EPS);
+        // no waypoint at all: it holds the start, and still turns
+        HeadingProfile none = HeadingProfile.build(start, Collections.<double[]>emptyList(), Math.toRadians(-90));
+        assertEquals(58.0, none.holdX(), EPS);
+        assertEquals(11.0, none.holdY(), EPS);
+        assertEquals(-105.0, Math.toDegrees(none.turnInPlaceRad()), EPS);
+        // a route with a leg turns ALONG the route: nothing in place
+        assertEquals(0.0, HeadingProfile.build(start, route(30, 20), Math.toRadians(-90)).turnInPlaceRad(), EPS);
+        // already facing the asked-for way: nothing to turn
+        assertEquals(0.0, HeadingProfile.build(start, route(57.92, 10.63), start.heading).turnInPlaceRad(), EPS);
+    }
+
+    /**
      * Situation: the robot already faces the final heading.
      * Expected: the heading is the same at every corner and everywhere in between.
      * Why: no turn means no spinning along the route; the footprint stays the shape it started with.
