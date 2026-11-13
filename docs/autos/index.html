@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BIOBUZZ autonomous routes</title>
+<style>
+:root { color-scheme: light dark; --bg: #f6f5f1; --fg: #1d1d1b; --muted: #5d5d57; --card: #ffffff; --border: #d6d3c8; --link: #0b57d0; --red: #c62828; --blue: #1565c0; --err: #b71c1c; --err-bg: #fdecea; --warn: #7a5a00; --warn-bg: #fff4d6; --ok: #1b5e20; --ok-bg: #e6f4ea; --code-bg: #ecebe4; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #16161a; --fg: #e8e6df; --muted: #a3a198; --card: #202026; --border: #3a3a42; --link: #8ab4f8; --red: #ef9a9a; --blue: #90caf9; --err: #ff8a80; --err-bg: #3b1f1f; --warn: #ffd36b; --warn-bg: #3a3017; --ok: #81c995; --ok-bg: #1d3326; --code-bg: #2a2a31; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+a { color: var(--link); }
+header, main, footer { max-width: 1500px; margin: 0 auto; padding: 0 16px; }
+header { padding-top: 24px; }
+h1 { margin: 0 0 4px; font-size: 1.7rem; }
+h2 { margin: 0 0 4px; font-size: 1.3rem; }
+h3 { margin: 20px 0 6px; font-size: 1rem; }
+p { margin: 6px 0; }
+.muted { color: var(--muted); }
+code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+section.route { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+thead th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }
+table.meta { max-width: 780px; margin: 10px 0; }
+table.meta th { width: 15rem; color: var(--muted); font-weight: 600; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 14px 0; }
+@media (max-width: 900px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+figure { margin: 0; }
+figcaption { font-weight: 600; margin-bottom: 4px; }
+figure.red figcaption { color: var(--red); }
+figure.blue figcaption { color: var(--blue); }
+img.diagram { display: block; width: 100%; height: auto; background: #ffffff; border: 1px solid var(--border); border-radius: 6px; }
+ol.steps { margin: 6px 0; padding-left: 1.6rem; }
+ol.steps li { margin: 3px 0; }
+.kind { display: inline-block; min-width: 4.2rem; font-weight: 700; font-size: 0.85rem; }
+.time { color: var(--muted); font-size: 0.85rem; }
+.note { color: var(--muted); font-size: 0.9rem; }
+ul.issues { list-style: none; margin: 6px 0; padding: 0; }
+li.issue { margin: 5px 0; padding: 6px 10px; border-radius: 6px; border-left: 5px solid; }
+li.error { background: var(--err-bg); border-color: var(--err); }
+li.warn { background: var(--warn-bg); border-color: var(--warn); }
+li.ok { background: var(--ok-bg); border-color: var(--ok); }
+li.error strong { color: var(--err); }
+li.warn strong { color: var(--warn); }
+li.ok strong { color: var(--ok); }
+.status-error { color: var(--err); font-weight: 700; }
+.status-warn { color: var(--warn); font-weight: 700; }
+.status-ok { color: var(--ok); font-weight: 700; }
+footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<header>
+<h1>BIOBUZZ autonomous routes</h1>
+<p class="muted">Team 38063. Every route of <code>RouteCatalog</code>, drawn for both alliances and checked by the validator. This page and the diagrams are generated: do not edit them by hand, change the catalog and run <code>tools/render-autos.sh</code> (or <code>tools/render-autos.bat</code>).</p>
+<p class="muted">How to read a diagram: top view of the 144 x 144 in field, the AUDIENCE wall at the bottom, the red alliance on the left. A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a blue robot starts at the top. The robot is drawn to scale (17.80 in x 17.80 in): its FRONT edge (the intake) is green, its BACK edge (the shooter) is orange. Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>
+</header>
+<main>
+<section id="summary">
+<h2>All routes</h2>
+<div class="tablewrap">
+<table class="summary">
+<thead><tr><th>Route</th><th>Start tile</th><th>Steps</th><th>Estimated time</th><th>AUTO points</th><th>POLLEN balance</th><th>Validator</th></tr></thead>
+<tbody>
+<tr class="summary-row" data-route="red_b1"><td><a href="#red_b1">Red B1: shoot, then drive up the left side to the LOADING ZONE</a><br /><code>red_b1</code></td><td>B1</td><td>6</td><td>14.5 s</td><td>8</td><td>-4</td><td><span class="status-error">4 ERROR, 2 WARN</span></td></tr>
+<tr class="summary-row" data-route="red_c1"><td><a href="#red_c1">Red C1: shoot, then drive past the HIVE to the LOADING ZONE</a><br /><code>red_c1</code></td><td>C1</td><td>7</td><td>16.1 s</td><td>8</td><td>-4</td><td><span class="status-error">1 ERROR</span></td></tr>
+<tr class="summary-row" data-route="red_leave_park"><td><a href="#red_leave_park">Red A3: leave the wall and park (no shooting)</a><br /><code>red_leave_park</code></td><td>A3</td><td>4</td><td>2.7 s</td><td>8</td><td>0</td><td><span class="status-ok">no findings</span></td></tr>
+<tr class="summary-row" data-route="wall_shoot_park"><td><a href="#wall_shoot_park">Wall shoot and park: C1, shoot 4, left corridor to the LOADING ZONE</a><br /><code>wall_shoot_park</code></td><td>C1</td><td>6</td><td>12.3 s</td><td>8</td><td>-4</td><td><span class="status-ok">no findings</span></td></tr>
+<tr class="summary-row" data-route="garden_cycle"><td><a href="#garden_cycle">Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again</a><br /><code>garden_cycle</code></td><td>B1</td><td>6</td><td>20.6 s</td><td>23</td><td>-4</td><td><span class="status-ok">no findings</span></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+<section class="route" id="red_b1" data-route="red_b1">
+<h2>Red B1: shoot, then drive up the left side to the LOADING ZONE</h2>
+<p class="muted"><code>red_b1</code></p>
+<p>Conversion of RedAlliance_B1.java. Starts in tile B1, turns to -115 deg and fires the 4 pre-loads at the UP cell, waits for the launcher, then drives backwards up the left corridor to (35.8, 90) and sideways to (12, 90), ending partly in the red LOADING ZONE.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>B1</td></tr>
+<tr><th>Start pose, RED</th><td>(35.0, 9.2) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(109.0, 134.8) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>6</td></tr>
+<tr><th>Estimated time</th><td>14.5 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Claimable AUTO points</th><td>8 = LEAVE 3 + PARK 5 + HIVE TIP 0</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>HIVE TIPs</th><td>0</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 2.90 in inside the LOADING ZONE, at (12.0, 90.0) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-error">4 ERROR, 2 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="red_b1_red.svg"><img class="diagram" src="red_b1_red.svg" alt="Red B1: shoot, then drive up the left side to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="red_b1_blue.svg"><img class="diagram" src="red_b1_blue.svg" alt="Red B1: shoot, then drive up the left side to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (35.0, 9.2, -90 deg) <span class="time">t = 0.0 to 0.0 s</span></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (35.0, 9.2, -115 deg) <span class="time">t = 0.0 to 5.4 s</span><div class="note">hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn.</div></li>
+<li class="step" data-kind="WAIT"><span class="kind">WAIT</span> 4.5 s <span class="time">t = 5.4 to 9.9 s</span><div class="note">waitMs(4500) before launcher.stop(): the volley holds the launcher on for 9.5 s in total.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path1 reverse tangent to 35.8, 90.0 <span class="time">t = 9.9 to 12.9 s</span><div class="note">line(start, point1).reverseTangent(): shooter-first up the left corridor.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path2 reverse tangent to 12.0, 90.0 <span class="time">t = 12.9 to 14.5 s</span><div class="note">line(point1, point2).reverseTangent(): the 0 deg heading in the source is ignored; the robot turns to face +x by itself because it drives toward -x backwards.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 90.0, 0 deg) <span class="time">t = 14.5 to 14.5 s</span><div class="note">The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone by only 2.9 in (the 17.80 in square robot reaches y 98.9; the zone starts at y 96).</div></li>
+</ol>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue error" data-severity="ERROR" data-step="2"><strong>ERROR</strong> step 2 <code>9.2/G412</code> stay inside the field: step 2 (SHOOT, the move to its pose): the robot footprint leaves the field by up to 2.6 in (first at (35.0, 9.2, -95 deg)); a robot cannot drive or turn through a wall</li>
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shooting pose: step 2 (SHOOT, the move to its pose) from (35.0, 9.2, -115 deg): the launch point is 43.4 in from the aim point of the RED AUDIENCE cell (tags 34-37); the standoff band is 30.0 in to 38.0 in for the fixed-angle shooter</li>
+<li class="issue error" data-severity="ERROR" data-step="4"><strong>ERROR</strong> step 4 <code>9.2/G412</code> stay inside the field: step 4 (DRIVE &apos;path1&apos;): the robot footprint leaves the field by up to 2.2 in (first at (35.0, 9.2, -110 deg)); a robot cannot drive or turn through a wall</li>
+<li class="issue error" data-severity="ERROR" data-step="4"><strong>ERROR</strong> step 4 <code>G417/G409</code> keep out of the HIVE frame: step 4 (DRIVE &apos;path1&apos;): the robot footprint enters the HIVE frame keep-out (frame + 3.0 in) from 32.0 in to 80.8 in along the move, first at (35.3, 41.2, -91 deg)</li>
+<li class="issue error" data-severity="ERROR" data-step="5"><strong>ERROR</strong> step 5 <code>G417/G409</code> keep out of the HIVE frame: step 5 (DRIVE &apos;path2&apos;): the robot footprint enters the HIVE frame keep-out (frame + 3.0 in) from 0.0 in to 0.0 in along the move, first at (35.8, 90.0, -86 deg)</li>
+<li class="issue warn" data-severity="WARN" data-step="6"><strong>WARN</strong> step 6 <code>10.5.4</code> PARK inside the LOADING ZONE: step 6 (PARK): the robot at (12.0, 90.0, 0 deg) overlaps the LOADING ZONE by only 2.9 in; with the +/-1 in field tolerance a PARK needs at least 3.0 in to be safe (Fig 10-7)</li>
+</ul>
+</section>
+<section class="route" id="red_c1" data-route="red_c1">
+<h2>Red C1: shoot, then drive past the HIVE to the LOADING ZONE</h2>
+<p class="muted"><code>red_c1</code></p>
+<p>Conversion of RedAlliance_C1.java. Starts in tile C1 with the back toward the UP cell, fires the 4 pre-loads, waits, then drives (58, 9.2) -&gt; (62, 118.1) -&gt; (58, 118.1) -&gt; (12, 118.1), all backwards. The first leg is a straight line through the HIVE footprint.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>C1</td></tr>
+<tr><th>Start pose, RED</th><td>(58.0, 9.2) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(86.0, 134.8) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>7</td></tr>
+<tr><th>Estimated time</th><td>16.1 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Claimable AUTO points</th><td>8 = LEAVE 3 + PARK 5 + HIVE TIP 0</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>HIVE TIPs</th><td>0</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 7.90 in inside the LOADING ZONE, at (12.0, 118.1) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-error">1 ERROR</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="red_c1_red.svg"><img class="diagram" src="red_c1_red.svg" alt="Red C1: shoot, then drive past the HIVE to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="red_c1_blue.svg"><img class="diagram" src="red_c1_blue.svg" alt="Red C1: shoot, then drive past the HIVE to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (58.0, 9.2, -90 deg) <span class="time">t = 0.0 to 0.0 s</span></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (58.0, 9.2, -90 deg) <span class="time">t = 0.0 to 5.0 s</span><div class="note">hold(follower, (58.0, 9.2, -90)) then aimAndLaunch(): fixed waitMs(5000).</div></li>
+<li class="step" data-kind="WAIT"><span class="kind">WAIT</span> 4.5 s <span class="time">t = 5.0 to 9.5 s</span><div class="note">waitMs(4500) before launcher.stop().</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path1 reverse tangent to 62.0, 118.1 <span class="time">t = 9.5 to 13.2 s</span><div class="note">line(start, point1).reverseTangent(): a straight line across the HIVE frame footprint.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path2 reverse tangent to 58.0, 118.1 <span class="time">t = 13.2 to 14.0 s</span><div class="note">4 in long: the robot has to turn about 90 deg inside it (reverse tangent now points to +x).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path3 reverse tangent to 12.0, 118.1 <span class="time">t = 14.0 to 16.1 s</span><div class="note">The -90 deg heading in the source is ignored: the robot ends facing 0 deg.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 118.1, 0 deg) <span class="time">t = 16.1 to 16.1 s</span><div class="note">The source never says PARK; this pose overlaps the red LOADING ZONE by 7.9 x 10.8 in.</div></li>
+</ol>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue error" data-severity="ERROR" data-step="4"><strong>ERROR</strong> step 4 <code>G417/G409</code> keep out of the HIVE frame: step 4 (DRIVE &apos;path1&apos;): the robot footprint enters the HIVE frame keep-out (frame + 3.0 in) from 32.0 in to 94.0 in along the move, first at (59.2, 41.2, -92 deg)</li>
+</ul>
+</section>
+<section class="route" id="red_leave_park" data-route="red_leave_park">
+<h2>Red A3: leave the wall and park (no shooting)</h2>
+<p class="muted"><code>red_leave_park</code></p>
+<p>Conversion of RedAlliance_LeavePark.java. Starts on the left wall in tile A3 facing 180 deg, drives to (24.86, 83.62) turning to 135 deg, then to (16, 91.5): LEAVE and a shallow PARK. The 4 pre-loads are never fired.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>A3</td></tr>
+<tr><th>Start pose, RED</th><td>(9.2, 70.3) in, heading 180 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(134.8, 73.7) in, heading 0 deg</td></tr>
+<tr><th>Steps</th><td>4</td></tr>
+<tr><th>Estimated time</th><td>2.7 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Claimable AUTO points</th><td>8 = LEAVE 3 + PARK 5 + HIVE TIP 0</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -0 fired, 4 at the end (balance 0)</td></tr>
+<tr><th>HIVE TIPs</th><td>0</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 3.09 in inside the LOADING ZONE, at (16.0, 91.5) in, heading 135 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-ok">no findings</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="red_leave_park_red.svg"><img class="diagram" src="red_leave_park_red.svg" alt="Red A3: leave the wall and park (no shooting), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="red_leave_park_blue.svg"><img class="diagram" src="red_leave_park_blue.svg" alt="Red A3: leave the wall and park (no shooting), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (9.2, 70.3, 180 deg) <span class="time">t = 0.0 to 0.0 s</span></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path1 linear to 24.9, 83.6 <span class="time">t = 0.0 to 1.5 s</span><div class="note">Paths.line(start, path1).linear(start, path1)</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> path2 linear to 16.0, 91.5 <span class="time">t = 1.5 to 2.7 s</span><div class="note">Paths.line(point2Start, point2).linear(point2Start, point2)</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (16.0, 91.5, 135 deg) <span class="time">t = 2.7 to 2.7 s</span><div class="note">Only a corner of the robot reaches the LOADING ZONE, 3.1 in deep; the source does not call it PARK.</div></li>
+</ol>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue ok"><strong>OK</strong> no findings</li>
+</ul>
+</section>
+<section class="route" id="wall_shoot_park" data-route="wall_shoot_park">
+<h2>Wall shoot and park: C1, shoot 4, left corridor to the LOADING ZONE</h2>
+<p class="muted"><code>wall_shoot_park</code></p>
+<p>Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver picks, then drives out through the left corridor (x &lt; 47, clear of the HIVE frame) and parks deep inside the red LOADING ZONE. LEAVE 3 + PARK 5; 4 POLLEN cannot tip the HIVE.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>C1</td></tr>
+<tr><th>Start pose, RED</th><td>(58.0, 9.2) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(86.0, 134.8) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>6</td></tr>
+<tr><th>Estimated time</th><td>12.3 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Claimable AUTO points</th><td>8 = LEAVE 3 + PARK 5 + HIVE TIP 0</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>HIVE TIPs</th><td>0</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 7.90 in inside the LOADING ZONE, at (12.0, 108.0) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-ok">no findings</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="wall_shoot_park_red.svg"><img class="diagram" src="wall_shoot_park_red.svg" alt="Wall shoot and park: C1, shoot 4, left corridor to the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="wall_shoot_park_blue.svg"><img class="diagram" src="wall_shoot_park_blue.svg" alt="Wall shoot and park: C1, shoot 4, left corridor to the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (58.0, 9.2, -90 deg) <span class="time">t = 0.0 to 0.0 s</span></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from the solver&apos;s pose <span class="time">t = 0.0 to 6.3 s</span><div class="note">AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to corridor reverse tangent curve(1) to 30.0, 45.0 <span class="time">t = 6.3 to 8.5 s</span><div class="note">A curve: leaves the shooting pose sideways along the wall, then bends up into the corridor.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> corridor reverse tangent to 30.0, 100.0 <span class="time">t = 8.5 to 10.9 s</span><div class="note">Straight up the left corridor, 21 in clear of the HIVE frame keep-out.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to zone linear to 12.0, 108.0 <span class="time">t = 10.9 to 12.3 s</span><div class="note">Turns to face +x while sliding into the zone.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 108.0, 0 deg) <span class="time">t = 12.3 to 12.3 s</span></li>
+</ol>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue ok"><strong>OK</strong> no findings</li>
+</ul>
+</section>
+<section class="route" id="garden_cycle" data-route="garden_cycle">
+<h2>Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again</h2>
+<p class="muted"><code>garden_cycle</code></p>
+<p>Starts in tile B1, fires the 4 pre-loads, sweeps up the 4 POLLEN of the red GARDEN along the audience wall and fires them too. 8 POLLEN into the same UP cell is the HIVE TIP threshold, so the route claims LEAVE 3 + TIP 20.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>B1</td></tr>
+<tr><th>Start pose, RED</th><td>(35.0, 9.2) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(109.0, 134.8) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>6</td></tr>
+<tr><th>Estimated time</th><td>20.6 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Claimable AUTO points</th><td>23 = LEAVE 3 + PARK 0 + HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +4 taken, -8 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>HIVE TIPs</th><td>1 (8 POLLEN into the UP cell each)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK no, at (59.3, 12.6) in, heading -90 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-ok">no findings</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="garden_cycle_red.svg"><img class="diagram" src="garden_cycle_red.svg" alt="Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="garden_cycle_blue.svg"><img class="diagram" src="garden_cycle_blue.svg" alt="Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (35.0, 9.2, -90 deg) <span class="time">t = 0.0 to 0.0 s</span></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from the solver&apos;s pose <span class="time">t = 0.0 to 7.1 s</span><div class="note">AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to GARDEN constant to 9.0, 18.0 <span class="time">t = 7.1 to 9.3 s</span><div class="note">Slides along the audience wall with the intake still facing it.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> into GARDEN constant to 9.0, 9.7 <span class="time">t = 9.3 to 10.4 s</span><div class="note">Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</div></li>
+<li class="step" data-kind="INTAKE"><span class="kind">INTAKE</span> GARDEN +4 from (9.0, 9.7, -90 deg) <span class="time">t = 10.4 to 12.9 s</span><div class="note">The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from the solver&apos;s pose <span class="time">t = 12.9 to 20.6 s</span><div class="note">The same UP cell now holds 8 POLLEN: the HIVE tips.</div></li>
+</ol>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue ok"><strong>OK</strong> no findings</li>
+</ul>
+</section>
+</main>
+<footer>
+<p>Generated by <code>autoshoot.render.RenderRoutesMain</code> from <code>autoshoot.routes.RouteCatalog</code>. How to add an auto as one data entry: <code>docs/AUTOS.md</code>.</p>
+</footer>
+</body>
+</html>

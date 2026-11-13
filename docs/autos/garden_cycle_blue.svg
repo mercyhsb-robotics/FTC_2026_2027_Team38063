@@ -1,0 +1,318 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
+<title id="svg-title">Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again - BLUE alliance</title>
+<desc id="svg-desc">Top view of the 144 by 144 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route garden_cycle for the BLUE alliance, starting in tile B1, with 6 steps: 1 START at (109.0, 134.8, 90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE to GARDEN constant to 135.0, 126.0; 4 DRIVE into GARDEN constant to 135.0, 134.3; 5 INTAKE GARDEN +4 from (135.0, 134.3, 90 deg); 6 SHOOT 4 at UP cell from the solver&apos;s pose. Estimated 20.6 s, POLLEN balance -4, up to 23 points; 0 errors and 0 warnings.</desc>
+<defs>
+<linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
+<stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
+<stop offset="1" stop-color="#c62828" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="area-blue" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#1565c0" stop-opacity="0.30"/>
+<stop offset="1" stop-color="#1565c0" stop-opacity="0"/>
+</linearGradient>
+<pattern id="opponent-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<line x1="0" y1="0" x2="0" y2="9" stroke="#000000" stroke-opacity="0.07" stroke-width="2.5"/>
+</pattern>
+</defs>
+<rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
+<text id="title" x="24" y="27" font-size="19.51" font-weight="bold" fill="#222222">Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again - BLUE alliance</text>
+<text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id garden_cycle  |  start tile B1  |  6 steps  |  blue ink</text>
+<rect x="24" y="52" width="40" height="4" fill="#1565c0"/>
+<g id="field">
+<rect class="alliance-area" data-alliance="RED" x="26.8" y="169.8" width="92" height="450.8" fill="url(#area-red)"/>
+<rect class="alliance-area" data-alliance="BLUE" x="781.2" y="169.8" width="92" height="450.8" fill="url(#area-blue)"/>
+<text x="72.8" y="395.2" font-size="9" fill="#c62828" text-anchor="middle" transform="rotate(-90 72.8 395.2)">RED ALLIANCE AREA</text>
+<text x="827.2" y="395.2" font-size="9" fill="#1565c0" text-anchor="middle" transform="rotate(-90 827.2 395.2)">BLUE ALLIANCE AREA</text>
+<rect class="tile" data-tile="A1" x="118.8" y="616" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="A2" x="118.8" y="505.6" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="A3" x="118.8" y="395.2" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="A4" x="118.8" y="284.8" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="A5" x="118.8" y="174.4" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="A6" x="118.8" y="64" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B1" x="229.2" y="616" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B2" x="229.2" y="505.6" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="B3" x="229.2" y="395.2" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B4" x="229.2" y="284.8" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="B5" x="229.2" y="174.4" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B6" x="229.2" y="64" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C1" x="339.6" y="616" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C2" x="339.6" y="505.6" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="C3" x="339.6" y="395.2" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C4" x="339.6" y="284.8" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="C5" x="339.6" y="174.4" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C6" x="339.6" y="64" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D1" x="450" y="616" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D2" x="450" y="505.6" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="D3" x="450" y="395.2" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D4" x="450" y="284.8" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="D5" x="450" y="174.4" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D6" x="450" y="64" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E1" x="560.4" y="616" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E2" x="560.4" y="505.6" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="E3" x="560.4" y="395.2" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E4" x="560.4" y="284.8" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="E5" x="560.4" y="174.4" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E6" x="560.4" y="64" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F1" x="670.8" y="616" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F2" x="670.8" y="505.6" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="F3" x="670.8" y="395.2" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F4" x="670.8" y="284.8" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect class="tile" data-tile="F5" x="670.8" y="174.4" width="110.4" height="110.4" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F6" x="670.8" y="64" width="110.4" height="110.4" fill="#f3f1ea"/>
+<rect id="opponent-side" x="118.8" y="64" width="331.2" height="662.4" fill="url(#opponent-hatch)"/>
+<line id="side-line" x1="450" y1="726.4" x2="450" y2="64" stroke="#555555" stroke-width="1" stroke-dasharray="6 4"/>
+<text id="opponent-label" x="447" y="177.91" font-size="9" fill="#555555" text-anchor="middle" transform="rotate(-90 447 177.91)">opponent side in AUTO (G402)</text>
+<text class="tile-label" x="174" y="742.4" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">A</text>
+<text class="tile-label" x="284.4" y="742.4" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">B</text>
+<text class="tile-label" x="394.8" y="742.4" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">C</text>
+<text class="tile-label" x="505.2" y="742.4" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">D</text>
+<text class="tile-label" x="615.6" y="742.4" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">E</text>
+<text class="tile-label" x="726" y="742.4" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">F</text>
+<text class="tile-label" x="111.8" y="675.7" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">1</text>
+<text class="tile-label" x="111.8" y="565.3" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">2</text>
+<text class="tile-label" x="111.8" y="454.9" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">3</text>
+<text class="tile-label" x="111.8" y="344.5" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">4</text>
+<text class="tile-label" x="111.8" y="234.1" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">5</text>
+<text class="tile-label" x="111.8" y="123.7" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">6</text>
+<rect id="field-border" x="118.8" y="64" width="662.4" height="662.4" fill="none" stroke="#333333" stroke-width="3"/>
+</g>
+<g id="structures">
+<rect id="hive-frame" x="336.24" y="305.62" width="227.52" height="179.17" fill="#9a9a9a" fill-opacity="0.30" stroke="#555555" stroke-width="2"/>
+<rect id="hive-keepout" x="322.44" y="291.82" width="255.12" height="206.77" fill="none" stroke="#555555" stroke-width="1" stroke-dasharray="2 3"/>
+<text x="450" y="399.2" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
+<g class="hive" data-alliance="RED">
+<g class="cell cell-down" data-alliance="RED" data-side="REAR">
+<rect x="345.35" y="280.66" width="92" height="80.5" fill="#ffffff" fill-opacity="0.35" stroke="#c62828" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="391.35" y="324.41" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle">DOWN 30-33</text>
+</g>
+<g class="cell cell-up" data-alliance="RED" data-side="AUDIENCE">
+<rect x="345.35" y="404.86" width="92" height="80.96" fill="#c62828" fill-opacity="0.28" stroke="#c62828" stroke-width="2"/>
+<line class="cell-opening" x1="345.35" y1="485.82" x2="437.35" y2="485.82" stroke="#c62828" stroke-width="5"/>
+<circle class="aim-point" cx="391.35" cy="471.01" r="3.5" fill="#ffffff" stroke="#c62828" stroke-width="1.5"/>
+<text x="391.35" y="457.12" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle">UP 34-37</text>
+</g>
+</g>
+<g class="hive" data-alliance="BLUE">
+<g class="cell cell-down" data-alliance="BLUE" data-side="AUDIENCE">
+<rect x="462.65" y="429.24" width="92" height="80.5" fill="#ffffff" fill-opacity="0.35" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="508.65" y="472.99" font-size="9.5" font-weight="bold" fill="#1565c0" text-anchor="middle">DOWN 38-41</text>
+</g>
+<g class="cell cell-up" data-alliance="BLUE" data-side="REAR">
+<rect x="462.65" y="304.58" width="92" height="80.96" fill="#1565c0" fill-opacity="0.28" stroke="#1565c0" stroke-width="2"/>
+<line class="cell-opening" x1="462.65" y1="304.58" x2="554.65" y2="304.58" stroke="#1565c0" stroke-width="5"/>
+<circle class="aim-point" cx="508.65" cy="319.39" r="3.5" fill="#ffffff" stroke="#1565c0" stroke-width="1.5"/>
+<text x="508.65" y="340.28" font-size="9.5" font-weight="bold" fill="#1565c0" text-anchor="middle">UP 42-45</text>
+</g>
+</g>
+<g class="flower" data-flower="1">
+<rect x="118.34" y="491.8" width="23" height="27.6" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="129.84" cy="505.6" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="148.24" y="508.6" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="start">FLOWER 1</text>
+</g>
+<g class="flower" data-flower="2">
+<rect x="325.8" y="63.54" width="27.6" height="23" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="339.6" cy="75.04" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="339.6" y="98.34" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="middle">FLOWER 2</text>
+</g>
+<g class="flower" data-flower="3">
+<rect x="758.66" y="271" width="23" height="27.6" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="770.16" cy="284.8" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="751.76" y="287.8" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="end">FLOWER 3</text>
+</g>
+<g class="flower" data-flower="4">
+<rect x="546.6" y="703.86" width="27.6" height="23" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="560.4" cy="715.36" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="560.4" y="698.06" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="middle">FLOWER 4</text>
+</g>
+<g class="garden" data-alliance="RED">
+<rect x="118.8" y="717.2" width="105.8" height="9.2" fill="#c62828" fill-opacity="0.10" stroke="#c62828" stroke-width="1" stroke-dasharray="3 2"/>
+<circle class="pollen" cx="125.24" cy="719.96" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="139.5" cy="719.96" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="152.38" cy="719.96" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="166.18" cy="719.96" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="171.7" y="712.2" font-size="9" fill="#c62828" text-anchor="middle" font-weight="bold">GARDEN</text>
+</g>
+<g class="loading-zone" data-alliance="RED">
+<rect x="118.8" y="174.4" width="50.6" height="110.4" fill="#c62828" fill-opacity="0.16" stroke="#c62828" stroke-width="2"/>
+<text x="144.1" y="233.1" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle" transform="rotate(-90 144.1 229.6)">LOADING ZONE</text>
+</g>
+<g class="garden" data-alliance="BLUE">
+<rect x="675.4" y="64" width="105.8" height="9.2" fill="#1565c0" fill-opacity="0.10" stroke="#1565c0" stroke-width="1" stroke-dasharray="3 2"/>
+<circle class="pollen" cx="774.76" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="760.5" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="747.62" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="733.82" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="728.3" y="86.2" font-size="9" fill="#1565c0" text-anchor="middle" font-weight="bold">GARDEN</text>
+</g>
+<g class="loading-zone" data-alliance="BLUE">
+<rect x="730.6" y="505.6" width="50.6" height="110.4" fill="#1565c0" fill-opacity="0.16" stroke="#1565c0" stroke-width="2"/>
+<text x="755.9" y="564.3" font-size="9.5" font-weight="bold" fill="#1565c0" text-anchor="middle" transform="rotate(-90 755.9 560.8)">LOADING ZONE</text>
+</g>
+<text id="audience-label" x="450" y="764.4" font-size="15" font-weight="bold" letter-spacing="4" text-anchor="middle" fill="#222222">AUDIENCE</text>
+<polygon class="compass-arrow" points="362,754.4 374,754.4 368,766.4" fill="#222222"/>
+<polygon class="compass-arrow" points="526,754.4 538,754.4 532,766.4" fill="#222222"/>
+<text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
+</g>
+<g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="garden_cycle">
+<g class="approach" data-step="2">
+<title>step 2: move to the pose of SHOOT</title>
+<line x1="620.2" y1="106.32" x2="508.65" y2="122.05" stroke="#1565c0" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round" opacity="0.85"/>
+<polygon class="arrowhead" points="508.65,122.05 516.01,116.97 517.13,124.9" fill="#1565c0"/>
+</g>
+<g class="drive-leg" data-step="3" data-mode="CONSTANT">
+<title>step 3: DRIVE to GARDEN constant to 135.0, 126.0 (t = 7.1 to 9.3 s) - Slides along the audience wall with the intake still facing it.</title>
+<path class="leg" d="M 508.65 122.05 L 739.8 146.8" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="624.23,134.43 613.75,138.33 614.81,128.39" fill="#1565c0"/>
+<polygon class="arrowhead" points="739.8,146.8 729.32,150.71 730.39,140.76" fill="#1565c0"/>
+</g>
+<g class="drive-leg" data-step="4" data-mode="CONSTANT">
+<title>step 4: DRIVE into GARDEN constant to 135.0, 134.3 (t = 9.3 to 10.4 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
+<path class="leg" d="M 739.8 146.8 L 739.8 108.62" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="739.8,108.62 744.8,118.62 734.8,118.62" fill="#1565c0"/>
+</g>
+<g class="approach" data-step="6">
+<title>step 6: move to the pose of SHOOT</title>
+<line x1="739.8" y1="108.62" x2="508.65" y2="122.05" stroke="#1565c0" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round" opacity="0.85"/>
+<polygon class="arrowhead" points="508.65,122.05 516.4,117.59 516.87,125.58" fill="#1565c0"/>
+</g>
+<g id="start-footprint" class="footprint start" data-step="1">
+<title>step 1: START at (109.0, 134.8, 90 deg) (t = 0.0 to 0.0 s)</title>
+<polygon class="outline" points="579.26,65.38 579.26,147.26 661.14,147.26 661.14,65.38" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="579.26" y1="65.38" x2="661.14" y2="65.38" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="579.26" y1="147.26" x2="661.14" y2="147.26" stroke="#ef6c00" stroke-width="4.5"/>
+<line class="heading-arrow" x1="620.2" y1="95.32" x2="620.2" y2="78.38" stroke="#1565c0" stroke-width="2.5"/>
+<polygon class="arrowhead" points="620.2,70.38 625.2,80.38 615.2,80.38" fill="#1565c0"/>
+</g>
+<g class="shoot-pose" data-step="2" data-nominal="true">
+<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.1 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. - pose drawn is the nominal standoff pose; the solver picks the real one</title>
+<polygon class="outline" points="467.71,81.11 467.71,162.99 549.59,162.99 549.59,81.11" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<line class="front-edge" x1="467.71" y1="81.11" x2="549.59" y2="81.11" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="467.71" y1="162.99" x2="549.59" y2="162.99" stroke="#ef6c00" stroke-width="4.5"/>
+<line class="shot" x1="508.65" y1="162.99" x2="508.65" y2="310.39" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="508.65,319.39 503.65,309.39 513.65,309.39" fill="#1565c0"/>
+</g>
+<g class="intake" data-step="5" data-source="GARDEN">
+<title>step 5: INTAKE GARDEN +4 from (135.0, 134.3, 90 deg) (t = 10.4 to 12.9 s) - The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3.</title>
+<polygon class="outline" points="698.86,67.68 698.86,149.56 780.74,149.56 780.74,67.68" fill="#1565c0" fill-opacity="0.07" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<line class="front-edge" x1="698.86" y1="67.68" x2="780.74" y2="67.68" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="698.86" y1="149.56" x2="780.74" y2="149.56" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="intake-ring" cx="754.06" cy="70.44" r="32.2" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 4"/>
+</g>
+<g class="shoot-pose" data-step="6" data-nominal="true">
+<title>step 6: SHOOT 4 at UP cell from the solver&apos;s pose (t = 12.9 to 20.6 s) - The same UP cell now holds 8 POLLEN: the HIVE tips. - pose drawn is the nominal standoff pose; the solver picks the real one</title>
+<polygon class="outline" points="467.71,81.11 467.71,162.99 549.59,162.99 549.59,81.11" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
+<line class="front-edge" x1="467.71" y1="81.11" x2="549.59" y2="81.11" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="467.71" y1="162.99" x2="549.59" y2="162.99" stroke="#ef6c00" stroke-width="4.5"/>
+<line class="shot" x1="508.65" y1="162.99" x2="508.65" y2="310.39" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="508.65,319.39 503.65,309.39 513.65,309.39" fill="#1565c0"/>
+</g>
+<g id="badges">
+<g class="badge" data-step="1" data-kind="START">
+<title>step 1: START at (109.0, 134.8, 90 deg) (t = 0.0 to 0.0 s)</title>
+<circle cx="620.2" cy="106.32" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="620.2" y="110.12" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+</g>
+<g class="badge" data-step="2" data-kind="SHOOT">
+<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.1 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell.</title>
+<circle cx="508.65" cy="122.05" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="508.65" y="125.85" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
+</g>
+<g class="badge" data-step="3" data-kind="DRIVE">
+<title>step 3: DRIVE to GARDEN constant to 135.0, 126.0 (t = 7.1 to 9.3 s) - Slides along the audience wall with the intake still facing it.</title>
+<circle cx="624.23" cy="134.43" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="624.23" y="138.23" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
+</g>
+<g class="badge" data-step="4" data-kind="DRIVE">
+<title>step 4: DRIVE into GARDEN constant to 135.0, 134.3 (t = 9.3 to 10.4 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
+<circle cx="739.8" cy="127.71" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="739.8" y="131.51" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
+</g>
+<g class="badge" data-step="5" data-kind="INTAKE">
+<title>step 5: INTAKE GARDEN +4 from (135.0, 134.3, 90 deg) (t = 10.4 to 12.9 s) - The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3.</title>
+<circle cx="739.8" cy="108.62" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="739.8" y="112.42" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
+</g>
+<g class="badge" data-step="6" data-kind="SHOOT">
+<title>step 6: SHOOT 4 at UP cell from the solver&apos;s pose (t = 12.9 to 20.6 s) - The same UP cell now holds 8 POLLEN: the HIVE tips.</title>
+<circle cx="522.09" cy="108.62" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
+<text x="522.09" y="112.42" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
+</g>
+</g>
+<g id="step-labels">
+<text class="step-label" x="635.2" y="124.32" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START B1</text>
+<text class="step-label" x="523.65" y="259.19" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 2)</text>
+<text class="step-label" x="538.65" y="158.05" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">pose chosen by the solver</text>
+<text class="step-label" x="609.23" y="125.43" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to GARDEN</text>
+<text class="step-label" x="754.8" y="145.71" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into GARDEN</text>
+<text class="step-label" x="769.06" y="88.44" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">INTAKE GARDEN +4</text>
+<text class="step-label" x="523.65" y="232.19" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 6)</text>
+<text class="step-label" x="523.65" y="337.39" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
+</g>
+<g id="issue-marks">
+</g>
+</g>
+<g id="legend">
+<g class="legend-item" data-icon="drive">
+<line x1="24" y1="782.4" x2="40" y2="782.4" stroke="#1565c0" stroke-width="3" stroke-linecap="round"/>
+<polygon class="arrowhead" points="48,782.4 39,786.9 39,777.9" fill="#1565c0"/>
+<text x="55" y="786.4" font-size="10.5" fill="#222222">DRIVE leg</text>
+</g>
+<g class="legend-item" data-icon="approach">
+<line x1="127.81" y1="782.4" x2="143.81" y2="782.4" stroke="#1565c0" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="151.81,782.4 143.81,786.4 143.81,778.4" fill="#1565c0"/>
+<text x="158.81" y="786.4" font-size="10.5" fill="#222222">move to a pose</text>
+</g>
+<g class="legend-item" data-icon="badge">
+<circle cx="274.07" cy="782.4" r="7" fill="#ffffff" stroke="#1565c0" stroke-width="2"/>
+<text x="274.07" y="785.9" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+<text x="293.07" y="786.4" font-size="10.5" fill="#222222">step number</text>
+</g>
+<g class="legend-item" data-icon="robot">
+<rect x="378.06" y="776.4" width="24" height="12" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.4"/>
+<text x="409.06" y="786.4" font-size="10.5" fill="#222222">robot, to scale</text>
+</g>
+<g class="legend-item" data-icon="front">
+<line x1="518.41" y1="782.4" x2="542.41" y2="782.4" stroke="#2e7d32" stroke-width="4.5"/>
+<text x="549.41" y="786.4" font-size="10.5" fill="#222222">FRONT = intake</text>
+</g>
+<g class="legend-item" data-icon="back">
+<line x1="652.67" y1="782.4" x2="676.67" y2="782.4" stroke="#ef6c00" stroke-width="4.5"/>
+<text x="683.67" y="786.4" font-size="10.5" fill="#222222">BACK = shooter</text>
+</g>
+<g class="legend-item" data-icon="intake">
+<circle cx="36" cy="799.4" r="6.5" fill="none" stroke="#1565c0" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="55" y="803.4" font-size="10.5" fill="#222222">INTAKE</text>
+</g>
+<g class="legend-item" data-icon="shoot">
+<line x1="109.54" y1="799.4" x2="125.54" y2="799.4" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="6 4"/>
+<polygon class="arrowhead" points="133.54,799.4 124.54,803.9 124.54,794.9" fill="#1565c0"/>
+<text x="140.54" y="803.4" font-size="10.5" fill="#222222">SHOOT: launch point to aim point</text>
+</g>
+<g class="legend-item" data-icon="wait">
+<circle cx="365.42" cy="799.4" r="6" fill="#ffffff" stroke="#1565c0" stroke-width="1.6"/>
+<polyline points="365.42,795.4 365.42,799.4 368.42,801.4" fill="none" stroke="#1565c0" stroke-width="1.4" stroke-linecap="round"/>
+<text x="384.42" y="803.4" font-size="10.5" fill="#222222">WAIT</text>
+</g>
+<g class="legend-item" data-icon="park">
+<rect x="426.78" y="793.4" width="24" height="12" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="2.4" stroke-dasharray="6 3"/>
+<text x="457.78" y="803.4" font-size="10.5" fill="#222222">PARK</text>
+</g>
+<g class="legend-item" data-icon="up">
+<rect x="500.14" y="793.4" width="24" height="12" fill="#1565c0" fill-opacity="0.28" stroke="#1565c0" stroke-width="1.8"/>
+<text x="531.14" y="803.4" font-size="10.5" fill="#222222">UP cell</text>
+</g>
+<g class="legend-item" data-icon="down">
+<rect x="591.77" y="793.4" width="24" height="12" fill="#ffffff" fill-opacity="0.35" stroke="#1565c0" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="622.77" y="803.4" font-size="10.5" fill="#222222">DOWN cell</text>
+</g>
+<g class="legend-item" data-icon="issue">
+<polygon points="707.58,791.4 715.58,805.4 699.58,805.4" fill="#f9a825"/>
+<text x="707.58" y="804" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<text x="726.58" y="803.4" font-size="10.5" fill="#222222">validator finding</text>
+</g>
+</g>
+<g id="footer">
+<text id="footer-metrics" x="24" y="821.4" font-size="12" font-weight="bold" fill="#222222">Estimated time 20.6 s of the 30.0 s AUTO (placeholder timing)   |   Claimable AUTO points: 23  (LEAVE 3, PARK 0, HIVE TIP 20)</text>
+<text id="footer-pollen" x="24" y="837.4" font-size="12" fill="#222222">POLLEN: hold 4 at start, +4 taken, -8 fired, 0 at the end (balance -4)   |   Validator: no findings</text>
+</g>
+</svg>
