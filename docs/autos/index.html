@@ -72,6 +72,7 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr class="summary-row" data-route="red_leave_park"><td><a href="#red_leave_park">Red A3: leave the wall and park (no shooting)</a><br /><code>red_leave_park</code></td><td>A3</td><td>we shoot the first tip</td><td>4</td><td>2.7 s</td><td>8</td><td>0</td><td><span class="status-error">2 ERROR</span></td></tr>
 <tr class="summary-row" data-route="wall_shoot_park"><td><a href="#wall_shoot_park">Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE</a><br /><code>wall_shoot_park</code></td><td>C1</td><td>we shoot the first tip</td><td>6</td><td>12.4 s</td><td>28</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
 <tr class="summary-row" data-route="garden_cycle"><td><a href="#garden_cycle">Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall</a><br /><code>garden_cycle</code></td><td>B1</td><td>we shoot the first tip</td><td>6</td><td>14.1 s</td><td>23</td><td>-1</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="partner_rear_shoot_park"><td><a href="#partner_rear_shoot_park">Partner tips first: wait at the rear wall, shoot 4 at the cell that comes up, park</a><br /><code>partner_rear_shoot_park</code></td><td>C6</td><td>partner tips first, assumed at 12.0 s<br /><span class="note">latest tip that works: 15.5 s</span></td><td>6</td><td>22.2 s</td><td>8</td><td>-4</td><td><span class="status-ok">no findings</span></td></tr>
 </tbody>
 </table>
 </div>
@@ -313,6 +314,56 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <p class="muted">Same for RED and BLUE.</p>
 <ul class="issues">
 <li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="partner_rear_shoot_park" data-route="partner_rear_shoot_park">
+<h2>Partner tips first: wait at the rear wall, shoot 4 at the cell that comes up, park</h2>
+<p class="muted"><code>partner_rear_shoot_park</code></p>
+<p>Assumes the alliance PARTNER shoots the first tip (assumed done at 12 s, agree the real time with the partner team). Starts on the rear wall in tile C6, front edge on the wall, so the back (the shooter) faces the HIVE, and WAITS: the robot never shoots because a time has passed, only after its camera has SEEN the REAR cell come up and stay steady. Then it fires its 4 pre-loads into that cell from where it stands (it holds no NECTAR, so 4 POLLEN do not tip it: they are 4 of the 8 the second tip needs, which is for TELEOP), drives off the rear wall and parks in the red LOADING ZONE. LEAVE 3 + PARK 5 are ours; the partner&apos;s 20 is an assumption, not counted. The second tip does NOT fit in AUTO with the shipped numbers (see PartnerTipRoutes): a partner that tips by about 6 s and wheels that reach the FLOWER are needed first. If the tip never comes the robot gives up waiting, leaves the volley out and still leaves and parks.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>C6</td></tr>
+<tr><th>Start pose, RED</th><td>(61.5, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(79.8, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Steps</th><td>6</td></tr>
+<tr><th>First tip</th><td>partner tips first, assumed at 12.0 s</td></tr>
+<tr><th>Estimated time</th><td>22.2 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>8 = LEAVE 3 + PARK 5 + our HIVE TIP 0</td></tr>
+<tr><th>Assumed partner tip</th><td>+20 for the alliance at 12.0 s: an assumption, shown here and NOT counted in our points</td></tr>
+<tr><th>Latest partner tip that works</th><td>15.5 s is the latest partner tip the route can still use, 3.5 s of slack after the assumed 12.0 s. If the partner tips later than that, the robot gives up waiting, skips the volleys that need the tip and still does LEAVE and PARK.</td></tr>
+<tr><th>If the tip is never confirmed</th><td>the robot waits until 16.0 s, leaves 1 volley out (no camera, no shot) and carries on: it ends at (12.0, 108.0) in, heading 0 deg after 19.7 s with LEAVE yes, PARK yes: 8 points</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>0</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 7.03 in inside the LOADING ZONE, at (12.0, 108.0) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-ok">no findings</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="partner_rear_shoot_park_red.svg"><img class="diagram" src="partner_rear_shoot_park_red.svg" alt="Partner tips first: wait at the rear wall, shoot 4 at the cell that comes up, park, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="partner_rear_shoot_park_blue.svg"><img class="diagram" src="partner_rear_shoot_park_blue.svg" alt="Partner tips first: wait at the rear wall, shoot 4 at the cell that comes up, park, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (61.5, 131.6, 90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the rear wall (the center of rotation is 9.77 in from it), facing the wall, the middle of the robot over x = 61.5: its right edge is 1.7 in clear of the rear-wall FLOWER plate (G304.D), and the shooter end points at the HIVE.</div></li>
+<li class="step" data-kind="WAIT_FOR_TIP"><span class="kind">WAIT_FOR_TIP</span> until the camera sees the HIVE tipped, giving up at 16.0 s on the route clock <span class="time">t = 0.0 to 12.5 s</span><div class="note waitnote">The robot shoots after the camera has SEEN the HIVE tipped, never at a time. It stops waiting at 16.0 s on the route clock; the steps after this one take 9.7 s, so it may wait until 18.3 s at the latest.</div><div class="note">Waits for the CAMERA to see the REAR cell up and steady (0.5 s). 16 s is the give-up time on the route clock: later than that the rest (the volley and the drive to the zone) would not fit in the 30 s, so the robot skips the volley and goes on to LEAVE and PARK.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (61.5, 130.0, 90 deg) <span class="time">t = 12.5 to 18.6 s</span><div class="note">From where it stands (about 3 in from the start): the back toward the rear cell, 35 in from its aim point, inside the 30 to 38 in band. 4 POLLEN into an empty cell do not tip it (it needs 8); they are banked for the second tip.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> off the wall constant to 61.5, 112.0 <span class="time">t = 18.6 to 20.0 s</span><div class="note">Straight toward the HIVE side, away from the rear wall and the FLOWER; the whole robot ends more than 1.5 in off every wall (LEAVE).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to zone linear to 12.0, 108.0 <span class="time">t = 20.0 to 22.2 s</span><div class="note">Along the corridor above the HIVE (clear of its keep-out) while turning to face +x, into the red LOADING ZONE.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 108.0, 0 deg) <span class="time">t = 22.2 to 22.2 s</span><div class="note">Overlaps the LOADING ZONE by 9.5 x 17.8 in, standing 4 in off the red wall so the LEAVE is kept too (QA21).</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline partner">The partner's assumed tip at 12.0 s: the AUDIENCE cell tips down and spills, the REAR cell comes up with no NECTAR in it, so our robot needs 8 POLLEN there for the next tip (plan 9: a real field drifts). The robot sees it confirmed 0.5 s after the tip, at 12.5 s. These 20 points are the alliance's, not ours.</li>
+<li class="tipline volley" data-step="3">Step 3: the UP cell holds 0 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 0 NECTAR x 5/3 + 4 POLLEN = 4 POLLEN-equivalents, short of the 8 that tip a cell, so no tip yet (4 more POLLEN into this cell would tip it).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue ok"><strong>OK</strong> no findings</li>
 </ul>
 </section>
 </main>

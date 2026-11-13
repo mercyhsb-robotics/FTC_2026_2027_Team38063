@@ -509,6 +509,82 @@ public class RouteCatalogTest {
         assertFalse(wallErrorAt(RouteValidator.check(r), 3) || wallErrorAt(RouteValidator.check(r), 4));
     }
 
+    // ---- the two first-tip families -------------------------------------------------------------------
+
+    /**
+     * The catalog must hold at least one route of EACH family. The tests that loop over "every partner route of the catalog" pass on an empty list, so without
+     * this one an empty partner family (it was: "No route is in this file yet") leaves the whole suite green while the third requirement ("both first-tip
+     * families must exist") is unmet.
+     */
+    @Test
+    public void bothFirstTipFamiliesHaveARouteInTheCatalog() {
+        int self = 0;
+        int partner = 0;
+        for (AutoRoute r : RouteCatalog.all()) {
+            if (r.firstTip() == FirstTip.PARTNER) {
+                partner++;
+            } else {
+                self++;
+            }
+        }
+        assertTrue("the SELF family has routes: " + self, self >= 1);
+        assertTrue("the PARTNER family must not be empty: " + partner, partner >= 1);
+        assertFalse("PartnerTipRoutes holds the partner routes", PartnerTipRoutes.routes().isEmpty());
+    }
+
+    /**
+     * Situation: the partner route of the catalog, for both alliances.
+     * Expected: it validates with no finding at all; it waits for the tip BEFORE it shoots; it earns LEAVE and PARK (8 points, the partner's 20 are not
+     *     counted); our own volley of 4 into the empty cell that comes up does not tip it (it needs 8); the partner's assumed tip is in the plan; and the route
+     *     has at least the minimum slack for a slower partner.
+     */
+    @Test
+    public void thePartnerRouteWaitsForTheCameraThenShootsParksAndHasRoomToSpare() {
+        AutoRoute r = RouteCatalog.byId(PartnerTipRoutes.PARTNER_REAR_SHOOT_PARK);
+        assertEquals(FirstTip.PARTNER, r.firstTip());
+        assertEquals(StepKind.WAIT_FOR_TIP, r.step(1).kind());
+        assertEquals(StepKind.SHOOT, r.step(2).kind());
+        for (Alliance a : Alliance.values()) {
+            AutoRoute x = r.forAlliance(a);
+            List<Issue> l = RouteValidator.check(x);
+            assertTrue(a + ": " + l, l.isEmpty());
+            RouteAnalysis an = x.analyze();
+            assertTrue(an.partnerTipAssumed());
+            assertTrue(an.leave());
+            assertTrue(an.park());
+            assertEquals("LEAVE 3 + PARK 5; the partner's tip is not ours", BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS, x.claimablePoints());
+            assertEquals("4 POLLEN into the empty cell do not tip it", 0, an.tips());
+            assertEquals(4, an.pollenShot());
+            assertTrue("slack " + an.partnerTipSlackSec(), an.partnerTipSlackSec() >= BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC);
+            assertTrue(an.totalSeconds() <= RouteAnalysis.timeBudgetSec());
+        }
+    }
+
+    /**
+     * Situation: the route the partner family was asked for: the partner tips (assumed at the shipped 12 s), we wait, shoot 4 into the empty cell that comes
+     *     up, take 4 from the rear FLOWER and shoot 4 again for the SECOND tip.
+     * Expected: with the shipped numbers it does not fit: the plan ends past the 30 s AUTO limit and the validator says so (G401), and even the sum of the
+     *     waits and the work alone, with NO driving, is over 30 s. It fits only for a much earlier partner tip.
+     * Why: this pins the numbers behind the decision NOT to put that route in the catalog yet (see PartnerTipRoutes and docs/AUTOS.md): 12 s is the team's own
+     *     guess and is about twice what our own first volley takes. The test says what has to change (a partner that tips by about 6 s, and wheels that reach)
+     *     instead of leaving the team to find out from a red route.
+     */
+    @Test
+    public void theSecondTipOfThePartnerFamilyDoesNotFitWithTheShippedNumbers() {
+        double[] rearFlower = BioBuzzConstants.Field.FLOWER_CENTERS_IN[1];
+        AutoRoute r = AutoRoute.builder("second_tip").partnerTipsFirst().start(61.5, SIZE - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
+                .waitForTip(20).shootUp(61.5, 130.0, 90, 4).intakeFlower(rearFlower[0], rearFlower[1], 4).shootUp(61.5, 130.0, 90, 4).build();
+        RouteAnalysis a = r.analyze();
+        assertTrue("ends at " + a.totalSeconds(), a.totalSeconds() > BioBuzzConstants.Auto.AUTO_DURATION_SEC);
+        assertEquals(1, count(RouteValidator.check(r), Rule.TIME_G401, Severity.ERROR));
+        double withoutDriving = BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC + BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC
+                + 2.0 * (BioBuzzConstants.Auto.AIM_SPINUP_SEC + 4.0 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC) + a.step(3).pickupSec;
+        assertTrue("the waits and the work alone: " + withoutDriving, withoutDriving > BioBuzzConstants.Auto.AUTO_DURATION_SEC);
+        // it works for a partner that tips early: the latest tip it can use is far below the assumed one
+        assertTrue("latest partner tip " + a.latestPartnerTipSec(), a.latestPartnerTipSec() < BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC / 1.5);
+        assertTrue(RouteAnalysis.ofWithPartnerTipAt(r, 4.0).totalSeconds() <= RouteAnalysis.timeBudgetSec());
+    }
+
     private static boolean wallErrorAt(List<Issue> issues, int stepIndex) {
         for (Issue i : issues) {
             if (i.rule == Rule.FIELD_BOUNDS && i.severity == Severity.ERROR && i.stepIndex == stepIndex) {

@@ -307,7 +307,7 @@ public class RouteSvgRendererTest {
                 assertEquals(r.id(), countSteps(r, StepKind.SHOOT), withClass(route, "g", "shoot-pose").size());
                 assertEquals(r.id(), countSteps(r, StepKind.SHOOT), withClass(route, "line", "shot").size());
                 assertEquals(r.id(), countSteps(r, StepKind.PARK), withClass(route, "g", "park-outline").size());
-                assertEquals(r.id(), countSteps(r, StepKind.WAIT), withClass(route, "g", "clock").size());
+                assertEquals(r.id(), countSteps(r, StepKind.WAIT) + countSteps(r, StepKind.WAIT_FOR_TIP), withClass(route, "g", "clock").size());
                 // badges are numbered 1..N in order
                 List<Element> badges = withClass(route, "g", "badge");
                 for (int i = 0; i < badges.size(); i++) {

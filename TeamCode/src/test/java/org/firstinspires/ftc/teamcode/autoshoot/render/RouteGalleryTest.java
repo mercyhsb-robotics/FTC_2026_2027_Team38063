@@ -282,7 +282,8 @@ public class RouteGalleryTest {
         // routes that shoot the first tip themselves have no such row
         assertFalse(section(page, "garden_cycle").getTextContent().contains("Latest partner tip"));
         for (Element row : withClass(page, "tr", "summary-row")) {
-            if (!row.getAttribute("data-route").equals("partner_rear")) {
+            // (the two partner routes: this test's own and the one of the catalog)
+            if (!row.getAttribute("data-route").equals("partner_rear") && !row.getAttribute("data-route").equals("partner_rear_shoot_park")) {
                 assertFalse(row.getTextContent(), row.getTextContent().contains("latest tip that works"));
             }
         }

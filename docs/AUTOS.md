@@ -601,6 +601,18 @@ the OpMode's start y (or x) to match once the real center of rotation is measure
 4 in off the red wall so that it keeps its LEAVE (28 points); the second shoots the pre-loads (the first tip, same spare), sweeps up
 3 of the 4 GARDEN POLLEN (the robot holds 0, or 1 if the feeder stops in time; standing 0.8 in off the wall) and steps off the wall (23 points). It does not
 shoot the GARDEN POLLEN: the UP cell is on the far side of the HIVE after the tip and needs 8 POLLEN (plan 9).
+* **`partner_rear_shoot_park`** is the one route of the **partner family** (`PartnerTipRoutes`): it assumes the alliance partner shoots the first
+  tip (assumed at 12 s). It starts on the rear wall in tile C6 with its back toward the HIVE, WAITS until its camera has seen the REAR cell come up
+  and stay steady, shoots 4 into it (4 of the 8 the second tip needs, for TELEOP), drives off the wall and parks in the red LOADING ZONE
+  (LEAVE 3 + PARK 5 are ours; the partner's 20 is shown separately, never counted). If the tip never comes it gives up and still leaves and parks.
+  **Why it does not also make the second tip.** Partner tips (12 s) + the camera's settle (0.5 s) + a volley of 4 (1.9 + 4 x 0.9 = 5.5 s) + a
+  FLOWER pick-up of 4 (about 7.4 s) + a second volley of 4 (5.5 s) = 30.9 s with NO driving at all, over the 30 s of AUTO: the route as the team
+  asked for it cannot fit with the shipped numbers (written out as a test in `RouteCatalogTest`). It needs a partner that tips by about 6 s, and
+  wheels that really reach the POLLEN (the validator says the shipped wheels fall 0.8 in short). 12 s is the team's own "about 12 s" guess and
+  is NOT changed here: agree the real time with the partner team (day-one checklist) and measure the wheels first. Two things the timing model does
+  not know yet could win a few seconds: it charges the aim and spin-up (1.9 s) after every WAIT_FOR_TIP and after every volley, never in parallel with
+  the wait or a drive, and it does not know the partner could be faster. Even with both spin-ups free the total is about 27 s with no driving at all,
+  which leaves no room for the drives.
 
 One thing to know about a start with the front exactly on the wall: the robot cannot turn toward that wall at all, not even
 a degree, because the corner that leads would poke through (0.1 in is forgiven as measurement noise). A route that begins
