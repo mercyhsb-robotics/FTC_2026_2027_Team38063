@@ -669,6 +669,10 @@ public final class AutoShootController {
         // heading to turn to.
         out.driveMode = DriveMode.FOLLOW;
         out.waypoints = solution.waypoints;
+        // The planner checked this route against the walls with this exact turn (when the robot may start turning and
+        // when it must be done), so the drive must be given the same window.
+        out.turnHoldIn = solution.turnHoldIn;
+        out.turnSettleIn = solution.turnSettleIn;
         out.holdPose = solution.pose;
         // Spin the flywheel up on the way, for the range from where the robot is right now, so it is close to speed
         // on arrival. While the robot is far away that range is outside the shot table and velocityAt() clamps to
@@ -735,11 +739,11 @@ public final class AutoShootController {
         double headErr = Math.toDegrees(Angles.distance(in.pose.heading, hold.heading));
         double omegaDegS = Math.toDegrees(Math.abs(in.omegaRadS));
 
-        // Pushed far away (for example by another robot): drive back to the pose first.
+        // Pushed far away (for example by another robot): drive back to the pose first. This plans a NEW route from
+        // where the robot is now. Re-using the old route would send the robot from here to the old route's first
+        // point along a line nobody checked against the walls and the HIVE.
         if (posErr > cfg.reapproachIn) {
-            enter(State.APPROACH, in.nowSec);
-            approachTimeout = posErr / cfg.approachTimeoutSpeed + cfg.approachTimeoutExtra;
-            approach(in, out);
+            plan(in, out);
             return;
         }
 

@@ -477,6 +477,13 @@ public final class BioBuzzConstants {
         public static final double PATH_SWEEP_TOLERANCE_IN = 0.05;
         /** TUNE: the finest spacing the checker refines to when the robot is very close to something (inches). */
         public static final double PATH_SWEEP_MIN_STEP_IN = 0.02;
+        /**
+         * TUNE: when the planner has to squeeze the robot's turn into part of a route (because the robot is against a
+         * wall and cannot turn there) it never asks for more than this many degrees of turning per inch driven.
+         * The robot cannot follow a heading that changes faster than it can spin: at a 30 in/s drive speed, 4 deg/in is
+         * 120 degrees per second.
+         */
+        public static final double PATH_MAX_TURN_DEG_PER_IN = 4.0;
 
         // ---- fine alignment ---------------------------------------------------------------
         /** TUNE: alignment is settled when the position error is below this (inches). Mecanum drives rarely settle below about 1 in. */

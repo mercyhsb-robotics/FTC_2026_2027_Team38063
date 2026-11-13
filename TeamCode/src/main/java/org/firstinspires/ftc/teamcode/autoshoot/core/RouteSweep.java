@@ -160,6 +160,28 @@ public final class RouteSweep {
         return reachIn;
     }
 
+    /**
+     * True if, with its rotation center at (x, y), the robot may face ANY direction without coming closer than the
+     * wall clearance to a wall or the margin to an obstacle. Equivalent to asking whether the circle of radius
+     * {@link #reachIn} around the point is clear (a circle is what the robot sweeps out when it spins in place). The
+     * planner uses it to find the stretches of a route where the robot is free to turn.
+     */
+    public boolean anyHeadingIsSafeAt(double x, double y) {
+        // The 1e-9 forgives rounding for a point exactly on the limit.
+        if (x - reachIn < field.minX + wallClearanceIn - 1e-9 || x + reachIn > field.maxX - wallClearanceIn + 1e-9
+                || y - reachIn < field.minY + wallClearanceIn - 1e-9 || y + reachIn > field.maxY - wallClearanceIn + 1e-9) {
+            return false;
+        }
+        for (Rect o : obstacles) {
+            // A box grown by the robot's reach plus the margin is where the center may not be. (It grows corners
+            // square rather than round, which is a little stricter than needed, never looser.)
+            if (o.inflate(reachIn + obstacleMarginIn - 1e-9).containsStrictly(x, y)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** The robot's rectangle at a pose, built exactly the way every other check builds it. */
     private Footprint footprintAt(Pose2 pose) {
         return Footprint.of(pose, lengthIn, widthIn);
