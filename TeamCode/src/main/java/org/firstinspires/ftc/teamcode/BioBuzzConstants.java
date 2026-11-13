@@ -215,6 +215,48 @@ public final class BioBuzzConstants {
         public static final double SHOOT_STANDOFF_NOMINAL_IN = 34.0;
         /** TUNE (hive_tags report 6d: +/-13..17 deg in line): largest aim error of the back toward the cell before a WARN. */
         public static final double SHOOT_AIM_TOLERANCE_DEG = 15.0;
+
+        // ---- route diagrams (autoshoot.render; SVG, top view, audience at the bottom) ---------------
+
+        /** TUNE: the SVG is this many pixels wide and tall; the diagrams must stay readable at this size. */
+        public static final double RENDER_CANVAS_PX = 900.0;
+        /** TUNE: pixels per field inch. 144 in x 4.6 = 662 px leaves room for the title above and the footer below. */
+        public static final double RENDER_FIELD_SCALE_PX_PER_IN = 4.6;
+        /** TUNE: distance from the top of the SVG to the rear wall of the field. */
+        public static final double RENDER_FIELD_TOP_PX = 64.0;
+        /** TUNE: an ALLIANCE AREA is really 54 in deep outside the field wall (manual 9.5); only this much of it is drawn (faded out), to leave the field room in a square image. */
+        public static final double RENDER_ALLIANCE_AREA_SHOWN_IN = 20.0;
+        /** VERIFY (field report D7): the ALLIANCE AREA spans y 23 to 121 along the wall. */
+        public static final double RENDER_ALLIANCE_AREA_Y_MIN_IN = 23.0;
+        public static final double RENDER_ALLIANCE_AREA_Y_MAX_IN = 121.0;
+        /** TUNE: ink of a RED alliance route. */
+        public static final String RENDER_INK_RED = "#c62828";
+        /** TUNE: ink of a BLUE alliance route. */
+        public static final String RENDER_INK_BLUE = "#1565c0";
+        /** TUNE: colour of the FRONT (intake) end of a robot footprint. */
+        public static final String RENDER_FRONT_COLOR = "#2e7d32";
+        /** TUNE: colour of the BACK (shooter) end of a robot footprint. */
+        public static final String RENDER_BACK_COLOR = "#ef6c00";
+        /** TUNE: light and dark floor tile fills (they alternate like the real checkerboard of tiles). */
+        public static final String RENDER_TILE_LIGHT = "#f3f1ea";
+        public static final String RENDER_TILE_DARK = "#e0ddd2";
+        /** TUNE: page background and text colour of the diagram. */
+        public static final String RENDER_BACKGROUND = "#ffffff";
+        public static final String RENDER_TEXT_COLOR = "#222222";
+        /** TUNE: base font size of labels, in SVG pixels (smaller items scale from it). */
+        public static final double RENDER_FONT_PX = 11.0;
+        /** TUNE: average glyph width as a fraction of the font size; only used to keep labels from overlapping, not to measure text. */
+        public static final double RENDER_LABEL_CHAR_WIDTH_EM = 0.58;
+        /** TUNE: radius of the numbered circle that marks each step, in SVG pixels. */
+        public static final double RENDER_BADGE_RADIUS_PX = 8.5;
+        /** TUNE: radius, in field inches, of the dashed ring drawn around an INTAKE target of each source. */
+        public static final double RENDER_INTAKE_RING_FLOOR_IN = 5.0;
+        public static final double RENDER_INTAKE_RING_FLOWER_IN = 7.5;
+        public static final double RENDER_INTAKE_RING_GARDEN_IN = 7.0;
+        /** TUNE: validator findings that fit under a diagram; with more, the last line says how many are left out. */
+        public static final int RENDER_MAX_ISSUE_LINES = 5;
+        /** TUNE: gap between the bottom of the field (below its tile letters and the AUDIENCE label) and the legend, in SVG pixels. */
+        public static final double RENDER_LEGEND_GAP_PX = 56.0;
     }
 
     // =========================================================================================
