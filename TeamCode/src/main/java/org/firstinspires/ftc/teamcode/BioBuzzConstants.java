@@ -81,6 +81,134 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // AUTONOMOUS ROUTE FRAMEWORK (declarative autos: data model, validator, timing, diagrams)
+    // Used by autoshoot.routes and autoshoot.render only. Field geometry is written for RED.
+    // =========================================================================================
+    public static final class Auto {
+        private Auto() {
+        }
+
+        // ---- match rules and scoring (manual TU09 sections 10.1-10.5, G304, G402, G407) -------
+
+        /** FIXED (manual 10.1, G401): the AUTONOMOUS period lasts 30 s. */
+        public static final double AUTO_DURATION_SEC = 30.0;
+        /** FIXED (G407): a robot may CONTROL at most 4 SCORING ELEMENTS at once. */
+        public static final int POLLEN_CAPACITY = 4;
+        /** FIXED (G304.G / 10.3.4): the robot starts in contact with exactly 4 POLLEN pre-loads. */
+        public static final int PRELOAD_POLLEN = 4;
+        /** FIXED (manual 10.3.1): every FLOWER starts with 4 POLLEN in it. */
+        public static final int FLOWER_POLLEN = 4;
+        /** FIXED (manual 10.3.1): every GARDEN starts with a line of 4 POLLEN. */
+        public static final int GARDEN_POLLEN = 4;
+        /** FIXED (manual 9.8): POLLEN diameter, drawn to scale by the diagrams. */
+        public static final double POLLEN_DIAMETER_IN = 2.8;
+        /**
+         * VERIFY: POLLEN that must be LAUNCHED into the UP cell to tip the HIVE. Team statement:
+         * 5 NECTAR, 8 POLLEN or a mix. Not in the manual; whether the 3 NECTAR staged in the cell
+         * count is unknown. Measure on the real HIVE.
+         */
+        public static final int TIP_POLLEN_THRESHOLD = 8;
+        /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */
+        public static final int LEAVE_POINTS = 3;
+        /** FIXED (manual Table 10-2): PARK is worth 5 points in AUTO. */
+        public static final int PARK_POINTS = 5;
+        /** FIXED (manual Table 10-2): a HIVE TIP is worth 20 points in AUTO. */
+        public static final int TIP_POINTS = 20;
+
+        // ---- field zones and layout used by the validator and the diagrams (RED frame) --------
+
+        /** FIXED (manual 9.3, tile A5): the red LOADING ZONE is x [0, 11] ... */
+        public static final double RED_LOADING_ZONE_X_MIN_IN = 0.0;
+        public static final double RED_LOADING_ZONE_X_MAX_IN = 11.0;
+        /** FIXED (manual 9.3, tile A5): ... y [96, 120]. The blue one is its half-turn image. */
+        public static final double RED_LOADING_ZONE_Y_MIN_IN = 96.0;
+        public static final double RED_LOADING_ZONE_Y_MAX_IN = 120.0;
+
+        /** FIXED (manual 9.3): the red GARDEN is about 23 x 2 in in the corner of tile A1. */
+        public static final double RED_GARDEN_X_MIN_IN = 0.0;
+        public static final double RED_GARDEN_X_MAX_IN = 23.0;
+        public static final double RED_GARDEN_Y_MIN_IN = 0.0;
+        public static final double RED_GARDEN_Y_MAX_IN = 2.0;
+        /** VERIFY (manual Fig 9-17, +/- 0.5 in): centers of the 4 red GARDEN POLLEN along the audience wall. */
+        public static final double[] RED_GARDEN_POLLEN_X_IN = {1.4, 4.5, 7.3, 10.3};
+        /** VERIFY: y of those centers (one POLLEN radius off the wall). */
+        public static final double RED_GARDEN_POLLEN_Y_IN = 1.4;
+
+        /**
+         * VERIFY (field report 2.1, +/- 1 in): plan footprint of the UP cell, as the distance OUT from the
+         * HIVE pivot line (y = 72) to its inner and outer ends. Red audience UP cell = y [52.3, 69.9].
+         */
+        public static final double UP_CELL_PLAN_OUT_NEAR_IN = 2.1;
+        public static final double UP_CELL_PLAN_OUT_FAR_IN = 19.7;
+        /**
+         * VERIFY (field report 2.1, +/- 1 in): the same for the DOWN cell, which overhangs the frame
+         * (red rear DOWN cell = y [79.4, 96.9]).
+         */
+        public static final double DOWN_CELL_PLAN_OUT_NEAR_IN = 7.4;
+        public static final double DOWN_CELL_PLAN_OUT_FAR_IN = 24.9;
+
+        /**
+         * TUNE: an INTAKE step belongs to a FLOWER or GARDEN when its target point is within this
+         * distance of the FLOWER center / the GARDEN zone.
+         */
+        public static final double INTAKE_TARGET_MATCH_RADIUS_IN = 12.0;
+
+        // ---- robot and drive model for the timing estimate (all ADD: the robot is unmeasured) --
+
+        /** ADD: cruise speed along a path. Pedro's provisional maximum in Constants.java is ~72 in/s. */
+        public static final double CRUISE_SPEED_IN_PER_SEC = 40.0;
+        /** ADD: acceleration and deceleration while following a path. */
+        public static final double ACCEL_IN_PER_SEC2 = 60.0;
+        /** ADD: how fast the robot turns (a turn overlaps the drive and costs only what is longer). */
+        public static final double TURN_RATE_DEG_PER_SEC = 180.0;
+        /** ADD: time to settle inside the end tolerance after every stop. */
+        public static final double SETTLE_SEC = 0.3;
+        /** ADD: default time to scoop POLLEN off the floor (INTAKE step data may override it). */
+        public static final double INTAKE_DWELL_FLOOR_SEC = 2.0;
+        /** ADD: default time to empty a FLOWER's POLLEN through its retrieval opening. */
+        public static final double INTAKE_DWELL_FLOWER_SEC = 4.0;
+        /** ADD: default time to sweep up the GARDEN POLLEN line. */
+        public static final double INTAKE_DWELL_GARDEN_SEC = 2.5;
+        /** ADD: aim with the Limelight and spin the flywheel up before the first shot of a volley. */
+        public static final double AIM_SPINUP_SEC = 1.9;
+        /** ADD: feeding one POLLEN through the shooter. */
+        public static final double TIME_PER_SHOT_SEC = 0.9;
+
+        // ---- validator limits ------------------------------------------------------------------
+
+        /** TUNE: finish this long before the 30 s limit; an estimate inside the margin is a WARN. */
+        public static final double TIME_SAFETY_MARGIN_SEC = 2.0;
+        /** FIXED: spacing of the samples that the validator checks along every leg. */
+        public static final double PATH_SAMPLE_STEP_IN = 1.0;
+        /** FIXED: angular spacing of the samples checked while the robot turns in place. */
+        public static final double TURN_SAMPLE_STEP_DEG = 5.0;
+        /** TUNE (G417 design guard): extra clearance kept around the HIVE frame footprint. */
+        public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
+        /** TUNE: extra clearance kept around a FLOWER plate (the plate itself is in Field.FLOWER_KEEPOUT_*). */
+        public static final double FLOWER_KEEPOUT_MARGIN_IN = 0.5;
+        /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
+        public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
+        /** TUNE: how far the footprint may poke past the field edge on a step marked wall-contact. */
+        public static final double WALL_CONTACT_ALLOWANCE_IN = 1.0;
+        /** TUNE: footprint overshoot past a wall that is ignored everywhere (rounding, field tolerance). */
+        public static final double FIELD_BOUNDS_TOLERANCE_IN = 0.1;
+        /** TUNE (field report 3.3): LEAVE needs the whole footprint at least this far off every wall. */
+        public static final double LEAVE_WALL_MARGIN_IN = 1.5;
+        /** TUNE (manual Fig 10-7, field tolerance +/- 1 in): a PARK overlapping the zone by less than this is a WARN. */
+        public static final double PARK_MIN_OVERLAP_IN = 3.0;
+        /** TUNE: an explicit INTAKE/SHOOT/PARK pose farther than this from where the robot is gets a WARN (add a DRIVE). */
+        public static final double IMPLICIT_MOVE_WARN_IN = 3.0;
+        /** VERIFY (hive_tags report 6d, 70-75 deg launcher): closest launch-point distance to the cell aim point. */
+        public static final double SHOOT_STANDOFF_MIN_IN = 30.0;
+        /** VERIFY (hive_tags report 6d): farthest launch-point distance (the audience wall limits the near side). */
+        public static final double SHOOT_STANDOFF_MAX_IN = 38.0;
+        /** TUNE: standoff used for the nominal pose that is drawn when a SHOOT leaves its pose to the solver. */
+        public static final double SHOOT_STANDOFF_NOMINAL_IN = 34.0;
+        /** TUNE (hive_tags report 6d: +/-13..17 deg in line): largest aim error of the back toward the cell before a WARN. */
+        public static final double SHOOT_AIM_TOLERANCE_DEG = 15.0;
+    }
+
+    // =========================================================================================
     // ROBOT GEOMETRY (the goBILDA StarterBot converted to mecanum)
     // =========================================================================================
     public static final class Robot {
