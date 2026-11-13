@@ -5,7 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.mechanisms.elevator.Elevator;
+// Elevator is disabled: the robot has no elevator (see mechanisms/elevator/Elevator.java).
+// import org.firstinspires.ftc.teamcode.mechanisms.elevator.Elevator;
 import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
 import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
 import org.firstinspires.ftc.teamcode.mechanisms.mecanumDrive.MecanumDrive;
@@ -16,7 +17,7 @@ public class BioBuzzRobot extends OpMode {
 
     private Launcher launcher;
     private Intake intake;
-    private Elevator elevator;
+    // private Elevator elevator;   // disabled: the robot has no elevator
     private CRServo servoLeft;
 
     private CRServo servoRight;

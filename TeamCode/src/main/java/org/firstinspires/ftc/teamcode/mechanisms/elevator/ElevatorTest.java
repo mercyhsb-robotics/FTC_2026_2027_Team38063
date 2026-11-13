@@ -1,3 +1,10 @@
+// ELEVATOR TEST OPMODE - DISABLED
+//
+// The current BioBuzz robot has no elevator mechanism (see Elevator.java), so this test OpMode is
+// commented out. As written before, it crashed with a NullPointerException on START because the
+// Elevator never initialised its motors. Re-enable it together with Elevator.java.
+
+/*
 package org.firstinspires.ftc.teamcode.mechanisms.elevator;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -11,18 +18,19 @@ public class ElevatorTest extends OpMode {
     public void init() {
         elevator.init(hardwareMap);
     }
+
     @Override
     public void start() {
-        elevator.startIntake();
+        elevator.raise();
     }
 
     @Override
     public void stop() {
-        elevator.stopIntake();
+        elevator.stop();
     }
 
     @Override
     public void loop() {
-
     }
 }
+*/
