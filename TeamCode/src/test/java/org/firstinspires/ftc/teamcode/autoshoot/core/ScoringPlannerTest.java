@@ -97,17 +97,17 @@ public class ScoringPlannerTest {
 
     /**
      * Situation: ask for the pose whose ball exit is at (50, 20) with the shooter pointing at the aim point
-     *     (59.25, 55.52), using a launch point 8.9 in behind and 1.5 in to the left of the robot center.
+     *     (57.924, 54.156), using a launch point 8.9 in behind and 1.5 in to the left of the robot center.
      * Expected: working out the ball exit of that pose gives back (50, 20), and the aim error is zero.
      * Why: the planner works backward from 'where the ball exit should be' to 'where the robot center goes'. This
      *     proves the forward and backward calculations agree. 1e-6 is rounding only.
      */
     @Test
     public void poseForLaunchPointRoundTripsTheExitAndAimDirection() {
-        Pose2 p = ShotGeometry.poseForLaunchPoint(50, 20, 59.25, 55.52, -8.9, 1.5);
+        Pose2 p = ShotGeometry.poseForLaunchPoint(50, 20, 57.924, 54.156, -8.9, 1.5);
         assertEquals(50, ShotGeometry.launchX(p, -8.9, 1.5), EPS);
         assertEquals(20, ShotGeometry.launchY(p, -8.9, 1.5), EPS);
-        assertEquals(0.0, ShotGeometry.aimError(p, -8.9, 1.5, 59.25, 55.52), EPS);
+        assertEquals(0.0, ShotGeometry.aimError(p, -8.9, 1.5, 57.924, 54.156), EPS);
     }
 
     // ---------------------------------------------------------------- PathPlanner
@@ -364,7 +364,8 @@ public class ScoringPlannerTest {
     @Test
     public void theWallLimitOnRangeMatchesTheVerifiedGeometry() {
         // With the ball exit at the rear face and the robot against the audience wall the exit is 17.8 in from
-        // the wall, so the farthest in-line range is 55.52 - 17.8 = 37.7 in (hive_tags.verified.md).
+        // the wall, so the farthest in-line range is 54.156 - 17.8 = 36.4 in with the CAD aim point (it was 37.7 in with the old
+        // 144 in field, where the aim point was 55.52 in out; see MeasuredAnchorShotTest).
         ScoringPlanner.Config wide = ScoringPlanner.Config.fromConstants(table);
         wide.rangeMinIn = 36.0;
         wide.rangeMaxIn = 60.0;

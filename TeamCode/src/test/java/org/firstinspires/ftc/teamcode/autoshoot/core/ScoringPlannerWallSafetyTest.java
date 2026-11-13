@@ -212,7 +212,7 @@ public class ScoringPlannerWallSafetyTest {
 
     /**
      * Situation: a RED robot standing against the audience wall, touching it, right below the middle of the HIVE
-     *     (x = 72, so the open floor straight ahead is the HIVE itself), facing +90 degrees (front toward the field,
+     *     (x = the field center, 70.674, so the open floor straight ahead is the HIVE itself), facing +90 degrees (front toward the field,
      *     back toward the wall) and asked for the audience cell, which it shoots at facing -90. That is a 180 degree
      *     flip, and a rectangle flipping next to a wall swings its corners through 13.2 in of room.
      * Expected: the planner returns a route; the robot keeps its heading for the first few inches (hold above 0), so it
@@ -224,7 +224,7 @@ public class ScoringPlannerWallSafetyTest {
     @Test
     public void aRobotFlippingAgainstTheWallGoesOutToOpenFloorBeforeItTurns() {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
-        Pose2 start = againstWall(0, 72.0, 90.0, 0.0);
+        Pose2 start = againstWall(0, BioBuzzConstants.Field.CENTER_IN, 90.0, 0.0);
         ScoringPlanner.Solution s = planner.solve(start, cell);
         assertTrue("must plan: " + s, s.ok());
         assertTrue("hold " + s.turnHoldIn, s.turnHoldIn > 1.0);
@@ -250,7 +250,7 @@ public class ScoringPlannerWallSafetyTest {
     @Test
     public void whenNoSafeRepairExistsTheCandidateIsRejected() {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
-        Pose2 start = againstWall(0, 72.0, 90.0, 0.0);
+        Pose2 start = againstWall(0, BioBuzzConstants.Field.CENTER_IN, 90.0, 0.0);
         assertTrue(planner.solve(start, cell).ok());
         ScoringPlanner.Config stiff = ScoringPlanner.Config.fromConstants(table);
         stiff.maxTurnDegPerIn = 0.001;

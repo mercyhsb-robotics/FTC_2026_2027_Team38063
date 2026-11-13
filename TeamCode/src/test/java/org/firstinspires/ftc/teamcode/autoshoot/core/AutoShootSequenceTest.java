@@ -573,7 +573,7 @@ public class AutoShootSequenceTest {
                 s.shotsAtDownCell <= 1);
         assertEquals("two balls tipped it to REAR, two more tipped it back", Side.AUDIENCE, s.trueUp);
         assertTrue("the tracker noticed the first tip", s.tracker.changeCount() >= 1);
-        // y above 91 in is past the HIVE frame (which ends at about 91.5 in), so the robot ended on the rear side.
+        // y above 91 in is past the HIVE frame (which ends at 90.1 in), so the robot ended on the rear side.
         assertTrue("finished on the far side of the HIVE: y=" + s.y, s.y > 91.0);
     }
 

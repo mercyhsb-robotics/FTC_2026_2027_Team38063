@@ -14,8 +14,8 @@ import java.util.List;
  * just holds the turned rectangle ({@link Footprint#bounds()}, built for a robot at the origin) says how far the center
  * must be from each wall for the rectangle to touch it.
  *
- * <p>Walls are numbered 0 = audience wall (y = 0), 1 = rear wall (y = 144), 2 = red wall (x = 0), 3 = blue wall
- * (x = 144). Corners are numbered by bits: bit 0 set = the x = 144 side, bit 1 set = the y = 144 side, so 0 is the
+ * <p>Walls are numbered 0 = audience wall (y = 0), 1 = rear wall (y = Field.SIZE_IN, 141.348), 2 = red wall (x = 0), 3 = blue wall
+ * (x = Field.SIZE_IN). Corners are numbered by bits: bit 0 set = the x = SIZE_IN side, bit 1 set = the y = SIZE_IN side, so 0 is the
  * (0, 0) corner where the audience wall meets the red wall. A <b>gap</b> is the empty space, in inches, left between the
  * robot and the wall (0 = touching it).
  */
@@ -55,12 +55,12 @@ final class WallStarts {
 
     /**
      * Every start next to a wall or in a corner: 12 headings (every 30 degrees), touching the wall and 1.5 in off it,
-     * three places along each wall (30, 72 and 114 in) and the four corners. 384 poses.
+     * three places along each wall (30 in, the field center and 114 in) and the four corners. 384 poses.
      */
     static List<Pose2> all(FieldModel field, RobotShape robot) {
         List<Pose2> out = new ArrayList<Pose2>();
         double[] gaps = {0.0, 1.5};
-        double[] places = {30.0, 72.0, 114.0};
+        double[] places = {30.0, org.firstinspires.ftc.teamcode.BioBuzzConstants.Field.CENTER_IN, 114.0};
         for (double gap : gaps) {
             for (int deg = -180; deg < 180; deg += 30) {
                 for (int wall = 0; wall < 4; wall++) {

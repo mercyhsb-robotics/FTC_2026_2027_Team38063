@@ -399,7 +399,7 @@ public class VisionLogicTest {
         assertEquals(ClusterView.Orientation.UP, v.orientation);
         assertFalse(v.hasGeometry);
         assertTrue(v.hasBearing);
-        // The cluster center (x = 59.25) is about 7 in to the robot's LEFT here (heading -90 degrees, so robot-left is
+        // The cluster center (x = 57.92) is about 7 in to the robot's LEFT here (heading -90 degrees, so robot-left is
         // field +x; on the rear camera's image it appears on the right) and about 39 in behind the camera, so the true
         // bearing is about 10 degrees. The shooter must turn that much to point at it. 20 degrees is a loose bound.
         assertTrue(Math.abs(Math.toDegrees(v.aimErrorRad)) < 20);
@@ -587,7 +587,7 @@ public class VisionLogicTest {
      *     forces a side. Finally the tracker is asked which side of the HIVE a pose is on.
      * Expected: toggle gives REAR with CHANGED_BY_DRIVER, and the driver's word counts as confirmed; flipBecauseUnseen
      *     goes back to AUDIENCE, unconfirmed; forceUp(AUDIENCE) keeps AUDIENCE. sideOf says AUDIENCE for y = 20 and
-     *     REAR for y = 110 (the field center is y = 72).
+     *     REAR for y = 110 (the field center is y = 70.674).
      * Why: the driver can see the real HIVE, so their word wins. It is also the way forward when the camera is not
      *     working.
      */

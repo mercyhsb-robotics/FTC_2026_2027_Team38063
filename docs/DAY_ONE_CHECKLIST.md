@@ -45,6 +45,14 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
          rotation you marked and the point the odometry reports are not the same point. The old autonomous OpModes
          (`RedAlliance_B1`, `RedAlliance_C1`) start at y = 9.2 and their comments say the front was about 0.3 in from the wall: that
          would make the real front extent about 9.5 in. Your measurement decides; then change the OpModes' start y to match.
+- [ ] **Measure YOUR field once, with a tape.** Every field number in the code is the official CAD (the wall-corner frame:
+      141.348 in between the inner faces of the walls, tiles 23.5 in, see `docs/AUTOS.md`). Real fields vary by about 1 in
+      (the manual says "approximately 144 in", the CAD says 141.348 in). Measure: the distance between the red wall and the blue
+      wall, inner face to inner face, along the middle of the field; the distance from the audience wall to the **foot bar end**
+      of the HIVE frame (the CAD says 51.2 in; the old round figure was 52.5 in); the distance from the red wall to the **inner
+      face of the left foot bar** (CAD 47.9 in); and the tile seams (CAD 23.67, 47.17, 70.67, 94.17, 117.67 in from the red wall).
+      If your field is more than about 1.5 in from the CAD, change `Field.SIZE_IN` (and tell a mentor: the other numbers move with
+      it); if it matches, the 1.3 in anchor-shot difference below is the robot, not the field.
 - [ ] Ball exit position: `Robot.LAUNCH_POINT_FORWARD_IN` (negative, measured straight back from the center of rotation to where the
       ball leaves the shooter; the starting value, -8.03, is only the rear edge from the CAD drawing) and `LAUNCH_POINT_LEFT_IN`.
       Then redo the one measured shot (front on the audience wall, in line with the HIVE: 37.7 in from the aim point) and check
@@ -93,6 +101,11 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
         (`FLOWER_APPROACH_SPEED_FRACTION`, 0.3), plus how long it takes (`INTAKE_DWELL_FLOWER_SEC`).
 - [ ] Camera: `CAMERA_FORWARD_IN` and `CAMERA_LEFT_IN` (measured from the **center of rotation**, the tape mark above, not from the middle of the outline), `CAMERA_HEIGHT_IN`, `CAMERA_PITCH_UP_DEG` (+30 to +40°).
 - [ ] Launch angle `Robot.LAUNCH_ANGLE_DEG` is about 68.5° (team measurement): confirm it with a protractor or the CAD (it only feeds the physics check on the Shooter Tuner screen).
+- [ ] **The lane under the HIVE** (only if a route or `AutoShoot.ALLOW_UNDER_HIVE` will use it, see `docs/AUTOS.md`, "Driving under
+      the HIVE"). With a tape: the distance between the **inner faces of the two foot bars** (CAD 45.5 in) and between the **tips of
+      the leg stubs** at the height of your robot's tallest part, 13 in (CAD 40.1 in at 12.13 in, a little less at 13 in); and push the
+      robot up the lane by hand with its camera on: nothing may touch. A robot that touches a foot bar (a 2.15 in step) is stopped
+      by it, so test at slow speed first.
 - [ ] The real HIVE: heights of the opening and tag rows, and how many POLLEN tip it. The team's figures: 5 NECTAR,
       8 POLLEN or a mix, and 3 NECTAR are staged in the up cell at the start, so the first tip needs only 4 POLLEN.
       Check that, and check how many POLLEN the second tip needs (we assume 8). The TeleOp does not count tips (the

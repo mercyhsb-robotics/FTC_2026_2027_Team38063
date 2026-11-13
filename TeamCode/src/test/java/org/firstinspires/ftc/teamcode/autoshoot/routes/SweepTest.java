@@ -280,7 +280,7 @@ public class SweepTest {
                 .driveConstant(58, 12.0, -90).driveLinear(58, 11.0, 0);
         Pose2 start = Pose2.ofDegrees(58, 12.0, -90);
         Pose2 end = Pose2.ofDegrees(58, 11.0, 0);
-        Rect field = new Rect(0, 144, 0, 144);
+        Rect field = new Rect(0, BioBuzzConstants.Field.SIZE_IN, 0, BioBuzzConstants.Field.SIZE_IN);
         assertTrue("the start pose is clear", Footprint.of(start).signedOvershoot(field) < 0);
         assertTrue("the end pose is clear", Footprint.of(end).signedOvershoot(field) < 0);
         assertEquals(1, errors(b, Rule.FIELD_BOUNDS));

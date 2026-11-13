@@ -27,15 +27,18 @@ exit** to the **aim point** (the middle of the cell opening).
 
 **Measuring the range.** Put a tape measure from the ball exit (the back face of the robot unless
 `LAUNCH_POINT_FORWARD_IN` says otherwise) to the **foot line of the HIVE frame** at the end you are shooting into,
-then **add 3.0 in** (the aim point is 3.0 in inside the foot line). Check against the one known shot: the robot's
-front against the audience wall, in line with the HIVE: the ball exit is 17.8 in from the wall and the foot line is
-at 52.5 in, so 52.5 − 17.8 + 3.0 = **37.7 in**. That shot passed through the middle of the opening, slightly high,
-at about 1200 ticks/s.
+then **add 2.95 in** (the aim point is 2.95 in inside the foot line). Check against the one known shot: the robot's
+front against the audience wall, in line with the HIVE: the ball exit is 17.8 in from the wall. The official CAD puts the
+foot line at **51.2 in** from the audience wall, so 51.2 − 17.8 + 2.95 = **36.35 in**; the old figures (foot line 52.5 in,
+add 3.0 in) gave the 37.7 in the table is anchored on. The two differ by 1.3 in: **measure the distance from the audience
+wall to the foot line on your own field** (the CAD says 51.2 in, the manual's round numbers 52.5 in, real fields vary by
+about 1 in) and use that to settle which is right; see `docs/DAY_ONE_CHECKLIST.md`. That shot passed through the middle of
+the opening, slightly high, at about 1200 ticks/s.
 
 **Procedure (Shooter Tuner OpMode).**
 
 1. Put the robot at a known range, in line with the cell (the cell axis is the center of the 20 in wide opening:
-   x = 59.25 for the red HIVE, 84.75 for blue).
+   x = 57.92 for the red HIVE, 83.42 for blue).
 2. Cross: start the flywheel. D-pad up/down: change the speed (hold the left bumper for bigger steps). Wait for
    `at speed: true`.
 3. Hold circle to feed a ball. Note where it went. Repeat until you find the lowest speed that goes in the middle of

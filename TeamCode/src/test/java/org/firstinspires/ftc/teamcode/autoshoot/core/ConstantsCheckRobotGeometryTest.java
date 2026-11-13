@@ -179,7 +179,7 @@ public class ConstantsCheckRobotGeometryTest {
         assertEquals(side.errors.toString(), 1, side.errors.size());
         // standing on the HIVE frame
         ConstantsCheck.Report hive = new ConstantsCheck.Report();
-        ConstantsCheck.checkStartPose(hive, field, "on the HIVE", Pose2.ofDegrees(72.0, 72.0, 0.0));
+        ConstantsCheck.checkStartPose(hive, field, "on the HIVE", Pose2.ofDegrees(BioBuzzConstants.Field.CENTER_IN, BioBuzzConstants.Field.CENTER_IN, 0.0));
         assertEquals(hive.errors.toString(), 1, hive.errors.size());
         assertTrue(hive.errors.get(0), hive.errors.get(0).contains("HIVE frame or a FLOWER plate"));
         // the tolerance of noise (0.1 in) is forgiven

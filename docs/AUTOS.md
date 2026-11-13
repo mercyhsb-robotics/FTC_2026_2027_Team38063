@@ -64,14 +64,20 @@ or dark setting). They are generated, so never edit them by hand.
 ## Red and blue
 
 Everything is **written once, for RED**. The BLUE version is the same route turned **half a turn about the field
-center**: `(x, y, heading)` becomes `(144 - x, 144 - y, heading + 180)`. It is *not* a mirror image, because the
+center**: `(x, y, heading)` becomes `(141.348 - x, 141.348 - y, heading + 180)`. It is *not* a mirror image, because the
 field is rotationally symmetric. So a blue robot starts at the top of the picture, and the red HIVE's audience cell
 becomes the blue HIVE's rear cell. Use `route.forAlliance(Alliance.BLUE)` to get the blue route; the diagrams and the
 validator do it for you.
 
-**Field frame** (the Pedro frame): inches, origin at the corner where the audience wall meets the red wall, **+x
-toward blue**, **+y away from the audience**. Heading 0 is +x and angles grow counter-clockwise. Tiles are 24 in:
-columns A-F run along x, rows 1-6 along y, so A1 is the corner and B1 is x 24-48, y 0-24.
+**Field frame** (the Pedro frame, the **wall-corner frame** of the official field CAD): inches, origin at the **inner**
+corner where the audience wall meets the red wall (the face of the walls, which is what a robot touches), **+x toward
+blue**, **+y away from the audience**. Heading 0 is +x and angles grow counter-clockwise. The field is **141.348 in**
+across between the walls (the manual says "approximately 144 in", but its own CAD is 2.65 in smaller), so the center,
+and the point the blue half turn is about, is (70.674, 70.674). The tiles are laid with a **23.5 in** pitch, not 24:
+columns A-F run along x, rows 1-6 along y, A1 is the corner, and the seams between tiles are at 23.674, 47.174,
+70.674, 94.174 and 117.674 in (the two outer tiles run to the walls and are 23.674 in wide), so B1 is x 23.674-47.174,
+y 0-23.674. `core/TileGrid` turns a position into its tile name. A start that is "wall-referenced" (the robot touches a
+wall) does not move with this frame; a number measured from the field center, a tile seam or a FLOWER does.
 
 **The robot** has its intake at the **FRONT** and its shooter at the **BACK**, so a robot shooting at the HIVE
 stands with its back toward it. The ball leaves 8.03 in behind the robot's center of rotation
@@ -127,6 +133,7 @@ Modifiers apply to the step added **just before** them:
 | `.speed(0.5)` | DRIVE | Drive at this fraction of the cruise speed. |
 | `.label("corridor")` | DRIVE | Names the leg in the picture. |
 | `.wallContact()` | DRIVE | A note that the leg touches the field wall on purpose (sweeping the GARDEN POLLEN). It gives **no** extra room: the robot may touch a wall but never push into it. |
+| `.allowUnderHive()` | DRIVE | The leg may drive **under the HIVE**, along the lane between its two foot bars (see "Driving under the HIVE"). Off by default. |
 | `.retreat(8.0)` | FLOWER INTAKE | How far the robot backs straight out after the press (default 6 in; shorter is a WARN). |
 | `.launchSeconds(5.0)` | SHOOT | The step takes exactly this long (instead of the estimate). |
 | `.note("why")` | any | Free text for people; shown on the page. |
@@ -153,7 +160,7 @@ Two rules of thumb that the validator enforces:
 |---|---|---|---|
 | Start | G304 | outside the field (a start whose real outline pokes through a wall: the finding says how far the pose is from the wall and where the robot's edge that faces it lies), outside the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
 | Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the front corners sweep out to 13.22 in from the center of rotation), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
-| HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the floor area of its rails and legs, 49.46 x 38.95 in). The gaps under and inside the frame count as solid: a 12.13 in robot might physically fit between the legs, but nobody has measured the real frame, so no route goes there. A DOWN cell hangs out past the frame by up to 5.4 in, but only 30.6 in up or higher, so it is not an obstacle | |
+| HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the two foot bars and the box between them, 49.466 x 38.944 in). By default the gaps under and inside the frame count as solid. A DRIVE that says `allowUnderHive()` is checked against the **exact solid** instead (the foot bars and the leg stubs, with 3 in to spare on both sides): it may drive along the lane, but never across a foot bar or into a leg. A DOWN cell hangs out past the frame by up to 5.66 in, but only 35.5 in up or higher, so it is not an obstacle | a DRIVE under the HIVE while the HIVE could still tip (G409/G417, next section) |
 | FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.871 x 5.95 in, its field-side edge 5.033 in from the wall; the 6.67 in long wall bracket above it counts too, see below). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its press-in (next row): the chassis, the other wheel and every other step stay out | |
 | FLOWER press-in | 9.7, G415 | the chassis comes within 0.5 in of the plate; the pressing wheel goes past the **press stop line**; the wheels are too short to reach it (the finding says how many inches are missing); the line-up heading is more than 5 degrees off "facing the wall squarely"; the middle of the pressing wheel is more than 1 in from the FLOWER's center line; the final approach is shorter than 6 in | the retreat is shorter than 6 in |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
@@ -178,6 +185,64 @@ samples reaches the grown obstacle, nothing between them can touch the real one.
 clear it cuts the gap in half and looks again, down to 1/1000 in. The result is the same as sampling infinitely
 densely; the proof is the comment at the top of `routes/Sweep.java` and `SweepTest` tries to break it. The first and
 the last pose of every leg are always tested, and so is the last pose of a turn in place.
+
+## Driving under the HIVE (the lane)
+
+Below the robot's height (13 in with the camera) the HIVE is **only its frame**: two **foot bars** on the floor (1.98 in
+wide, 38.9 in long, 2.15 in tall: too tall to drive over, the chassis has 0.94 in of ground clearance) and four **legs**
+that lean inward as they climb, so that below 13 in each leg is only a short slanted **stub** at the end of a bar. The
+cells themselves are 30.65 in up or higher, and the crossbar 41 in. So between the feet the floor is **open**: a lane a
+12 to 13 in tall robot can drive along, north-south, **under** the cells. In the wall-corner frame, for a 12.13 in tall
+robot:
+
+```
+  x 45.9   47.9                      50.6        90.7                    93.4   95.4
+     | bar |   ------ lane ------    |  stubs     |     lane at the stubs    | bar |
+     +-----+   45.5 in wide between the bars                 40.1 in wide where the leg stubs narrow it
+```
+
+The official CAD gives these numbers and a second derivation reproduced them to 0.02 in (a 29 in tall robot would have a
+30.9 in lane). `core/HiveSolid` builds the exact shape from them (`HiveSolidTest` checks it against the CAD).
+
+**Why it is NOT the default.** It saves a trip of about **20 in** (below), but G409 says a robot may not catch what a tipped
+HIVE releases and G417 forbids launching into a cell that is tipping, and a robot under a HIVE that is tipping is exactly
+where nobody wants to be: the cells swing through 60 degrees over its head. So by default the whole footprint is solid and
+every route goes **around** it.
+
+**How to allow it.** Put `.allowUnderHive()` after the DRIVE that goes through the lane:
+
+```java
+.driveConstant(64.0, 38.0, -90).label("to the lane")
+.driveConstant(64.0, 105.0, -90).label("the lane").allowUnderHive()   // x = 64: 6.7 in left of the center line
+```
+
+* The leg is checked against the foot bars and leg stubs with `Auto.HIVE_LANE_MARGIN_IN` (3.0 in) to spare on **both**
+  sides. For a robot facing -90 or +90 (side edges 8.9 in from the center) the center must stay between x = 62.8 and 78.6 in;
+  G402 keeps the center of a RED robot on its own half (x up to 70.674), so the lane is **7.9 in wide for the center of a red
+  robot**, x 62.8 to 70.7 (blue: the half turn of it). A leg across a foot bar, or too close to a stub, is still a HIVE ERROR,
+  and its message says how wide the lane is.
+* The flag changes only that leg's HIVE check. Walls, FLOWERS, the center line and the end-pose rule apply as always, and
+  a route may never **end** or **start** under the HIVE.
+* **The WARN.** The checker WARNs (rule `UNDER_HIVE`, G409/G417) when the robot is over the HIVE frame while the HIVE could
+  still tip. The HIVE is known to be at rest only after the camera has confirmed a tip fully (a `waitForTip` ends exactly
+  then) and until the next volley of ours goes into it; so put a `waitForTip` before the lane leg with no SHOOT between them.
+  A tip assumed during the move is named in the WARN.
+* **The TeleOp planner** has the same option, `AutoShoot.ALLOW_UNDER_HIVE` (false by default, TUNE). With it on, the planner
+  treats only the exact foot bars and leg stubs as obstacles and falls back to the way around when the lane route cannot be
+  driven safely, so the flag can never make a trip impossible. The planner does not know whether the camera has confirmed the
+  HIVE at rest, which is the reason it is off.
+
+**The shorter loop, in numbers** (placeholder speeds; both printed by tests):
+
+| Trip | Through the lane | Around the frame | Saved |
+|---|---|---|---|
+| A route author's legs, from the audience start (58, 9.77) to a pose beyond the HIVE (58, 125) (`HiveLaneTest`) | 116.7 in, 5.8 s | 139.4 in (the left corridor at x = 30), 6.4 s | 22.7 in, 0.6 s |
+| The TeleOp planner, from the C1 start to the shooting pose in front of the red REAR cell (`PlannerLaneTest`) | 115.8 in | 148.5 in | 32.7 in |
+
+That is the loop of a partner route (the robot must get from the audience side to the cell that comes up on the rear side
+after the partner's tip): about 0.6 s at the placeholder cruise speed of 40 in/s, which is a seventh of the 4 s a FLOWER
+press-in is assumed to take. Worth having if the HIVE is known to be at rest; not worth a foul. Day one: measure the real
+lane with a tape before the first run (`docs/DAY_ONE_CHECKLIST.md`).
 
 ## Taking POLLEN from a FLOWER (the press-in)
 
@@ -259,7 +324,7 @@ NECTAR x 8  +  POLLEN x 5  >=  40
   points as its own. The planner does not model the partner also launching into the HIVE in some other way.
 * **Where the spill falls (G409).** When a HIVE tips, the cell that was UP turns down and everything in it (the 3
   NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE. For the
-  red HIVE the audience cell covers x 49.25 to 69.25 in and y 52.3 to 69.9 in and opens toward the audience wall. G409
+  red HIVE the audience cell covers x 47.4 to 68.5 in and y 50.6 to 69.1 in (the CAD hull of the whole cell) and opens toward the audience wall. G409
   says a robot may not catch or deflect what a tipped HIVE releases, so for `Auto.TIP_SPILL_CLEAR_SEC` (3 s) after
   every tip the robot footprint must stay out of that cell's spill zone: the cell footprint grown by
   `Auto.TIP_SPILL_MARGIN_IN` (6 in). The other side of the HIVE is clear: that is where a robot waiting for the

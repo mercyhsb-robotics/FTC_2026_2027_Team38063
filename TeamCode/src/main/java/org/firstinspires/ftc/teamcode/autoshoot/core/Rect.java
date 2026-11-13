@@ -8,10 +8,10 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
  *
  * <p>Pure geometry with no robot knowledge. {@link FieldModel} creates the obstacle boxes,
  * {@link ShotGeometry#footprint} creates the robot's box, and {@link PathPlanner} and {@link ScoringPlanner}
- * test points, segments and other boxes against them. x and y are in the Pedro field frame (origin at the corner
+ * test points, segments and other boxes against them. x and y are in the Pedro field frame (origin at the inner corner
  * where the audience wall meets the red wall, +x toward blue, +y away from the audience), all in inches.
  *
- * <p>Example: {@code new Rect(0, 144, 0, 144)} is the whole field, and {@code .inflate(-9)} on it gives the same
+ * <p>Example: {@code new Rect(0, Field.SIZE_IN, 0, Field.SIZE_IN)} (141.348 in square) is the whole field, and {@code .inflate(-9)} on it gives the same
  * field with a 9 in strip removed along every wall (the strip the robot's center may not enter).
  */
 public final class Rect {

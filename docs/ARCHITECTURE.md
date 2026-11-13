@@ -14,12 +14,18 @@
   view) before it shoots: a time never lets the robot shoot, and without a camera it skips the volley.
 * The robot's shooter fires out the **back**, so the robot stands on the side its up cell faces, with its back
   toward the HIVE. Standing too far back is limited by the wall: the farthest in-line shot from the audience wall is
-  37.7 in.
+  about 36.4 in by the official CAD field (the aim point is 54.16 in from the wall, the ball exit 17.80 in), while the team
+  measured 37.7 in: see "re-measure" in `docs/DAY_ONE_CHECKLIST.md`.
 * Launching at the outside (bottom, sides, top) of a cell is a foul (rule G417), so the robot must not feed while the
   cell it is aiming at is tipping down. The AprilTags are on the cells, so they **move** and cannot be used to locate
   the robot on the field; odometry does that, and the camera supplies relative alignment.
 * The field is 180° rotationally symmetric. Everything is written once for RED and the blue alliance is the same
   numbers rotated half a turn about the field center.
+* **One frame for every field number: the wall-corner frame of the official field CAD.** Origin at the inner corner where
+  the red wall meets the audience wall, inches, +x toward blue, +y away from the audience. The field is 141.348 in across
+  between the walls (the manual rounds it to "about 144"), the tiles have a 23.5 in pitch (`core/TileGrid`) and the center
+  is (70.674, 70.674). `FieldModel` and `AllianceField` build everything from `BioBuzzConstants.Field` and `Auto`; no logic
+  class writes 144, 72 or 24, and `ConstantsCheck` refuses numbers that cannot belong to one field.
 
 ## Data flow, every loop
 
@@ -104,6 +110,15 @@ footprint is clear of the walls, the HIVE frame and the FLOWERS and a collision-
 visibility graph around the keep-outs; the far side is reached through the left/right corridor). The cheapest
 candidate wins: travel, plus small costs for turning and for being away from the preferred range.
 
+**The HIVE is two things.** `FieldModel.hiveFrame()` is the footprint box (the two foot bars and the lane between them,
+49.466 x 38.944 in): by default the whole box is an obstacle and the far side is reached around it. `FieldModel.hiveSolid()`
+is the exact solid below the robot's height (`core/HiveSolid`: the two foot bars and the four slanted leg stubs, each a
+`ConvexPolygon`), which leaves a 40.1 in wide lane between the feet open for a 12 to 13 in tall robot. With
+`AutoShoot.ALLOW_UNDER_HIVE` the planner uses the exact solid and may drive through the lane (about 33 in shorter from the
+audience side to the rear side), falling back to the way around if the lane cannot be driven safely; route steps choose per
+step with `allowUnderHive()`. Both are off by default (G409 / G417: never be under a tipping HIVE), see `docs/AUTOS.md`,
+"Driving under the HIVE".
+
 ### Why the route is checked as a rectangle, not a point
 
 The route finder (`PathPlanner`) plans for one dot, the robot's center, and keeps the dot a little way from walls and
@@ -119,7 +134,7 @@ Two small classes close that gap, and the drive and the check use the SAME ones 
 * `HeadingProfile` is the one rule for which way the robot faces at every point of a route (one turn, spread over the
   distance, optionally squeezed into a window). `PedroDrive` builds its Pedro path from it and the check reads it.
 * `RouteSweep` slides the real rotated rectangle along the route and measures the gap to the four walls, the HIVE frame
-  and every FLOWER plate. It looks every inch and every 3 degrees of turn, and looks more finely wherever the robot is
+  (or, when the lane is allowed, the exact foot bars and leg stubs as polygons) and every FLOWER plate. It looks every inch and every 3 degrees of turn, and looks more finely wherever the robot is
   close to something: a piece of route is accepted only when the gaps at its two ends, minus how far a corner can move
   in between, still leave room, so a thin obstacle cannot hide between two looks.
 
@@ -157,8 +172,9 @@ route diagrams. What it changes in practice:
   12.59 in of a centered square.
 * The ball leaves the **rear edge**, `Robot.LAUNCH_POINT_FORWARD_IN` = -8.03 in from the center of rotation (derived from
   the drawing, still to be measured). With the front on the audience wall the ball exit is 9.77 + 8.03 = 17.80 in from the
-  wall, exactly the situation of the one measured shot (37.7 in from the aim point), so the physical shot did not change
-  when the center of rotation moved.
+  wall, the situation of the one measured shot, so the physical shot did not change when the center of rotation moved.
+  (With the official CAD field numbers the model puts that shot at 36.36 in from the aim point, 1.34 in short of the
+  measured 37.7 in; the shot-table row is a measurement and is not changed. The day-one checklist says how to find out why.)
 
 ## Rules the design follows
 

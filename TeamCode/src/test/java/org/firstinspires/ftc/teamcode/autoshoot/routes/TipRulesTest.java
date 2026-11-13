@@ -78,7 +78,7 @@ public class TipRulesTest {
         // 2 POLLEN, take 2 back from the floor, then fire 4: the 2nd of those 4 is the tip, the other 2 would go into
         // a cell that is already tipping down
         List<Issue> l = validate(AutoRoute.builder("late").start(58, FRONT, -90)
-                .shootUp(2).intakeFloor(60, 30, 59.25, 30, -90, 2).shootUp(4));
+                .shootUp(2).intakeFloor(60, 30, BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, 30, -90, 2).shootUp(4));
         assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         Issue issue = first(l, Rule.SHOOT_TARGET, Severity.ERROR);
         assertEquals("the second volley is step 4", 3, issue.stepIndex);

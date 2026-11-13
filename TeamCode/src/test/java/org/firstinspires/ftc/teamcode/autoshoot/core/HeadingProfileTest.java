@@ -98,7 +98,7 @@ public class HeadingProfileTest {
     public void matchesTheOriginalPedroDriveRuleOnRandomRoutes() {
         Random rng = new Random(5);
         for (int trial = 0; trial < 300; trial++) {
-            Pose2 start = new Pose2(rng.nextDouble() * 144, rng.nextDouble() * 144, (rng.nextDouble() - 0.5) * 7.0);
+            Pose2 start = new Pose2(rng.nextDouble() * BioBuzzConstants.Field.SIZE_IN, rng.nextDouble() * BioBuzzConstants.Field.SIZE_IN, (rng.nextDouble() - 0.5) * 7.0);
             List<double[]> wps = new ArrayList<double[]>();
             double x = start.x;
             double y = start.y;
