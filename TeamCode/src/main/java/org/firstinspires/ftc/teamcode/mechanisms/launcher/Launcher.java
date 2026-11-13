@@ -46,6 +46,8 @@ public class Launcher {
     private double feederPower;
     // System.nanoTime() (nanoseconds) when targetTps last changed; used by secondsSinceTargetChange().
     private long targetSetAtNanos;
+    // True while the flywheel is being run BACKWARD by hand to clear a jam (see reverseFlywheel).
+    private boolean flywheelReversing;
 
     /** @param telemetry unused; kept so existing callers keep compiling. */
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -81,6 +83,7 @@ public class Launcher {
         feeder.setPower(0.0);
         targetTps = 0.0;
         feederPower = 0.0;
+        flywheelReversing = false;
         targetSetAtNanos = System.nanoTime();
     }
 
@@ -104,6 +107,36 @@ public class Launcher {
             // Cut the power (coast or brake, as chosen in init()).
             flywheel.setPower(0.0);
         }
+    }
+
+    /**
+     * Runs the flywheel slowly BACKWARD (or stops that) to free a jammed POLLEN. While {@code on} is true the motor gets
+     * a small steady reverse power (BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER) with no speed control; the moment it
+     * is false the motor stops and goes back to speed-control mode, ready for the next shot. Safe to call every loop.
+     * Call it only when the flywheel is not being used to shoot.
+     */
+    public void reverseFlywheel(boolean on) {
+        if (on) {
+            if (!flywheelReversing) {
+                // Forget any forward speed target, then leave speed-control mode: a speed controller would fight a
+                // plain reverse power.
+                targetTps = 0.0;
+                targetSetAtNanos = System.nanoTime();
+                flywheel.setPower(0.0);
+                flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                flywheelReversing = true;
+            }
+            flywheel.setPower(-BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER);
+        } else if (flywheelReversing) {
+            flywheel.setPower(0.0);
+            flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            flywheelReversing = false;
+        }
+    }
+
+    /** True while the flywheel is being run backward by hand (see reverseFlywheel). */
+    public boolean flywheelReversing() {
+        return flywheelReversing;
     }
 
     /** The last commanded flywheel speed in ticks per second (0 = stopped). For the measured speed use velocity(). */
@@ -205,6 +238,7 @@ public class Launcher {
 
     /** Stops the flywheel and the feeder. */
     public void stop() {
+        reverseFlywheel(false);
         setTargetVelocity(0.0);
         feederStop();
     }
