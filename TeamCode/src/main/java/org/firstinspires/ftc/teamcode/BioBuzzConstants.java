@@ -41,7 +41,6 @@ public final class BioBuzzConstants {
      * marker to VERIFY or TUNE AND delete its name here; a unit test fails if this list and the markers disagree.
      */
     public static final String[] PLACEHOLDERS = {
-            "Robot.LAUNCH_POINT_LEFT_IN",
             "Robot.INTAKE_REACH_IN",
             "Robot.INTAKE_WHEEL_OFFSET_IN",
             "Shooter.SHOT_TABLE",
@@ -198,7 +197,7 @@ public final class BioBuzzConstants {
          * of its uncertainty band.
          *
          * <p>THE STANDARD SHOOTING POSE IS OUTSIDE THE ZONE, ON PURPOSE. The shooter fires out of the robot's BACK, so the rear edge faces the cell:
-         * at the nominal standoff (34 in from the aim point) it is about 48 in out, at the measured anchor shot (37.7 in) about 53 in. A zone that
+         * at the nominal standoff (34 in from the aim point) it is about 48 in out, at the anchor shot (front on the audience wall, 39.0 in from the aim point) about 53 in. A zone that
          * reached 48 in would flag every standard shot as standing in the spill; the team has not seen that happen, and the first thing to do on
          * day one is to look (docs/START_HERE.md: tip a HIVE and mark where the balls first touch the tiles, and whether any reach the
          * robot's rear). If they do, raise this number: the standard pose will then be flagged and the team must shoot from farther away or drive
@@ -363,7 +362,7 @@ public final class BioBuzzConstants {
         public static final double TRANSITION_SEC = 8.0;
         /**
          * VERIFY: seconds from a POLLEN leaving the shooter to landing in the HIVE cell. From the shot geometry: the ball leaves at 68.5 degrees
-         * above horizontal about 8.7 in up, and must reach a mouth about 55 in up that is 37.7 in away (the measured anchor shot), which takes about
+         * above horizontal about 6.0 in up (Robot.LAUNCH_HEIGHT_IN, measured), and must reach a mouth about 55 in up that is 39.0 in away (the anchor spot, front on the audience wall), which takes about
          * 0.5 s. The route plan counts a HIVE tip from the moment the tipping POLLEN LANDS, not from the moment it leaves, and the feeder cannot know
          * about the tip before that. Check it with a phone video of one shot (count the frames from the shooter to the cell).
          */
@@ -446,7 +445,7 @@ public final class BioBuzzConstants {
         public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
         /**
          * TUNE: the height, in inches, below which a part of the HIVE counts as an obstacle for the robot: the tallest point of the robot, with
-         * its camera (the Limelight on top makes it about 15.75 in tall: see Robot.HEIGHT_IN). The exact HIVE solid is everything of the HIVE lower than this: the foot
+         * its camera (the Limelight on top makes it about 15 in tall: see Robot.HEIGHT_IN) plus a margin of 1 in. The exact HIVE solid is everything of the HIVE lower than this: the foot
          * bars and the stubs of the legs, which are a little longer for a taller robot (the legs lean inward as they climb). Must stay below
          * {@code Field.HIVE_LOWEST_CELL_POINT_IN}: the solid has no cells in it.
          */
@@ -721,12 +720,11 @@ public final class BioBuzzConstants {
          */
         public static final double LENGTH_IN = 17.80;
         /**
-         * MEASURED (team, 2026-11-13): overall width, side to side, 18.04 in. The goBILDA drawing says 17.80 in, but the team
-         * added WHEEL GUARDS on the outside of the mecanum wheels, which makes the robot 0.24 in wider. NOTE: rule R102 limits
-         * the starting configuration to an 18 in cube, so with these guards the robot is 0.04 in too wide for inspection:
-         * trim or move the guards (the TeleOp shows a warning at INIT until the width is 18.00 in or less).
+         * MEASURED (team, 2026-11-13): overall width, side to side, 17.62 in, the outline of the robot as the team measured it
+         * (the goBILDA drawing says 17.80 in). With the length of 17.80 in the robot fits the 18 in start cube of rule R102:
+         * 0.38 in to spare in width, 0.20 in in length.
          */
-        public static final double WIDTH_IN = 18.04;
+        public static final double WIDTH_IN = 17.62;
 
         // ---- where the perimeter lies around the center of rotation -----------------------------------------
         // The robot's POSITION is the point it spins about (the "center of rotation": for a mecanum robot, about the
@@ -750,18 +748,18 @@ public final class BioBuzzConstants {
         public static final double REAR_EXTENT_IN = 8.03;
         /**
          * MEASURED (team, 2026-11-13): distance, in inches, from the center of rotation to the LEFT edge of the perimeter (the
-         * outer face of the left wheel guard, seen from above, with the robot facing forward). The center of rotation is exactly
-         * half way across, so 18.04 / 2 = 9.02 in. Must satisfy {@code LEFT_EXTENT_IN + RIGHT_EXTENT_IN = WIDTH_IN}.
+         * outer face of the left mecanum wheel, seen from above, with the robot facing forward). The center of rotation is exactly
+         * half way across, so 17.62 / 2 = 8.81 in. Must satisfy {@code LEFT_EXTENT_IN + RIGHT_EXTENT_IN = WIDTH_IN}.
          */
-        public static final double LEFT_EXTENT_IN = 9.02;
-        /** MEASURED (team, 2026-11-13): distance, in inches, from the center of rotation to the RIGHT edge of the perimeter: 9.02 in. See {@link #LEFT_EXTENT_IN}. */
-        public static final double RIGHT_EXTENT_IN = 9.02;
+        public static final double LEFT_EXTENT_IN = 8.81;
+        /** MEASURED (team, 2026-11-13): distance, in inches, from the center of rotation to the RIGHT edge of the perimeter: 8.81 in. See {@link #LEFT_EXTENT_IN}. */
+        public static final double RIGHT_EXTENT_IN = 8.81;
         /**
-         * VERIFY: height of the tallest part, in inches. The goBILDA drawing says 12.13 in (308 mm), but the Limelight now sits on
-         * top: its lens is 14.25 in above the floor (team measurement) and its case reaches a little higher. 15.75 in is an
-         * ESTIMATE (lens height plus about 1.5 in): measure the very top of the Limelight with a tape.
+         * VERIFY: height of the tallest part, in inches: about 15 in (team measurement, rounded). The goBILDA drawing says 12.13 in
+         * (308 mm) without the camera, but the Limelight now sits on top and is the tallest part: its lens is 14.25 in above the
+         * floor and its case reaches a little higher. Measure the very top of the Limelight with a tape.
          */
-        public static final double HEIGHT_IN = 15.75;
+        public static final double HEIGHT_IN = 15.0;
         /** FIXED (same drawing): mecanum wheel diameter, 104 mm. */
         public static final double WHEEL_DIAMETER_IN = 4.09;
 
@@ -774,14 +772,13 @@ public final class BioBuzzConstants {
          */
         public static final double LAUNCH_POINT_FORWARD_IN = -5.38;
         /**
-         * ADD: sideways offset of the ball's path from the robot's center line (positive = robot's LEFT, so a ball that
-         * leaves to the right of center is NEGATIVE). The team says the POLLEN is NOT centered left to right when it is
-         * launched, and the photos show it on the robot's right half, but the amount is not measured yet: measure it
-         * (from the center line to the middle of the ball at the moment it leaves the flywheel) and replace 0.0. It
-         * matters: at 38 in range every inch of sideways offset turns the aim by about 1.5 degrees, and the robot aims
-         * with this number.
+         * VERIFY: sideways offset of the ball's path from the robot's center line (positive = robot's LEFT, so a ball that
+         * leaves to the right of center is NEGATIVE). MEASURED by the team on 2026-11-13: the middle of the POLLEN is about
+         * 0.16 in to the RIGHT of the center line when it leaves the flywheel, so -0.16. It is a small number: at 38 in range it
+         * turns the aim by about 0.2 degrees, but the robot aims with it, so check it once with a tape (from the center line to the
+         * middle of the ball at the moment it leaves the flywheel).
          */
-        public static final double LAUNCH_POINT_LEFT_IN = 0.0;
+        public static final double LAUNCH_POINT_LEFT_IN = -0.16;
 
         // ---- the two flat intake wheels --------------------------------------------------------------------
         // The intake has two small wheels that lie FLAT (their discs are parallel to the floor, like coins on a table)
@@ -874,27 +871,24 @@ public final class BioBuzzConstants {
          * ADD: flywheel speed in ticks per second for each horizontal distance from the BALL EXIT to
          * the cell aim point, in inches, sorted by distance. Each row is {distance_in, velocity_tps}.
          *
-         * <p>ONE MEASURED ANCHOR (team, 2026-11-13): with the robot's FRONT pressed against the audience
-         * wall and in line with the HIVE, the ball exit is 37.7 in from the aim point and the POLLEN
-         * passes through the center to slightly ABOVE the center of the opening, at about the manual
-         * launch speed. That is the row {37.7, 1200}. "Slightly high" means the speed that hits dead
-         * center is probably a little lower. The other rows are PLACEHOLDERS that follow a typical
-         * speed-vs-range slope; record the real speed that scores at 3-5 distances with the shooter
-         * tuner and replace them.
+         * <p>ONE ANCHOR, COMPUTED (not measured with a tape): the team saw that with the robot's FRONT pressed against the
+         * audience wall and in line with the HIVE, the POLLEN passes through the center to slightly ABOVE the center of the
+         * opening, at about the manual launch speed, 1200 ticks per second. The distance of that spot was never measured: the
+         * model works it out from the field and the robot. The aim point is 54.156 in from the audience wall, and the ball exit is
+         * {@code Robot.FRONT_EXTENT_IN} + 5.38 in (the measured exit, {@code Robot.LAUNCH_POINT_FORWARD_IN}) = 9.77 + 5.38 = 15.15 in
+         * from that wall, so the range is 54.156 - 15.15 = 39.006 in. That is the row {39.0, 1200}. "Slightly high" means the speed
+         * that hits dead center is probably a little lower. The other two rows are PLACEHOLDERS that follow a typical speed-vs-range
+         * slope; record the real speed that scores at 3-5 distances with the Shooter Tuner and replace them.
          *
-         * <p>THE ANCHOR ROW IS A MEASUREMENT, so it is NOT changed when the field numbers change. But the
-         * model computes the range of that same physical shot from the field: with the official CAD the aim
-         * point is 54.156 in from the audience wall (the old 144 in field said 55.52) and the ball exit is
-         * 17.80 in from the wall, so the model says 36.36 in for the very place where the team measured
-         * 37.7 in: 1.34 in less. Either the tape measured something slightly different, or the ball leaves
-         * the robot farther forward than {@code Robot.LAUNCH_POINT_FORWARD_IN} says (the robot CAD suggests
-         * 6.58 in behind the center of rotation, which would give 37.8 in). On the real robot,
-         * re-measure the distance from the ball exit to the cell opening center with a tape (see
-         * docs/START_HERE.md) before trusting the rows next to the anchor.
+         * <p>BECAUSE THE ANCHOR IS COMPUTED, it is only as good as the numbers it comes from: if the ball really leaves the robot
+         * somewhere else than {@code Robot.LAUNCH_POINT_FORWARD_IN} says (or the field is a little different), the real range at that
+         * spot is different by the same amount. On the real robot, re-measure the distance from the ball exit to the cell opening
+         * center with a tape (see docs/START_HERE.md) and check the row with the Shooter Tuner before trusting the rows next to it.
+         * If the tape says something else, change the range of the row and keep the speed.
          */
         public static final double[][] SHOT_TABLE = {
                 {30.0, 1150.0},
-                {37.7, 1200.0},
+                {39.0, 1200.0},
                 {44.0, 1250.0}};
 
         /** TUNE: Shooter Tuner step sizes: flywheel speed in ticks per second (normal and with the left bumper held)... */
@@ -903,8 +897,8 @@ public final class BioBuzzConstants {
         /** TUNE: ... and the recorded range in inches. */
         public static final double TUNER_RANGE_STEP_IN = 0.5;
         public static final double TUNER_RANGE_BIG_STEP_IN = 2.0;
-        /** TUNE: the range the Shooter Tuner starts at: the measured wall shot. */
-        public static final double TUNER_START_RANGE_IN = 37.7;
+        /** TUNE: the range the Shooter Tuner starts at: the spot where the team saw the shot work (front on the audience wall, in line with the HIVE), as the model computes it. */
+        public static final double TUNER_START_RANGE_IN = 39.0;
 
         /** TUNE: slack on each end of the table when choosing a shooting range, so the planner aims inside it. */
         public static final double RANGE_MARGIN_IN = 1.5;
@@ -993,8 +987,8 @@ public final class BioBuzzConstants {
         public static final double SHOOT_CONE_STEP_DEG = 2.5;
         /** TUNE: resolution of the search over range. */
         public static final double SHOOT_RANGE_STEP_IN = 1.0;
-        /** TUNE: the range the solver prefers when several poses are equally close. 37.7 in is the one measured good shot: robot front against the wall, in line with the HIVE. */
-        public static final double PREFERRED_RANGE_IN = 37.7;
+        /** TUNE: the range the solver prefers when several poses are equally close. 39.0 in is the range of the spot where the team saw a good shot (robot front against the wall, in line with the HIVE), as the model computes it. */
+        public static final double PREFERRED_RANGE_IN = 39.0;
 
         /** TUNE: planning cost of turning the robot, in inches of travel per degree. */
         public static final double PLAN_ROTATION_COST_IN_PER_DEG = 0.15;
@@ -1355,7 +1349,7 @@ public final class BioBuzzConstants {
          * VERIFY: where a RED robot stands at the start of TeleOp if the pose was not carried over from
          * autonomous (RED frame; BLUE is the half-turn of it): the CENTER of tile C1 (58.924 in from the red
          * wall, 1.0 in from the HIVE axis), robot FRONT pressed against the audience wall, back toward the
-         * HIVE. This is also the one measured good shot position (37.7 in from the aim point). The robot must
+         * HIVE. This is also the spot where the team saw a good shot (39.0 in from the aim point in the model). The robot must
          * really be placed here for odometry to be right. The position is the robot's center of rotation, which is
          * {@link Robot#FRONT_EXTENT_IN} behind the front edge, so the Y value is that distance (the front edge is then
          * exactly on the wall; the start check in ConstantsCheck rejects a value that would put the robot through it).

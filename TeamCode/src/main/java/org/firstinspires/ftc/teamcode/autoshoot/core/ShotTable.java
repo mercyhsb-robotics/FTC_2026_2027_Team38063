@@ -13,8 +13,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * which speed scores at a few distances and writes them in {@code BioBuzzConstants.Shooter.SHOT_TABLE}. A "tick"
  * is one count of the motor's encoder, so "ticks per second" (tps) is the flywheel's speed.
  *
- * <p>Example: with rows {30 in, 1150 tps} and {37.7 in, 1200 tps}, a 33.85 in shot is halfway between them, so
- * {@code velocityAt(33.85)} is about 1175 tps.
+ * <p>Example: with rows {30 in, 1150 tps} and {39 in, 1200 tps}, a 34.5 in shot is halfway between them, so
+ * {@code velocityAt(34.5)} is about 1175 tps.
  *
  * <p>Who uses it: {@link ScoringPlanner} (its minimum and maximum range define where the robot may stand),
  * {@link AutoShootController} (speed to command, and the "is the range inside the table" gate), and

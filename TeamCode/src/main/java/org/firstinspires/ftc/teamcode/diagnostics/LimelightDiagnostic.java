@@ -166,7 +166,7 @@ public class LimelightDiagnostic extends OpMode {
             // hasGeometry: an UP cell whose tags have 3D positions, so range and implied position can be computed.
             if (v.hasGeometry) {
                 telemetry.addData("  centre (robot frame)", String.format("fwd=%.1f left=%.1f in", v.centerForwardIn, v.centerLeftIn));
-                telemetry.addData("  range to aim point", String.format("%.1f in  (shot table anchor: 37.7)", v.rangeIn));
+                telemetry.addData("  range to aim point", String.format("%.1f in  (shot table anchor: %.1f)", v.rangeIn, BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN));
                 telemetry.addData("  turn to point the shooter", String.format("%.1f deg", Math.toDegrees(v.aimErrorRad)));
                 // Where the camera says the robot is, and how far that is from where we said it is. Small = mount
                 // constants are right.

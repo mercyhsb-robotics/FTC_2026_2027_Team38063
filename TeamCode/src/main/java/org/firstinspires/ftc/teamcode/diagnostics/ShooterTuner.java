@@ -17,10 +17,11 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  * Builds the shot table. Park the robot at a known distance from the HIVE, dial in a flywheel speed, fire a
  * ball, note where it went, and record the row when the speed scores.
  *
- * <p>Measuring the range: use a tape measure from the BALL EXIT (back face of the robot, unless
- * LAUNCH_POINT_FORWARD_IN says otherwise) to the foot line of the HIVE frame at the end you are shooting
+ * <p>Measuring the range: use a tape measure from the BALL EXIT (the point where the ball leaves the
+ * shooter, about 2.65 in in front of the back of the robot: Robot.LAUNCH_POINT_FORWARD_IN) to the foot line of the HIVE frame at the end you are shooting
  * into, then ADD 3.0 in (the aim point is 3.0 in inside the foot line). Example: the robot front against the
- * audience wall in line with the HIVE is 37.7 in, the team's one measured good shot.
+ * audience wall in line with the HIVE is about 39.0 in in the model (the spot where the team saw a good shot work; the
+ * model computed that distance, nobody has measured it with a tape yet, so check it here).
  *
  * <p>Controls (gamepad 1):
  * <ul>
