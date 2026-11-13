@@ -108,6 +108,19 @@ public class TimingModelTest {
     }
 
     @Test
+    public void aWaitForTipLastsUntilTheTipButNeverBeyondItsTimeout() {
+        // the tip is at 12 s: starting at 3 s the wait is 9 s...
+        assertEquals(9.0, model.waitForTipSeconds(3.0, 12.0, 30.0), EPS);
+        // ...a timeout shorter than that caps it...
+        assertEquals(4.0, model.waitForTipSeconds(3.0, 12.0, 4.0), EPS);
+        // ...a tip that is already over costs nothing...
+        assertEquals(0.0, model.waitForTipSeconds(15.0, 12.0, 30.0), EPS);
+        assertEquals(0.0, model.waitForTipSeconds(12.0, 12.0, 30.0), EPS);
+        // ...and with no tip to wait for (NaN) the cell is UP already: no waiting
+        assertEquals(0.0, model.waitForTipSeconds(3.0, Double.NaN, 30.0), EPS);
+    }
+
+    @Test
     public void theModelFollowsItsParameters() {
         TimingModel.Params fast = new TimingModel.Params();
         fast.cruiseInPerSec = v * 2;

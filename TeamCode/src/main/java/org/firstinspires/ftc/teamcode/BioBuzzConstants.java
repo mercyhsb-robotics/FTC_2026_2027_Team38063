@@ -126,6 +126,14 @@ public final class BioBuzzConstants {
         public static final int NECTAR_TIP_THRESHOLD = 5;
         /** VERIFY: the team's figure for tipping a cell with POLLEN alone: 8 POLLEN (two volleys of 4). See {@link #NECTAR_TIP_THRESHOLD}. */
         public static final int POLLEN_TIP_THRESHOLD = 8;
+        /**
+         * VERIFY: for a route that assumes the alliance PARTNER shoots the first tip (FirstTip.PARTNER): the route
+         * time, in seconds from the start of AUTO, at which that tip is assumed to be DONE, so the other HIVE cell is
+         * UP from then on. 12 s is a first guess (a partner that shoots its 4 pre-loads from a nearby pose). The drive
+         * team must agree the real time with the partner team before the match; until then a route that depends on
+         * it is a plan, not a promise.
+         */
+        public static final double PARTNER_FIRST_TIP_DONE_SEC = 12.0;
         /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */
         public static final int LEAVE_POINTS = 3;
         /** FIXED (manual Table 10-2): PARK is worth 5 points in AUTO. */

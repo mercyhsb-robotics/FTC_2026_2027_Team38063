@@ -176,6 +176,178 @@ public class RouteAnalysisTest {
         assertFalse(a.step(3).tipped);
     }
 
+    // ---- the partner shoots the first tip ----------------------------------------------------------------------
+
+    private static final double PARTNER_SEC = BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC;
+
+    /** A rear-wall start that only waits, so the HIVE state can be read off the clock. */
+    private static AutoRoute.Builder partnerClock() {
+        return AutoRoute.builder("partner_clock").start(61.5, 135.1, 90).partnerTipsFirst()
+                .waitSeconds(5.0).waitSeconds(5.0).waitSeconds(5.0);
+    }
+
+    @Test
+    public void thePartnerTipFlipsTheUpSideAtTheAssumedTimeAndNotBefore() {
+        RouteAnalysis a = partnerClock().build().analyze();
+        // waits end at 5, 10 and 15 s; the assumed tip is at 12 s
+        assertEquals(Side.AUDIENCE, a.step(1).upSideAfter);
+        assertEquals("still before the tip at 10 s", Side.AUDIENCE, a.step(2).upSideAfter);
+        assertEquals(Side.AUDIENCE, a.step(3).upSideBefore);
+        assertEquals("the third wait (10 to 15 s) crosses the tip", Side.REAR, a.step(3).upSideAfter);
+        assertEquals(1, a.tipEvents().size());
+        RouteAnalysis.TipEvent tip = a.tipEvents().get(0);
+        assertTrue(tip.byPartner);
+        assertEquals(PARTNER_SEC, tip.timeSec, EPS);
+        assertEquals("the cell that was UP spills", Side.AUDIENCE, tip.releasingSide);
+        assertEquals(Side.REAR, tip.newUpSide);
+        assertEquals(-1, tip.stepIndex);
+        assertTrue(a.partnerTipAssumed());
+        assertEquals(PARTNER_SEC, a.partnerTipSec(), EPS);
+        assertFalse(a.partnerTipVoided());
+    }
+
+    @Test
+    public void aRouteThatDoesNotAssumeThePartnerNeverFlipsTheHiveByItself() {
+        // the very same waits, but the route says SELF: nobody tips the HIVE, whatever the clock says
+        RouteAnalysis a = AutoRoute.builder("self_clock").start(61.5, 135.1, 90)
+                .waitSeconds(5.0).waitSeconds(5.0).waitSeconds(5.0).build().analyze();
+        for (int i = 1; i < a.steps().size(); i++) {
+            assertEquals(Side.AUDIENCE, a.step(i).upSideAfter);
+        }
+        assertTrue(a.tipEvents().isEmpty());
+        assertFalse(a.partnerTipAssumed());
+        assertTrue(Double.isNaN(a.partnerTipSec()));
+        assertEquals(0, a.partnerTips());
+        assertEquals(0, a.partnerTipPoints());
+    }
+
+    @Test
+    public void thePartnerTipFlipsTheBlueHiveToItsAudienceSide() {
+        // the blue HIVE starts with its REAR cell up (the half turn of red), so the partner's tip brings the AUDIENCE cell up
+        RouteAnalysis a = partnerClock().build().forAlliance(Alliance.BLUE).analyze();
+        assertEquals(Side.REAR, a.step(2).upSideAfter);
+        assertEquals(Side.AUDIENCE, a.step(3).upSideAfter);
+        assertEquals(Side.REAR, a.tipEvents().get(0).releasingSide);
+        assertEquals(Side.AUDIENCE, a.tipEvents().get(0).newUpSide);
+    }
+
+    @Test
+    public void aPartnerTipThatComesAfterTheRouteHasEndedStillHappens() {
+        // the route is over at 5 s, the tip is assumed at 12 s: it is recorded all the same (the robot stands where it ended)
+        RouteAnalysis a = AutoRoute.builder("short").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(5.0).build().analyze();
+        assertEquals(1, a.tipEvents().size());
+        assertEquals(PARTNER_SEC, a.tipEvents().get(0).timeSec, EPS);
+        assertEquals("the last step ended before the tip", Side.AUDIENCE, a.step(1).upSideAfter);
+    }
+
+    @Test
+    public void waitForTipAdvancesTheClockToTheTipAndNoFurther() {
+        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, 135.1, 90).partnerTipsFirst()
+                .waitSeconds(3.0).waitForTip(30.0).build().analyze();
+        RouteAnalysis.StepInfo wait = a.step(2);
+        assertEquals(3.0, wait.startSec, EPS);
+        assertEquals("until the tip at 12 s", PARTNER_SEC - 3.0, wait.durationSec, EPS);
+        assertEquals(PARTNER_SEC, wait.endSec(), EPS);
+        assertEquals(PARTNER_SEC, wait.tipWaitSec, EPS);
+        assertEquals(Side.AUDIENCE, wait.upSideBefore);
+        assertEquals("the other cell is up when the wait ends", Side.REAR, wait.upSideAfter);
+        assertEquals(PARTNER_SEC, a.totalSeconds(), EPS);
+    }
+
+    @Test
+    public void waitForTipGivesUpAtItsTimeout() {
+        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(2.0).build().analyze();
+        RouteAnalysis.StepInfo wait = a.step(1);
+        assertEquals(2.0, wait.durationSec, EPS);
+        assertEquals("the tip is still to come when the wait gives up", Side.AUDIENCE, wait.upSideAfter);
+        assertEquals("it still knows when the tip is due", PARTNER_SEC, wait.tipWaitSec, EPS);
+    }
+
+    @Test
+    public void waitForTipCostsNothingWhenThereIsNoTipToWaitFor() {
+        // already tipped (the clock is at 15 s)
+        RouteAnalysis late = partnerClock().waitForTip(20.0).build().analyze();
+        RouteAnalysis.StepInfo done = late.step(4);
+        assertEquals(0.0, done.durationSec, EPS);
+        assertTrue(Double.isNaN(done.tipWaitSec));
+        // a SELF route has no partner tip at all
+        RouteAnalysis self = AutoRoute.builder("self").start(61.5, 135.1, 90).waitForTip(20.0).build().analyze();
+        assertEquals(0.0, self.step(1).durationSec, EPS);
+        assertTrue(Double.isNaN(self.step(1).tipWaitSec));
+    }
+
+    @Test
+    public void thePartnersTipIsShownButNeverCountedInOurPoints() {
+        RouteAnalysis a = partnerClock().build().analyze();
+        assertEquals(1, a.partnerTips());
+        assertEquals(BioBuzzConstants.Auto.TIP_POINTS, a.partnerTipPoints());
+        assertEquals("our robot did not tip anything", 0, a.tips());
+        assertEquals(0, a.tipPoints());
+        // this route never leaves its start, which touches the rear wall: no LEAVE and no PARK either
+        assertEquals(a.leavePoints() + a.parkPoints(), a.points());
+        assertEquals(0, a.points());
+        assertEquals(a.points(), partnerClock().build().claimablePoints());
+    }
+
+    @Test
+    public void ourOwnTipBeforeTheAssumedTimeCancelsThePartnersTip() {
+        // we shoot the 4 pre-loads at the audience cell at the start: that is the first tip, long before 12 s
+        RouteAnalysis a = AutoRoute.builder("early").start(58, 9.2, -90).partnerTipsFirst().shootUp(4).waitSeconds(20).build()
+                .analyze();
+        assertEquals(1, a.tips());
+        assertTrue(a.step(1).tipSec < PARTNER_SEC);
+        assertTrue(a.partnerTipVoided());
+        assertEquals("only our own tip is left", 1, a.tipEvents().size());
+        assertFalse(a.tipEvents().get(0).byPartner);
+        assertEquals(0, a.partnerTips());
+        assertEquals(0, a.partnerTipPoints());
+        assertEquals("the waiting later does not flip anything again", Side.REAR, a.step(2).upSideAfter);
+    }
+
+    @Test
+    public void aVolleyThatIsStillFiringWhenThePartnerTipsDoesNotTipTheHiveItself() {
+        // wait until 10.5 s, then fire 4 at the UP cell: the volley runs past 12 s, so the partner tips it first
+        RouteAnalysis a = AutoRoute.builder("race").start(58, 9.2, -90).partnerTipsFirst().waitSeconds(10.5).shootUp(4).build()
+                .analyze();
+        RouteAnalysis.StepInfo shoot = a.step(2);
+        assertTrue(shoot.launchSec < PARTNER_SEC && shoot.endSec() > PARTNER_SEC);
+        assertTrue(shoot.targetWasUp);
+        assertFalse("the partner's tip comes first, so ours does not happen", shoot.tipped);
+        assertEquals(0, a.tips());
+        assertEquals(1, a.partnerTips());
+        assertFalse(a.partnerTipVoided());
+        assertEquals(Side.REAR, shoot.upSideAfter);
+    }
+
+    @Test
+    public void aShootThatStartsBeforeThePartnerTipTargetsTheCellThatIsUpThen() {
+        // shootUp at 0 s: the UP cell is still the audience one; after a wait for the tip it is the rear one
+        RouteAnalysis before = AutoRoute.builder("b").start(61.5, 135.1, 90).partnerTipsFirst().shootUp(2).build().analyze();
+        assertEquals(Side.AUDIENCE, before.step(1).targetSide);
+        RouteAnalysis after = AutoRoute.builder("a").start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(30).shootUp(2).build()
+                .analyze();
+        assertEquals(Side.REAR, after.step(2).targetSide);
+        assertTrue(after.step(2).targetWasUp);
+        assertTrue("it launches at or after the tip", after.step(2).launchSec >= PARTNER_SEC - EPS);
+    }
+
+    @Test
+    public void afterThePartnersTipOurVolleysNeedEightPollenBecauseTheRearCellHoldsNoNectar() {
+        // wait for the tip, then 4 + 4 POLLEN into the rear cell: only the second volley tips it
+        AutoRoute r = AutoRoute.builder("two").start(61.5, 135.1, 90).partnerTipsFirst()
+                .waitForTip(30).shootUp(4)
+                .intakeFlower(48, 141.6, 48, 133, 90, 4)
+                .shootUp(4).build();
+        RouteAnalysis a = r.analyze();
+        assertFalse("4 POLLEN into the empty rear cell are not enough", a.step(2).tipped);
+        assertEquals(0, a.step(2).nectarInCellBefore);
+        assertTrue(a.step(4).tipped);
+        assertEquals(1, a.tips());
+        assertEquals(1, a.partnerTips());
+        assertEquals("our points: only our own tip", BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
+        assertEquals(Side.AUDIENCE, a.step(4).upSideAfter);
+    }
+
     @Test
     public void theBlueHiveStartsWithItsRearCellUp() {
         AutoRoute blue = AutoRoute.builder("d").start(58, 9.2, -90).shootUp(4).build().forAlliance(Alliance.BLUE);

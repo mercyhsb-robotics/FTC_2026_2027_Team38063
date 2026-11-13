@@ -408,6 +408,47 @@ public abstract class Step {
 
     // ---------------------------------------------------------------------------------------------
 
+    /**
+     * Stand still at the current pose until the HIVE cell the route shoots at next is UP, but at most
+     * {@link #timeoutSeconds()}. It is for routes that assume the alliance partner shoots the first tip
+     * ({@link FirstTip#PARTNER}): the other cell only comes up when the partner's volley has tipped the HIVE, so the
+     * robot waits for it instead of launching into a cell that still faces down (rule G417). On the robot this is
+     * what the camera-gated shoot step does anyway: it fires only into a cell whose tags read UP.
+     */
+    public static final class WaitForTip extends Step {
+        private final double timeoutSeconds;
+
+        public WaitForTip(double timeoutSeconds, String note) {
+            super(StepKind.WAIT_FOR_TIP, note);
+            if (!(timeoutSeconds > 0.0)) {
+                throw new IllegalArgumentException("the timeout of a WAIT_FOR_TIP must be > 0 s, got " + timeoutSeconds);
+            }
+            this.timeoutSeconds = timeoutSeconds;
+        }
+
+        /** The longest the robot waits, in seconds; after that it carries on even if the cell is not UP. */
+        public double timeoutSeconds() {
+            return timeoutSeconds;
+        }
+
+        @Override
+        public Step withNote(String note) {
+            return new WaitForTip(timeoutSeconds, note);
+        }
+
+        @Override
+        Step halfTurn(double fieldSize) {
+            return this;
+        }
+
+        @Override
+        public String describe() {
+            return "WAIT_FOR_TIP until the HIVE has tipped, at most " + fmt(timeoutSeconds) + " s";
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
+
     /** Finish partly inside the own LOADING ZONE (AUTO PARK, 5 points). */
     public static final class Park extends Step {
         private final Pose2 pose;

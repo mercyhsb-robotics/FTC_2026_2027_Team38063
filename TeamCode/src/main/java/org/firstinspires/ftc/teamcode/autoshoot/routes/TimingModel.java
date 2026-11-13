@@ -94,4 +94,16 @@ public final class TimingModel {
     public double waitSeconds(Step.Wait step) {
         return step.seconds();
     }
+
+    /**
+     * How long a WAIT_FOR_TIP lasts when it starts at {@code nowSec} and the tip it waits for happens at
+     * {@code tipSec}: until the tip (0 if it has already happened), but never longer than the timeout. If there is no
+     * tip to wait for ({@code tipSec} is NaN) the cell is already UP and the robot does not wait at all.
+     */
+    public double waitForTipSeconds(double nowSec, double tipSec, double timeoutSec) {
+        if (Double.isNaN(tipSec)) {
+            return 0.0;
+        }
+        return Math.min(timeoutSec, Math.max(0.0, tipSec - nowSec));
+    }
 }

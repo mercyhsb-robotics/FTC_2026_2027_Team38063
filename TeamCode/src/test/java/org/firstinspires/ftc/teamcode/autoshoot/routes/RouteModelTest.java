@@ -36,8 +36,10 @@ public class RouteModelTest {
                 .intakeGarden(5.9, 1.4, 9.0, 9.7, -90, 4)
                 .intakeFloor(40, 30, 38, 30, 0, 1)
                 .shootSide(Side.AUDIENCE, 2)
+                .waitForTip(8.0).note("for the partner")
                 .shootUp(1)
                 .park(12, 108, 0).note("end")
+                .partnerTipsFirst()
                 .build();
     }
 
@@ -239,6 +241,9 @@ public class RouteModelTest {
                 case WAIT:
                     assertEquals(((Step.Wait) r).seconds(), ((Step.Wait) b).seconds(), EPS);
                     break;
+                case WAIT_FOR_TIP:
+                    assertEquals(((Step.WaitForTip) r).timeoutSeconds(), ((Step.WaitForTip) b).timeoutSeconds(), EPS);
+                    break;
                 case PARK:
                     assertHalfTurn(((Step.Park) r).pose(), ((Step.Park) b).pose());
                     break;
@@ -257,6 +262,42 @@ public class RouteModelTest {
         // and it really is a half turn, not a mirror: the heading changes by exactly 180 degrees
         double turned = Math.abs(org.firstinspires.ftc.teamcode.autoshoot.core.Angles.error(red.heading, blue.heading));
         assertEquals(Math.PI, turned, 1e-9);
+    }
+
+    @Test
+    public void theFirstTipAssumptionDefaultsToSelfAndSurvivesTheHalfTurn() {
+        AutoRoute plain = AutoRoute.builder("p").start(35, 9.2, -90).waitSeconds(1).build();
+        assertEquals(FirstTip.SELF, plain.firstTip());
+        assertTrue(Double.isNaN(plain.partnerTipSec()));
+        assertEquals("we shoot the first tip", plain.firstTipSummary());
+
+        AutoRoute partner = AutoRoute.builder("q").start(35, 9.2, -90).partnerTipsFirst().waitSeconds(1).build();
+        assertEquals(FirstTip.PARTNER, partner.firstTip());
+        assertEquals(BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC, partner.partnerTipSec(), EPS);
+        assertEquals("partner tips first, assumed at 12.0 s", partner.firstTipSummary());
+        // the same assumption in the blue half turn, and back again
+        assertEquals(FirstTip.PARTNER, partner.forAlliance(Alliance.BLUE).firstTip());
+        assertEquals(FirstTip.PARTNER, partner.forAlliance(Alliance.BLUE).forAlliance(Alliance.RED).firstTip());
+        assertEquals(FirstTip.SELF, plain.forAlliance(Alliance.BLUE).firstTip());
+        // the explicit form is the same thing
+        assertEquals(FirstTip.PARTNER, AutoRoute.builder("r").start(35, 9.2, -90).firstTip(FirstTip.PARTNER).build().firstTip());
+        expectIllegalArgument(() -> AutoRoute.builder("s").firstTip(null));
+    }
+
+    @Test
+    public void waitForTipTakesATimeoutAboveZeroAndKeepsItsNote() {
+        AutoRoute r = AutoRoute.builder("w").start(35, 9.2, -90).waitForTip(6.5).note("until the rear cell is up").build();
+        Step.WaitForTip w = (Step.WaitForTip) r.step(1);
+        assertEquals(StepKind.WAIT_FOR_TIP, w.kind());
+        assertEquals(6.5, w.timeoutSeconds(), EPS);
+        assertEquals("until the rear cell is up", w.note());
+        assertTrue(w.describe(), w.describe().startsWith("WAIT_FOR_TIP"));
+        assertTrue(w.describe(), w.describe().contains("6.5"));
+        assertSame("a wait has no pose, so the half turn leaves it as it is", w, w.halfTurn(SIZE));
+        // a wait that never waits is a mistake, not a feature
+        expectIllegalArgument(() -> AutoRoute.builder("a").start(35, 9.2, -90).waitForTip(0));
+        expectIllegalArgument(() -> AutoRoute.builder("a").start(35, 9.2, -90).waitForTip(-3));
+        expectIllegalArgument(() -> AutoRoute.builder("a").start(35, 9.2, -90).waitForTip(Double.NaN));
     }
 
     @Test
