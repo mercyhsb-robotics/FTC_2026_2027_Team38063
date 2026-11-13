@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Partner tips first: wait beside the cell that comes up, shoot 4 into it, park - BLUE alliance</title>
+<title id="svg-title">Standard: start turned in the rear corner, wait beside the cell that comes up, shoot 4 into it, park - BLUE alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_rear_shoot_park for the BLUE alliance, starting in tile E1, with 6 steps: 1 START at (105.1, 13.1, -55 deg); 2 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 19.0 s on the route clock; 3 SHOOT 4 at UP cell from (104.5, 13.9, -55 deg); 4 DRIVE off the wall constant to 105.1, 29.3; 5 DRIVE to zone linear to 129.3, 33.3; 6 PARK at (129.3, 33.3, 180 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 18.5 s. Estimated 21.5 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="16.36" font-weight="bold" fill="#222222">Partner tips first: wait beside the cell that comes up, shoot 4 into it, park - BLUE alliance</text>
+<text id="title" x="24" y="27" font-size="13.12" font-weight="bold" fill="#222222">Standard: start turned in the rear corner, wait beside the cell that comes up, shoot 4 into it, park - BLUE alliance</text>
 <text id="subtitle" x="24" y="45" font-size="9.9" fill="#555555">id partner_rear_shoot_park  |  start tile E1  |  6 steps  |  blue ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 18.5 s</text>
 <rect x="24" y="52" width="40" height="4" fill="#1565c0"/>
 <g id="field">
