@@ -443,7 +443,7 @@ public class RouteSvgRendererTest {
         Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
         String metrics = byId(d, "footer-metrics").getTextContent();
         assertTrue(metrics, metrics.contains(String.format(java.util.Locale.ROOT, "%.1f s", r.estimatedSeconds())));
-        assertTrue(metrics, metrics.contains("Claimable AUTO points: 23"));
+        assertTrue(metrics, metrics.contains("Our AUTO points: 23"));
         assertTrue(metrics, metrics.contains("LEAVE 3"));
         assertTrue(metrics, metrics.contains("HIVE TIP 20"));
         String pollen = byId(d, "footer-pollen").getTextContent();
@@ -453,6 +453,53 @@ public class RouteSvgRendererTest {
         assertTrue(pollen, pollen.contains("no findings"));
         assertNotNull(byId(d, "legend"));
         assertTrue(withClass(byId(d, "legend"), "g", "legend-item").size() >= 10);
+    }
+
+    // ---- who shoots the first tip ----------------------------------------------------------------------
+
+    private static AutoRoute partnerRoute() {
+        return AutoRoute.builder("partner_rear").title("Partner tips first").startTile("C6").start(61.5, 135.1, 90)
+                .partnerTipsFirst().waitForTip(30).shootUp(62.0, 132.5, 90, 4).build();
+    }
+
+    @Test
+    public void theSubtitleSaysWhoShootsTheFirstTipForEveryRoute() throws Exception {
+        for (AutoRoute r : RouteCatalog.all()) {
+            for (Alliance a : Alliance.values()) {
+                String sub = byId(parse(RouteSvgRenderer.render(r, a)), "subtitle").getTextContent();
+                assertTrue(r.id() + ": " + sub, sub.contains("first tip: " + r.firstTipSummary()));
+            }
+        }
+        assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED)), "subtitle").getTextContent()
+                .contains("first tip: partner tips first, assumed at 12.0 s"));
+        // the description for screen readers carries it too
+        assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.BLUE)), "svg-desc").getTextContent()
+                .contains("First tip: partner tips first, assumed at 12.0 s."));
+    }
+
+    @Test
+    public void thePartnersAssumedTipIsShownInTheFooterButNeverInOurPoints() throws Exception {
+        Document partner = parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED));
+        assertTrue(byId(partner, "footer-pollen").getTextContent(), byId(partner, "footer-pollen").getTextContent().contains("Partner tip +20 (not ours)"));
+        // our points: the robot ends off the rear wall (LEAVE 3) and tips nothing itself
+        assertTrue(byId(partner, "footer-metrics").getTextContent(), byId(partner, "footer-metrics").getTextContent().contains("Our AUTO points: 3 "));
+        assertTrue(byId(partner, "footer-metrics").getTextContent().contains("HIVE TIP 0"));
+        // a route that shoots the first tip itself has no partner text
+        Document self = parse(RouteSvgRenderer.render(RouteCatalog.byId("garden_cycle"), Alliance.RED));
+        assertFalse(byId(self, "footer-pollen").getTextContent().contains("Partner tip"));
+    }
+
+    @Test
+    public void waitForTipIsDrawnAsAClockWithItsTimeout() throws Exception {
+        Document d = parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED));
+        boolean found = false;
+        for (Element t : withClass(byId(d, "route"), "text", "step-label")) {
+            found |= t.getTextContent().equals("WAIT FOR TIP (max 30 s)");
+        }
+        assertTrue(found);
+        assertEquals(1, withClass(byId(d, "route"), "g", "clock").size());
+        assertEquals(1, countSteps(partnerRoute(), StepKind.WAIT_FOR_TIP));
+        assertEquals("one numbered badge for every step", partnerRoute().size(), withClass(byId(d, "route"), "g", "badge").size());
     }
 
     @Test

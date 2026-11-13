@@ -307,6 +307,31 @@ public class RouteSvgLayoutTest {
     }
 
     @Test
+    public void theSubtitleAndFooterLinesWithTheFirstTipTextStillFitTheWidthOfTheImage() throws Exception {
+        AutoRoute partner = AutoRoute.builder("partner_rear_wait_then_two_volleys").title("Partner tips first").startTile("C6")
+                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(30).shootUp(62.0, 132.5, 90, 4).build();
+        List<AutoRoute> routes = new ArrayList<AutoRoute>(RouteCatalog.all());
+        routes.add(partner);
+        for (AutoRoute r : routes) {
+            for (Alliance a : Alliance.values()) {
+                Document d = parse(RouteSvgRenderer.render(r, a));
+                for (String id : new String[] {"subtitle", "footer-metrics", "footer-pollen"}) {
+                    Element line = byId(d, id);
+                    // these lines are 12 px; a line that would be too long shrinks (an SVG never wraps text)
+                    double perChar = BioBuzzConstants.Auto.RENDER_LABEL_CHAR_WIDTH_EM * num(line, "font-size");
+                    double right = num(line, "x") + line.getTextContent().length() * perChar;
+                    assertTrue(r.id() + " " + a + " " + id + " is about " + (int) right + " px wide: " + line.getTextContent(),
+                            right <= CANVAS - 24.0);
+                }
+            }
+        }
+        // the long id really did need the shrinking (without it the line would run 942 px), and a short line keeps its 12 px
+        assertTrue(num(byId(parse(RouteSvgRenderer.render(partner, Alliance.RED)), "subtitle"), "font-size") < 12.0);
+        assertEquals(12.0, num(byId(parse(RouteSvgRenderer.render(RouteCatalog.byId("red_leave_park"), Alliance.RED)), "subtitle"),
+                "font-size"), 1e-9);
+    }
+
+    @Test
     public void theLegendAndFooterSitBelowTheFieldInsideTheImage() throws Exception {
         for (AutoRoute r : RouteCatalog.all()) {
             Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
