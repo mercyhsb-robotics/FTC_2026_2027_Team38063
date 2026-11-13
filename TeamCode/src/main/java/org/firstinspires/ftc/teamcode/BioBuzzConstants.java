@@ -409,6 +409,31 @@ public final class BioBuzzConstants {
         public static final double HIVE_STABLE_SEEN_SEC = 0.5;
         /** TUNE: tags missing this long (with the camera link healthy) after a steady sighting counts as a suspected tip. */
         public static final double HIVE_LOST_SEC = 0.6;
+
+        // ---- using the camera to correct odometry drift ---------------------------------
+        /**
+         * VERIFY: let a good sighting of the HIVE's AprilTags nudge the odometry position back toward the
+         * truth. Leave it false until the Limelight Diagnostic shows the implied position agreeing with the
+         * real position within about an inch, because a wrong camera mount would otherwise pull the position
+         * the wrong way. Only the position is corrected, never the heading.
+         */
+        public static final boolean POSE_CORRECTION_ENABLED = false;
+        /** TUNE: fraction of the disagreement corrected each time (0-1). Small is smooth and safe. */
+        public static final double POSE_CORRECTION_GAIN = 0.35;
+        /** TUNE: largest single correction, in inches. */
+        public static final double POSE_CORRECTION_MAX_STEP_IN = 3.0;
+        /** TUNE: a sighting that disagrees with odometry by more than this is assumed to be wrong and ignored, in inches. */
+        public static final double POSE_CORRECTION_GATE_IN = 10.0;
+        /** TUNE: only correct while the robot is slower than this, in inches per second (the image is a little old). */
+        public static final double POSE_CORRECTION_MAX_SPEED_IN_S = 3.0;
+        /** TUNE: ... and turning slower than this, in degrees per second. */
+        public static final double POSE_CORRECTION_MAX_OMEGA_DEG_S = 20.0;
+        /** TUNE: ... and the image is no older than this, in seconds. */
+        public static final double POSE_CORRECTION_MAX_FRAME_AGE_SEC = 0.12;
+        /** TUNE: at least this many of the cluster's four tags must be seen. */
+        public static final int POSE_CORRECTION_MIN_TAGS = 2;
+        /** TUNE: at least this long between two corrections, in seconds (writing the position costs an I2C transaction). */
+        public static final double POSE_CORRECTION_MIN_INTERVAL_SEC = 0.25;
     }
 
     // =========================================================================================
