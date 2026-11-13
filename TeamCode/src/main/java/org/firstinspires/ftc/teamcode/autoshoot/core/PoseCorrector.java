@@ -122,8 +122,12 @@ public final class PoseCorrector {
             lastReason = "off (POSE_CORRECTION_ENABLED is false)";
             return null;
         }
-        if (!frame.usable() || !frame.newFrame) {
-            return null;                                   // nothing new to learn from
+        if (!frame.usable()) {
+            lastReason = "camera is not delivering images";
+            return null;
+        }
+        if (!frame.newFrame) {
+            return null;                                   // the same image as last loop: nothing new to learn from
         }
         // The camera image is a little old by the time we read it; if the robot is still moving, that old
         // picture shows where the robot WAS, so we only trust it when the image is fresh and the robot is slow.
