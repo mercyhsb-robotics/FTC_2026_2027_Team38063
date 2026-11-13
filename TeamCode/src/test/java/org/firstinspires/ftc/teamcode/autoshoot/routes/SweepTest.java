@@ -68,12 +68,12 @@ public class SweepTest {
 
     @Test
     public void theTravelBoundIsDerivedFromTheStepsAndTheHalfDiagonal() {
-        // the farthest corner from the center of rotation: a FRONT corner, 9.77 in ahead and 8.90 in to the side
+        // the farthest corner from the center of rotation: a FRONT corner, 9.77 in ahead and 8.81 in to the side
         double expected = BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN
                 + Math.hypot(BioBuzzConstants.Robot.FRONT_EXTENT_IN, BioBuzzConstants.Robot.LEFT_EXTENT_IN)
                 * Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG);
         assertEquals(expected, Sweep.maxTravelBetweenSamples(), 1e-12);
-        assertEquals("1 in + 13.22 in * 5 degrees", 2.153, Sweep.maxTravelBetweenSamples(), 0.001);
+        assertEquals("1 in + 13.16 in * 5 degrees", 2.148, Sweep.maxTravelBetweenSamples(), 0.001);
         assertEquals(Sweep.maxTravelBetweenSamples() / 2.0, Sweep.obstacleGrowthIn(), 1e-12);
         // R is the distance to the farthest corner; the two rear corners are nearer (the position is not the robot's middle)
         Footprint fp = Footprint.of(Pose2.ofDegrees(10, 20, 33));
@@ -86,7 +86,7 @@ public class SweepTest {
         assertEquals(R, farthest, 1e-9);
         assertEquals("front corners", R, fp.corner(0).distanceTo(new Point2(10, 20)), 1e-9);
         assertEquals("front corners", R, fp.corner(3).distanceTo(new Point2(10, 20)), 1e-9);
-        assertEquals("rear corners", Math.hypot(8.03, 8.9), fp.corner(1).distanceTo(new Point2(10, 20)), 1e-9);
+        assertEquals("rear corners", Math.hypot(BioBuzzConstants.Robot.REAR_EXTENT_IN, BioBuzzConstants.Robot.LEFT_EXTENT_IN), fp.corner(1).distanceTo(new Point2(10, 20)), 1e-9);
     }
 
     @Test
@@ -137,10 +137,11 @@ public class SweepTest {
         Rect box = new Rect(60, 70, 60, 70);
         double edgeToCorner = (60 + 60 - 80 - 9.77 * Math.sqrt(2.0)) / Math.sqrt(2.0);
         assertEquals(edgeToCorner, Footprint.of(Pose2.ofDegrees(40, 40, 45)).signedGap(box), 1e-9);
-        // corner to corner: the axis-aligned robot's front-left corner (49.77, 48.9) and the box corner (60, 60); every flat side is
-        // farther apart in only ONE direction (10.23 in in x, 11.1 in in y), so a gap measured only along the four edge directions
+        // corner to corner: the axis-aligned robot's front-left corner (49.77, 48.81) and the box corner (60, 60); every flat side is
+        // farther apart in only ONE direction (10.23 in in x, 11.19 in in y), so a gap measured only along the four edge directions
         // would be wrong
-        assertEquals(Math.hypot(10.23, 11.1), Footprint.of(Pose2.ofDegrees(40, 40, 0)).signedGap(box), 1e-9);
+        assertEquals(Math.hypot(60 - (40 + BioBuzzConstants.Robot.FRONT_EXTENT_IN), 60 - (40 + BioBuzzConstants.Robot.LEFT_EXTENT_IN)),
+                Footprint.of(Pose2.ofDegrees(40, 40, 0)).signedGap(box), 1e-9);
     }
 
     @Test
@@ -275,7 +276,7 @@ public class SweepTest {
     @Test
     public void aLegThatTurnsAQuarterTurnInOneInchIsCheckedWhileItTurns() {
         // 1 in long, from -90 to 0 degrees, center about 11.5 in from the audience wall: both END poses are clear
-        // (front edge 2.2 in off, side 2.1 in off) but half way the front corner swings out to 13.2 in: 1.7 in through the wall
+        // (front edge 2.2 in off, side 2.2 in off) but half way the front corner swings out to 13.2 in: 1.7 in through the wall
         AutoRoute.Builder b = AutoRoute.builder("x").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN + 0.5, -90)
                 .driveConstant(58, 12.0, -90).driveLinear(58, 11.0, 0);
         Pose2 start = Pose2.ofDegrees(58, 12.0, -90);
@@ -284,11 +285,11 @@ public class SweepTest {
         assertTrue("the start pose is clear", Footprint.of(start).signedOvershoot(field) < 0);
         assertTrue("the end pose is clear", Footprint.of(end).signedOvershoot(field) < 0);
         assertEquals(1, errors(b, Rule.FIELD_BOUNDS));
-        // the report names the depth reached mid-turn: R - 11.5 = 1.7 in (the center is about 11.5 in out at the 45 degree heading)
+        // the report names the depth reached mid-turn: R - 11.5 = 1.6 in (the center is about 11.5 in out at the 45 degree heading)
         List<Issue> l = RouteValidator.check(b.build());
         boolean found = false;
         for (Issue i : l) {
-            found |= i.rule == Rule.FIELD_BOUNDS && i.message.contains("1.7 in");
+            found |= i.rule == Rule.FIELD_BOUNDS && i.message.contains("1.6 in");
         }
         assertTrue(l.toString(), found);
     }

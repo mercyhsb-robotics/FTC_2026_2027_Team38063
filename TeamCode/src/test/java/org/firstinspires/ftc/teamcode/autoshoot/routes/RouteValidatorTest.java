@@ -132,10 +132,10 @@ public class RouteValidatorTest {
         assertTrue(first(away, Rule.START_G304).message, first(away, Rule.START_G304).message.contains("must touch"));
         // and facing away with the back edge ON the wall is clean
         assertClean(validate(AutoRoute.builder("away").start(35.0, REAR, 90).waitSeconds(1)));
-        // and a robot whose SIDE is on the wall needs 8.90 in: 8.5 in sticks out by 0.4 in, and the message names the side edge
+        // and a robot whose SIDE is on the wall needs 8.81 in: 8.5 in sticks out by 0.3 in, and the message names the side edge
         List<Issue> side = validate(AutoRoute.builder("side").start(35.0, 8.5, 0).waitSeconds(1));
-        assertTrue(side.toString(), first(side, Rule.START_G304).message.contains("sticks out of the field by 0.4 in"));
-        assertTrue(first(side, Rule.START_G304).message.contains("reaches 8.9 in from the center"));
+        assertTrue(side.toString(), first(side, Rule.START_G304).message.contains(String.format(java.util.Locale.ROOT, "sticks out of the field by %.1f in", SIDE - 8.5)));
+        assertTrue(first(side, Rule.START_G304).message.contains(String.format(java.util.Locale.ROOT, "reaches %.1f in from the center", SIDE)));
     }
 
     @Test
@@ -223,7 +223,6 @@ public class RouteValidatorTest {
         assertEquals(1, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
         assertEquals(1, first(l, Rule.FIELD_BOUNDS).stepIndex);
         double overshoot = FRONT * Math.cos(Math.toRadians(25)) + SIDE * Math.sin(Math.toRadians(25)) - FRONT;
-        assertEquals(2.85, overshoot, 0.01);
         assertTrue(first(l, Rule.FIELD_BOUNDS).message, first(l, Rule.FIELD_BOUNDS).message
                 .contains(String.format(java.util.Locale.ROOT, "%.1f in", overshoot)));
     }
@@ -237,12 +236,12 @@ public class RouteValidatorTest {
 
     @Test
     public void theHiveKeepOutIncludesTheMargin() {
-        // Driving up the left corridor with the robot facing -y: its x reach on each side is the side extent, 8.9 in.
+        // Driving up the left corridor with the robot facing -y: its x reach on each side is the side extent, 8.81 in.
         // The frame starts at x = 70.674 - 49.466 / 2 = 45.941 and the keep-out 3.0 in before it, at 42.941, so the center may
-        // be at most 42.941 - 8.9 = 34.041 in from the left wall.
+        // be at most 42.941 - 8.81 = 34.131 in from the left wall.
         double frameMinX = BioBuzzConstants.Field.SIZE_IN / 2.0 - BioBuzzConstants.Field.HIVE_FRAME_WIDTH_X_IN / 2.0;
         double limit = frameMinX - BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN - BioBuzzConstants.Robot.LEFT_EXTENT_IN;
-        assertEquals(34.041, limit, 0.005);
+        assertEquals(34.131, limit, 0.005);
         double startX = limit - 1.0;
         assertClean(validate(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(limit - 0.07, 90, -90)));
         // 0.13 in past the limit is inside the margin: the old B1 path1 target x = 35.8 was chosen for a narrower robot
@@ -420,12 +419,12 @@ public class RouteValidatorTest {
 
     @Test
     public void aShootOutsideTheStandoffBandIsAWarning() {
-        // the old B1 hold pose is 41.9 in from the cell (ball exit 8.03 in behind the center of rotation); it also swings through
+        // the old B1 hold pose is 44.6 in from the cell (ball exit 5.38 in behind the center of rotation); it also swings through
         // the wall (a different rule)
         List<Issue> far = validate(AutoRoute.builder("x").start(35, FRONT, -90).shootUp(35, FRONT, -115, 4));
         assertEquals(1, count(far, Rule.SHOOT_POSE, Severity.WARN));
         assertTrue(first(far, Rule.SHOOT_POSE).message.contains("standoff band"));
-        assertTrue(first(far, Rule.SHOOT_POSE).message.contains("41.9"));
+        assertTrue(first(far, Rule.SHOOT_POSE).message.contains("44.6"));
         // far too close to the HIVE
         double axis = BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN;
         List<Issue> near = validate(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(axis, 30, -90)
@@ -491,13 +490,13 @@ public class RouteValidatorTest {
 
     @Test
     public void aShallowParkIsAWarningADeepOneIsFine() {
-        // a shallow park: the robot at (12, 88.6, 0) reaches y 97.5 (8.9 in to the left), 2.9 in into the zone (the CAD tape starts at
+        // a shallow park: the robot at (12, 88.6, 0) reaches y 97.4 (8.81 in to the left), 2.8 in into the zone (the CAD tape starts at
         // y 94.58; the old B1 park at y = 90 was this shallow only while the zone was believed to start at y 96)
         AutoRoute.Builder shallow = AutoRoute.builder("x").start(33, FRONT + 0.5, -90)
                 .driveReverseTangent(33, 50, -90).driveReverseTangent(28, 88.6, -90).driveReverseTangent(12, 88.6, 0).park(12, 88.6, 0);
         List<Issue> l = validate(shallow);
         assertOnly(l, Rule.PARK_ZONE, Severity.WARN);
-        assertTrue(first(l, Rule.PARK_ZONE).message, first(l, Rule.PARK_ZONE).message.contains("only 2.9 in"));
+        assertTrue(first(l, Rule.PARK_ZONE).message, first(l, Rule.PARK_ZONE).message.contains(String.format(java.util.Locale.ROOT, "only %.1f in", 88.6 + SIDE - BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MIN_IN)));
         // 12 in deeper in y: 7.0 in overlap (the 7.03 in of the robot behind the center, inside the zone in x)
         assertClean(validate(AutoRoute.builder("x").start(33, FRONT + 0.5, -90)
                 .driveReverseTangent(33, 50, -90).driveReverseTangent(30, 90, -90).driveLinear(12, 108, 0).park(12, 108, 0)));

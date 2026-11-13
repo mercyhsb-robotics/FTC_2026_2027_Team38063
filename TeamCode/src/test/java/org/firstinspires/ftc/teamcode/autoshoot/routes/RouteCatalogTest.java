@@ -332,11 +332,16 @@ public class RouteCatalogTest {
                 assertEquals("path1", 3, i.stepIndex);
             }
         }
-        // the park is deep, and the shot is aimed and inside the 30 to 38 in band: with the CAD aim point (54.156 in from the wall)
-        // the real ball exit (8.03 in behind the center of rotation, at y = 9.2 + 8.03) is 36.9 in from it. (With the old 144 in field
-        // the aim point was 1.4 in farther out and this was a WARN at 38.3 in.)
+        // the park is deep. The shot is aimed, but the old OpMode's pose is 0.1 in too far for the band: with the CAD aim point (54.156 in from
+        // the wall) the measured ball exit (5.38 in behind the center of rotation, at y = 9.2 + 5.38) is 39.6 in from it and the band ends at 39.5 in.
+        // That is an honest finding of the copy and it is kept (the route is not changed to hide it).
         assertEquals(0, count(l, Rule.PARK_ZONE, Severity.WARN));
-        assertEquals(0, count(l, Rule.SHOOT_POSE, Severity.WARN));
+        assertEquals(1, count(l, Rule.SHOOT_POSE, Severity.WARN));
+        for (Issue i : l) {
+            if (i.rule == Rule.SHOOT_POSE) {
+                assertTrue(i.message, i.message.contains("39.6 in from the aim point") && i.message.contains("39.5 in"));
+            }
+        }
         // and the old start y = 9.2 puts the front edge 0.57 in through the audience wall (the start, and the first leg that
         // turns toward the HIVE a couple of degrees: 0.9 in)
         assertEquals(1, count(l, Rule.START_G304, Severity.ERROR));
@@ -344,7 +349,8 @@ public class RouteCatalogTest {
         // and the old OpMode feeds for a fixed 5 s: the HIVE tips on the 3rd of its 4 POLLEN and the 4th goes into a cell that is
         // already tipping down (a WARN: QA12 allows it, G417 does not like it)
         assertEquals(1, count(l, Rule.SHOOT_TARGET, Severity.WARN));
-        assertEquals(4, l.size());
+        // 3 ERRORs (the start, the first leg at the wall, the HIVE) and 2 WARNs (the shot 0.1 in too far, the timed volley); the list holds nothing else
+        assertEquals(5, l.size());
         assertFalse(RouteValidator.isRunnable(l));
     }
 
@@ -542,8 +548,9 @@ public class RouteCatalogTest {
     public void thePartnerRouteWaitsForTheCameraThenShootsParksAndHasRoomToSpare() {
         AutoRoute r = RouteCatalog.byId(PartnerTipRoutes.PARTNER_REAR_SHOOT_PARK);
         assertEquals(FirstTip.PARTNER, r.firstTip());
-        assertEquals(StepKind.WAIT_FOR_TIP, r.step(1).kind());
-        assertEquals(StepKind.SHOOT, r.step(2).kind());
+        assertEquals("a short step toward the cell, made while the partner shoots", StepKind.DRIVE, r.step(1).kind());
+        assertEquals(StepKind.WAIT_FOR_TIP, r.step(2).kind());
+        assertEquals(StepKind.SHOOT, r.step(3).kind());
         for (Alliance a : Alliance.values()) {
             AutoRoute x = r.forAlliance(a);
             List<Issue> l = RouteValidator.check(x);

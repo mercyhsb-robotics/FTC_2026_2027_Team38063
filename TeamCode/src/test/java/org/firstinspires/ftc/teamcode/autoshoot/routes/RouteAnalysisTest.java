@@ -64,7 +64,8 @@ public class RouteAnalysisTest {
         // the shoot step has no pose of its own: the robot is at the nominal standoff pose
         RouteAnalysis.StepInfo shoot = a.step(1);
         assertTrue(shoot.shootPoseIsNominal);
-        assertEquals(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, shoot.to.x, 1e-6);
+        // the ball leaves a hair to the right of the robot's middle, so the middle of the robot stands that hair to the other side of the axis
+        assertEquals(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN - BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN, shoot.to.x, 1e-6);
         assertEquals(-90.0, shoot.to.headingDegrees(), 1e-6);
         // reverse tangent up +y leaves the robot facing -y
         assertEquals(0.0, Math.abs(Angles.error(Math.toRadians(-90), a.step(3).to.heading)), 1e-6);
@@ -660,7 +661,7 @@ public class RouteAnalysisTest {
         assertEquals(Side.REAR, a.step(1).upSideBefore);
         assertEquals(Side.REAR, a.step(1).targetSide);
         // the blue robot starts in the half-turn of C1 and shoots from the half-turn of the red nominal pose
-        assertEquals(BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, a.step(1).to.x, 1e-6);
+        assertEquals(BioBuzzConstants.Field.SIZE_IN - (BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN - BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN), a.step(1).to.x, 1e-6);
         assertEquals(90.0, a.step(1).to.headingDegrees(), 1e-6);
     }
 

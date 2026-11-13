@@ -513,8 +513,17 @@ public class RouteExecutorSimTest {
             assertTrue(what + ": inside the AUTO limit " + w.t, w.t <= LIMIT + 2 * RouteWorld.DT);
             assertEquals(what, 0, w.shotsAtDownCell);
             assertTrue(what + ": never more than 4", w.maxHeld <= 4);
-            // a robot that cannot move never arrives, and every give-up is recorded with its reason
-            assertFalse(what + ": the problems are recorded", w.executor.failures().isEmpty());
+            // a robot that cannot move never arrives, and every give-up is recorded with its reason. (A route that only shoots from the pose the robot
+            // starts on has nothing to arrive at: the shot is aimed from where it stands, so there is nothing to give up and nothing to record.)
+            boolean hasAMove = false;
+            for (org.firstinspires.ftc.teamcode.autoshoot.routes.Step s : r.steps()) {
+                hasAMove |= s.kind() == org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind.DRIVE
+                        || s.kind() == org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind.INTAKE
+                        || s.kind() == org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind.PARK;
+            }
+            if (hasAMove) {
+                assertFalse(what + ": the problems are recorded", w.executor.failures().isEmpty());
+            }
         }
     }
 

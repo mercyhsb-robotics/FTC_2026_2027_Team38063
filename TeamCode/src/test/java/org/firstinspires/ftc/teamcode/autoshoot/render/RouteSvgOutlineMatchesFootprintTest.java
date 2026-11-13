@@ -173,7 +173,7 @@ public class RouteSvgOutlineMatchesFootprintTest {
     /**
      * Situation: the same start footprint, but the real robot's extents are compared with what a CENTERED 17.8 in square would give.
      * Expected: facing -90 (front toward the bottom of the picture) the drawn front edge is 9.77 in below the dot and the back edge
-     *     8.03 in above it, and each side edge 8.90 in left and right of it.
+     *     8.03 in above it, and each side edge 8.81 in left and right of it (all from BioBuzzConstants).
      * Why: a quick sanity check in plain numbers, so a mistake in the corner order of the test above cannot hide a centered drawing.
      */
     @Test
@@ -186,9 +186,10 @@ public class RouteSvgOutlineMatchesFootprintTest {
         double minX = Math.min(Math.min(c[0][0], c[1][0]), Math.min(c[2][0], c[3][0]));
         double maxX = Math.max(Math.max(c[0][0], c[1][0]), Math.max(c[2][0], c[3][0]));
         Element dot = all(withClass(start, "g", "pose-point"), "circle").get(0);
-        assertEquals("front edge below the dot", 9.77, (maxY - num(dot, "cy")) / S, 0.01);
-        assertEquals("back edge above the dot", 8.03, (num(dot, "cy") - minY) / S, 0.01);
-        assertEquals("left side edge", 8.90, (num(dot, "cx") - minX) / S, 0.01);
-        assertEquals("right side edge", 8.90, (maxX - num(dot, "cx")) / S, 0.01);
+        assertEquals("front edge below the dot", BioBuzzConstants.Robot.FRONT_EXTENT_IN, (maxY - num(dot, "cy")) / S, 0.01);
+        assertEquals("back edge above the dot", BioBuzzConstants.Robot.REAR_EXTENT_IN, (num(dot, "cy") - minY) / S, 0.01);
+        // facing -90 the robot's left is toward +x, which is the right of the picture
+        assertEquals("left side edge", BioBuzzConstants.Robot.RIGHT_EXTENT_IN, (num(dot, "cx") - minX) / S, 0.01);
+        assertEquals("right side edge", BioBuzzConstants.Robot.LEFT_EXTENT_IN, (maxX - num(dot, "cx")) / S, 0.01);
     }
 }

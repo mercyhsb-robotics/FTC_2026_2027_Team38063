@@ -214,7 +214,18 @@ public class RouteGalleryTest {
                 rowValue(garden, "Our HIVE TIPs"));
         assertEquals("the one WARN: the spare is probably spent", "1 WARN", rowValue(garden, "Validator"));
         Element c1 = section(page, "red_c1");
-        assertEquals("3 ERROR, 1 WARN", rowValue(c1, "Validator"));
+        // the copy of the old OpMode keeps its honest findings: 3 ERRORs (the wall, the HIVE) and 2 WARNs (the shot 0.1 in too far for the band, the timed volley)
+        int c1Errors = 0;
+        int c1Warns = 0;
+        for (org.firstinspires.ftc.teamcode.autoshoot.routes.Issue i : org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator.check(RouteCatalog.byId("red_c1"))) {
+            if (i.isError()) {
+                c1Errors++;
+            } else {
+                c1Warns++;
+            }
+        }
+        assertEquals("3 ERROR, 2 WARN", c1Errors + " ERROR, " + c1Warns + " WARN");
+        assertEquals("3 ERROR, 2 WARN", rowValue(c1, "Validator"));
         assertTrue(rowValue(c1, "Ends"), rowValue(c1, "Ends").startsWith("LEAVE yes, PARK yes"));
     }
 

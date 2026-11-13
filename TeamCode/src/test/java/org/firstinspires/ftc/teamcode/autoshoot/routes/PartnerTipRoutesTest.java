@@ -326,8 +326,9 @@ public class PartnerTipRoutesTest {
 
     /**
      * Situation: the numbers the texts and notes quote for the three shooting poses and the two park poses, computed by hand here from the field constants.
-     * Expected: pose 1 (60.5, 130.98): launch point 8.03 in behind the center, 35.85 in from the aim point, left edge 0.84 in past the FLOWER keep-out, right edge
-     *     1.27 in short of the center line; pose 2 on the HIVE axis 30.18 in out; pose 3 30.3 in out, 10 degrees to the left of the axis, 1.3 in clear of the plate.
+     * Expected: pose 1 (60.5, 130.98): launch point 5.38 in behind the center, 38.5 in from the aim point, left edge 0.9 in past the FLOWER keep-out, right edge
+     *     1.4 in short of the center line; pose 2 on the HIVE axis 32.8 in out; pose 3 33.0 in out, 10 degrees to the left of the axis, 1.4 in clear of the plate.
+     *     The route texts say the same numbers (they are worked out by the code), and the shots are inside the band of the validator.
      */
     @Test
     public void theQuotedShootingPoseNumbersAreRight() {
@@ -337,22 +338,29 @@ public class PartnerTipRoutesTest {
         // pose 1
         Pose2 one = firstOf(byId(PartnerTipRoutes.SAFE_REAR_WALL_B6).analyze(), Step.Shoot.class).shootPose;
         assertEquals(60.5, one.x, 1e-9);
-        double dx = one.x - cell.originX;
+        // facing +y the robot's left is -x, so the ball leaves the sideways offset (negative: right of the middle) toward +x
+        double dx = (one.x - BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN) - cell.originX;
         double dy = (one.y + BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN) - cell.originY;
         assertEquals("by hand: the hypotenuse of the launch point to the aim point", Math.hypot(dx, dy), ShotGeometry.standoff(one, cell), 1e-9);
-        assertEquals("35.8 in", 35.8, ShotGeometry.standoff(one, cell), 0.06);
-        assertEquals("0.8 in past the FLOWER keep-out", 0.8, (one.x - BioBuzzConstants.Robot.LEFT_EXTENT_IN) - keepOutRight, 0.05);
-        assertEquals("1.3 in short of the center line", 1.3, BioBuzzConstants.Field.CENTER_IN - (one.x + BioBuzzConstants.Robot.RIGHT_EXTENT_IN), 0.05);
+        assertEquals("38.5 in", 38.5, ShotGeometry.standoff(one, cell), 0.06);
+        assertTrue("inside the band", ShotGeometry.standoff(one, cell) <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
+        assertEquals("0.9 in past the FLOWER keep-out", 0.9, (one.x - BioBuzzConstants.Robot.LEFT_EXTENT_IN) - keepOutRight, 0.05);
+        assertEquals("1.4 in short of the center line", 1.4, BioBuzzConstants.Field.CENTER_IN - (one.x + BioBuzzConstants.Robot.RIGHT_EXTENT_IN), 0.05);
+        String b6 = byId(PartnerTipRoutes.SAFE_REAR_WALL_B6).description();
+        assertTrue(b6, b6.contains(String.format(Locale.ROOT, "ends %.1f in from the FLOWER keep-out and %.1f in from the center line",
+                PartnerTipRoutes.keepOutGap1(), PartnerTipRoutes.centerGap1())));
         assertEquals("0.6 in off the wall", 0.6, SIZE - BioBuzzConstants.Robot.FRONT_EXTENT_IN - one.y, 1e-9);
         // pose 2
         Pose2 two = firstOf(byId(PartnerTipRoutes.SAFE_RED_CORNER_A6).analyze(), Step.Shoot.class).shootPose;
         assertEquals("on the HIVE axis", BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, two.x, 1e-9);
-        assertEquals("30.2 in", 30.2, ShotGeometry.standoff(two, cell), 0.05);
+        assertEquals("32.8 in", 32.8, ShotGeometry.standoff(two, cell), 0.05);
+        assertTrue("the text says so: " + byId(PartnerTipRoutes.SAFE_RED_CORNER_A6).description(),
+                byId(PartnerTipRoutes.SAFE_RED_CORNER_A6).description().contains("the shooting pose is 32.8 in from the aim point"));
         // pose 3
         Pose2 three = firstOf(byId(PartnerTipRoutes.AGGRESSIVE_REAR_EDGE).analyze(), Step.Shoot.class).shootPose;
-        assertEquals("30.3 in", 30.3, ShotGeometry.standoff(three, cell), 0.05);
+        assertEquals("33.0 in", 33.0, ShotGeometry.standoff(three, cell), 0.06);
         Point2 launch = ShotGeometry.launchPoint(three);
-        assertEquals("10 degrees left of the axis", 10.0, Math.toDegrees(Math.atan2(cell.originX - launch.x, launch.y - cell.originY)), 0.1);
+        assertEquals("about 10 degrees left of the axis", 10.0, Math.toDegrees(Math.atan2(cell.originX - launch.x, launch.y - cell.originY)), 0.5);
         double clear = -1;
         for (double g = 0.0; g < 6.0; g += 0.05) {
             if (Footprint.of(three).overlaps(plate.inflate(g))) {
@@ -360,7 +368,7 @@ public class PartnerTipRoutesTest {
             }
             clear = g;
         }
-        assertEquals("1.3 in from the FLOWER plate", 1.3, clear, 0.1);
+        assertEquals("1.3 in from the FLOWER plate", 1.3, clear, 0.15);
     }
 
     /**

@@ -399,7 +399,7 @@ public class SelfTipRoutesTest {
     }
 
     /**
-     * Situation: the poses of the file. Expected: the anchor start is the measured shot spot (front edge on the audience wall, in line with the HIVE); the parking pose
+     * Situation: the poses of the file. Expected: the anchor start is the anchor shot spot (front edge on the audience wall, in line with the HIVE); the parking pose
      *     overlaps the LOADING ZONE by 6.5 in and stands 4 in off the red wall (the texts say so); the rear shooting pose is clear of the rear FLOWER's plate.
      */
     @Test
@@ -414,7 +414,17 @@ public class SelfTipRoutesTest {
         Pose2 rear = SelfTipRoutes.REAR_SHOT;
         double plateRight = BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0] + BioBuzzConstants.Field.FLOWER_PLATE_ALONG_WALL_IN / 2.0;
         double robotLeft = rear.x - BioBuzzConstants.Robot.LEFT_EXTENT_IN;
-        assertEquals("the note says 2.3 in clear of the rear FLOWER's plate", 2.3, robotLeft - plateRight, 0.05);
+        assertEquals("the note says " + SelfTipRoutes.rearPlateGapText() + " in clear of the rear FLOWER's plate", Double.parseDouble(SelfTipRoutes.rearPlateGapText()),
+                robotLeft - plateRight, 0.05);
+        boolean said = false;
+        for (AutoRoute r : routes()) {
+            if (r.id().equals(SelfTipRoutes.REAR_BANK)) {
+                for (Step s : r.steps()) {
+                    said |= s.note().contains(SelfTipRoutes.rearPlateGapText() + " in clear of the rear-wall FLOWER's plate");
+                }
+            }
+        }
+        assertTrue("the note of the move says it", said);
         assertEquals("the text says 3.6 in off the rear wall", 3.6,
                 BioBuzzConstants.Field.SIZE_IN - (rear.y + BioBuzzConstants.Robot.FRONT_EXTENT_IN), 0.05);
     }

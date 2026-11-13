@@ -26,6 +26,11 @@ public class StartPlacementTest {
     private static final double REAR = BioBuzzConstants.Robot.REAR_EXTENT_IN;
     private static final double SIDE = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
 
+    /** A distance written the way the words write it: inches with one decimal. */
+    private static String one(double inches) {
+        return String.format(java.util.Locale.ROOT, "%.1f", inches);
+    }
+
     private static String red(Pose2 p) {
         return StartPlacement.placementText(p, Alliance.RED);
     }
@@ -33,25 +38,25 @@ public class StartPlacementTest {
     // ---- straight at a wall, one wall ------------------------------------------------------------------------------
 
     /**
-     * Situation: the team's usual start: front on the audience wall, the center of rotation at x = 60.3 (so the robot spans x 51.4 to 69.2).
+     * Situation: the team's usual start: front on the audience wall, the center of rotation at x = 60.3 (so the robot spans x 51.5 to 69.1).
      * Expected: the words of the manual's example: which side is on the wall, how far the edge nearest the red wall is from it, which way it faces. The edge is
      *     named by the robot's own right and left (a robot facing the audience wall has its right side toward the red wall).
      */
     @Test
     public void frontOnTheAudienceWall() {
-        assertEquals("Front on the audience wall. Right edge 51.4 in from the red wall. Facing the audience wall.", red(Pose2.ofDegrees(60.3, FRONT, -90)));
+        assertEquals("Front on the audience wall. Right edge " + one(60.3 - SIDE) + " in from the red wall. Facing the audience wall.", red(Pose2.ofDegrees(60.3, FRONT, -90)));
         // an old OpMode number: the words describe where the robot IS (its front on the wall), whatever the validator says about the pose
-        assertEquals("Front on the audience wall. Right edge 26.1 in from the red wall. Facing the audience wall.", red(Pose2.ofDegrees(35.0, 9.2, -90)));
+        assertEquals("Front on the audience wall. Right edge " + one(35.0 - SIDE) + " in from the red wall. Facing the audience wall.", red(Pose2.ofDegrees(35.0, 9.2, -90)));
     }
 
     /** Situation: back on the audience wall facing the rear wall; a side on the audience wall facing the blue wall; front on the red wall; front on the rear wall. Expected: the matching words. */
     @Test
     public void everySideCanBeOnTheWall() {
-        assertEquals("Back on the audience wall. Left edge 26.1 in from the red wall. Facing the rear wall.", red(Pose2.ofDegrees(35.0, REAR, 90)));
-        assertEquals("Right side on the audience wall. Back edge 27.0 in from the red wall. Facing the blue wall.", red(Pose2.ofDegrees(35.0, SIDE, 0)));
-        assertEquals("Left side on the audience wall. Front edge 25.2 in from the red wall. Facing the red wall.", red(Pose2.ofDegrees(35.0, SIDE, 180)));
-        assertEquals("Front on the red wall. Left edge 61.4 in from the audience wall. Facing the red wall.", red(Pose2.ofDegrees(FRONT, 70.27, 180)));
-        assertEquals("Front on the rear wall. Left edge 52.6 in from the red wall. Facing the rear wall.", red(Pose2.ofDegrees(61.5, SIZE - FRONT, 90)));
+        assertEquals("Back on the audience wall. Left edge " + one(35.0 - SIDE) + " in from the red wall. Facing the rear wall.", red(Pose2.ofDegrees(35.0, REAR, 90)));
+        assertEquals("Right side on the audience wall. Back edge " + one(35.0 - REAR) + " in from the red wall. Facing the blue wall.", red(Pose2.ofDegrees(35.0, SIDE, 0)));
+        assertEquals("Left side on the audience wall. Front edge " + one(35.0 - FRONT) + " in from the red wall. Facing the red wall.", red(Pose2.ofDegrees(35.0, SIDE, 180)));
+        assertEquals("Front on the red wall. Left edge " + one(70.27 - SIDE) + " in from the audience wall. Facing the red wall.", red(Pose2.ofDegrees(FRONT, 70.27, 180)));
+        assertEquals("Front on the rear wall. Left edge " + one(61.5 - SIDE) + " in from the red wall. Facing the rear wall.", red(Pose2.ofDegrees(61.5, SIZE - FRONT, 90)));
     }
 
     /**
@@ -62,11 +67,11 @@ public class StartPlacementTest {
     @Test
     public void theBlueWordsAreTheRedWordsTurnedHalfWayRound() {
         Pose2 start = Pose2.ofDegrees(60.3, FRONT, -90);
-        assertEquals("Front on the rear wall. Right edge 51.4 in from the blue wall. Facing the rear wall.",
+        assertEquals("Front on the rear wall. Right edge " + one(60.3 - SIDE) + " in from the blue wall. Facing the rear wall.",
                 StartPlacement.placementText(Alliance.BLUE.fromRed(start, SIZE), Alliance.BLUE));
         // a start on the side wall is measured from the AUDIENCE wall for both alliances (the half turn of the red wall is the blue wall, facing +x)
         Pose2 onSide = Pose2.ofDegrees(FRONT, 70.27, 180);
-        assertEquals("Front on the blue wall. Right edge 62.2 in from the audience wall. Facing the blue wall.",
+        assertEquals("Front on the blue wall. Right edge " + one(SIZE - 70.27 - SIDE) + " in from the audience wall. Facing the blue wall.",
                 StartPlacement.placementText(Alliance.BLUE.fromRed(onSide, SIZE), Alliance.BLUE));
     }
 

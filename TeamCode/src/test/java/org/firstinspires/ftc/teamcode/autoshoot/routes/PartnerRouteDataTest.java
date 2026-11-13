@@ -51,7 +51,7 @@ public class PartnerRouteDataTest {
     public void theGiveUpTimeIsTheLatestTheRouteAllows() {
         AutoRoute r = route();
         RouteAnalysis a = r.analyze();
-        RouteAnalysis.StepInfo wait = a.step(1);
+        RouteAnalysis.StepInfo wait = a.step(2);
         assertEquals(StepKind.WAIT_FOR_TIP, wait.step.kind());
         double giveUp = ((Step.WaitForTip) wait.step).giveUpSec();
         double latest = a.latestGiveUpSec(wait);
@@ -63,22 +63,30 @@ public class PartnerRouteDataTest {
 
     /**
      * Situation: where the robot shoots from.
-     * Expected: the move from the start is about 1 in (the note says so); the launch point is 37.5 in from the aim point, inside the validator's band and within
-     *     0.5 in of the measured shot (37.7 in); the start itself is just outside the band (so the move has a reason).
+     * Expected: the robot steps about 2 in toward the cell BEFORE it waits (the partner's shooting hides the step); the launch point is then the anchor range
+     *     (39.0 in) from the aim point, inside the validator's band; the start itself is outside the band (so the step has a reason); the step's note says
+     *     all of these numbers, as the code computes them.
      */
     @Test
-    public void theShotIsFiredFromOneInchCloserThanTheStartAndNearTheMeasuredShot() {
+    public void theShotIsFiredFromTwoInchesCloserThanTheStartAtTheAnchorRange() {
         AutoRoute r = route();
-        RouteAnalysis.StepInfo shoot = r.analyze().step(2);
+        RouteAnalysis a = r.analyze();
+        assertEquals(StepKind.DRIVE, a.step(1).step.kind());
+        RouteAnalysis.StepInfo shoot = a.step(3);
+        assertEquals(StepKind.SHOOT, shoot.step.kind());
         Pose2 start = r.startPose();
         double move = start.distanceTo(shoot.shootPose);
-        assertEquals("the note says about 1 in", 1.0, move, 0.1);
+        assertEquals("the note says about 2 in", 2.0, move, 0.2);
+        assertTrue("a step of 3 in or less is a planned short move, not an implicit one", move <= BioBuzzConstants.Auto.IMPLICIT_MOVE_WARN_IN);
         double fromShot = ShotGeometry.standoff(shoot.shootPose, rearCell());
         double fromStart = ShotGeometry.standoff(start, rearCell());
-        assertEquals("the note says 37.5 in", 37.5, fromShot, 0.05);
-        assertEquals("the measured shot", 37.7, fromShot, 0.5);
+        assertEquals("the anchor range", BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN, fromShot, 0.05);
         assertTrue("inside the band: " + fromShot, fromShot <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
-        assertEquals("the note says 0.5 in too far", BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN + 0.5, fromStart, 0.05);
+        assertTrue("the start is too far for the band: " + fromStart, fromStart > BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
+        String note = a.step(1).step.note();
+        assertTrue(note, note.contains(String.format(Locale.ROOT, "start itself is %.1f in from the aim point", fromStart)));
+        assertTrue(note, note.contains(String.format(Locale.ROOT, "launch point is %.1f in from the aim point", fromShot)));
+        assertTrue(note, note.contains(String.format(Locale.ROOT, "Steps about %.0f in toward the cell", move)));
     }
 
     /**

@@ -427,8 +427,9 @@ public class RouteSvgRendererTest {
         Element shoot = withClass(byId(d, "route"), "g", "shoot-pose").get(0);
         Element shot = withClass(shoot, "line", "shot").get(0);
         assertFalse("dashed", shot.getAttribute("stroke-dasharray").isEmpty());
-        // C1 (58, 9.2, -90): launch point (58, 9.2 + 8.03 = 17.23), the rear edge; the aim point of the red audience cell is on the HIVE axis, 54.156 in out
-        assertEquals(X0 + 58.0 * S, Double.parseDouble(shot.getAttribute("x1")), 0.05);
+        // C1 (58, 9.2, -90): launch point (58 - 0.16, 9.2 + 5.38 = 14.58): the ball leaves 5.38 in behind the center and 0.16 in to the robot's right
+        // (facing -90 that is toward -x); the aim point of the red audience cell is on the HIVE axis, 54.156 in out
+        assertEquals(X0 + (58.0 + BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN) * S, Double.parseDouble(shot.getAttribute("x1")), 0.05);
         assertEquals(Y_BOTTOM - (9.2 - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN) * S, Double.parseDouble(shot.getAttribute("y1")), 0.05);
         // it points up the page, toward the HIVE
         assertTrue(Double.parseDouble(shot.getAttribute("y2")) < Double.parseDouble(shot.getAttribute("y1")));
@@ -468,12 +469,11 @@ public class RouteSvgRendererTest {
         Element park = withClass(byId(d, "route"), "g", "park-outline").get(0);
         double[] b = polygonBounds(all(park, "polygon").get(0));
         // end pose (12, 108, 0) facing +x: the BACK edge is 8.03 in behind the center of rotation and the FRONT 9.77 in ahead, so the
-        // outline runs x 3.97..21.77, y 99.1..116.9, overlapping the zone x 0..11 y 96..120
+        // outline runs x 3.97..21.77, y 99.19..116.81, overlapping the zone x 0..11 y 96..120
         assertEquals(X0 + (12.0 - BioBuzzConstants.Robot.REAR_EXTENT_IN) * S, b[0], 0.1);
         assertEquals(X0 + 3.97 * S, b[0], 0.1);
         assertEquals(X0 + (12.0 + BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[1], 0.1);
         assertEquals(Y_BOTTOM - (108.0 + BioBuzzConstants.Robot.LEFT_EXTENT_IN) * S, b[2], 0.1);
-        assertEquals(Y_BOTTOM - 116.9 * S, b[2], 0.1);
         // the center of rotation is marked inside the park outline too
         Element dot = all(withClass(park, "g", "pose-point").get(0), "circle").get(0);
         assertEquals(X0 + 12.0 * S, Double.parseDouble(dot.getAttribute("cx")), 0.05);
