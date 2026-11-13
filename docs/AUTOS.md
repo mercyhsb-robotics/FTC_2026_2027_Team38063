@@ -347,6 +347,15 @@ count comes from the cycles done (never above 4, rule G407: the intake stops at 
 there within `Auto.FLOWER_WIGGLE_TURN_TIMEOUT_SEC` it turns back, backs out and skips the rest of that pick-up. It is tested in a
 closed loop against a simulated heading controller (`FlowerWiggleSequenceTest`), also with an overshooting one and with a stuck one.
 
+**What that test does not see.** It simulates the heading only: the pose point is held at exactly the start pose, so a follower that lets the
+pose point slide while the robot turns (a mecanum robot turning 17 degrees may) is not noticed, and the straight approach and retreat are
+not simulated (the validator checks them as straight legs). The margin is thin at the pushed pose: with wheels that reach 3.5 in the chassis is
+0.6 in from the bare plate and touches it after 0.66 in of slide toward the wall, or 4.5 degrees more turn; with wheels that reach 4.0 in it
+is 1.1 in, 1.2 in and 8 degrees. And with the minimum standoff the wheel stands exactly on the stop line, so any slide toward the wall breaks
+it. The script reads only the heading by design (the follower holds the position, the runner only alternates the target heading); a runner
+that also reads the pose and gives up when the pose point leaves a small circle would close the gap, but there is no runner yet, so it is a
+design note and not built. Until then the day-one checklist asks to watch the pose during one wiggle, and `Auto.FLOWER_CHASSIS_CLEARANCE_IN` is the knob.
+
 In the diagram a FLOWER INTAKE draws the robot where the wiggle **starts** (the working wheel has a green ring), a faint
 second outline where the push **ends**, a **curved arrow** for the sweep of the wheel, a small label such as `wiggle x4`, a short
 solid arrow for the straight approach and a dotted arrow for the retreat.

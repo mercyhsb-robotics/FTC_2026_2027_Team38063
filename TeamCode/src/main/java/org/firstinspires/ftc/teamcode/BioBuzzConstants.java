@@ -462,8 +462,9 @@ public final class BioBuzzConstants {
          */
         public static final double FLOWER_WIGGLE_TURN_SEC = 0.35;
         /**
-         * TUNE: the robot counts a turn of the wiggle as finished when its heading is within this many degrees of the wanted heading
-         * (or when the turn time below has passed, whichever comes first).
+         * TUNE: the robot counts a turn of the wiggle as finished when its heading is within this many degrees of the wanted heading.
+         * A turn that has NOT got there when {@link #FLOWER_WIGGLE_TURN_TIMEOUT_SEC} has passed is not finished: it is a failure (the robot is blocked or
+         * the controller is not working) and the pick-up is given up.
          */
         public static final double FLOWER_WIGGLE_HEADING_TOLERANCE_DEG = 2.0;
         /**

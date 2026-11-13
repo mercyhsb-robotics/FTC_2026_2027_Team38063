@@ -117,6 +117,11 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
         `FLOWER_RETREAT_LENGTH_IN`, 6 in each) at what speed (`FLOWER_APPROACH_SPEED_FRACTION`, 0.3). The robot's turn is checked
         against `Auto.FLOWER_WIGGLE_HEADING_TOLERANCE_DEG` (2 degrees) and gives up after `Auto.FLOWER_WIGGLE_TURN_TIMEOUT_SEC` (1.5 s):
         check on the real robot that a normal turn finishes well inside that, and that a blocked one really backs out.
+      - **Does the pose point stay put during the turn?** The closed-loop test simulates the heading only. Print the pose the follower reports
+        during one wiggle (`PedroDrive.pose()`): the pose point must not slide more than about 0.3 in. At the pushed pose the chassis is only
+        about 0.6 in from the bare plate (wheels that reach 3.5 in) and touches it after 0.7 in of slide toward the wall, or 4.5 degrees more turn
+        (1.1 in, 1.2 in and 8 degrees for wheels that reach 4.0 in). If the robot slides or overshoots, raise `Auto.FLOWER_CHASSIS_CLEARANCE_IN` and
+        stand farther out, or lower the heading gain of the hold.
 - [ ] Camera: `CAMERA_FORWARD_IN` and `CAMERA_LEFT_IN` (measured from the **center of rotation**, the tape mark above, not from the middle of the outline), `CAMERA_HEIGHT_IN`, `CAMERA_PITCH_UP_DEG` (+30 to +40°).
 - [ ] Launch angle `Robot.LAUNCH_ANGLE_DEG` is about 68.5° (team measurement): confirm it with a protractor or the CAD (it only feeds the physics check on the Shooter Tuner screen).
 - [ ] **The lane under the HIVE** (only if a route or `AutoShoot.ALLOW_UNDER_HIVE` will use it, see `docs/AUTOS.md`, "Driving under

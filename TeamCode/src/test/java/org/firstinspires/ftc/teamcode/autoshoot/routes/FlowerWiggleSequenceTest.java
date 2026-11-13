@@ -20,7 +20,12 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.FlowerWiggleSequence.Phas
  * The robot-side script of the wiggle ({@link FlowerWiggleSequence}) run in a CLOSED LOOP against a simulated heading controller, the way the follower
  * would turn the robot: every simulated 10 ms the sequence is told the clock and the heading and answers with the pose to hold, and the simulated
  * robot turns toward the heading it was given. The real footprint is measured at every step and checked against the rules of the pick-up, so a script
- * (or a controller) that swings the robot into the FLOWER fails here, on a PC, and not on the field.
+ * (or a heading controller) that turns the robot too far, or never gets it back, fails here, on a PC, and not on the field.
+ *
+ * <p><b>What this test does NOT simulate.</b> The POSITION of the pose point: it is held at exactly {@code FlowerPress#start}, as the script asks, so a
+ * follower that lets the pose point slide while the robot turns is not seen here (a mecanum robot turning 17 degrees may slide). The straight approach and the
+ * straight retreat are not simulated either; they are straight legs checked by the validator like every other leg. How much slide the real clearance
+ * tolerates (about 0.7 in toward the wall at the shipped numbers) is on the day-one checklist.
  *
  * <p>Three controllers are tried: a critically damped one (arrives without overshoot, the best a heading loop can do), an underdamped one (overshoots by
  * about 5 % of the turn, what a hot gain gives) and ones that are stuck (a blocked robot, or a controller that does nothing).
