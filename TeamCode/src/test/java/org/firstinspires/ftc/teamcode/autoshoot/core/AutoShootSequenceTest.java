@@ -110,6 +110,8 @@ public class AutoShootSequenceTest {
         double feedProgress;
         /** False simulates a camera that is not connected. */
         boolean cameraAlive = true;
+        /** From this simulated time on, the camera stops delivering images (a stalled USB link). */
+        double cameraDeadFrom = Double.POSITIVE_INFINITY;
         /** Fraction of camera frames that arrive with no tags (0 = never, 1 = always). */
         double dropoutRate = 0.0;
         /** Random error, in inches, added to the measured tag positions (0 = perfect). */
@@ -209,6 +211,9 @@ public class AutoShootSequenceTest {
         VisionFrame makeFrame() {
             if (!cameraAlive) {
                 return VisionFrame.unavailable(VisionFrame.Status.NOT_CONNECTED, t);
+            }
+            if (t >= cameraDeadFrom) {
+                return VisionFrame.unavailable(VisionFrame.Status.STALLED, t);
             }
             // A new camera image arrives only every FRAME_PERIOD. 1e-9 s of slack stops rounding from skipping a frame.
             boolean newFrame = t - lastFrameAt >= FRAME_PERIOD - 1e-9;
@@ -610,6 +615,35 @@ public class AutoShootSequenceTest {
         s.run(30, DONE, FAULT);
         assertEquals(DONE, s.controller.state());
         assertEquals(4, s.shotsIntoUpCell);
+    }
+
+    /**
+     * Situation: the camera works and sees the UP cell, the robot reaches FEED, and then the camera stops delivering
+     *     images altogether (a stalled link, not a missing camera).
+     * Expected: within a moment the feeder stops and stays off; no ball is fired once the pause has begun, and none
+     *     ever goes to a DOWN cell.
+     * Why: the robot was relying on seeing the tags to know the cell is still up. If it can no longer see, it cannot
+     *     tell whether the HIVE has started to tip, and firing into a tipping cell is a foul (rule G417). A robot
+     *     that never had a camera is different (see the test above): it never saw the tags, so it goes on its belief.
+     */
+    @Test
+    public void ifTheCameraStopsAfterItSawTheUpCellTheFeederPausesInsteadOfFiringBlind() {
+        Sim s = redAtC1();
+        s.held = true;
+        s.run(30, AutoShootController.State.FEED, FAULT);
+        assertEquals("reached FEED: " + s.last.message, AutoShootController.State.FEED, s.controller.state());
+
+        double diedAt = s.t;
+        s.cameraDeadFrom = diedAt;                 // from this tick on no image arrives
+        s.run(0.6);                                // the pause threshold is 0.15 s; allow a ball already moving
+        int firedWhenPaused = s.shotsFired;
+        assertEquals(AutoShootController.Refusal.TAGS_LOST, s.last.refusal);
+        while (s.t < diedAt + 6.0 && s.controller.state() != FAULT && s.controller.state() != DONE) {
+            s.step();
+            assertFalse("the feeder must stay off while the camera is dead (t=" + s.t + ")", s.last.feederOn);
+        }
+        assertEquals("no ball may be fired while the camera is dead", firedWhenPaused, s.shotsFired);
+        assertEquals(0, s.shotsAtDownCell);
     }
 
     /**
