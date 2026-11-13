@@ -29,9 +29,29 @@
         PedroDrive.apply  ·  Launcher.setTargetVelocity / setFeederOn  ·  gamepad rumble
 ```
 
+A second, optional loop runs beside this one: `PoseCorrector` compares the position the camera implies (from
+`ClusterAnalyzer`) with the Pinpoint position and, if the robot is nearly still and the two differ by only a few
+inches, nudges the Pinpoint position toward the camera's answer (see "Correcting drift" below).
+
 Only the green-field classes touch the SDK: `LimelightVision`, `PedroDrive`, `GamepadButtons`, `Launcher`.
 Everything in `autoshoot/core` is plain Java that takes measurements in and returns commands out, so the whole
 sequence runs in unit tests against a simulated robot.
+
+## Correcting drift (`PoseCorrector`)
+
+The Pinpoint is accurate over short distances but slowly drifts (wheels slip, the heading creeps). Because the HIVE
+is at a known place on the field, every sighting of its AprilTags also tells us where the robot is standing. When
+that disagrees a little with the Pinpoint, the difference is mostly drift. `PoseCorrector` moves the Pinpoint
+position a fraction of the way toward the camera's answer. It is cautious on purpose:
+
+* only the **position** is corrected, never the heading (the Pinpoint's gyro is better than a tag angle);
+* a sighting that disagrees by more than `POSE_CORRECTION_GATE_IN` is thrown away as a mistake (a wrong
+  camera mount must not drag the robot across the field);
+* each step is only `POSE_CORRECTION_GAIN` of the disagreement and never more than `POSE_CORRECTION_MAX_STEP_IN`;
+* it works only while the robot is almost still, with a fresh image and at least `POSE_CORRECTION_MIN_TAGS` tags,
+  and never in the middle of feeding a ball.
+
+It is **off** (`Vision.POSE_CORRECTION_ENABLED = false`) until the camera mount has been checked on the real robot.
 
 ## The state machine (`AutoShootController`)
 

@@ -51,5 +51,8 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
 - [ ] Release the button mid-way: the robot must stop and give control back immediately.
 - [ ] Tip the HIVE by hand (or after 8 POLLEN) and shoot again: it should drive to the other side.
 - [ ] Repeat for the BLUE alliance.
+- [ ] Drift correction (only after section D agrees within about 1 in): set `Vision.POSE_CORRECTION_ENABLED = true`,
+      push the robot a few inches off its pose while it faces the HIVE, and watch the "Drift correction" telemetry
+      line pull the position back (`LIMELIGHT_SETUP.md` step 9).
 - [ ] Practice rule: shoot only into the UP cell. The robot is built to pause when the tags disappear, but the
       rule (G417) is the driver's responsibility too.

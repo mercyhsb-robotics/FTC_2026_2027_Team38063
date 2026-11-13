@@ -84,6 +84,12 @@ during INIT, then check, in this order:
 8. **Range check.** Hold the robot at 38, 59 and 79 in from a cluster and compare the reported range with a tape
    measure.
 
+9. **Drift correction (optional, last).** Once step 7 agrees within about an inch at several places on the
+   field, set `Vision.POSE_CORRECTION_ENABLED = true`. Then drive away, let the robot drift (or push it a few
+   inches by hand), stop in view of the HIVE and watch the TeleOp's "Drift correction" line: it should say
+   `applied` and the Pose should settle back to the true spot within a second or two. If the pose jumps the wrong
+   way, the camera constants from step 7 are still off: turn it back off and fix them.
+
 Then delete the finished items from `BioBuzzConstants.PLACEHOLDERS`, change their markers from ADD to VERIFY or
 TUNE, and commit.
 

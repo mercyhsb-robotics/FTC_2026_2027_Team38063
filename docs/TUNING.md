@@ -105,6 +105,8 @@ cannot continue.
 | Goes to the wrong side after a tip | press D-pad down; `Vision.HIVE_CONFIRM_FRAMES` / `HIVE_CONFIRM_SEC` / `HIVE_LOST_SEC` |
 | Switches sides in the middle of a volley when nothing tipped | `Vision.HIVE_LOST_SEC` up (tags blocked for a moment) |
 | Range reported by the camera is off | the camera constants in `LIMELIGHT_SETUP.md` §4 |
+| Pose settles slowly after a camera correction / correction is too jumpy | `Vision.POSE_CORRECTION_GAIN` (up = faster, down = smoother), `POSE_CORRECTION_MAX_STEP_IN` |
+| "Drift correction: ignored: camera disagrees by N in" | N is bigger than `POSE_CORRECTION_GATE_IN`: either the drift really is that big (press the pose-reset button on the start pose) or the camera constants are wrong |
 | Camera says DOWN for the up cell | `Vision.TX_POSITIVE_IS_RIGHT`; camera roll |
 
 If a value you want to change is not in `BioBuzzConstants`, that is a bug: add it there.
