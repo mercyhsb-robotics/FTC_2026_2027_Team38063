@@ -57,6 +57,12 @@ final class BruteForceFootprint {
      * each side first (but never by more than a quarter of its size, so a very thin box is not shrunk away).
      */
     static boolean overlaps(Pose2 pose, double lengthIn, double widthIn, Rect box, double tol) {
+        // Quick answer for the common case: the box is farther from the robot's center than the robot's farthest corner.
+        double dx = Math.max(Math.max(box.minX - pose.x, pose.x - box.maxX), 0.0);
+        double dy = Math.max(Math.max(box.minY - pose.y, pose.y - box.maxY), 0.0);
+        if (Math.hypot(dx, dy) > 0.5 * Math.hypot(lengthIn, widthIn) + 1e-9) {
+            return false;
+        }
         double tx = Math.min(tol, 0.25 * (box.maxX - box.minX));
         double ty = Math.min(tol, 0.25 * (box.maxY - box.minY));
         double x0 = box.minX + tx;
@@ -133,6 +139,12 @@ final class BruteForceFootprint {
      */
     static String firstClip(HeadingProfile profile, double lengthIn, double widthIn, Rect field, List<Rect> boxes,
                             double tol) {
+        return firstClip(profile, lengthIn, widthIn, field, boxes, tol, 0.02, 0.1);
+    }
+
+    /** Same, with the step set explicitly: one look every {@code stepIn} inches and every {@code stepDeg} degrees. */
+    static String firstClip(HeadingProfile profile, double lengthIn, double widthIn, Rect field, List<Rect> boxes,
+                            double tol, double stepIn, double stepDeg) {
         if (profile.isEmpty()) {
             return null;
         }
@@ -140,8 +152,8 @@ final class BruteForceFootprint {
             double sA = profile.distanceAtVertex(leg);
             double sB = profile.distanceAtVertex(leg + 1);
             double turnDeg = Math.abs(Math.toDegrees(profile.headingAtVertex(leg + 1) - profile.headingAtVertex(leg)));
-            // A step of 0.02 inch or 0.1 degree, whichever gives more steps.
-            int n = (int) Math.max(1.0, Math.max(Math.ceil((sB - sA) / 0.02), Math.ceil(turnDeg / 0.1)));
+            // The step in inches or in degrees, whichever gives more steps.
+            int n = (int) Math.max(1.0, Math.max(Math.ceil((sB - sA) / stepIn), Math.ceil(turnDeg / stepDeg)));
             for (int k = 0; k <= n; k++) {
                 double s = sA + (sB - sA) * k / n;
                 Pose2 pose = profile.poseAt(s);
