@@ -153,17 +153,30 @@ public class ConstantsDisciplineTest {
     // ------------------------------------------------------------------------------------------
 
     /**
+     * The files of autoshoot/routes that are DATA, not logic: the routes themselves are lists of poses, headings and counts that an author
+     * types in, so their numbers are the point of the file. Everything else in that package (the validator, the simulation, the timing model, the
+     * tip rules, the geometry of the field and of the FLOWER wiggle) is logic and is scanned.
+     */
+    private static final Set<String> ROUTE_DATA_FILES = new HashSet<String>(Arrays.asList(
+            "RouteCatalog.java", "SelfTipRoutes.java", "PartnerTipRoutes.java"));
+
+    /**
      * Files that make decisions or command hardware: no tunable number may be written into them. These are every .java
-     * file in autoshoot/core, autoshoot/hardware and diagnostics (except ConstantsCheck.java, whose job is to check
-     * numbers), plus Launcher.java, BioBuzzRobot.java and the FLOWER wiggle files of autoshoot/routes.
+     * file in autoshoot/core, autoshoot/hardware, autoshoot/routes (except the route data files above) and diagnostics
+     * (except ConstantsCheck.java, whose job is to check numbers), plus Launcher.java and BioBuzzRobot.java.
+     *
+     * <p>Not scanned on purpose: autoshoot/render, the code that draws the diagrams. Its numbers are pixel layout (offsets, font sizes,
+     * line widths) of a desktop-only picture that never drives the robot; the look that a person may want to change (colours, scale, label
+     * size, radii) already comes from BioBuzzConstants.Auto.RENDER_*. It is the one documented exception to "every package that holds logic".
      */
     private static List<File> logicFiles() {
         List<File> out = new ArrayList<File>();
-        for (String dir : new String[]{"autoshoot/core", "autoshoot/hardware", "diagnostics"}) {
+        for (String dir : new String[]{"autoshoot/core", "autoshoot/hardware", "autoshoot/routes", "diagnostics"}) {
             File[] files = source(dir).listFiles();
             if (files != null) {
                 for (File f : files) {
-                    if (f.getName().endsWith(".java") && !f.getName().equals("ConstantsCheck.java")) {
+                    if (f.getName().endsWith(".java") && !f.getName().equals("ConstantsCheck.java")
+                            && !(dir.equals("autoshoot/routes") && ROUTE_DATA_FILES.contains(f.getName()))) {
                         out.add(f);
                     }
                 }
@@ -171,12 +184,33 @@ public class ConstantsDisciplineTest {
         }
         out.add(source("mechanisms/launcher/Launcher.java"));
         out.add(source("teleop/BioBuzzRobot.java"));
-        // The FLOWER wiggle logic in the route framework: it decides where the robot stands and how far it turns, so it must not hide a number either.
-        // (The rest of autoshoot/routes is the validator and its explanations; only these files are scanned.)
-        for (String name : new String[]{"FlowerWiggle", "FlowerWiggleSequence", "FlowerPress", "WheelChoice", "PressRules", "LegSweeps"}) {
-            out.add(source("autoshoot/routes/" + name + ".java"));
-        }
         return out;
+    }
+
+    /**
+     * Situation: the list of scanned files, asked by name.
+     * Expected: the validator, the simulation, the timing model, the tip rules, the sweep and the field geometry of autoshoot/routes are in it
+     *     (and so is the geometry of the FLOWER wiggle that was always there); the route data files are not.
+     * Why: HARD RULE 1 says every package that holds logic is scanned. Only 6 of the 27 files of autoshoot/routes were, so a number hidden in
+     *     RouteValidator (a margin, a threshold) would have passed every test. This fails if the scan is narrowed to a list again.
+     */
+    @Test
+    public void everyLogicFileOfTheRoutesPackageIsScannedAndOnlyTheRouteDataIsNot() {
+        Set<String> scanned = new TreeSet<String>();
+        for (File f : logicFiles()) {
+            if (f.getParentFile().getName().equals("routes")) {
+                scanned.add(f.getName());
+            }
+        }
+        for (String logic : new String[]{"RouteValidator.java", "RouteAnalysis.java", "TimingModel.java", "TipRules.java", "TipModel.java", "Sweep.java",
+                "AllianceField.java", "DrivePath.java", "AutoRoute.java", "Step.java", "FlowerWiggle.java", "FlowerWiggleSequence.java", "FlowerPress.java",
+                "WheelChoice.java", "PressRules.java", "LegSweeps.java"}) {
+            assertTrue(logic + " must be scanned; scanned: " + scanned, scanned.contains(logic));
+        }
+        for (String data : ROUTE_DATA_FILES) {
+            assertTrue(data + " is route data and is not scanned", !scanned.contains(data));
+        }
+        assertTrue("scanned " + scanned.size() + " route files", scanned.size() >= 20);
     }
 
     /**
@@ -198,34 +232,75 @@ public class ConstantsDisciplineTest {
      */
     @Test
     public void noTunableNumbersAreHiddenInTheLogicClasses() throws IOException {
-        // Finds decimal or whole numbers (optionally with an exponent like 1e-9 or a suffix like f or L) that are not
-        // part of a longer word or name, such as x1.
-        Pattern number = Pattern.compile("(?<![\\w.])(\\d+\\.\\d+(?:[eE][+-]?\\d+)?|\\d+(?:[eE][+-]?\\d+)?)[fFdDlL]?(?![\\w.])");
         List<String> violations = new ArrayList<String>();
         for (File f : logicFiles()) {
-            String text = read(f);
-            // Note: deleting a multi-line block comment also deletes its line breaks, so the line numbers in the
-            // failure message count from the comment-stripped text and come out smaller than the real line numbers.
-            // Search for the printed line of code instead.
-            text = text.replaceAll("(?s)/\\*.*?\\*/", "");            // block comments
-            String[] lines = text.split("\\r?\\n");
-            for (int i = 0; i < lines.length; i++) {
-                // Drop // comments and blank out string literals, so words inside them are not read as numbers.
-                String line = lines[i].replaceAll("//.*$", "").replaceAll("\"([^\"\\\\]|\\\\.)*\"", "\"\"");
-                if (line.contains("static final") || line.trim().startsWith("@")) {
-                    continue;                                          // a NAMED constant is fine
-                }
-                Matcher m = number.matcher(line);
-                while (m.find()) {
-                    if (!ALLOWED.contains(m.group(1))) {
-                        violations.add(f.getName() + ":" + (i + 1) + "  " + m.group(1) + "   " + lines[i].trim());
-                    }
-                }
-            }
+            violations.addAll(hiddenNumbers(f.getName(), read(f)));
         }
         Collections.sort(violations);
         assertTrue("Tunable numbers belong in BioBuzzConstants (or a named private constant):\n  "
                 + join(violations), violations.isEmpty());
+    }
+
+    /**
+     * The tunable numbers hidden in the text of one Java file: every number left after block comments, // comments, string literals, annotations and
+     * lines that declare a NAMED {@code static final} constant are removed, except the ALLOWED ones. Each entry says the file, the line and the number.
+     */
+    private static List<String> hiddenNumbers(String fileName, String text) {
+        // Finds decimal or whole numbers (optionally with an exponent like 1e-9 or a suffix like f or L) that are not
+        // part of a longer word or name, such as x1.
+        Pattern number = Pattern.compile("(?<![\\w.])(\\d+\\.\\d+(?:[eE][+-]?\\d+)?|\\d+(?:[eE][+-]?\\d+)?)[fFdDlL]?(?![\\w.])");
+        List<String> violations = new ArrayList<String>();
+        // Note: deleting a multi-line block comment also deletes its line breaks, so the line numbers in the
+        // failure message count from the comment-stripped text and come out smaller than the real line numbers.
+        // Search for the printed line of code instead.
+        text = text.replaceAll("(?s)/\\*.*?\\*/", "");            // block comments
+        String[] lines = text.split("\\r?\\n");
+        for (int i = 0; i < lines.length; i++) {
+            // Drop // comments and blank out string literals, so words inside them are not read as numbers.
+            String line = lines[i].replaceAll("//.*$", "").replaceAll("\"([^\"\\\\]|\\\\.)*\"", "\"\"");
+            if (line.contains("static final") || line.trim().startsWith("@")) {
+                continue;                                          // a NAMED constant is fine
+            }
+            Matcher m = number.matcher(line);
+            while (m.find()) {
+                if (!ALLOWED.contains(m.group(1))) {
+                    violations.add(fileName + ":" + (i + 1) + "  " + m.group(1) + "   " + lines[i].trim());
+                }
+            }
+        }
+        return violations;
+    }
+
+    /**
+     * Situation: the scanner is pointed at a made-up validator method of the style a route rule is written in, once with a hidden threshold
+     *     ({@code minRetreat - 6.5}) and once with the same number as a named constant or taken from BioBuzzConstants.
+     * Expected: the hidden one is reported with its line and number; the named ones and the ALLOWED maths numbers are not.
+     * Why: this proves the scan sees the kind of literal that matters in autoshoot/routes. Without it a clean scan could mean "the scanner is
+     *     blind to this style of code".
+     */
+    @Test
+    public void theScannerSeesAThresholdHiddenInAValidatorStyleRule() {
+        String hidden = "final class RouteRule {\n"
+                + "    private static final double EPS = 1e-9;\n"
+                + "    static boolean tooShort(double retreatIn) {\n"
+                + "        return retreatIn < 6.5 - EPS;          // 6.5 is a hidden tunable\n"
+                + "    }\n"
+                + "}\n";
+        List<String> found = hiddenNumbers("RouteRule.java", hidden);
+        assertEquals(found.toString(), 1, found.size());
+        assertTrue(found.get(0), found.get(0).contains("6.5"));
+        assertTrue(found.get(0), found.get(0).startsWith("RouteRule.java:4"));
+
+        String named = "final class RouteRule {\n"
+                + "    private static final double MIN_RETREAT_IN = 6.5;\n"
+                + "    static boolean tooShort(double retreatIn) {\n"
+                + "        return retreatIn < MIN_RETREAT_IN - 1e-9 && retreatIn / 2.0 > 0.5 * retreatIn - 1;\n"
+                + "    }\n"
+                + "    static boolean tooShort2(double retreatIn) {\n"
+                + "        return retreatIn < BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN;   // 7.25 in a comment is fine\n"
+                + "    }\n"
+                + "}\n";
+        assertTrue(hiddenNumbers("RouteRule.java", named).toString(), hiddenNumbers("RouteRule.java", named).isEmpty());
     }
 
     /** Joins the violation lines into one readable block for the failure message. */

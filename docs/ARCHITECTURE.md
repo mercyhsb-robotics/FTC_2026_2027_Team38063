@@ -212,6 +212,10 @@ route diagrams. What it changes in practice:
   route in tiny steps with a separate checker, and `AutoShootWallSafetySimTest`, the closed loop that checks the
   robot's rectangle against the walls at every 20 ms tick while it drives out of a wall start (a planner with the check
   switched off must clip, or the tests prove nothing);
-* `ConstantsDisciplineTest`, which keeps every tunable number in `BioBuzzConstants`.
+* `ConstantsDisciplineTest`, which keeps every tunable number in `BioBuzzConstants`. It reads the source text of every logic file
+  (`autoshoot/core`, `autoshoot/hardware`, `autoshoot/routes` except the route data files `RouteCatalog`, `SelfTipRoutes` and
+  `PartnerTipRoutes`, and `diagnostics`) and fails on a number written into the code that is not a named constant. The one exception is
+  `autoshoot/render`, the code that draws the diagrams: its numbers are pixel layout, and the looks you may want to change come from
+  `Auto.RENDER_*`. A new package that holds logic must be added to the list in that test.
 
 None of this has run on the robot yet; `docs/DAY_ONE_CHECKLIST.md` is the order to verify it in.

@@ -29,6 +29,12 @@ public final class DrivePath {
     private final Point2 facePoint;
     private final boolean faceWithBack;
 
+    // How dense the table of the curve is: this many nodes per inch of its control polygon, but never fewer than the smallest or more than the
+    // largest table. This is numeric resolution (a node every quarter inch measures a curve to well under a thousandth), not a tuning knob.
+    private static final double TABLE_NODES_PER_IN = 4.0;
+    private static final int TABLE_MIN_NODES = 64;
+    private static final int TABLE_MAX_NODES = 4000;
+
     // dense table of the curve: parameter t and cumulative arc length s at each node
     private final double[] tTable;
     private final double[] sTable;
@@ -47,7 +53,7 @@ public final class DrivePath {
         for (int i = 1; i < control.size(); i++) {
             polyLength += control.get(i - 1).distanceTo(control.get(i));
         }
-        int n = (int) Math.max(64, Math.min(4000, Math.ceil(polyLength * 4.0)));
+        int n = (int) Math.max(TABLE_MIN_NODES, Math.min(TABLE_MAX_NODES, Math.ceil(polyLength * TABLE_NODES_PER_IN)));
         tTable = new double[n + 1];
         sTable = new double[n + 1];
         Point2 prev = bezier(0.0);

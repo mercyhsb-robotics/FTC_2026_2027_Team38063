@@ -183,11 +183,18 @@ public final class TipModel {
                 + weightText() + ")";
     }
 
+    // English ordinals: the last two digits decide whether the number is one of the "-teens" (11th, 12th, 13th), then the last digit does.
+    // These are spelling rules, not tuning.
+    private static final int ORDINAL_HUNDRED = 100;
+    private static final int ORDINAL_TEN = 10;
+    private static final int ORDINAL_TEENS_FROM = 11;
+    private static final int ORDINAL_TEENS_TO = 13;
+
     /** 1 becomes "1st", 2 "2nd", 3 "3rd", 8 "8th", 11 "11th", 21 "21st". */
     static String ordinal(int n) {
-        int lastTwo = n % 100;
-        int last = n % 10;
-        String suffix = lastTwo >= 11 && lastTwo <= 13 ? "th" : last == 1 ? "st" : last == 2 ? "nd" : last == 3 ? "rd" : "th";
+        int lastTwo = n % ORDINAL_HUNDRED;
+        int last = n % ORDINAL_TEN;
+        String suffix = lastTwo >= ORDINAL_TEENS_FROM && lastTwo <= ORDINAL_TEENS_TO ? "th" : last == 1 ? "st" : last == 2 ? "nd" : last == 3 ? "rd" : "th";
         return n + suffix;
     }
 
