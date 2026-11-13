@@ -170,6 +170,25 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       standing `Auto.LEAVE_WALL_MARGIN_IN` (1.5 in) off it, and ask a referee which one counts as LEAVE: a robot that touches
       any wall at the end of AUTO loses LEAVE, but keeps PARK.
 
+- [ ] **How to place the robot for an AUTO (rule G304).** The best start is often not "tile B1 or C1, front on the wall": rule G304 lets the robot start
+      anywhere on its own half that touches a wall (not on a FLOWER, not in the LOADING ZONE), turned any way, and a good place removes
+      a whole leg of driving (`docs/AUTOS.md`, "Where to set the robot up"). Practise it once with a tape measure:
+      1. Run `tools/start-shortcuts.sh` (or `.bat`) and read the line `place it:` under the route you will run. It names the side of the
+         robot that is on the wall, how far the nearest **edge** is from another wall, and which way the robot faces, for example
+         "Front on the audience wall. Right edge 51.4 in from the red wall. Facing the audience wall." **Left and right are the
+         robot's own**: stand behind the robot and look where it faces. Measure to the edge, never to the tape mark of the center of rotation.
+      2. A turned start ("Front-left corner on the audience wall, 35.3 in from the red wall. Turned 40 degrees clockwise ...") is set by
+         putting that corner on the wall at that distance and then turning the robot by that angle (a phone's level app or a protractor
+         laid on the floor); the angle is counted as in the route diagrams, seen from above with the audience wall at the bottom.
+      3. INIT the auto and compare the position the robot reports with the route's start pose. They must agree to about 1 in and 3
+         degrees. If they do not, the center of rotation you marked above is not where the code thinks it is (`Robot.*_EXTENT_IN`).
+      4. Push the robot 1 in along the wall and turn it 3 degrees by hand and run the route again: it must still work. That is the
+         **placement margin** (`Auto.START_PLACEMENT_MARGIN_IN` and `_DEG`) the validator checked on the computer; confirm it on the floor.
+         Where the validator says a start fails the margin (for example next to the rear-wall FLOWER, where a 17.8 in robot has only 20.4 in
+         between the FLOWER and the center line), place it more carefully or choose another start.
+      5. Ask a referee to look at your start before a match: rule G304 is judged by eye, and a start that is legal by 0.2 in on the
+         computer may not be on the real field (the field is only good to about 1 in).
+
 ## D. Limelight — `docs/LIMELIGHT_SETUP.md`
 
 - [ ] Pipeline 0 configured as listed; Driver Station name `limelight`.

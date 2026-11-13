@@ -23,7 +23,10 @@ or dark setting). They are generated, so never edit them by hand.
    ZONE, not touching a FLOWER or the HIVE frame (rule G304). A pose is the robot's **center of rotation**, and that is not
    the middle of its 17.80 x 17.80 in outline: the front edge is 9.77 in ahead of it, the back edge 8.03 in behind it. So a
    robot facing the audience wall at tile B1 or C1 with its **front edge on the wall** has its center 9.77 in from the
-   wall: `start(35.0, 9.77, -90)`. (Facing away from the wall, back edge on it: 8.03 in; sideways: 8.90 in.)
+   wall: `start(35.0, 9.77, -90)`. (Facing away from the wall, back edge on it: 8.03 in; sideways: 8.90 in.) Tile B1 or C1 is only the
+   usual choice: rule G304 has no start lines and no required heading, and a better place (a start in a shooting pose, or turned in a corner)
+   can save a second or two. Run `tools/start-shortcuts.sh` to see which, and read "Where to set the robot up" below; the validator also
+   tells you if your start would fail by an inch or three degrees (`StartRobustness`).
 2. **Add one entry** to the file of its family (see "Who shoots the first tip" below):
    `SelfTipRoutes.java` if your own 4 pre-loads tip the HIVE, `PartnerTipRoutes.java` if the alliance partner tips it.
    Both are in `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/autoshoot/routes/`, and each has a `routes()`
@@ -163,7 +166,7 @@ Two rules of thumb that the validator enforces:
 
 | Check | Rule | ERROR when | WARN when |
 |---|---|---|---|
-| Start | G304 | outside the field (a start whose real outline pokes through a wall: the finding says how far the pose is from the wall and where the robot's edge that faces it lies), outside the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
+| Start | G304 | outside the field (a start whose real outline pokes through a wall: the finding says how far the pose is from the wall and where the robot's edge that faces it lies), outside the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE. This is `StartRules`, the one piece of code that also decides which starts the search for a better start may use (see "Where to set the robot up") | standing over the end of a FLOWER's wall bracket (it is 0.36 in longer than the plate) |
 | Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the front corners sweep out to 13.22 in from the center of rotation), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
 | HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the two foot bars and the box between them, 49.466 x 38.944 in). By default the gaps under and inside the frame count as solid. A DRIVE that says `allowUnderHive()` is checked against the **exact solid** instead (the foot bars and the leg stubs, with 3 in to spare on both sides): it may drive along the lane, but never across a foot bar or into a leg. A DOWN cell hangs out past the frame by up to 5.66 in, but only 35.5 in up or higher, so it is not an obstacle | a DRIVE under the HIVE while the HIVE could still tip (G409/G417, next section) |
 | FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.871 x 5.95 in, its field-side edge 5.033 in from the wall; the 6.67 in long wall bracket above it counts too, see below). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its wiggle (next row): the chassis, the other wheel and every other step stay out | |
@@ -191,6 +194,101 @@ samples reaches the grown obstacle, nothing between them can touch the real one.
 clear it cuts the gap in half and looks again, down to 1/1000 in. The result is the same as sampling infinitely
 densely; the proof is the comment at the top of `routes/Sweep.java` and `SweepTest` tries to break it. The first and
 the last pose of every leg are always tested, and so is the last pose of a turn in place.
+
+## Where to set the robot up (rule G304)
+
+**The rule in plain words.** Before AUTO a person sets the robot on the field, and rule G304 says where. The parts of it that depend on
+*where* the robot is: **A** the whole robot is inside the field (touching a wall is fine, hanging over it is not) and on its own half (red:
+columns A, B, C; blue: D, E, F); **B** it is not attached to the HIVE or any other field element; **C** it **touches** a perimeter wall;
+**D** it does not touch a FLOWER; **E** it is not in the LOADING ZONE. (**F** the robot fits an 18 in cube, **G** it touches exactly 4 pre-load POLLEN
+and **H** it stands still are about the robot, not the place: `ConstantsCheck` checks the 18 in cube once.) There are **no start lines, no required
+heading and no required distance from the HIVE**: Figure 11-1 of the manual shows robots turned 30 to 35 degrees in a corner. So **the start is a free
+parameter of every route**, and a good choice removes a whole leg of driving.
+
+**One rule, one piece of code.** `StartRules` is rule G304 written once, from the robot's real outline (not centered on its pose point, see
+`RobotShape`). The route validator's start check, the search for a better start, the picture of the legal places and the `ConstantsCheck` test of the
+TeleOp default start (`Controls.DEFAULT_START_*` must be a legal start) all call it, so they cannot disagree. A robot standing over the end of a
+FLOWER's wall bracket (0.36 in longer than the plate) is a WARN for the validator, and the search never proposes it.
+
+**Every legal start.** `StartPoseSearch.legalStarts(alliance)` lists them: along each of the three own walls (the own side wall, the audience wall and the
+rear wall) a place every `Auto.START_SEARCH_STEP_IN` (0.25 in), for every heading on a grid of `Auto.START_SEARCH_HEADING_STEP_DEG` (5 degrees), with the
+robot **pushed against the wall exactly** (its outline touches the wall and never overlaps it). That is about 37 thousand starts for red. A robot facing the
+audience wall front-first has its pose point 9.77 in from the wall, facing away 8.03 in, sideways 8.90 in and turned 45 degrees about 13 in, so the list is
+worked out from the real outline, not from "half the robot". The blue list is the half turn of the red one. `legalIntervals(alliance, heading)` says the
+same thing as **stretches of wall** (from where to where along each wall the robot may stand, for one heading): the route diagrams tint them (below).
+
+**The placement margin.** A person sets the robot down by hand, so it is never exactly where the route says. `StartRobustness` moves a route's start
+by `Auto.START_PLACEMENT_MARGIN_IN` (1 in) along the wall and `START_PLACEMENT_MARGIN_DEG` (3 degrees) of heading, in every combination (up to 26 moves; a start against a wall has 8, because the wall takes away the move toward it), pushes the
+robot back against the wall again (a hand cannot push a robot into a wall, and a robot 1 in off the wall is not a legal start), and runs the validator on each.
+Every ERROR that appears only because of the move is a finding: **the route is placed too close to the edge of what is legal**. The report also says how
+much the time estimate moves (the spread). A turn of 3 degrees swings the robot's front corner sideways by 0.5 in, so the margin is bigger than it sounds.
+`StartRobustnessTest` runs it on every route of the catalog and lists what it finds today: `red_c1` (its start is 0.57 in through the wall, so the
+first move clips the wall a little deeper) and `partner_rear_shoot_park` (its start x = 61.5 leaves only 0.27 in between the robot and the center line, so a hand
+that is 1 in off puts the robot into the other half, G304.A). The catalog is not changed here: the finding is the report.
+
+**The best start for a route.** `StartPoseSearch.bestStart(template, standardStarts)` takes a route with its start left open (`RouteTemplate`: "this is the
+rest of the route, and this is how it changes with the start": a robot that starts where it would shoot from shoots without a move first), tries every legal start
+that keeps the margin, orders the routes by the time the `TimingModel` estimates, and returns the first whose route the full validator accepts with no ERROR *and*
+that passes the placement check. It also says how many seconds that saves against the **standard start** (tiles B1 and C1, front on the audience wall). Among starts that
+are equally fast it prefers the one that is easier to place (a robot straight at a wall before a turned one). The validator, the search and the diagrams share
+one rule and one simulation, so a start the search proposes is never one the validator rejects.
+
+**What it found** (`tools/start-shortcuts.sh`, which prints this table for six families of routes; the times are the plan's estimates with placeholder drive
+and shooter numbers, so read the order and the sizes, not the decimals):
+
+| Route | Standard start | Best start (with the 1 in + 3 degree margin) | Saves |
+|---|---|---|---|
+| Shoot 4, left corridor, park | C1 front on the wall: 11.7 s (B1: 13.2 s) | **turned 40 degrees, a front corner on the audience wall 35.8 in from the red wall**: 10.9 s | 0.8 s |
+| Shoot 4, take 3 GARDEN POLLEN, step off | C1: 12.6 s (B1: 14.1 s) | the same start: 12.0 s | 0.6 s |
+| Shoot 4, take 3 from the red-wall FLOWER, park (a robot whose wheels reach) | C1: 18.5 s (B1: 20.0 s) | the same start: 17.7 s | 0.8 s |
+| Partner tips first: wait, shoot 4 at the rear cell, park | the catalog's start (x = 61.5): 21.7 s, **fails the margin** | **turned 35 degrees, a corner on the rear wall 37.9 in from the red wall**: 20.9 s | 0.7 s |
+| Partner tips first, then take 3 from the rear FLOWER and leave (wheels that reach) | 28.4 s, fails the margin | the same kind of start: 28.1 s | 0.3 s |
+| Leave and park only | B1: 3.5 s (C1's straight line crosses the HIVE) | **a back corner on the red wall above the LOADING ZONE, turned 25 degrees**, 123.7 in from the audience wall: 1.4 s | 2.0 s |
+
+What this says about the shortcuts one might expect:
+
+* **Start in a shooting pose** (front on the audience wall, in line with the HIVE): confirmed, and it is what C1 already is. At x = 58 the ball leaves 36.4 in
+  from the aim point (the measured shot is 37.7 in, see the day-one list), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
+  to a pose is in the plan. The search finds something slightly better: **start turned about 40 degrees with the back toward the cell** and a front corner on the
+  wall, standing about 23 in nearer the corridor to the LOADING ZONE. It saves about 0.8 s over C1 for every family that goes down the left side, and the robot is still a
+  shooting pose (the back points within about 15 degrees of the aim point). This is the "start rotated" shortcut of Figure 11-1.
+* **The rear-wall equivalent** (front on the rear wall, in line with the rear cell, for a route where the partner tips first): the in-line start does exist, but
+  **the gap between the rear-wall FLOWER (its plate ends at x = 50.26, its bracket at 50.6) and the center line (x = 70.67) is only 20.4 in wide (20.1 in counting the bracket),
+  and a 17.80 in robot needs 3 in of margin on top (1 in either way, plus 0.5 in either way for a 3 degree turn)**. No place there keeps the full margin. With 70% of it (0.7 in and 2.1 degrees) the
+  robot can stand at x = 60.75, front on the rear wall: 36.4 in from the aim point, 21.6 s (the catalog's x = 61.5 is only 0.27 in from the center line and fails). The best
+  start with the full margin is again the turned one, left of the FLOWER (turned 35 degrees, 37.9 in from the red wall), 0.7 s faster than the catalog's.
+* **Start beside the first pick-up**: the first action cannot be a pick-up, because the robot holds 4 pre-loads and may control at most 4 (G407), so a start beside
+  the red-wall FLOWER only wins if it is also a shooting pose, and it is not (it is about 60 in from the nearest one). In the search it never beats the audience-wall
+  start. On the rear wall the turned start left of the rear FLOWER is both a shooting pose for the rear cell and close to that FLOWER: it saves 0.3 s for the route
+  that takes 3 POLLEN there.
+* **Start next to the LOADING ZONE**: for a route that only leaves and parks it saves about 2 s: the robot starts above the zone and drives 20 in. (The zone itself is
+  forbidden for a start, G304.E, and the robot must end 1.5 in off every wall to keep its LEAVE, QA21.)
+
+These starts are not authored into the catalog yet: the table is the evidence, and a route author picks the start. Each is a plain `start(x, y, heading)` call.
+
+**The words for a student.** `StartPlacement.placementText(route)` turns a start into instructions to follow with a tape measure to the robot's **edges**, never to
+the pose point (an invisible point inside the robot):
+
+```
+Front on the audience wall. Right edge 51.4 in from the red wall. Facing the audience wall.
+Front-left corner on the audience wall, 35.8 in from the red wall. Turned 40 degrees clockwise (seen from above, as in the diagram) from facing the audience wall.
+```
+
+**Left and right are the robot's own**, as you see them standing behind the robot looking where it faces (a robot facing the audience wall has its right side toward the
+red wall). A straight robot (within `Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG` of straight at a wall) is placed by the side that is on the wall and the distance of its nearest
+edge from the own side wall (from the audience wall for a start on a side wall); a robot in a corner is placed by the two walls alone; a turned robot is placed by the
+corner that touches each wall and the angle, clockwise or counter-clockwise as seen from above (as in the diagrams, audience wall at the bottom). A test follows the words
+for every straight start of the grid and checks they give the start back. The gallery and the Auto Route Picker will show these words.
+
+**The picture.** `RouteSvgRenderer.render(route, alliance, issues, timing, true)` tints the legal stretches of the own walls for the heading the route starts with (a thin
+strip along each wall; the gaps are the FLOWERS and their brackets, the LOADING ZONE, the corners the robot does not fit in and the center line) and draws the start
+footprint on top. The gallery in `docs/autos` does **not** draw them yet: it is a committed copy of what the code draws, and a test fails when the two differ. To show them,
+set `Auto.RENDER_GALLERY_SHOWS_START_BANDS = true`, run `tools/render-autos.sh` and commit `docs/autos` in the same change.
+
+**The numbers** (all in `BioBuzzConstants.Auto`, TUNE): `START_SEARCH_STEP_IN` 0.25 in and `START_SEARCH_HEADING_STEP_DEG` 5 degrees (the grid; the heading step should
+divide 90), `START_PLACEMENT_MARGIN_IN` 1 in and `START_PLACEMENT_MARGIN_DEG` 3 degrees, `START_SEARCH_MAX_VALIDATIONS` 3000 (how many starts the search checks with the full
+validator before it gives up: a route that can never fit in 30 s has no best start, and the search says why), `START_SEARCH_TIE_SEC`, `PLACEMENT_ALIGNED_TOLERANCE_DEG`, and
+`RENDER_START_BAND_*` for the drawing.
 
 ## Driving under the HIVE (the lane)
 
@@ -627,8 +725,9 @@ catalog deliberately does not "improve" them.
 | Package | What is in it |
 |---|---|
 | `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`, `FirstTip`), the simulation (`RouteAnalysis`, `TimingModel`, and `TipModel` for the tip arithmetic), the checks (`RouteValidator`, `TipRules`, `Sweep`, `LegSweeps`, `PressRules`, `Issue`), what the Auto Route Picker says about the camera at INIT (`TipCameraPolicy`), the field geometry (`AllianceField`, `ShotGeometry`), the FLOWER wiggle (`FlowerWiggle`: the derived turn, standoff and reach; `FlowerPress`: one planned pick-up; `WheelChoice`: the one function that picks the wheel; `FlowerWiggleSequence`: the robot-side script, simulated in closed loop) and the lists of routes: **`SelfTipRoutes`** (we shoot the first tip) and **`PartnerTipRoutes`** (the partner does), gathered by `RouteCatalog`. The robot's own shape (`RobotShape`: the four distances from the center of rotation to its edges; `Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`, together with the robot's camera-only decision that a HIVE has fully tipped (`TipConfirmation`, `TipWait`, `HiveTracker.cameraConfirmed()`). |
+| `autoshoot.routes` (where to start) | `StartRules` (rule G304 as one piece of code), `Wall`, `StartPoseSearch` (every legal start, the legal stretches of wall, the best start for a route), `RouteTemplate` (a route with the start left open), `StartRobustness` (the placement margin), `StartPlacement` (the placement in words) and `StartShortcuts` (the families of routes the table of shortcuts tries; route data). |
 | `autoshoot.render` | `RouteSvgRenderer` (one route to one SVG), `RouteGallery` (the page), `RenderRoutesMain` (the command line), `SvgWriter` (escaping and number formatting). |
-| `tools/` | `render-autos.sh` and `render-autos.bat`. |
+| `tools/` | `render-autos.sh` and `render-autos.bat`; `start-shortcuts.sh` and `start-shortcuts.bat` (the table of start-pose shortcuts). |
 | `docs/autos/` | The generated page and the SVG files. |
 
 `BioBuzzConstants` and the packages `autoshoot.core`, `autoshoot.routes` and `autoshoot.render` are **plain Java**: they

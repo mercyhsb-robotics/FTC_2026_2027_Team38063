@@ -191,6 +191,19 @@ route diagrams. What it changes in practice:
   (With the official CAD field numbers the model puts that shot at 36.36 in from the aim point, 1.34 in short of the
   measured 37.7 in; the shot-table row is a measurement and is not changed. The day-one checklist says how to find out why.)
 
+## Where the robot may start (`StartRules`, `StartPoseSearch`)
+
+Rule **G304** says where a robot may be set up before an AUTO: inside the field and on its own half, touching a perimeter wall, not on a
+FLOWER or the HIVE frame, not in the LOADING ZONE. There are no start lines and no required heading, so the start is a free choice
+and a good one saves driving. The rule is written **once**, in `autoshoot/routes/StartRules`, from the robot's real outline
+(`Footprint`, which is not centered on the pose point). Four things call it and so can never disagree: the route validator's start check,
+`StartPoseSearch` (every legal start: a place every 0.25 in along the three own walls, every 5 degrees, about 37 thousand for red;
+`bestStart` picks the one that gives the fastest valid route), the legal-start stretches of the route diagrams, and `ConstantsCheck`
+(the TeleOp default start must be legal; this is the one place `core` calls into `routes`, on purpose, because two copies of a rule
+can disagree). `StartRobustness` moves a start by the **placement margin** (1 in along the wall, 3 degrees) and re-validates, and
+`StartPlacement` writes the placement in plain words for a student with a tape measure. See "Where to set the robot up" in
+`docs/AUTOS.md`.
+
 ## Rules the design follows
 
 * **G407** at most 4 POLLEN: a volley is at most 4 shots and the intake stops while shooting.
@@ -213,8 +226,8 @@ route diagrams. What it changes in practice:
   robot's rectangle against the walls at every 20 ms tick while it drives out of a wall start (a planner with the check
   switched off must clip, or the tests prove nothing);
 * `ConstantsDisciplineTest`, which keeps every tunable number in `BioBuzzConstants`. It reads the source text of every logic file
-  (`autoshoot/core`, `autoshoot/hardware`, `autoshoot/routes` except the route data files `RouteCatalog`, `SelfTipRoutes` and
-  `PartnerTipRoutes`, and `diagnostics`) and fails on a number written into the code that is not a named constant. The one exception is
+  (`autoshoot/core`, `autoshoot/hardware`, `autoshoot/routes` except the route data files `RouteCatalog`, `SelfTipRoutes`,
+  `PartnerTipRoutes` and `StartShortcuts`, and `diagnostics`) and fails on a number written into the code that is not a named constant. The one exception is
   `autoshoot/render`, the code that draws the diagrams: its numbers are pixel layout, and the looks you may want to change come from
   `Auto.RENDER_*`. A new package that holds logic must be added to the list in that test.
 
