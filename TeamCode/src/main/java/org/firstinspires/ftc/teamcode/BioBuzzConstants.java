@@ -341,6 +341,13 @@ public final class BioBuzzConstants {
          */
         public static final double SWEEP_RESOLUTION_IN = 0.001;
         /**
+         * FIXED (a numeric guard, not a tuning value): how many times the validator may cut one gap between two samples in half before it gives up proving
+         * that nothing hides in it. A smooth leg is proven long before: 100 in cut in half 40 times is a gap of 1e-10 in, far below
+         * {@link #SWEEP_RESOLUTION_IN}. A leg whose heading JUMPS (a path that turns back on itself, or one that drives through the point it must face)
+         * is never proven, however small the gap, so without this limit the cutting would never end. Such a leg is reported as an ERROR instead.
+         */
+        public static final int SWEEP_MAX_CUTS = 40;
+        /**
          * TUNE (G417 / G409 design guard): extra clearance, in inches, kept on EVERY side of the HIVE frame footprint.
          * The validator's keep-out is the whole frame footprint (x 45.94 to 95.41, y 51.20 to 90.15) grown by this much.
          * (A route step that says {@code allowUnderHive} is checked against the exact solid instead, see {@link #HIVE_LANE_MARGIN_IN}.)

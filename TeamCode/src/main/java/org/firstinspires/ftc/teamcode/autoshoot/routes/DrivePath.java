@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
@@ -21,6 +22,8 @@ public final class DrivePath {
     private static final double TINY = 1e-9;
     /** A numeric guard, not a tuning value: the heading cut loop never halves one interval more often than this. */
     private static final int MAX_CUT_DEPTH = 24;
+    /** Rounding noise when two headings are compared with the heading step, radians (a numeric guard). */
+    private static final double TINY_ANGLE = 1e-6;
 
     private final Pose2 from;
     private final List<Point2> control;
@@ -39,6 +42,9 @@ public final class DrivePath {
     private final double[] tTable;
     private final double[] sTable;
     private final double length;
+    /** {@link #headingJumpArc()}, worked out the first time it is asked for. */
+    private boolean jumpKnown;
+    private double jumpArc = Double.NaN;
 
     private DrivePath(Pose2 from, List<Point2> control, HeadingMode mode, Pose2 target, Point2 facePoint,
                       boolean faceWithBack) {
@@ -346,6 +352,28 @@ public final class DrivePath {
             out.add(base.get(i));
         }
         return out;
+    }
+
+    /**
+     * The distance along the path at which the heading JUMPS, or NaN if it never does. A smooth path can always be cut into pieces that each turn by at most
+     * {@code TURN_SAMPLE_STEP_DEG}; a heading that jumps (a cusp of a tangent leg, where the path turns back on itself, or a leg that drives through the point it
+     * must face) cannot, however finely it is cut, so the cutting of {@link #sampleArcLengths(double, double)} ends with two neighbours that turn by more.
+     * Nothing can follow such a path: the robot would have to turn by a large angle in no distance at all.
+     */
+    public double headingJumpArc() {
+        if (!jumpKnown) {
+            jumpKnown = true;
+            double maxStep = Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG);
+            List<Double> arcs = sampleArcLengths(BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN, maxStep);
+            for (int i = 1; i < arcs.size(); i++) {
+                double turn = Math.abs(Angles.error(headingAt(arcs.get(i - 1)), headingAt(arcs.get(i))));
+                if (turn > maxStep + TINY_ANGLE) {
+                    jumpArc = arcs.get(i);
+                    break;
+                }
+            }
+        }
+        return jumpArc;
     }
 
     /** Poses at the arc lengths of {@link #sampleArcLengths(double, double)}. */
