@@ -260,7 +260,7 @@ Two rules of thumb that the validator enforces:
   partly in the own LOADING ZONE, and a HIVE TIP (20) for every tip its OWN volleys cause. **LEAVE is judged at the end
   of AUTO and is lost by touching ANY wall then, also the wall inside the LOADING ZONE** (FIRST's Q&A QA21): a robot that
   parks there touching the wall keeps its PARK but not its LEAVE, so a route that wants both ends in the zone standing
-  `Auto.LEAVE_WALL_MARGIN_IN` (1.5 in) or more off the wall (the zone is 11 in deep, a 17.8 in robot standing 1.5 in off its
+  `Auto.LEAVE_WALL_MARGIN_IN` (1.5 in) or more off the wall (the zone is 11 in deep, a 17.80 in long robot standing 1.5 in off its
   wall still reaches 9.5 in into it). A POLLEN squeezed between the robot and the wall does not count as the robot touching
   it (QA47), so only the robot's outline is looked at. The 3 NECTAR that sit in the UP cell at the start help: **3 POLLEN**
   tip the first HIVE (3 NECTAR + 3 POLLEN tip it, 3 NECTAR + 2 POLLEN do not: FIRST's calibration), so a volley of 4 tips it
@@ -355,8 +355,8 @@ and shooter numbers, so read the order and the sizes, not the decimals):
 
 What this says about the shortcuts one might expect:
 
-* **Start in a shooting pose** (front on the audience wall, in line with the HIVE): confirmed, and it is what C1 already is. At x = 58 the ball leaves 36.4 in
-  from the aim point (the measured shot is 37.7 in, see docs/START_HERE.md, step 19), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
+* **Start in a shooting pose** (front on the audience wall, in line with the HIVE): confirmed, and it is what C1 already is. At x = 58 the ball leaves 39.0 in
+  from the aim point (the anchor spot where the team saw the shot work; the range is computed, not taped: see docs/START_HERE.md, step 19), inside the 30 to 39.5 in band, so the 4 pre-loads are fired with no drive: no move
   to a pose is in the plan. The search finds something slightly better: **start turned about 40 degrees with the back toward the cell** and a front corner on the
   wall, standing about 23 in nearer the corridor to the LOADING ZONE. It saves about 0.6 s over C1 for every family that goes down the left side, and the robot is still a
   shooting pose (the back points within about 15 degrees of the aim point). This is the "start rotated" shortcut of Figure 11-1.
@@ -618,7 +618,7 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
   may be added to a HIVE that is moving, but G417 allows launching only into an upward-facing CELL, so the validator WARNs. A volley
   without `launchSeconds` is gated by the camera and stops a moment after the tip (the next bullet).
 * **The camera stops a volley late.** The model used to say that a camera-gated volley "stops exactly at the tip" and keeps its spare. Nothing
-  supports zero delay. The tipping POLLEN is in the air for about 0.5 s (`Auto.BALL_FLIGHT_SEC`, VERIFY: from the 68.5 degree launch at the 37.7 in anchor
+  supports zero delay. The tipping POLLEN is in the air for about 0.5 s (`Auto.BALL_FLIGHT_SEC`, VERIFY: from the 68.5 degree launch at the 39.0 in anchor
   shot); the tip begins when it LANDS. The camera still reads the cell as UP until the cell has swung about half way down (0.6 s of the 1.2 s
   swing the team's own simulation assumes; nobody has measured it), the feeder pauses only after the tags have been gone for
   `AutoShoot.VISION_LOSS_PAUSE_SEC` (0.15 s), and the camera frame adds about 0.1 s: **`Auto.TIP_STOP_LATENCY_SEC` = 0.85 s (ADD: measure it)**.
