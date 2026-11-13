@@ -155,7 +155,7 @@ public class ConstantsDisciplineTest {
     /**
      * Files that make decisions or command hardware: no tunable number may be written into them. These are every .java
      * file in autoshoot/core, autoshoot/hardware and diagnostics (except ConstantsCheck.java, whose job is to check
-     * numbers), plus Launcher.java and BioBuzzRobot.java.
+     * numbers), plus Launcher.java, BioBuzzRobot.java and the FLOWER wiggle files of autoshoot/routes.
      */
     private static List<File> logicFiles() {
         List<File> out = new ArrayList<File>();
@@ -171,6 +171,11 @@ public class ConstantsDisciplineTest {
         }
         out.add(source("mechanisms/launcher/Launcher.java"));
         out.add(source("teleop/BioBuzzRobot.java"));
+        // The FLOWER wiggle logic in the route framework: it decides where the robot stands and how far it turns, so it must not hide a number either.
+        // (The rest of autoshoot/routes is the validator and its explanations; only these files are scanned.)
+        for (String name : new String[]{"FlowerWiggle", "PressRules"}) {
+            out.add(source("autoshoot/routes/" + name + ".java"));
+        }
         return out;
     }
 
