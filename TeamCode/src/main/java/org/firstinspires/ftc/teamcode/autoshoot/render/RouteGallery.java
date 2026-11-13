@@ -200,8 +200,8 @@ public final class RouteGallery {
             + "thead th { color: var(--muted); font-weight: 600; font-size: 0.85rem; }\n"
             + "table.meta { max-width: 780px; margin: 10px 0; }\n"
             + "table.meta th { width: 15rem; color: var(--muted); font-weight: 600; }\n"
-            + ".pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 14px 0; }\n"
-            + "@media (max-width: 900px) { .pair { grid-template-columns: minmax(0, 1fr); } }\n"
+            // one diagram per row, as wide as the page allows (up to 1000 px): two to a row on a laptop shrank the 9 px labels of the 900 px picture to about 6 px
+            + ".pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; margin: 14px 0; max-width: 1000px; }\n"
             + "figure { margin: 0; }\n"
             + "figcaption { font-weight: 600; margin-bottom: 4px; }\n"
             + "figure.red figcaption { color: var(--red); }\n"

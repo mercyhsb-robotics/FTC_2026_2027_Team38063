@@ -467,9 +467,31 @@ public final class RouteSvgRenderer {
                 double labelY = isUp ? (side == Side.AUDIENCE ? plan.minY + 7.0 : plan.maxY - 7.0) : cy;
                 w.element("text", (isUp ? "UP " : "DOWN ") + tags, "x", n(sx((plan.minX + plan.maxX) / 2.0)), "y", n(sy(labelY) + 3.5),
                         "font-size", "9.5", "font-weight", "bold", "fill", color, "text-anchor", "middle");
+                if (!isUp && comesUpForTheRoute(h, side)) {
+                    // The picture shows the state at the START of the match, so a route that shoots into this cell after a tip would look like it launches into a
+                    // DOWN cell (a G417 violation). The cue says that this is the cell that comes up with the tip.
+                    w.element("text", "UP after the tip", "class", "cell-cue", "x", n(sx((plan.minX + plan.maxX) / 2.0)), "y", n(sy(labelY) + 17.0),
+                            "font-size", n(fontPx), "font-weight", "bold", "fill", color, "text-anchor", "middle");
+                }
                 w.close("g");
             }
             w.close("g");
+        }
+
+        /**
+         * True if the route fires, while this cell is UP, at a cell that is DOWN when the match starts: the cell that comes up with a tip (the partner's, or the
+         * route's own). Only the route's own alliance has such a cell.
+         */
+        private boolean comesUpForTheRoute(Alliance h, Side side) {
+            if (h != alliance) {
+                return false;
+            }
+            for (RouteAnalysis.StepInfo info : a.steps()) {
+                if (info.step.kind() == StepKind.SHOOT && info.targetSide == side && info.targetWasUp) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void flower(int i) {

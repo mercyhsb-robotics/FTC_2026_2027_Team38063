@@ -176,7 +176,7 @@ public class RouteGalleryTest {
     }
 
     @Test
-    public void everySectionShowsTheRedAndTheBlueDiagramSideBySide() throws Exception {
+    public void everySectionShowsTheRedAndTheBlueDiagramInOnePair() throws Exception {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         for (AutoRoute r : RouteCatalog.all()) {
             Element s = section(page, r.id());
