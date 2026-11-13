@@ -740,4 +740,133 @@ public final class BioBuzzConstants {
         /** FIXED (manual Fig 9-12): FLOWER plate depth out from the wall; used as a planning keep-out. */
         public static final double FLOWER_KEEPOUT_DEPTH_IN = 5.0;
     }
+
+    // =========================================================================================
+    // ROBOT CHECK ("00 Robot Check": the guided test of every robot part, for people who have never run the robot)
+    // The decisions live in autoshoot/core/RobotCheck*.java; the OpMode is diagnostics/RobotCheckOpMode.java.
+    // =========================================================================================
+    public static final class RobotCheck {
+        private RobotCheck() {
+        }
+
+        // ---- gamepad 1 buttons (PlayStation names) ------------------------------------------------
+
+        /** TUNE: "yes" and "continue": the answer to a question, and the button that starts a step or goes to the next one. */
+        public static final Button YES_BUTTON = Button.CROSS;
+        /** TUNE: "no" and "there is a problem". While a motor is running it also stops the motor at once. */
+        public static final Button NO_BUTTON = Button.CIRCLE;
+        /** TUNE: skip the step you are on (the safety step can never be skipped). */
+        public static final Button SKIP_BUTTON = Button.TRIANGLE;
+        /** TUNE: do the part you are on again (spin a wheel again, or repeat a whole step from its result screen). */
+        public static final Button REPEAT_BUTTON = Button.SQUARE;
+        /** TUNE: finish the gamepad step early. It must not be one of the buttons that step asks you to press. */
+        public static final Button GAMEPAD_FINISH_BUTTON = Button.TOUCHPAD;
+        /** TUNE: scroll the summary list up and down when it is longer than the screen. */
+        public static final Button SCROLL_UP_BUTTON = Button.DPAD_UP;
+        public static final Button SCROLL_DOWN_BUTTON = Button.DPAD_DOWN;
+        /**
+         * FIXED (the buttons BioBuzzRobot uses): the buttons the gamepad step asks you to press once. The two triggers
+         * are always checked as well (they are not Buttons). The yes / no / skip / repeat buttons are in this list
+         * too: in that step they are only tested, they do not act.
+         */
+        public static final Button[] GAMEPAD_BUTTONS_TO_CHECK = {
+                Button.CROSS, Button.CIRCLE, Button.SQUARE, Button.TRIANGLE,
+                Button.DPAD_UP, Button.DPAD_DOWN, Button.DPAD_LEFT, Button.DPAD_RIGHT,
+                Button.LEFT_BUMPER, Button.RIGHT_BUMPER, Button.SHARE, Button.OPTIONS};
+        /**
+         * TUNE: a button press is ignored when it comes this soon (seconds) after the screen changed. It stops a
+         * double click from racing through two screens, and so from starting a motor by accident.
+         */
+        public static final double BUTTON_LOCKOUT_SEC = 0.4;
+
+        // ---- safety limits ---------------------------------------------------------------------------
+
+        /** FIXED: no motor or servo power in this OpMode may be above this fraction of full power (0 to 1). The logic clamps every command to it. */
+        public static final double POWER_LIMIT = 0.6;
+
+        // ---- step 1: battery (volts, read from the Control Hub) --------------------------------------
+
+        /** TUNE: this many volts or more is a PASS. A freshly charged 12 volt robot battery reads about 13 volts. */
+        public static final double BATTERY_PASS_VOLTS = 12.4;
+        /** TUNE: below this many volts is a FAIL. Between this and the PASS voltage is a WARN. */
+        public static final double BATTERY_FAIL_VOLTS = 11.0;
+
+        // ---- step 3: drive wheels ----------------------------------------------------------------------
+
+        /** TUNE: power for each wheel test, as a fraction of full power (0 to 1). Gentle on purpose. */
+        public static final double DRIVE_TEST_POWER = 0.25;
+        /** TUNE: how long each wheel spins, in seconds. */
+        public static final double DRIVE_TEST_SEC = 0.6;
+
+        // ---- step 4: Pinpoint odometry (distances in inches, angles in degrees) ------------------------
+
+        /** FIXED (a ruler is 12 inches, half a floor tile): how far the student pushes the robot forward, in inches. */
+        public static final double PINPOINT_PUSH_DISTANCE_IN = 12.0;
+        /** TUNE: the push counts as the right size when the measured forward distance is within this many inches of it. A hand push is not exact; a pod set up for the wrong wheel size is out by far more. */
+        public static final double PINPOINT_PUSH_TOLERANCE_IN = 3.0;
+        /** TUNE: more sideways drift than this many inches during the forward push is a WARN (a crooked push, or a strafe pod that reads too much). */
+        public static final double PINPOINT_PUSH_SIDEWAYS_MAX_IN = 3.0;
+        /** TUNE: the position changed by less than this many inches means "nothing moved" (the Pinpoint or its pods are not working). */
+        public static final double PINPOINT_NO_MOVEMENT_IN = 1.0;
+        /** FIXED: how far the student turns the robot counter-clockwise: a quarter turn, in degrees. */
+        public static final double PINPOINT_TURN_DEG = 90.0;
+        /** TUNE: the turn counts as a quarter turn when the heading changed by this many degrees either side of it. */
+        public static final double PINPOINT_TURN_TOLERANCE_DEG = 15.0;
+        /** TUNE: the heading changed by less than this many degrees means "the heading did not change". */
+        public static final double PINPOINT_NO_TURN_DEG = 5.0;
+        /** TUNE: during the turn the position may drift this many inches before a WARN (the robot slid, or the pod offsets in pedro/Constants.java are wrong). */
+        public static final double PINPOINT_TURN_DRIFT_WARN_IN = 3.0;
+
+        // ---- step 5: intake (power is a fraction of full power) ---------------------------------------
+
+        /** TUNE: power of the front intake roller motor during its test (0 to 1). */
+        public static final double INTAKE_MOTOR_POWER = 0.4;
+        /** TUNE: power size of each corner servo during its test (0 to 1). */
+        public static final double INTAKE_SERVO_POWER = 0.5;
+        /** FIXED (BioBuzzRobot.manualControls runs the left corner servo at power -1): sign that pulls POLLEN inward. */
+        public static final double INTAKE_LEFT_SERVO_SIGN = -1.0;
+        /** FIXED (BioBuzzRobot.manualControls runs the right corner servo at power +1): sign that pulls POLLEN inward. */
+        public static final double INTAKE_RIGHT_SERVO_SIGN = 1.0;
+        /** TUNE: how long the roller motor, and then each corner servo, runs, in seconds. */
+        public static final double INTAKE_RUN_SEC = 1.5;
+
+        // ---- step 6: flywheel (speed in encoder ticks per second; the target is Shooter.MANUAL_TARGET_TPS) --
+
+        /** FIXED: the TeleOp's own spin-up timeout (AutoShoot.SPINUP_TIMEOUT_SEC): the flywheel may take this many seconds to reach speed. */
+        public static final double FLYWHEEL_TIMEOUT_SEC = AutoShoot.SPINUP_TIMEOUT_SEC;
+        /** TUNE: a flywheel that never went faster than this many ticks per second (either way) counts as "not turning at all". */
+        public static final double FLYWHEEL_NOT_TURNING_TPS = 50.0;
+
+        // ---- step 7: feeder -------------------------------------------------------------------------------
+
+        /** TUNE: power size of the feeder servo during its test (0 to 1). */
+        public static final double FEEDER_TEST_POWER = 0.3;
+        /** TUNE: the feeder runs forward (pushing toward the flywheel) this many seconds... */
+        public static final double FEEDER_FORWARD_SEC = 1.0;
+        /** TUNE: ... and then backward this many seconds. */
+        public static final double FEEDER_REVERSE_SEC = 0.5;
+
+        // ---- step 8: Limelight camera ---------------------------------------------------------------------
+
+        /** TUNE: how long the camera is watched for new pictures, in seconds. */
+        public static final double LIMELIGHT_CHECK_SEC = 1.0;
+        /** TUNE: at least this many NEW camera pictures must arrive during the check. */
+        public static final int LIMELIGHT_MIN_NEW_FRAMES = 3;
+        /** TUNE: how long the student has to hold a HIVE tag in front of the camera, in seconds. */
+        public static final double LIMELIGHT_TAG_TIMEOUT_SEC = 20.0;
+        /** FIXED (manual 9.9, same as Field): the lowest HIVE AprilTag ID, 30. */
+        public static final int HIVE_TAG_ID_MIN = Field.RED_REAR_BASE_TAG_ID;
+        /** FIXED (manual 9.9, same as Field): the highest HIVE AprilTag ID, 45 (the last cell's base ID plus its 4 tags). */
+        public static final int HIVE_TAG_ID_MAX = Field.BLUE_REAR_BASE_TAG_ID + Field.TAGS_PER_CLUSTER - 1;
+
+        // ---- step 9: gamepad ---------------------------------------------------------------------------------
+
+        /** TUNE: the gamepad step ends by itself after this many seconds, with whatever buttons it has seen. */
+        public static final double GAMEPAD_TIMEOUT_SEC = 90.0;
+
+        // ---- step 10: summary --------------------------------------------------------------------------------
+
+        /** TUNE: lines of the summary shown at once; with more lines the scroll buttons move the list. */
+        public static final int SUMMARY_LINES_PER_PAGE = 12;
+    }
 }
