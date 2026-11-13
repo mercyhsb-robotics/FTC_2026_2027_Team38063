@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  *
  * <p>Data flow: {@code LimelightVision} calls {@link #cameraToRobot} and {@link #azimuthOf} for every tag it
  * reads; the unit tests also use {@link #txTyOf} to simulate a camera. If the robot's idea of where the HIVE is
- * seems consistently off, wrong mounting numbers here are the first suspect (docs/LIMELIGHT_SETUP.md, section 4).
+ * seems consistently off, wrong mounting numbers here are the first suspect (docs/START_HERE.md, "Set up the Limelight camera").
  */
 public final class CameraModel {
     // The lens position in the robot frame (inches from the robot's rotation center; height above the floor).

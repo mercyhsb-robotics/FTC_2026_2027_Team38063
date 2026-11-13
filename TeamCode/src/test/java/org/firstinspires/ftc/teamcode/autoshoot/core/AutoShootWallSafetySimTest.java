@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * route, the end heading and the window), the heading lags behind what it is told, and a shove can throw the robot
  * somewhere else in the middle of it all. Only the world is fake (see AutoShootSequenceTest for the same idea).
  *
- * <p>What the simulated follower assumes (all of it to be checked on the real robot, see docs/DAY_ONE_CHECKLIST.md):
+ * <p>What the simulated follower assumes (all of it to be checked on the real robot, see docs/START_HERE.md):
  * the robot's center stays exactly on the planned route; it moves at up to 32 in/s and slows down for the last
  * stretch; its heading chases the heading the route asks for at the robot's place on it, turning at 10 times the
  * heading error per second (so when it is asked to turn 100 degrees per second it runs about 10 degrees behind); and

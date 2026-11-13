@@ -35,7 +35,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  *
  * <p><b>Where the numbers come from.</b> This is the one file that Pedro's own tuners write; that is why these
  * numbers are here and not in {@link BioBuzzConstants} (only the motor and Pinpoint NAMES come from there). The tuners
- * are in Pedro's tuning menu (see {@code Tuning.java} and docs/TUNING.md). Run them in this order, each one needs the
+ * are in Pedro's tuning menu (see {@code Tuning.java} and docs/START_HERE.md). Run them in this order, each one needs the
  * one before it to be right:
  * <ol>
  *   <li><b>Mecanum Tuner</b> produces {@link #drivetrainConfig};</li>

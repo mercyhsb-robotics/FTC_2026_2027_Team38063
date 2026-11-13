@@ -19,7 +19,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * Pedro path test: drives the robot around a big square (about 91 inches on a side) and back to almost exactly where
  * it started. Use it to see how well Pedro and the Pinpoint odometry hold up over a long drive with four corners.
  *
- * <p><b>When to run it.</b> After the Pedro tuning steps in docs/TUNING.md, before trusting a real autonomous
+ * <p><b>When to run it.</b> After the Pedro tuning steps in docs/START_HERE.md, before trusting a real autonomous
  * routine. It shows up in the Driver Station Autonomous list as "AutoPath" (the name in the annotation; the class is
  * called Test_Square). The square is about 91 inches (7.6 feet) on a side, so clear a space at least that big plus
  * room to overshoot (the whole field works). Put the robot on the start pose below (about 27 inches from both the red

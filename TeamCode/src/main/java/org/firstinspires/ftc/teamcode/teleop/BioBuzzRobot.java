@@ -561,7 +561,7 @@ public class BioBuzzRobot extends OpMode {
         }
     }
 
-    /** Puts the useful numbers on the Driver Station screen (docs/TUNING.md explains the Waiting / Stopped reasons). */
+    /** Puts the useful numbers on the Driver Station screen (docs/START_HERE.md explains the Waiting / Stopped reasons). */
     private void report(AutoShootController.Outputs out, Pose2 pose) {
         telemetry.addData("Alliance", alliance + "   Drive: " + driveNote);
         if (unjamIndexerNow || unjamShooterNow) {

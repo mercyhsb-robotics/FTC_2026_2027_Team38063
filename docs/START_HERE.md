@@ -142,7 +142,7 @@ driving library. We call it the **Pedro file**. Pedro's own tuners write its num
 
 ## Run the Robot Check
 
-The Robot Check is a guided test of every part. It walks you through one part at a time. **Nothing moves until you
+The Robot Check is a guided test of every part of the robot. It walks you through it one check at a time. **Nothing moves until you
 press a button**, and every test is short and gentle.
 
 - [ ] **7. Prepare.** Put the robot on blocks so all four wheels hang in the air. Take the POLLEN out. Use a fresh
@@ -153,30 +153,32 @@ press a button**, and every test is short and gentle.
   **You should see:** "Step 0 of 10: Safety first".
   **If not:** the gamepad is not connected. The INIT screen says "Gamepad 1 is now:" and the gamepad type.
 
-- [ ] **9. Follow the screen, one part at a time.** Press cross (yes, continue) to start each part. The parts are:
+- [ ] **9. Follow the screen, one check at a time.** The screen says "Step 3 of 10" and so on. In this guide we call those **checks**, so they are not mixed up with the numbered steps of the guide.
+  Press cross (yes, continue) to start each check. The checks are:
 
-  1. **Safety first:** you promise the robot is on blocks and everyone is clear.
-  2. **Battery:** reads the volts. 12.4 V or more passes. Below 11.0 V fails: charge the battery.
-  3. **Hardware names:** checks every name from step 4 is in the configuration.
-  4. **Drive wheels:** each wheel spins gently for 0.6 s. You say if the top of the wheel moved toward the FRONT (the intake end).
-  5. **Pinpoint odometry:** **odometry** means tracking where the robot is with small wheels that roll on the
-     floor. Take the robot off the blocks. Push it straight forward about 12 in (a ruler). Then turn it on the spot
-     a quarter turn counter-clockwise. The motors do not move: you move the robot by hand.
-  6. **Intake:** the roller, then each corner servo, spin for 1.5 s. You say if each pulled POLLEN inward.
-  7. **Flywheel:** it spins up to 1200 ticks per second. Keep hands away from the back.
-  8. **Feeder:** it turns forward for 1 s and then backward for 0.5 s. You say if it turned the right way.
-  9. **Limelight camera:** hold a HIVE tag (number 30 to 45) in front of the camera at arm's length. The camera faces the BACK.
-  10. **Gamepad:** press every button and both triggers once. Each one shows SEEN.
+  * **Check 0, Safety first:** you promise the robot is on blocks and everyone is clear.
+  * **Check 1, Battery:** reads the volts. 12.4 V or more passes. Below 11.0 V fails: charge the battery.
+  * **Check 2, Hardware names:** checks that every name from step 4 is in the configuration.
+  * **Check 3, Drive wheels:** each wheel spins gently for 0.6 s. You say if the top of the wheel moved toward the FRONT (the intake end).
+  * **Check 4, Pinpoint odometry:** **odometry** means tracking where the robot is with small wheels that roll on the
+    floor. Take the robot off the blocks. Push it straight forward about 12 in (a ruler). Then turn it on the spot
+    a quarter turn counter-clockwise. The motors do not move: you move the robot by hand.
+  * **Check 5, Intake:** the roller, then each corner servo, spin for 1.5 s. You say if each pulled POLLEN inward.
+  * **Check 6, Flywheel:** it spins up to 1200 ticks per second. Keep hands away from the back.
+  * **Check 7, Feeder:** it turns forward for 1 s and then backward for 0.5 s. You say if it turned the right way.
+  * **Check 8, Limelight camera:** hold a HIVE tag (number 30 to 45) in front of the camera at arm's length. The camera faces the BACK.
+  * **Check 9, Gamepad:** press every button and both triggers once. Each one shows SEEN.
+  * **Check 10, Summary:** the list of results (step 10).
 
-  Put the robot back on the blocks for parts 6 to 8 if you took it off.
-  **You should see:** a result line for each part: PASS, WARN or FAIL.
+  Put the robot back on the blocks for checks 5 to 7 if you took it off for check 4.
+  **You should see:** a result for each check: PASS, WARN or FAIL.
   **If not:** press circle (no) if anything looks wrong. Circle also stops a running motor at once.
 
-- [ ] **10. Read the summary and fix every FAIL.** The last screen lists every part with PASS, WARN or FAIL, and says what
+- [ ] **10. Read the summary and fix every FAIL.** The last screen lists every check with PASS, WARN or FAIL, and says what
   to fix. Use the D-pad up and down buttons to scroll. Fix each FAIL (the table [If something goes wrong](#if-something-goes-wrong) helps), run the
-  check again, and repeat until there is no FAIL. If you skipped a part with triangle, run the whole check again
+  check again, and repeat until there is no FAIL. If you skipped a check with triangle, run the whole Robot Check again
   without skipping before a match.
-  **You should see:** "RESULT: ... 0 FAIL".
+  **You should see:** a line that says "RESULT: ... 0 FAIL".
   **If not:** a wheel that turned the wrong way is fixed in step 23. A missing Limelight is fixed in steps 32 to 44. You can come back here after those steps.
 
 ## Measure the robot
@@ -229,7 +231,7 @@ at its own front distance from that wall (the file's `Robot.FRONT_EXTENT_IN` is 
   (behind the center) in `Robot.LAUNCH_POINT_FORWARD_IN`. Example: the tape says 6.6 in, so type `-6.6`. The robot drawing says
   about 6.58 in behind the center, but use your tape, not the drawing. If the exit is not on the center line, measure how far it is to the left (positive) or right
   (negative) in `Robot.LAUNCH_POINT_LEFT_IN` (0.0 if it is centered).
-  **You should see:** a number between -5 and -9 for most StarterBots.
+  **You should see:** a negative number, usually a little smaller than your rear distance in step 13 (the ball leaves inside the outline).
   **If not:** measure again. A positive number means you measured in front of the center.
 
 - [ ] **16. Measure how high the ball leaves.** With the tape from the floor to where the ball leaves the ramp (in
@@ -244,8 +246,8 @@ at its own front distance from that wall (the file's `Robot.FRONT_EXTENT_IN` is 
 
 - [ ] **18. Measure your field once.** Every field number in the code comes from the official field drawing. Real fields differ by about 1 in.
   Measure, along the middle of the field: (a) from the inside face of the red wall to the inside face of the blue wall (the code says
-  `Field.SIZE_IN` = 141.348 in; the rule book says "about 144"); (b) from the audience wall to the near end of the HIVE's foot bar (the
-  floor bar of the HIVE frame): the code uses 51.2 in.
+  `Field.SIZE_IN` = 141.348 in; the rule book says "about 144"); (b) from the audience wall to the near end of the HIVE's two foot bars (the
+  metal bars of the HIVE frame that lie on the floor): the code uses 51.2 in.
   **You should see:** numbers within about 1.5 in of the code.
   **If not:** tell a mentor before you change `Field.SIZE_IN`: other numbers move with it.
 
@@ -284,11 +286,11 @@ Run them in this order: each one needs the one before it to be right.
   **You should see:** four lines with FORWARD or REVERSE.
   **If not:** if the wrong wheel spun, a motor is plugged into the wrong port. Fix the cable and start again.
 
-- [ ] **24. Pinpoint Tuner, part 1: directions.** Enter the name `pinpoint` and choose your pod type (the code uses the goBILDA 4-bar pod).
+- [ ] **24. Pinpoint Tuner, first half: directions.** Enter the name `pinpoint` and choose your pod type (the code uses the goBILDA 4-bar pod).
   Then push the robot straight **forward** when it asks, and straight to the **left** when it asks.
   The tuner tells you whether each pod must be Forward or Reversed.
 
-- [ ] **25. Pinpoint Tuner, part 2: offsets.** The last part is "Offsets Identification". Turn the robot slowly on the spot **counter-clockwise** until
+- [ ] **25. Pinpoint Tuner, second half: offsets.** The last screen is "Offsets Identification". Turn the robot slowly on the spot **counter-clockwise** until
   the "heading" on the screen reads about **3.14** (half a turn, in radians), then press stop. It prints the two pod offsets in inches.
   **Run the whole Pinpoint Tuner three times** and use the **average** of the three results for each offset. Compare them with your tape
   numbers from step 20: they should agree within about 0.5 in. Copy `xPodOffset`, `yPodOffset`, `xPodDirection` and `yPodDirection` into `localizerConfig` in the Pedro file.
@@ -312,7 +314,8 @@ Run them in this order: each one needs the one before it to be right.
   **You should see:** it ends within about 1 to 2 in of where it began.
   **If not:** run steps 25 and 26 again.
 
-- [ ] **29. Run "PedroPathingAuto_Strafe".** The same, sideways: 48 in to the robot's right and back.
+- [ ] **29. Run "PedroPathingAuto_Strafe".** The same, sideways: 48 in to the robot's right and back, so keep 4 ft (120 cm) of clear floor to the right.
+  **You should see:** it ends within about 1 to 2 in of where it began.
 
 - [ ] **30. Drive the TeleOp.** Choose TeleOp, "BioBuzzRobot", INIT. Choose the alliance with D-pad left (red) or D-pad right (blue). Press PLAY. Drive with the sticks on the floor.
   **You should see:** left stick forward = robot forward, left stick right = robot slides right, right stick right = robot turns clockwise.
@@ -320,7 +323,7 @@ Run them in this order: each one needs the one before it to be right.
   from `1.0` to `-1.0` (one at a time). If the robot twists or jerks instead of driving straight, one wheel direction is wrong: redo step 23.
 
 - [ ] **31. Run the Robot Check again** (step 8) and check that "Drive wheels" and "Pinpoint odometry" pass.
-  **You should see:** PASS for both. In the Pinpoint part, turning the robot on the spot should not slide its position more than about 3 in.
+  **You should see:** PASS for both. In the Pinpoint check, turning the robot on the spot should not slide its position more than about 3 in.
   **If not:** a position that slides while turning means the pod offsets are wrong: repeat steps 20 and 25.
 
 ## Set up the Limelight camera
@@ -498,13 +501,13 @@ If you still hold D-pad up when you let go of a jam button, the auto-score can s
 
 | Control | What it does | Setting that changes it |
 |---|---|---|
-| Cross (X) | Yes. Continue. Start the part you are on. | `RobotCheck.YES_BUTTON` |
+| Cross (X) | Yes. Continue. Start the check you are on. | `RobotCheck.YES_BUTTON` |
 | Circle (O) | No, or "there is a problem". Stops a running motor at once. | `RobotCheck.NO_BUTTON` |
-| Triangle | Skip this part (the safety part cannot be skipped). | `RobotCheck.SKIP_BUTTON` |
-| Square | Do the part again. | `RobotCheck.REPEAT_BUTTON` |
-| Touchpad | In the gamepad part: finish early. | `RobotCheck.GAMEPAD_FINISH_BUTTON` |
+| Triangle | Skip this check (the safety check cannot be skipped). | `RobotCheck.SKIP_BUTTON` |
+| Square | Do the check again. | `RobotCheck.REPEAT_BUTTON` |
+| Touchpad | In the gamepad check: finish early. | `RobotCheck.GAMEPAD_FINISH_BUTTON` |
 | D-pad up, D-pad down | Scroll the summary when it is longer than the screen. | `RobotCheck.SCROLL_UP_BUTTON`, `RobotCheck.SCROLL_DOWN_BUTTON` |
-| Every button and both triggers | In the gamepad part they are only tested, they do nothing. | `RobotCheck.GAMEPAD_BUTTONS_TO_CHECK` |
+| Every button and both triggers | In the gamepad check they are only tested, they do nothing. | `RobotCheck.GAMEPAD_BUTTONS_TO_CHECK` |
 | Sticks, L3, R3, PS | Not used. | none |
 
 A press that comes less than 0.4 s after the screen changed is ignored (`RobotCheck.BUTTON_LOCKOUT_SEC`).
@@ -628,7 +631,7 @@ Left and right are the robot's own: stand behind the robot and look where it fac
 | The robot drives the wrong way: stick forward, robot goes back (or slides or turns the wrong way) | Flip `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN` or `MANUAL_TURN_SIGN` between `1.0` and `-1.0`, one at a time. |
 | The robot twists or jerks instead of driving straight, or the Robot Check says a wheel went backward | A wheel direction is wrong. Redo the Mecanum Tuner (step 23): the four `Direction` lines in `drivetrainConfig` in the Pedro file. Run the Robot Check again. |
 | The Pedro tuner page does not open | The laptop must be on the Robot Controller's Wi-Fi, and the Driver Station must stay connected. Try `http://192.168.43.1:10158` again. |
-| The TeleOp says "LEGACY drive" | Pedro or the Pinpoint did not start. Check the name `pinpoint`, the cable, and the Robot Check Pinpoint part. |
+| The TeleOp says "LEGACY drive" | Pedro or the Pinpoint did not start. Check the name `pinpoint`, the cable, and the Robot Check Pinpoint check. |
 | The camera is not seen: "NO Limelight", or the status is `NOT_CONNECTED`, `NO_RESULT`, `STALE`, `STALLED` or `WRONG_PIPELINE` | Check the USB cable in the blue port. Wait 20 s after power-on. The configuration name must be exactly `limelight`. Pipeline 0 must be the AprilTag pipeline (step 36). Open the Limelight page (step 35). |
 | The camera sees no tags | Check pitch, exposure, marker size 82.55 mm and Full 3D (step 36). Is the HIVE in view from this spot? |
 | The flywheel never gets to speed (`FLYWHEEL_NOT_AT_SPEED`, `SPINUP_TIMEOUT`) | Use a fresh battery. The target must be below what the motor can do (about 2800 ticks per second). Check the flywheel cable and encoder (Robot Check, flywheel). `Shooter.FLYWHEEL_PIDF_P` (40) and `FLYWHEEL_PIDF_F` (12.5) are goBILDA's starting numbers. `Shooter.AT_SPEED_BELOW_FRAC`, `AT_SPEED_ABOVE_FRAC`, `AT_SPEED_RISE_SEC` widen the "at speed" window. |
@@ -670,6 +673,7 @@ You do not need these today. They feed the planner that checks routes on a compu
 
 * **HIVE tip numbers.** FIRST's own field documents say an empty cell tips with the 8th POLLEN (7 do not) and a cell with the 3 staged NECTAR tips with the 3rd POLLEN (2 do not). Check it on your HIVE:
   3 NECTAR placed gently at the back of the UP cell, then 2 POLLEN (no tip), then 3 (tip); an empty cell with 7, then 8. The planner plans one POLLEN more than the minimum (`Auto.TIP_PLANNING_MARGIN_POLLEN`) because a real field drifts.
+  Weigh a few POLLEN and NECTAR on a kitchen scale (AndyMark lists 0.055 lb and 0.091 lb): the code counts one NECTAR as 5/3 POLLEN (`Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR` and `_DENOMINATOR`).
 * **Where tipped balls land.** Tip a HIVE and mark where the first balls touch the floor, measured out from the HIVE's middle line, and how many seconds until everything stops rolling: `Auto.TIP_SPILL_REACH_IN` (40 in),
   `Auto.TIP_SPILL_MARGIN_IN` (6 in), `Auto.TIP_SPILL_CLEAR_SEC` (3 s). A robot may not catch what a tipped HIVE releases (rule G409).
 * **Does the 4th POLLEN go?** Film a volley of 4 at a HIVE that the 3rd POLLEN tips. Count the frames: how long a POLLEN is in the air (`Auto.BALL_FLIGHT_SEC`, 0.5 s) and how long from the tipping POLLEN landing until the feeder stops (`Auto.TIP_STOP_LATENCY_SEC`, 0.85 s).
@@ -677,5 +681,5 @@ You do not need these today. They feed the planner that checks routes on a compu
 * **LEAVE and the wall.** Ask a referee whether a robot that touches the wall in the LOADING ZONE at the end of autonomous keeps LEAVE (`Auto.LEAVE_WALL_MARGIN_IN`, 1.5 in).
 * **The FLOWER pick-up.** One flat intake wheel turns into the bottom POLLEN of a FLOWER and rolls it out over the ring's lip. Do it by hand with both wheels. The numbers: `Auto.FLOWER_WHEEL_START_OFFSET_IN`,
   `Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`, `Auto.FLOWER_WHEEL_BALL_INBOARD`, `Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC`, `Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC`, `Auto.FLOWER_WIGGLE_TURN_SEC`, `Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN`,
-  `Auto.FLOWER_CHASSIS_CLEARANCE_IN` and `Robot.INTAKE_REACH_IN`. The spinning wheel must pull the ball toward the robot. Details: "Taking POLLEN from a FLOWER" in [`docs/AUTOS.md`](AUTOS.md).
+  `Auto.FLOWER_CHASSIS_CLEARANCE_IN` and `Robot.INTAKE_REACH_IN`. The spinning wheel must pull the ball toward the robot. Print or watch the robot's pose during one wiggle: the pose point must not slide more than about 0.3 in. Also measure the real FLOWER: the distance from the wall to the middle of the POLLEN stack (the drawing says 2.634 in), the hole the bottom POLLEN sits in (3.04 in; the rule book says 2.79 in), the height of the ring's lip (0.35 in; the rule book says 0.43 in), and which parts of your robot are taller than 11.44 in (the FLOWER's wall bracket sticks out 1.67 in from the wall at 11.44 to 11.84 in above the floor). Details: "Taking POLLEN from a FLOWER" in [`docs/AUTOS.md`](AUTOS.md).
 * **The lane under the HIVE** (only if a route uses it): the distance between the inner faces of the two foot bars (about 45.5 in) and between the leg stubs at your tallest part's height. Push the robot through by hand with the camera on: nothing may touch.
