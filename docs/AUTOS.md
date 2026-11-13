@@ -362,12 +362,12 @@ Front-left corner on the audience wall, 35.8 in from the red wall. Turned 40 deg
 red wall). A straight robot (within `Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG` of straight at a wall) is placed by the side that is on the wall and the distance of its nearest
 edge from the own side wall (from the audience wall for a start on a side wall); a robot in a corner is placed by the two walls alone; a turned robot is placed by the
 corner that touches each wall and the angle, clockwise or counter-clockwise as seen from above (as in the diagrams, audience wall at the bottom). A test follows the words
-for every straight start of the grid and checks they give the start back. The gallery and the Auto Route Picker will show these words.
+for every straight start of the grid and checks they give the start back. The gallery shows these words for every route and both alliances (the rows "Place the robot, RED" and "Place the robot, BLUE"), and the Auto Route Picker will too.
 
 **The picture.** `RouteSvgRenderer.render(route, alliance, issues, timing, true)` tints the legal stretches of the own walls for the heading the route starts with (a thin
 strip along each wall; the gaps are the FLOWERS and their brackets, the LOADING ZONE, the corners the robot does not fit in and the center line) and draws the start
-footprint on top. The gallery in `docs/autos` does **not** draw them yet: it is a committed copy of what the code draws, and a test fails when the two differ. To show them,
-set `Auto.RENDER_GALLERY_SHOWS_START_BANDS = true`, run `tools/render-autos.sh` and commit `docs/autos` in the same change.
+footprint on top. The gallery in `docs/autos` draws them on every diagram (`Auto.RENDER_GALLERY_SHOWS_START_BANDS` is `true`); it is a committed copy of what the code draws, and a test fails when the
+two differ, so after changing the flag run `tools/render-autos.sh` and commit `docs/autos` in the same change.
 
 **The numbers** (all in `BioBuzzConstants.Auto`, TUNE): `START_SEARCH_STEP_IN` 0.25 in and `START_SEARCH_HEADING_STEP_DEG` 5 degrees (the grid; the heading step should
 divide 90), `START_PLACEMENT_MARGIN_IN` 1 in and `START_PLACEMENT_MARGIN_DEG` 3 degrees, `START_SEARCH_MAX_VALIDATIONS` 3000 (how many starts the search checks with the full

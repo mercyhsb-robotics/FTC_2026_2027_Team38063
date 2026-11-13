@@ -27,6 +27,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.WiggleTestRobot;
 import org.junit.Rule;
 import org.junit.Test;
@@ -121,7 +123,8 @@ public class RouteGalleryTest {
         Map<String, String> files = RouteGallery.build(RouteCatalog.all());
         for (AutoRoute r : RouteCatalog.all()) {
             for (Alliance a : Alliance.values()) {
-                assertEquals(r.id() + " " + a, RouteSvgRenderer.render(r, a), files.get(RouteGallery.svgFileName(r, a)));
+                assertEquals(r.id() + " " + a, RouteSvgRenderer.render(r, a, new RouteValidator().validate(r.forAlliance(a)), new TimingModel(),
+                        BioBuzzConstants.Auto.RENDER_GALLERY_SHOWS_START_BANDS), files.get(RouteGallery.svgFileName(r, a)));
             }
         }
     }

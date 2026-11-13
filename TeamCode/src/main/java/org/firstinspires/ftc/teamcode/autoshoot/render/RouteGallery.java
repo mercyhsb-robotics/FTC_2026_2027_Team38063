@@ -25,6 +25,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.StartPlacement;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.TipModel;
@@ -246,6 +247,8 @@ public final class RouteGallery {
         h.append("and the small ringed dot is its center of rotation, the point every pose refers to (it is ").append(inches(BioBuzzConstants.Robot.FRONT_EXTENT_IN))
                 .append(" behind the front edge and ").append(inches(BioBuzzConstants.Robot.REAR_EXTENT_IN)).append(" in front of the back edge, so it is not in the middle). ");
         h.append("Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. ");
+        h.append("The tinted strips along the walls are where a robot that starts facing the way this route starts may be set up (rule G304: touching a wall, on its own half, clear of a FLOWER and the LOADING ZONE); ");
+        h.append("the start footprint lies on top of them. The pose is a point inside the robot that nobody can measure to, so every route also says in words where to put the robot, by its edges and corners, with a tape measure. ");
         h.append("A FLOWER is emptied by a WIGGLE of ONE flat wheel (the program picks the cheaper wheel): the robot drives in off center so that the wheel is beside the bottom POLLEN, turns on the spot toward it and back, once per POLLEN, and backs out. ");
         h.append("The diagram draws the robot where the wiggle starts, a faint second outline where it ends the push, a curved arrow for the sweep of the wheel and a label such as 'wiggle x4'; the short solid arrow is the straight final approach and the dotted arrow the straight retreat. ");
         h.append("Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>\n");
@@ -310,6 +313,9 @@ public final class RouteGallery {
         row(h, "Start tile", "RED " + esc(tileOf(e.red)) + ", BLUE " + esc(tileOf(e.blue)));
         row(h, "Start pose, RED", esc(pose(e.red.startPose())));
         row(h, "Start pose, BLUE", esc(pose(e.blue.startPose())));
+        // the pose is the center of rotation, a point inside the robot that nobody can measure to: these are the words for a tape measure, to the robot's EDGES
+        row(h, "Place the robot, RED", esc(StartPlacement.placementText(e.red)));
+        row(h, "Place the robot, BLUE", esc(StartPlacement.placementText(e.blue)));
         row(h, "Steps", Integer.toString(route.size()));
         row(h, "First tip", esc(route.firstTipSummary()));
         row(h, "Estimated time", seconds(a.totalSeconds()) + " of the " + seconds(BioBuzzConstants.Auto.AUTO_DURATION_SEC)
