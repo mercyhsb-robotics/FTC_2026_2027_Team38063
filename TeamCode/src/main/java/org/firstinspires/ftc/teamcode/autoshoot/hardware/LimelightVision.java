@@ -44,6 +44,7 @@ public final class LimelightVision {
     private int rejectedRange;
     private int framesSeen;
     private String lastProblem = "";
+    private final StringBuilder rawSummary = new StringBuilder();
 
     /** @throws IllegalArgumentException if the Limelight is not in the robot configuration */
     public LimelightVision(HardwareMap hardwareMap, CameraModel camera) {
@@ -112,6 +113,7 @@ public final class LimelightVision {
         }
 
         List<TagObservation> tags = new ArrayList<TagObservation>();
+        rawSummary.setLength(0);
         for (LLResultTypes.FiducialResult f : r.getFiducialResults()) {
             TagObservation t = convert(f);
             if (t != null) {
@@ -138,6 +140,7 @@ public final class LimelightVision {
             return TagObservation.bearingOnly(f.getFiducialId(), tx, ty, area, azimuth);
         }
         Position p = pose.getPosition().toUnit(DistanceUnit.INCH);
+        rawSummary.append(String.format("id%d raw=(%.1f, %.1f, %.1f) in; ", f.getFiducialId(), p.x, p.y, p.z));
         if (p.x == 0.0 && p.y == 0.0 && p.z == 0.0) {
             return TagObservation.bearingOnly(f.getFiducialId(), tx, ty, area, azimuth);   // "Full 3D" is off
         }
@@ -176,6 +179,14 @@ public final class LimelightVision {
 
     public String lastProblem() {
         return lastProblem;
+    }
+
+    /**
+     * The camera-space positions exactly as the Limelight reported them for the last frame (inches, before any
+     * axis conversion), for the diagnostic OpMode.
+     */
+    public String rawSummary() {
+        return rawSummary.toString();
     }
 
     /**
