@@ -178,6 +178,7 @@ public final class RouteAnalysis {
 
     private final AutoRoute route;
     private final AllianceField field;
+    private final TimingModel timing;
     private final List<StepInfo> infos;
     private final double totalSeconds;
     private final int pollenGained;
@@ -189,10 +190,11 @@ public final class RouteAnalysis {
     private final boolean park;
     private final double parkOverlapIn;
 
-    private RouteAnalysis(AutoRoute route, AllianceField field, List<StepInfo> infos, double totalSeconds,
+    private RouteAnalysis(AutoRoute route, AllianceField field, TimingModel timing, List<StepInfo> infos, double totalSeconds,
                           int pollenGained, int pollenShot, int tips, Hive hive) {
         this.route = route;
         this.field = field;
+        this.timing = timing;
         this.infos = Collections.unmodifiableList(infos);
         this.totalSeconds = totalSeconds;
         this.pollenGained = pollenGained;
@@ -387,13 +389,69 @@ public final class RouteAnalysis {
         }
         // A partner tip that is assumed after the route has ended still happens (the robot stands where it ended).
         hive.advanceTo(Double.POSITIVE_INFINITY);
-        return new RouteAnalysis(route, field, out, t, gained, shot, tips, hive);
+        return new RouteAnalysis(route, field, timing, out, t, gained, shot, tips, hive);
     }
 
     private static DrivePath approachOrNull(Pose2 from, Pose2 to) {
         boolean sameSpot = from.distanceTo(to) < 1e-6;
         boolean sameHeading = Math.abs(Angles.error(from.heading, to.heading)) < 1e-9;
         return sameSpot && sameHeading ? null : DrivePath.straight(from, to);
+    }
+
+    // ---- where is the robot at a given time? -------------------------------------------------------------
+
+    private static final double TINY = 1e-9;
+
+    /**
+     * The poses the robot has during one step between two route times (both inclusive), for checks that ask "where is
+     * the robot in the 3 seconds after the HIVE tips?". Empty if the step is not running in that window.
+     *
+     * <p>While the robot drives, its place follows the speed profile of the {@link TimingModel} (speed up, cruise,
+     * brake), sampled every {@code PATH_SAMPLE_STEP_IN}; the turn on the spot at the start of a leg is sampled too;
+     * after the move the robot stands at the end pose of the step (settling, taking POLLEN, shooting, waiting).
+     */
+    public List<Pose2> posesDuring(StepInfo info, double fromSec, double toSec) {
+        List<Pose2> out = new ArrayList<Pose2>();
+        double a = Math.max(fromSec, info.startSec);
+        double b = Math.min(toSec, info.endSec());
+        if (a > b + TINY) {
+            return out;
+        }
+        DrivePath leg = info.path != null ? info.path : info.approach;
+        if (leg == null) {
+            out.add(info.to);
+            return out;
+        }
+        double speed = info.step instanceof Step.Drive ? ((Step.Drive) info.step).speedFraction() : 1.0;
+        double travel = timing.legTravelSeconds(leg, speed);
+        double tauA = a - info.startSec;
+        double tauB = b - info.startSec;
+        if (tauA <= TINY) {
+            out.add(info.from);
+            out.addAll(leg.turnInPlaceSamples(Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG)));
+        }
+        if (tauA < travel) {
+            double arcA = arcAfter(leg, speed, travel, tauA);
+            double arcB = arcAfter(leg, speed, travel, Math.min(tauB, travel));
+            for (double s = arcA; s < arcB; s += BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN) {
+                out.add(leg.poseAt(s));
+            }
+            out.add(leg.poseAt(arcB));
+        }
+        if (tauB >= travel - TINY) {
+            out.add(info.to);
+        }
+        return out;
+    }
+
+    /** Arc length reached {@code tau} seconds into a leg whose movement takes {@code travelSec}, turning included. */
+    private double arcAfter(DrivePath leg, double speed, double travelSec, double tau) {
+        double driveSec = timing.translationSeconds(leg.length(), speed);
+        if (travelSec <= TINY || driveSec <= TINY) {
+            return tau <= TINY ? 0.0 : leg.length();
+        }
+        // when turning takes longer than driving, the driving is spread over the whole travel time
+        return timing.distanceAfter(leg.length(), speed, tau * driveSec / travelSec);
     }
 
     // ---- results ---------------------------------------------------------------------------------------

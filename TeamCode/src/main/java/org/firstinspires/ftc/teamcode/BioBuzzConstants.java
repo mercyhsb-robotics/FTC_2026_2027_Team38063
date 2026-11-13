@@ -134,6 +134,21 @@ public final class BioBuzzConstants {
          * it is a plan, not a promise.
          */
         public static final double PARTNER_FIRST_TIP_DONE_SEC = 12.0;
+        /**
+         * VERIFY (rule G409): when a HIVE tips, the cell that was UP tips down and everything in it (the staged
+         * NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE.
+         * G409 says a robot may not catch or deflect what a tipped HIVE releases, so for this many seconds after a
+         * tip the robot footprint must stay out of that cell's spill zone (see TIP_SPILL_MARGIN_IN). 3 s is a first
+         * guess for the balls to land and stop rolling: watch a real tip and replace it.
+         */
+        public static final double TIP_SPILL_CLEAR_SEC = 3.0;
+        /**
+         * VERIFY (rule G409): the spill zone is the plan footprint of the cell that tips (a 20 in wide box; for the red
+         * audience cell x [49.25, 69.25], y [52.3, 69.9], from field_layout 2.1) grown by this much on every side,
+         * because the balls bounce and roll a little after they land. The other cell's side of the HIVE is not part of
+         * it: a robot standing on the far side of the HIVE is clear. 6 in is a guess: POLLEN are 2.8 in balls.
+         */
+        public static final double TIP_SPILL_MARGIN_IN = 6.0;
         /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */
         public static final int LEAVE_POINTS = 3;
         /** FIXED (manual Table 10-2): PARK is worth 5 points in AUTO. */

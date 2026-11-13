@@ -108,6 +108,31 @@ public class TimingModelTest {
     }
 
     @Test
+    public void distanceAfterFollowsTheSameSpeedProfileAsTheTravelTime() {
+        for (double distance : new double[] {10.0, 100.0}) {      // 10 in is a triangle profile, 100 in has a cruise phase
+            double total = model.translationSeconds(distance, 1.0);
+            assertEquals("at rest at the start", 0.0, model.distanceAfter(distance, 1.0, 0.0), EPS);
+            assertEquals("arrives exactly when the travel time is up", distance, model.distanceAfter(distance, 1.0, total), 1e-6);
+            assertEquals("and stays there", distance, model.distanceAfter(distance, 1.0, total + 5.0), EPS);
+            assertEquals("the profile is symmetric: half the distance at half the time", distance / 2.0,
+                    model.distanceAfter(distance, 1.0, total / 2.0), 1e-6);
+            double previous = -1.0;
+            for (int i = 0; i <= 100; i++) {
+                double d = model.distanceAfter(distance, 1.0, total * i / 100.0);
+                assertTrue("never goes backwards: " + d + " after " + previous, d >= previous - 1e-9);
+                previous = d;
+            }
+        }
+        // the cruise phase moves at the cruise speed: 1 s in the middle of a long path is cruise-speed inches
+        double mid = model.translationSeconds(200, 1.0) / 2.0;
+        assertEquals(v, model.distanceAfter(200, 1.0, mid + 0.5) - model.distanceAfter(200, 1.0, mid - 0.5), 1e-6);
+        // and speeding up at the acceleration: after 0.5 s from rest the robot has gone a/2 x 0.25 in
+        assertEquals(0.5 * BioBuzzConstants.Auto.ACCEL_IN_PER_SEC2 * 0.25, model.distanceAfter(200, 1.0, 0.5), 1e-9);
+        // a slower leg takes longer and is behind the faster one at the same moment
+        assertTrue(model.distanceAfter(100, 0.5, 2.0) < model.distanceAfter(100, 1.0, 2.0));
+    }
+
+    @Test
     public void aWaitForTipLastsUntilTheTipButNeverBeyondItsTimeout() {
         // the tip is at 12 s: starting at 3 s the wait is 9 s...
         assertEquals(9.0, model.waitForTipSeconds(3.0, 12.0, 30.0), EPS);

@@ -51,6 +51,10 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       it by less than {@code PARK_MIN_OVERLAP_IN} is a WARN.</li>
  *   <li><b>Unplanned moves.</b> An explicit INTAKE/SHOOT/PARK pose farther than {@code IMPLICIT_MOVE_WARN_IN}
  *       from where the robot is gets a WARN: add a DRIVE so the path is planned and checked.</li>
+ *   <li><b>HIVE tips, G417 and G409.</b> A SHOOT must aim at a cell that faces UP when the POLLEN leave (an ERROR
+ *       in a route that assumes the partner shoots the first tip and the SHOOT starts before that tip, a WARN
+ *       otherwise), a volley must not go on firing after the tip, and for {@code TIP_SPILL_CLEAR_SEC} after every tip
+ *       the robot stays out of the spill zone of the cell that tipped. These live in {@link TipRules}.</li>
  * </ol>
  */
 public final class RouteValidator {
@@ -325,12 +329,7 @@ public final class RouteValidator {
             return;
         }
         Step.Shoot sh = (Step.Shoot) info.step;
-        if (!info.targetWasUp) {
-            Side upNow = info.upSideBefore;
-            out.add(warn(info.index, Rule.SHOOT_TARGET, describe(info) + ": fires at the " + info.targetSide
-                    + " cell, but at this point the " + upNow + " cell is the UP one; launching into a cell that faces"
-                    + " down is a G417 violation"));
-        }
+        // (Whether the target cell faces UP when the POLLEN leave is checked with the other tip rules, in TipRules.)
         if (sh.isAutoPose()) {
             return;     // the solver picks a pose on the standoff band by construction
         }

@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
@@ -346,6 +348,58 @@ public class RouteAnalysisTest {
         assertEquals(1, a.partnerTips());
         assertEquals("our points: only our own tip", BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
         assertEquals(Side.AUDIENCE, a.step(4).upSideAfter);
+    }
+
+    // ---- where is the robot at a given time? -----------------------------------------------------------------
+
+    @Test
+    public void posesDuringADriveFollowTheSpeedProfileAndEndAtTheTargetOnceTheMoveIsOver() {
+        // a straight 100 in leg along +y with the heading held at -90: speeds up at 60 in/s2 from rest
+        RouteAnalysis a = AutoRoute.builder("drive").start(58, 9.2, -90).driveConstant(58, 109.2, -90).waitSeconds(5).build()
+                .analyze();
+        RouteAnalysis.StepInfo drive = a.step(1);
+        // the first half second: the robot has gone 0.5 x 60 x 0.5^2 = 7.5 in
+        List<Pose2> early = a.posesDuring(drive, 0.0, 0.5);
+        assertEquals("starts where the leg starts", 9.2, early.get(0).y, 1e-9);
+        assertEquals("has gone 7.5 in after 0.5 s", 9.2 + 7.5, early.get(early.size() - 1).y, 1e-6);
+        double previous = 0;
+        for (Pose2 p : early) {
+            assertTrue("moves along +y only", p.y >= previous - 1e-9);
+            previous = p.y;
+        }
+        // the whole step reaches the target and ends there
+        List<Pose2> all = a.posesDuring(drive, 0.0, 100.0);
+        assertEquals(109.2, all.get(all.size() - 1).y, 1e-9);
+        // after the movement but before the settle time is over the robot stands at the target
+        double travelled = drive.durationSec - BioBuzzConstants.Auto.SETTLE_SEC;
+        List<Pose2> settling = a.posesDuring(drive, travelled + 0.01, drive.endSec());
+        assertEquals(1, settling.size());
+        assertEquals(109.2, settling.get(0).y, 1e-9);
+        // during the next step (the wait) it stands still at the end of the drive
+        List<Pose2> waiting = a.posesDuring(a.step(2), a.step(2).startSec + 1.0, a.step(2).startSec + 2.0);
+        assertEquals(1, waiting.size());
+        assertEquals(109.2, waiting.get(0).y, 1e-9);
+    }
+
+    @Test
+    public void aStepThatIsNotRunningInTheWindowHasNoPoses() {
+        RouteAnalysis a = AutoRoute.builder("drive").start(58, 9.2, -90).driveConstant(58, 109.2, -90).waitSeconds(5).build()
+                .analyze();
+        RouteAnalysis.StepInfo drive = a.step(1);
+        assertTrue(a.posesDuring(drive, drive.endSec() + 1.0, drive.endSec() + 2.0).isEmpty());
+        assertTrue(a.posesDuring(a.step(2), 0.0, 1.0).isEmpty());
+    }
+
+    @Test
+    public void posesDuringATurnOnTheSpotIncludeTheTurningPoses() {
+        // 90 degrees of turning in place at the start of a leg: the poses at the start point have different headings
+        RouteAnalysis a = AutoRoute.builder("turn").start(58, 9.2, -90).driveConstant(58, 30, 0).build().analyze();
+        List<Pose2> poses = a.posesDuring(a.step(1), 0.0, 0.0);
+        boolean sawOtherHeading = false;
+        for (Pose2 p : poses) {
+            sawOtherHeading |= Math.abs(Angles.error(p.heading, Math.toRadians(-90))) > 0.1;
+        }
+        assertTrue("the robot turns before it moves", sawOtherHeading);
     }
 
     @Test

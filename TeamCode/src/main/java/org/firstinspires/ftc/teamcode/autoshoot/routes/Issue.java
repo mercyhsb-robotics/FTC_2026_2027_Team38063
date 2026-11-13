@@ -37,6 +37,10 @@ public final class Issue {
         SHOOT_TARGET("G417", "shoot at an UP cell"),
         /** 10.5.4: PARK means partly inside the own LOADING ZONE. */
         PARK_ZONE("10.5.4", "PARK inside the LOADING ZONE"),
+        /** G409: do not catch or deflect what a tipped HIVE releases. */
+        SPILL_G409("G409", "stay clear of the cell that tips"),
+        /** Design rule: a route that says who shoots the first tip must be consistent with it. */
+        TIP_ASSUMPTION("-", "first-tip assumption"),
         /** Design rule: an explicit pose should be where the route already is. */
         IMPLICIT_MOVE("-", "pose reached by an unplanned move");
 
