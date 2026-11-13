@@ -47,7 +47,16 @@ public final class BioBuzzConstants {
             "Vision.CAMERA_FORWARD_IN",
             "Vision.CAMERA_LEFT_IN",
             "Vision.CAMERA_HEIGHT_IN",
-            "Vision.CAMERA_PITCH_UP_DEG"};
+            "Vision.CAMERA_PITCH_UP_DEG",
+            "Auto.CRUISE_SPEED_IN_PER_SEC",
+            "Auto.ACCEL_IN_PER_SEC2",
+            "Auto.TURN_RATE_DEG_PER_SEC",
+            "Auto.SETTLE_SEC",
+            "Auto.INTAKE_DWELL_FLOOR_SEC",
+            "Auto.INTAKE_DWELL_FLOWER_SEC",
+            "Auto.INTAKE_DWELL_GARDEN_SEC",
+            "Auto.AIM_SPINUP_SEC",
+            "Auto.TIME_PER_SHOT_SEC"};
 
     // =========================================================================================
     // HARDWARE NAMES (must match the robot configuration on the Driver Station exactly)
