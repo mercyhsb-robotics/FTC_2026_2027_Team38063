@@ -235,7 +235,7 @@ public final class RouteValidator {
         }
         if (hive.count > 0) {
             out.add(error(info.index, Rule.HIVE_KEEPOUT, what + ": the robot footprint enters the HIVE frame keep-out ("
-                    + "frame " + f.hiveFrame() + " + " + in(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN) + " margin) from "
+                    + "frame + " + in(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN) + ") from "
                     + in(hive.firstArc) + " to " + in(hive.lastArc) + " along the move, first at " + pose(hive.firstPose)));
         }
         for (int i = 0; i < flowers.length; i++) {
