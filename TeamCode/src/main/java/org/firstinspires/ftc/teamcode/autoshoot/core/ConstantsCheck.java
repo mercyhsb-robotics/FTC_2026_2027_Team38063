@@ -184,6 +184,7 @@ public final class ConstantsCheck {
         checkSpillZone(r, BioBuzzConstants.Auto.TIP_SPILL_REACH_IN, BioBuzzConstants.Auto.DOWN_CELL_PLAN_OUT_FAR_IN,
                 BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN, BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
         checkTipStop(r, BioBuzzConstants.Auto.BALL_FLIGHT_SEC, BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC, BioBuzzConstants.Auto.TIME_PER_SHOT_SEC);
+        checkPlanningNumbers(r, BioBuzzConstants.Shooter.FEEDER_FORWARD_POWER, BioBuzzConstants.Auto.PLAN_SHOT_SUCCESS, BioBuzzConstants.Auto.TIP_SETTLE_PLAN_SEC);
         checkStartSearch(r, BioBuzzConstants.Auto.START_SEARCH_STEP_IN, BioBuzzConstants.Auto.START_SEARCH_HEADING_STEP_DEG);
         checkStartPlacementMargin(r, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_IN, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_DEG);
         checkStartSearchLimits(r, BioBuzzConstants.Auto.START_SEARCH_MAX_VALIDATIONS, BioBuzzConstants.Auto.START_SEARCH_TIE_SEC);
@@ -372,6 +373,22 @@ public final class ConstantsCheck {
         }
         if (stopLatencySec < 0.0) {
             r.errors.add("Auto.TIP_STOP_LATENCY_SEC (" + stopLatencySec + ") cannot be negative: it is the time from the tipping POLLEN landing until the feeder has stopped.");
+        }
+    }
+
+    /**
+     * The numbers the route estimate is worked out from: the feeder power (the time between two POLLEN is divided by it, so it must be above 0), the
+     * chance that one POLLEN lands (more than 0 and at most 1: it is a probability) and the time a tip needs to settle (not negative).
+     */
+    static void checkPlanningNumbers(Report r, double feederPower, double shotSuccess, double tipSettlePlanSec) {
+        if (!(feederPower > 0.0)) {
+            r.errors.add("Shooter.FEEDER_FORWARD_POWER (" + feederPower + ") must be above 0: the route estimate works out the time between two POLLEN (Auto.TIME_PER_SHOT_SEC) by dividing by it.");
+        }
+        if (!(shotSuccess > 0.0) || shotSuccess > 1.0) {
+            r.errors.add("Auto.PLAN_SHOT_SUCCESS (" + shotSuccess + ") must be more than 0 and at most 1: it is the chance that one POLLEN lands in the cell.");
+        }
+        if (!(tipSettlePlanSec >= 0.0)) {
+            r.errors.add("Auto.TIP_SETTLE_PLAN_SEC (" + tipSettlePlanSec + ") cannot be negative: it is the time a tip needs to settle after its POLLEN leaves the shooter.");
         }
     }
 

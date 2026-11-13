@@ -1,0 +1,358 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
+<title id="svg-title">Aggressive: start as near the cell as the placement margin allows, shoot from beside its axis, park by the shortest way - RED alliance</title>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_aggressive_rear_edge for the RED alliance, starting in tile B6, with 7 steps: 1 START at (32.5, 131.6, 90 deg); 2 DRIVE off the wall constant to 32.5, 123.0; 3 DRIVE to the shooting pose constant to 51.3, 124.9; 4 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 20.7 s on the route clock; 5 SHOOT 4 at UP cell from (51.3, 124.9, 100 deg); 6 DRIVE to zone linear to 12.5, 106.0; 7 PARK at (12.5, 106.0, 180 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 20.2 s. Estimated 19.7 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
+<defs>
+<linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
+<stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
+<stop offset="1" stop-color="#c62828" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="area-blue" x1="0" y1="0" x2="1" y2="0">
+<stop offset="0" stop-color="#1565c0" stop-opacity="0.30"/>
+<stop offset="1" stop-color="#1565c0" stop-opacity="0"/>
+</linearGradient>
+<pattern id="opponent-hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<line x1="0" y1="0" x2="0" y2="9" stroke="#000000" stroke-opacity="0.07" stroke-width="2.5"/>
+</pattern>
+</defs>
+<rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
+<text id="title" x="24" y="27" font-size="11.35" font-weight="bold" fill="#222222">Aggressive: start as near the cell as the placement margin allows, shoot from beside its axis, park by the shortest way - RED alliance</text>
+<text id="subtitle" x="24" y="45" font-size="9.6" fill="#555555">id partner_aggressive_rear_edge  |  start tile B6  |  7 steps  |  red ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 20.2 s</text>
+<rect x="24" y="52" width="40" height="4" fill="#c62828"/>
+<g id="field">
+<rect class="alliance-area" data-alliance="RED" x="32.9" y="166.43" width="92" height="445.37" fill="url(#area-red)"/>
+<rect class="alliance-area" data-alliance="BLUE" x="775.1" y="166.43" width="92" height="445.37" fill="url(#area-blue)"/>
+<text x="78.9" y="389.12" font-size="9" fill="#c62828" text-anchor="middle" transform="rotate(-90 78.9 389.12)">RED ALLIANCE AREA</text>
+<text x="821.1" y="389.12" font-size="9" fill="#1565c0" text-anchor="middle" transform="rotate(-90 821.1 389.12)">BLUE ALLIANCE AREA</text>
+<rect class="tile" data-tile="A1" x="124.9" y="605.3" width="108.9" height="108.9" fill="#f3f1ea"/>
+<rect class="tile" data-tile="A2" x="124.9" y="497.2" width="108.9" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="A3" x="124.9" y="389.1" width="108.9" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="A4" x="124.9" y="281" width="108.9" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="A5" x="124.9" y="172.9" width="108.9" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="A6" x="124.9" y="64" width="108.9" height="108.9" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B1" x="233.8" y="605.3" width="108.1" height="108.9" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B2" x="233.8" y="497.2" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="B3" x="233.8" y="389.1" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B4" x="233.8" y="281" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="B5" x="233.8" y="172.9" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="B6" x="233.8" y="64" width="108.1" height="108.9" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C1" x="341.9" y="605.3" width="108.1" height="108.9" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C2" x="341.9" y="497.2" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="C3" x="341.9" y="389.1" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C4" x="341.9" y="281" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="C5" x="341.9" y="172.9" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="C6" x="341.9" y="64" width="108.1" height="108.9" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D1" x="450" y="605.3" width="108.1" height="108.9" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D2" x="450" y="497.2" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="D3" x="450" y="389.1" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D4" x="450" y="281" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="D5" x="450" y="172.9" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="D6" x="450" y="64" width="108.1" height="108.9" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E1" x="558.1" y="605.3" width="108.1" height="108.9" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E2" x="558.1" y="497.2" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="E3" x="558.1" y="389.1" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E4" x="558.1" y="281" width="108.1" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="E5" x="558.1" y="172.9" width="108.1" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="E6" x="558.1" y="64" width="108.1" height="108.9" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F1" x="666.2" y="605.3" width="108.9" height="108.9" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F2" x="666.2" y="497.2" width="108.9" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="F3" x="666.2" y="389.1" width="108.9" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F4" x="666.2" y="281" width="108.9" height="108.1" fill="#f3f1ea"/>
+<rect class="tile" data-tile="F5" x="666.2" y="172.9" width="108.9" height="108.1" fill="#e0ddd2"/>
+<rect class="tile" data-tile="F6" x="666.2" y="64" width="108.9" height="108.9" fill="#f3f1ea"/>
+<rect id="opponent-side" x="450" y="64" width="325.1" height="650.2" fill="url(#opponent-hatch)"/>
+<line id="side-line" x1="450" y1="714.2" x2="450" y2="64" stroke="#555555" stroke-width="1" stroke-dasharray="6 4"/>
+<text id="opponent-label" x="462" y="174.86" font-size="9" fill="#555555" text-anchor="middle" transform="rotate(-90 462 174.86)">opponent side in AUTO (G402)</text>
+<text class="tile-label" x="179.35" y="730.2" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">A</text>
+<text class="tile-label" x="287.85" y="730.2" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">B</text>
+<text class="tile-label" x="395.95" y="730.2" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">C</text>
+<text class="tile-label" x="504.05" y="730.2" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">D</text>
+<text class="tile-label" x="612.15" y="730.2" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">E</text>
+<text class="tile-label" x="720.65" y="730.2" font-size="13" font-weight="bold" text-anchor="middle" fill="#555555">F</text>
+<text class="tile-label" x="117.9" y="664.25" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">1</text>
+<text class="tile-label" x="117.9" y="555.75" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">2</text>
+<text class="tile-label" x="117.9" y="447.65" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">3</text>
+<text class="tile-label" x="117.9" y="339.55" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">4</text>
+<text class="tile-label" x="117.9" y="231.45" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">5</text>
+<text class="tile-label" x="117.9" y="122.95" font-size="13" font-weight="bold" text-anchor="end" fill="#555555">6</text>
+<rect id="field-border" x="124.9" y="64" width="650.2" height="650.2" fill="none" stroke="#333333" stroke-width="3"/>
+</g>
+<g id="structures">
+<rect id="hive-frame" x="336.23" y="299.53" width="227.54" height="179.14" fill="#9a9a9a" fill-opacity="0.30" stroke="#555555" stroke-width="2"/>
+<rect id="hive-keepout" x="322.43" y="285.73" width="255.14" height="206.74" fill="none" stroke="#555555" stroke-width="1" stroke-dasharray="2 3"/>
+<g id="hive-solid">
+<polygon class="hive-foot" points="336.23,478.67 345.35,478.67 345.35,299.53 336.23,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="554.65,478.67 563.77,478.67 563.77,299.53 554.65,299.53" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,477.01 343,477.01 358.92,451.48 358.92,446.42 353.86,446.42 337.94,471.95" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="337.94,306.25 353.86,331.78 358.92,331.78 358.92,326.72 343,301.19 337.94,301.19" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="541.08,451.48 557,477.01 562.06,477.01 562.06,471.95 546.14,446.42 541.08,446.42" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+<polygon class="hive-foot" points="541.08,331.78 546.14,331.78 562.06,306.25 562.06,301.19 557,301.19 541.08,326.72" fill="#555555" fill-opacity="0.55" stroke="#555555" stroke-width="1"/>
+</g>
+<text x="450" y="393.1" font-size="10" fill="#555555" text-anchor="middle">HIVE frame</text>
+<g class="hive" data-alliance="RED">
+<g class="cell cell-down" data-alliance="RED" data-side="REAR">
+<rect x="342.91" y="273.5" width="96.88" height="103.09" fill="#ffffff" fill-opacity="0.35" stroke="#c62828" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="391.35" y="328.55" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle">DOWN 30-33</text>
+</g>
+<g class="cell cell-up" data-alliance="RED" data-side="AUDIENCE">
+<rect x="342.91" y="396.55" width="96.88" height="84.82" fill="#c62828" fill-opacity="0.28" stroke="#c62828" stroke-width="2"/>
+<line class="cell-opening" x1="342.91" y1="481.38" x2="439.79" y2="481.38" stroke="#c62828" stroke-width="5"/>
+<circle class="aim-point" cx="391.35" cy="465.08" r="3.5" fill="#ffffff" stroke="#c62828" stroke-width="1.5"/>
+<text x="391.35" y="452.68" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle">UP 34-37</text>
+</g>
+</g>
+<g class="hive" data-alliance="BLUE">
+<g class="cell cell-down" data-alliance="BLUE" data-side="AUDIENCE">
+<rect x="460.21" y="401.61" width="96.88" height="103.09" fill="#ffffff" fill-opacity="0.35" stroke="#1565c0" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="508.65" y="456.66" font-size="9.5" font-weight="bold" fill="#1565c0" text-anchor="middle">DOWN 38-41</text>
+</g>
+<g class="cell cell-up" data-alliance="BLUE" data-side="REAR">
+<rect x="460.21" y="296.82" width="96.88" height="84.82" fill="#1565c0" fill-opacity="0.28" stroke="#1565c0" stroke-width="2"/>
+<line class="cell-opening" x1="460.21" y1="296.82" x2="557.09" y2="296.82" stroke="#1565c0" stroke-width="5"/>
+<circle class="aim-point" cx="508.65" cy="313.12" r="3.5" fill="#ffffff" stroke="#1565c0" stroke-width="1.5"/>
+<text x="508.65" y="332.52" font-size="9.5" font-weight="bold" fill="#1565c0" text-anchor="middle">UP 42-45</text>
+</g>
+</g>
+<g class="flower" data-flower="1">
+<rect x="124.9" y="483.02" width="23.15" height="27.37" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="137.02" cy="496.71" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="154.95" y="499.71" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="start">FLOWER 1</text>
+</g>
+<g class="flower" data-flower="2">
+<rect x="328.71" y="64" width="27.37" height="23.15" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="342.39" cy="76.12" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="342.39" y="98.95" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="middle">FLOWER 2</text>
+</g>
+<g class="flower" data-flower="3">
+<rect x="751.95" y="267.81" width="23.15" height="27.37" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="762.98" cy="281.49" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="745.05" y="284.49" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="end">FLOWER 3</text>
+</g>
+<g class="flower" data-flower="4">
+<rect x="543.92" y="691.05" width="27.37" height="23.15" fill="#f3b562" stroke="#b26a00" stroke-width="1.5"/>
+<circle cx="557.61" cy="702.08" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="557.61" y="685.25" font-size="9" fill="#b26a00" font-weight="bold" text-anchor="middle">FLOWER 4</text>
+</g>
+<g class="garden" data-alliance="RED">
+<rect x="127.54" y="702.36" width="104.37" height="9.2" fill="#c62828" fill-opacity="0.10" stroke="#c62828" stroke-width="1" stroke-dasharray="3 2"/>
+<circle class="pollen" cx="131.34" cy="707.76" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="144.63" cy="707.76" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="157.93" cy="707.76" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="171.22" cy="707.76" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="179.73" y="697.36" font-size="9" fill="#c62828" text-anchor="middle" font-weight="bold">GARDEN</text>
+</g>
+<g class="loading-zone" data-alliance="RED">
+<rect x="124.9" y="174.74" width="50.6" height="104.37" fill="#c62828" fill-opacity="0.16" stroke="#c62828" stroke-width="2"/>
+<text x="150.2" y="230.43" font-size="9.5" font-weight="bold" fill="#c62828" text-anchor="middle" transform="rotate(-90 150.2 226.93)">LOADING ZONE</text>
+</g>
+<g class="garden" data-alliance="BLUE">
+<rect x="668.09" y="66.64" width="104.37" height="9.2" fill="#1565c0" fill-opacity="0.10" stroke="#1565c0" stroke-width="1" stroke-dasharray="3 2"/>
+<circle class="pollen" cx="768.66" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="755.37" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="742.07" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<circle class="pollen" cx="728.78" cy="70.44" r="6.44" fill="#f2c230" stroke="#a67c00" stroke-width="1"/>
+<text x="720.27" y="88.84" font-size="9" fill="#1565c0" text-anchor="middle" font-weight="bold">GARDEN</text>
+</g>
+<g class="loading-zone" data-alliance="BLUE">
+<rect x="724.5" y="499.09" width="50.6" height="104.37" fill="#1565c0" fill-opacity="0.16" stroke="#1565c0" stroke-width="2"/>
+<text x="749.8" y="554.77" font-size="9.5" font-weight="bold" fill="#1565c0" text-anchor="middle" transform="rotate(-90 749.8 551.27)">LOADING ZONE</text>
+</g>
+<text id="audience-label" x="450" y="752.2" font-size="15" font-weight="bold" letter-spacing="4" text-anchor="middle" fill="#222222">AUDIENCE</text>
+<polygon class="compass-arrow" points="362,742.2 374,742.2 368,754.2" fill="#222222"/>
+<polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
+<text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
+</g>
+<g id="start-bands" data-heading="90">
+<title>Where a robot facing 90 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
+<rect class="start-band" data-wall="RED" data-from="8.03" data-to="34.18" x="124.9" y="556.99" width="11.5" height="120.27" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="58.65" data-to="84.81" x="124.9" y="324.06" width="11.5" height="120.37" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="125.3" data-to="131.58" x="124.9" y="108.94" width="11.5" height="28.86" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="8.9" data-to="61.87" x="165.84" y="702.7" width="243.68" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="8.9" data-to="35.05" x="165.84" y="64" width="120.27" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="59.52" data-to="61.87" x="398.67" y="64" width="10.85" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
+</g>
+<g id="route" data-ink="#c62828" data-alliance="RED" data-route="partner_aggressive_rear_edge">
+<g class="drive-leg" data-step="2" data-mode="CONSTANT">
+<title>step 2: DRIVE off the wall constant to 32.5, 123.0 (t = 0.0 to 1.0 s)</title>
+<path class="leg" d="M 274.4 108.94 L 274.4 148.4" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="274.4,148.4 269.4,138.4 279.4,138.4" fill="#c62828"/>
+</g>
+<g class="drive-leg" data-step="3" data-mode="CONSTANT">
+<title>step 3: DRIVE to the shooting pose constant to 51.3, 124.9 (t = 1.0 to 2.2 s) - Turns 10 degrees on the way, so the back points at the cell from the left of its axis.</title>
+<path class="leg" d="M 274.4 148.4 L 360.74 139.48" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="360.74,139.48 351.31,145.48 350.28,135.53" fill="#c62828"/>
+</g>
+<g class="drive-leg" data-step="6" data-mode="LINEAR">
+<title>step 6: DRIVE to zone linear to 12.5, 106.0 (t = 18.0 to 19.7 s) - Across the open floor above the HIVE keep-out while turning to face the zone, into the own LOADING ZONE.</title>
+<path class="leg" d="M 360.74 139.48 L 182.4 226.6" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<polygon class="arrowhead" points="271.57,183.04 278.36,174.16 282.75,183.14" fill="#c62828"/>
+<polygon class="arrowhead" points="182.4,226.6 189.19,217.72 193.58,226.7" fill="#c62828"/>
+</g>
+<g id="start-footprint" class="footprint start" data-step="1">
+<title>step 1: START at (32.5, 131.6, 90 deg) (t = 0.0 to 0.0 s) - Front edge ON the rear wall, facing it, as near the FLOWER as the placement margin allows: a hand that is 1 in and 3 degrees off still clears it on the first drive.</title>
+<polygon class="outline" points="233.46,64 233.46,145.88 315.34,145.88 315.34,64" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="233.46,76.42 233.46,145.88 315.34,145.88 315.34,76.42" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="233.46" y1="64" x2="315.34" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="233.46" y1="145.88" x2="315.34" y2="145.88" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="246.34" cy="70.44" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="302.46" cy="70.44" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="32.5" data-y="131.58">
+<circle cx="274.4" cy="108.94" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="271" y1="108.94" x2="277.8" y2="108.94" stroke="#c62828" stroke-width="1"/>
+<line x1="274.4" y1="105.54" x2="274.4" y2="112.34" stroke="#c62828" stroke-width="1"/>
+</g>
+<line class="heading-arrow" x1="274.4" y1="97.94" x2="274.4" y2="77" stroke="#c62828" stroke-width="2.5"/>
+<polygon class="arrowhead" points="274.4,69 279.4,79 269.4,79" fill="#c62828"/>
+</g>
+<g class="shoot-pose" data-step="5" data-nominal="false">
+<title>step 5: SHOOT 4 at UP cell from (51.3, 124.9, 100 deg) (t = 12.5 to 18.0 s) - 4 POLLEN into the empty cell do not tip it (it needs 8): they are banked for the second tip in TELEOP, so there is no spill here (G409).</title>
+<polygon class="outline" points="312.62,102.33 326.84,182.96 407.47,168.74 393.26,88.11" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-linejoin="round"/>
+<polygon class="chassis" points="314.78,114.56 326.84,182.96 407.47,168.74 395.41,100.34" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="312.62" y1="102.33" x2="393.26" y2="88.11" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="326.84" y1="182.96" x2="407.47" y2="168.74" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="326.42" cy="106.43" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="381.69" cy="96.69" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="51.27" data-y="124.94">
+<circle cx="360.74" cy="139.48" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="357.34" y1="139.48" x2="364.14" y2="139.48" stroke="#c62828" stroke-width="1"/>
+<line x1="360.74" y1="136.08" x2="360.74" y2="142.88" stroke="#c62828" stroke-width="1"/>
+</g>
+<line class="shot" x1="367.16" y1="175.85" x2="389.79" y2="304.25" stroke="#c62828" stroke-width="2.5" stroke-dasharray="8 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="391.35,313.12 384.69,304.14 394.54,302.4" fill="#c62828"/>
+</g>
+<g class="park-outline" data-step="7">
+<title>step 7: PARK at (12.5, 106.0, 180 deg) (t = 19.7 to 19.7 s) - Overlaps the LOADING ZONE by 8.3 in (the zone is 11 in deep), standing 2.7 in off the wall so the LEAVE is kept too (QA21).</title>
+<polygon class="outline" points="137.46,267.54 219.34,267.54 219.34,185.66 137.46,185.66" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
+<polygon class="chassis" points="149.88,267.54 219.34,267.54 219.34,185.66 149.88,185.66" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
+<line class="front-edge" x1="137.46" y1="267.54" x2="137.46" y2="185.66" stroke="#2e7d32" stroke-width="4.5"/>
+<line class="back-edge" x1="219.34" y1="267.54" x2="219.34" y2="185.66" stroke="#ef6c00" stroke-width="4.5"/>
+<circle class="wheel" data-wheel="LEFT" cx="143.9" cy="254.66" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<circle class="wheel" data-wheel="RIGHT" cx="143.9" cy="198.54" r="6.44" fill="#37474f" fill-opacity="0.88" stroke="#37474f" stroke-width="0.8"/>
+<g class="pose-point" data-x="12.5" data-y="106">
+<circle cx="182.4" cy="226.6" r="3.4" fill="#ffffff" fill-opacity="0.92" stroke="#c62828" stroke-width="1.6"/>
+<line x1="179" y1="226.6" x2="185.8" y2="226.6" stroke="#c62828" stroke-width="1"/>
+<line x1="182.4" y1="223.2" x2="182.4" y2="230" stroke="#c62828" stroke-width="1"/>
+</g>
+</g>
+<g id="badges">
+<g class="badge" data-step="1" data-kind="START">
+<title>step 1: START at (32.5, 131.6, 90 deg) (t = 0.0 to 0.0 s) - Front edge ON the rear wall, facing it, as near the FLOWER as the placement margin allows: a hand that is 1 in and 3 degrees off still clears it on the first drive.</title>
+<circle cx="274.4" cy="108.94" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="274.4" y="112.74" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+</g>
+<g class="badge" data-step="2" data-kind="DRIVE">
+<title>step 2: DRIVE off the wall constant to 32.5, 123.0 (t = 0.0 to 1.0 s)</title>
+<circle cx="274.4" cy="128.67" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="274.4" y="132.47" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
+</g>
+<g class="badge" data-step="3" data-kind="DRIVE">
+<title>step 3: DRIVE to the shooting pose constant to 51.3, 124.9 (t = 1.0 to 2.2 s) - Turns 10 degrees on the way, so the back points at the cell from the left of its axis.</title>
+<circle cx="317.57" cy="143.94" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="317.57" y="147.74" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
+</g>
+<g class="badge" data-step="4" data-kind="WAIT_FOR_TIP">
+<title>step 4: WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 20.7 s on the route clock (t = 2.2 to 12.5 s) - Waits for the CAMERA to see the rear cell up and steady (0.5 s), never for a time. 20.7 s on the route clock is the give-up time, the latest the rest of the route allows rounded down to a tenth: a partner that tips later gets no volley from us, the robot skips it and goes on to LEAVE and PARK.</title>
+<circle cx="360.74" cy="139.48" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="360.74" y="143.28" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
+</g>
+<g class="badge" data-step="5" data-kind="SHOOT">
+<title>step 5: SHOOT 4 at UP cell from (51.3, 124.9, 100 deg) (t = 12.5 to 18.0 s) - 4 POLLEN into the empty cell do not tip it (it needs 8): they are banked for the second tip in TELEOP, so there is no spill here (G409).</title>
+<circle cx="374.18" cy="126.04" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="374.18" y="129.84" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
+</g>
+<g class="badge" data-step="6" data-kind="DRIVE">
+<title>step 6: DRIVE to zone linear to 12.5, 106.0 (t = 18.0 to 19.7 s) - Across the open floor above the HIVE keep-out while turning to face the zone, into the own LOADING ZONE.</title>
+<circle cx="271.57" cy="183.04" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="271.57" y="186.84" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
+</g>
+<g class="badge" data-step="7" data-kind="PARK">
+<title>step 7: PARK at (12.5, 106.0, 180 deg) (t = 19.7 to 19.7 s) - Overlaps the LOADING ZONE by 8.3 in (the zone is 11 in deep), standing 2.7 in off the wall so the LEAVE is kept too (QA21).</title>
+<circle cx="182.4" cy="226.6" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
+<text x="182.4" y="230.4" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
+</g>
+</g>
+<g id="step-labels">
+<text class="step-label" x="289.4" y="126.94" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START B6</text>
+<text class="step-label" x="259.4" y="146.67" font-size="10" font-weight="bold" fill="#c62828" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">off the wall</text>
+<text class="step-label" x="332.57" y="161.94" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to the shooting pose</text>
+<g class="clock">
+<circle cx="249.66" cy="75.48" r="5.5" fill="#ffffff" stroke="#c62828" stroke-width="1.6"/>
+<polyline points="249.66,71.98 249.66,75.48 252.46,77.08" fill="none" stroke="#c62828" stroke-width="1.4" stroke-linecap="round"/>
+</g>
+<text class="step-label" x="360.74" y="79.48" font-size="11" font-weight="bold" fill="#c62828" text-anchor="middle" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">WAIT FOR TIP (give up at 20.7 s)</text>
+<text class="step-label" x="394.25" y="262.49" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
+<text class="step-label" x="286.57" y="201.04" font-size="10" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to zone</text>
+<text class="step-label" x="197.4" y="244.6" font-size="11" font-weight="bold" fill="#c62828" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>
+</g>
+<g id="issue-marks">
+</g>
+</g>
+<g id="legend">
+<g class="legend-item" data-icon="drive">
+<line x1="24" y1="770.2" x2="40" y2="770.2" stroke="#c62828" stroke-width="3" stroke-linecap="round"/>
+<polygon class="arrowhead" points="48,770.2 39,774.7 39,765.7" fill="#c62828"/>
+<text x="55" y="774.2" font-size="10.5" fill="#222222">DRIVE leg</text>
+</g>
+<g class="legend-item" data-icon="approach">
+<line x1="127.81" y1="770.2" x2="143.81" y2="770.2" stroke="#c62828" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>
+<polygon class="arrowhead" points="151.81,770.2 143.81,774.2 143.81,766.2" fill="#c62828"/>
+<text x="158.81" y="774.2" font-size="10.5" fill="#222222">move to a pose</text>
+</g>
+<g class="legend-item" data-icon="badge">
+<circle cx="274.07" cy="770.2" r="7" fill="#ffffff" stroke="#c62828" stroke-width="2"/>
+<text x="274.07" y="773.7" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
+<text x="293.07" y="774.2" font-size="10.5" fill="#222222">step number</text>
+</g>
+<g class="legend-item" data-icon="robot">
+<rect x="378.06" y="764.2" width="24" height="12" fill="#c62828" fill-opacity="0.14" stroke="#c62828" stroke-width="1.4"/>
+<rect x="378.06" y="764.2" width="19" height="12" fill="#c62828" fill-opacity="0.2"/>
+<circle cx="398.56" cy="766.7" r="2.6" fill="#37474f"/>
+<circle cx="398.56" cy="773.7" r="2.6" fill="#37474f"/>
+<circle cx="389.06" cy="770.2" r="2.2" fill="#ffffff" stroke="#c62828" stroke-width="1.2"/>
+<text x="409.06" y="774.2" font-size="10.5" fill="#222222">robot, dot = center of rotation</text>
+</g>
+<g class="legend-item" data-icon="front">
+<line x1="615.85" y1="770.2" x2="639.85" y2="770.2" stroke="#2e7d32" stroke-width="4.5"/>
+<text x="646.85" y="774.2" font-size="10.5" fill="#222222">FRONT = intake</text>
+</g>
+<g class="legend-item" data-icon="back">
+<line x1="750.11" y1="770.2" x2="774.11" y2="770.2" stroke="#ef6c00" stroke-width="4.5"/>
+<text x="781.11" y="774.2" font-size="10.5" fill="#222222">BACK = shooter</text>
+</g>
+<g class="legend-item" data-icon="intake">
+<circle cx="36" cy="787.2" r="6.5" fill="none" stroke="#c62828" stroke-width="2" stroke-dasharray="5 3"/>
+<text x="55" y="791.2" font-size="10.5" fill="#222222">INTAKE</text>
+</g>
+<g class="legend-item" data-icon="shoot">
+<line x1="109.54" y1="787.2" x2="125.54" y2="787.2" stroke="#c62828" stroke-width="2.5" stroke-dasharray="6 4"/>
+<polygon class="arrowhead" points="133.54,787.2 124.54,791.7 124.54,782.7" fill="#c62828"/>
+<text x="140.54" y="791.2" font-size="10.5" fill="#222222">SHOOT: launch to aim point</text>
+</g>
+<g class="legend-item" data-icon="wait">
+<circle cx="328.88" cy="787.2" r="6" fill="#ffffff" stroke="#c62828" stroke-width="1.6"/>
+<polyline points="328.88,783.2 328.88,787.2 331.88,789.2" fill="none" stroke="#c62828" stroke-width="1.4" stroke-linecap="round"/>
+<text x="347.88" y="791.2" font-size="10.5" fill="#222222">WAIT</text>
+</g>
+<g class="legend-item" data-icon="park">
+<rect x="390.24" y="781.2" width="24" height="12" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="2.4" stroke-dasharray="6 3"/>
+<text x="421.24" y="791.2" font-size="10.5" fill="#222222">PARK</text>
+</g>
+<g class="legend-item" data-icon="up">
+<rect x="463.6" y="781.2" width="24" height="12" fill="#c62828" fill-opacity="0.28" stroke="#c62828" stroke-width="1.8"/>
+<text x="494.6" y="791.2" font-size="10.5" fill="#222222">UP cell</text>
+</g>
+<g class="legend-item" data-icon="down">
+<rect x="555.23" y="781.2" width="24" height="12" fill="#ffffff" fill-opacity="0.35" stroke="#c62828" stroke-width="1.4" stroke-dasharray="5 3"/>
+<text x="586.23" y="791.2" font-size="10.5" fill="#222222">DOWN cell</text>
+</g>
+<g class="legend-item" data-icon="issue">
+<polygon points="671.04,779.2 679.04,793.2 663.04,793.2" fill="#f9a825"/>
+<text x="671.04" y="791.8" font-size="10" font-weight="bold" text-anchor="middle" fill="#222222">!</text>
+<text x="690.04" y="791.2" font-size="10.5" fill="#222222">finding (amber robot = ERROR)</text>
+</g>
+</g>
+<g id="footer">
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 19.7 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 8  (LEAVE 3, PARK 5, HIVE TIP 0)</text>
+<text id="footer-pollen" x="24" y="825.2" font-size="11.1" fill="#222222">POLLEN: hold 4 at start, +0 taken, -4 fired, 0 at the end (balance -4)   |   Validator: no findings   |   Partner tip +20 (not ours)</text>
+</g>
+</svg>

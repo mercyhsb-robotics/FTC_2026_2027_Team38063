@@ -3,14 +3,20 @@ package org.firstinspires.ftc.teamcode.autoshoot.hardware;
 import java.util.List;
 
 import com.pedropathing.api.Paths;
+import com.pedropathing.config.ConfigVar;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
+import com.pedropathing.paths.interpolator.Interpolator;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.AutoShootController;
 import org.firstinspires.ftc.teamcode.autoshoot.core.HeadingProfile;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.DrivePath;
+import org.firstinspires.ftc.teamcode.autoshoot.run.DriveCommand;
 
 /**
  * The only class that talks to Pedro Pathing for the auto-shoot feature. It turns the controller's
@@ -53,7 +59,7 @@ public final class PedroDrive {
     private static final double HOLD_REISSUE_RAD = Math.toRadians(0.25);
 
     // Which kind of command we last gave the follower (NONE = nothing yet, or we just reset the pose).
-    private enum Applied { NONE, MANUAL, FOLLOW, HOLD }
+    private enum Applied { NONE, MANUAL, FOLLOW, HOLD, LEG }
 
     private final Follower follower;
     private Applied applied = Applied.NONE;
@@ -61,9 +67,23 @@ public final class PedroDrive {
     private List<double[]> activeRoute;
     // The pose of the last hold command, to tell whether a new hold command really moved the target.
     private Pose2 lastHold;
+    // The DRIVE leg being followed (compared by identity, like the waypoint list), see followLeg().
+    private DrivePath activeLeg;
+    // Pedro's setting that caps the speed along a path (the ForesightConfig's maxPathSpeed), or null if the caller gave none (then a slow leg runs at full speed).
+    private ConfigVar<Double> pathSpeedLimit;
 
     public PedroDrive(Follower follower) {
         this.follower = follower;
+    }
+
+    /**
+     * Gives the drive the Pedro setting that caps the speed along a path, {@code Constants.foresightConfig.maxPathSpeed}, so that a DRIVE leg
+     * (or the slow approach to a FLOWER) that asks for a fraction of the cruise speed really gets it. It is applied to that one path only. Without
+     * it a slow leg runs at the normal speed. Returns this drive so it can be chained after the constructor.
+     */
+    public PedroDrive withPathSpeedLimit(ConfigVar<Double> maxPathSpeed) {
+        this.pathSpeedLimit = maxPathSpeed;
+        return this;
     }
 
     /** The underlying Pedro Follower, for code that needs something this wrapper does not offer. */
@@ -114,6 +134,7 @@ public final class PedroDrive {
         follower.manual(forward, strafe, turn);
         applied = Applied.MANUAL;
         activeRoute = null;
+        activeLeg = null;
         lastHold = null;
     }
 
@@ -132,6 +153,7 @@ public final class PedroDrive {
         applied = Applied.HOLD;
         lastHold = target;
         activeRoute = null;
+        activeLeg = null;
     }
 
     /**
@@ -172,7 +194,52 @@ public final class PedroDrive {
         follower.follow(path);
         applied = Applied.FOLLOW;
         activeRoute = waypoints;
+        activeLeg = null;
         lastHold = null;
+    }
+
+    /**
+     * Follows one DRIVE leg of a route: the straight line or Bezier curve of the {@link DrivePath} with the heading rule the leg names, as one Pedro
+     * path. This is how the route checker and the drive stay the same thing: the validator sweeps the robot along exactly this
+     * {@code DrivePath}, and Pedro's heading interpolators (tangent, reverse tangent, linear, constant, facing a point) are the modes of the leg
+     * one to one. Issued once per leg: the same {@code DrivePath} object is ignored while it is being followed.
+     *
+     * @param speedFraction the fraction (0, 1] of the cruise speed ({@code Auto.CRUISE_SPEED_IN_PER_SEC}) to drive at; below 1 it needs
+     *                      {@link #withPathSpeedLimit}
+     */
+    public void followLeg(DrivePath leg, double speedFraction) {
+        if (applied == Applied.LEG && leg == activeLeg) {
+            return;
+        }
+        if (leg.length() < BioBuzzConstants.AutoShoot.PATH_MIN_LEG_IN) {
+            hold(leg.end());                     // nothing to follow: Pedro cannot follow a zero-length line
+            return;
+        }
+        Path path = legPath(leg);
+        if (speedFraction < 1.0 && pathSpeedLimit != null) {
+            path = path.with(pathSpeedLimit.at(BioBuzzConstants.Auto.CRUISE_SPEED_IN_PER_SEC * speedFraction));
+        }
+        follower.follow(path);
+        applied = Applied.LEG;
+        activeLeg = leg;
+        activeRoute = null;
+        lastHold = null;
+    }
+
+    /** Applies a command of the route runner: hold a pose, drive through waypoints, or follow a DRIVE leg. */
+    public void apply(DriveCommand command) {
+        switch (command.kind) {
+            case WAYPOINTS:
+                follow(command.waypoints, command.pose.heading, command.turnHoldIn, command.turnSettleIn);
+                break;
+            case LEG:
+                followLeg(command.leg, command.speedFraction);
+                break;
+            case HOLD:
+            default:
+                hold(command.pose);
+                break;
+        }
     }
 
     /** Applies whatever the controller asked for this loop. */
@@ -199,10 +266,44 @@ public final class PedroDrive {
         follower.update();
         applied = Applied.NONE;
         activeRoute = null;
+        activeLeg = null;
         lastHold = null;
     }
 
     // ------------------------------------------------------------------------------------- paths
+
+    /**
+     * The Pedro path of a DRIVE leg: the leg's control points (two = a line, more = a Bezier curve whose control points the path is pulled toward)
+     * with Pedro's heading interpolator for the leg's heading mode. The names match one to one ({@code HeadingMode} says so), and
+     * {@code PedroLegPathTest} checks it: at every point of the leg Pedro's path has the same place and the same heading as the {@link DrivePath}
+     * the route checker swept. (Package-private only so that test can reach it.)
+     */
+    static Path legPath(DrivePath leg) {
+        List<Point2> control = leg.controlPoints();
+        Pose[] points = new Pose[control.size()];
+        for (int i = 0; i < points.length; i++) {
+            points[i] = new Pose(control.get(i).x, control.get(i).y, 0.0);
+        }
+        Path path = points.length == 2 ? Paths.line(points[0], points[1]) : Paths.curve(points);
+        Pose2 start = leg.start();
+        Pose2 end = leg.end();
+        switch (leg.mode()) {
+            case TANGENT:
+                return path.tangent();
+            case REVERSE_TANGENT:
+                return path.reverseTangent();
+            case CONSTANT:
+                return path.constant(end.heading);
+            case FACE_POINT: {
+                Interpolator face = Interpolator.facingPoint(new Pose(leg.facePoint().x, leg.facePoint().y, 0.0));
+                return path.heading(leg.facesWithBack() ? face.reverse() : face);
+            }
+            case LINEAR:
+            default:
+                // the heading turns evenly the SHORT way round, from the heading the leg starts with to the one it ends with
+                return path.linear(start.heading, start.heading + Angles.error(start.heading, end.heading));
+        }
+    }
 
     /**
      * Builds one Pedro path that starts at {@code start}, passes through the waypoints in order and ends

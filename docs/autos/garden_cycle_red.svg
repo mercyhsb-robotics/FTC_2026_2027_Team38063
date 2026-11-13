@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall - RED alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route garden_cycle for the RED alliance, starting in tile B1, with 6 steps: 1 START at (35.0, 9.8, -90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE to GARDEN constant to 9.0, 18.0; 4 DRIVE into GARDEN constant to 9.0, 10.6; 5 INTAKE GARDEN +3 from (9.0, 10.6, -90 deg); 6 DRIVE off the wall constant to 20.0, 24.0. First tip: we shoot the first tip. Estimated 14.1 s, POLLEN balance -1, up to 23 points for our robot; 0 errors and 1 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route garden_cycle for the RED alliance, starting in tile B1, with 6 steps: 1 START at (35.0, 9.8, -90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE to GARDEN constant to 9.0, 18.0; 4 DRIVE into GARDEN constant to 9.0, 10.6; 5 INTAKE GARDEN +3 from (9.0, 10.6, -90 deg); 6 DRIVE off the wall constant to 20.0, 24.0. First tip: we shoot the first tip. Estimated 13.8 s, POLLEN balance -1, up to 23 points for our robot; 0 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -178,18 +178,18 @@
 <polygon class="arrowhead" points="391.35,658.42 383.8,663.22 382.98,655.26" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
+<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 6.8 to 8.7 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
 <path class="leg" d="M 391.35 658.42 L 166.3 631.4" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="278.82,644.91 289.35,641.14 288.16,651.07" fill="#c62828"/>
 <polygon class="arrowhead" points="166.3,631.4 176.82,627.63 175.63,637.56" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="4" data-mode="CONSTANT">
-<title>step 4: DRIVE into GARDEN constant to 9.0, 10.6 (t = 9.2 to 10.2 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
+<title>step 4: DRIVE into GARDEN constant to 9.0, 10.6 (t = 8.7 to 9.6 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
 <path class="leg" d="M 166.3 631.4 L 166.3 665.58" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="166.3,665.58 161.3,655.58 171.3,655.58" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="6" data-mode="CONSTANT">
-<title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.7 to 14.1 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
+<title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.6 to 13.8 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
 <path class="leg" d="M 166.3 665.58 L 216.9 603.8" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="216.9,603.8 214.43,614.71 206.7,608.37" fill="#c62828"/>
 </g>
@@ -210,7 +210,7 @@
 <polygon class="arrowhead" points="285.9,709.2 280.9,699.2 290.9,699.2" fill="#c62828"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="true">
-<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.0 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on. - pose drawn is the nominal standoff pose; the solver picks the real one</title>
+<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 6.8 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on. - pose drawn is the nominal standoff pose; the solver picks the real one</title>
 <polygon class="outline" points="432.29,703.36 432.29,621.48 350.41,621.48 350.41,703.36" fill="#c62828" fill-opacity="0.1" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
 <polygon class="chassis" points="432.29,690.94 432.29,621.48 350.41,621.48 350.41,690.94" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="432.29" y1="703.36" x2="350.41" y2="703.36" stroke="#2e7d32" stroke-width="4.5"/>
@@ -226,7 +226,7 @@
 <polygon class="arrowhead" points="391.35,465.08 396.35,475.08 386.35,475.08" fill="#c62828"/>
 </g>
 <g class="intake" data-step="5" data-source="GARDEN">
-<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 10.2 to 12.7 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
+<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 9.6 to 12.6 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
 <polygon class="outline" points="207.24,710.52 207.24,628.64 125.36,628.64 125.36,710.52" fill="#c62828" fill-opacity="0.07" stroke="#c62828" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
 <polygon class="chassis" points="207.24,698.1 207.24,628.64 125.36,628.64 125.36,698.1" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="207.24" y1="710.52" x2="125.36" y2="710.52" stroke="#2e7d32" stroke-width="4.5"/>
@@ -241,7 +241,7 @@
 <circle class="intake-ring" cx="151.12" cy="707.76" r="32.2" fill="none" stroke="#c62828" stroke-width="2.5" stroke-dasharray="7 4"/>
 </g>
 <g class="end-outline" data-step="6">
-<title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.7 to 14.1 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
+<title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.6 to 13.8 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
 <polygon class="outline" points="257.84,648.74 257.84,566.86 175.96,566.86 175.96,648.74" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="257.84,636.32 257.84,566.86 175.96,566.86 175.96,636.32" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="257.84" y1="648.74" x2="175.96" y2="648.74" stroke="#2e7d32" stroke-width="4.5"/>
@@ -261,27 +261,27 @@
 <text x="285.9" y="673.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
-<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 7.0 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on.</title>
+<title>step 2: SHOOT 4 at UP cell from the solver&apos;s pose (t = 0.0 to 6.8 s) - AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only about 0.85 s after the tip); the REAR cell is the UP one from now on.</title>
 <circle cx="391.35" cy="658.42" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="391.35" y="662.22" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 7.0 to 9.2 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
+<title>step 3: DRIVE to GARDEN constant to 9.0, 18.0 (t = 6.8 to 8.7 s) - Slides along the audience wall with the intake still facing it. The robot&apos;s side edge is only 0.1 in from the red wall all the way to the GARDEN and back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.</title>
 <circle cx="278.82" cy="644.91" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="278.82" y="648.71" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
-<title>step 4: DRIVE into GARDEN constant to 9.0, 10.6 (t = 9.2 to 10.2 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
+<title>step 4: DRIVE into GARDEN constant to 9.0, 10.6 (t = 8.7 to 9.6 s) - Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).</title>
 <circle cx="166.3" cy="648.49" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="166.3" y="652.29" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="INTAKE">
-<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 10.2 to 12.7 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
+<title>step 5: INTAKE GARDEN +3 from (9.0, 10.6, -90 deg) (t = 9.6 to 12.6 s) - NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; 4 is the most it may hold (G407), so the intake never takes a 4th.</title>
 <circle cx="185.3" cy="665.58" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="185.3" y="669.38" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="DRIVE">
-<title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.7 to 14.1 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
+<title>step 6: DRIVE off the wall constant to 20.0, 24.0 (t = 12.6 to 13.8 s) - Ends with the whole footprint more than 1.5 in off every wall: LEAVE.</title>
 <circle cx="191.6" cy="634.69" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="191.6" y="638.49" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
@@ -369,10 +369,10 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 14.1 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 23  (LEAVE 3, PARK 0, HIVE TIP 20)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 13.8 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 23  (LEAVE 3, PARK 0, HIVE TIP 20)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#222222">POLLEN: hold 4 at start, +3 taken, -4 fired, 3 at the end (balance -1)   |   Validator: 0 ERROR, 1 WARN</text>
 <g class="issue-line" data-severity="WARN">
-<title>WARN step 2 [G417] step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</title>
+<title>WARN step 2 [G417] step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 1.00 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.50 s the spare stays in the robot</title>
 <text x="24" y="838.2" font-size="10" fill="#7a5a00">WARN step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN cou...</text>
 </g>
 </g>

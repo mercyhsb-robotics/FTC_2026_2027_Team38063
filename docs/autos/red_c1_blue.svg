@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Copy of RedAlliance_C1: shoot 4, then through the HIVE to the LOADING ZONE (do not run) - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_c1 for the BLUE alliance, starting in tile D6, with 7 steps: 1 START at (83.3, 132.1, 90 deg); 2 SHOOT 4 at UP cell from (83.3, 132.1, 90 deg); 3 WAIT 4.5 s; 4 DRIVE path1 reverse tangent to 79.3, 23.2; 5 DRIVE path2 reverse tangent to 83.3, 23.2; 6 DRIVE path3 reverse tangent to 129.3, 23.2; 7 PARK at (129.3, 23.2, 180 deg). First tip: we shoot the first tip. Estimated 16.1 s, POLLEN balance -4, up to 28 points for our robot; 3 errors and 1 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_c1 for the BLUE alliance, starting in tile D6, with 7 steps: 1 START at (83.3, 132.1, 90 deg); 2 SHOOT 4 at UP cell from (83.3, 132.1, 90 deg); 3 WAIT 4.5 s; 4 DRIVE path1 reverse tangent to 79.3, 23.2; 5 DRIVE path2 reverse tangent to 83.3, 23.2; 6 DRIVE path3 reverse tangent to 129.3, 23.2; 7 PARK at (129.3, 23.2, 180 deg). First tip: we shoot the first tip. Estimated 15.4 s, POLLEN balance -4, up to 28 points for our robot; 3 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -173,18 +173,18 @@
 </g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="red_c1">
 <g class="drive-leg" data-step="4" data-mode="REVERSE_TANGENT">
-<title>step 4: DRIVE path1 reverse tangent to 79.3, 23.2 (t = 9.5 to 13.2 s)</title>
+<title>step 4: DRIVE path1 reverse tangent to 79.3, 23.2 (t = 9.5 to 12.6 s)</title>
 <path class="leg" d="M 508.3 106.32 L 489.9 607.26" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="499.1,356.79 494.47,346.61 504.46,346.98" fill="#1565c0"/>
 <polygon class="arrowhead" points="489.9,607.26 485.27,597.08 495.26,597.45" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="REVERSE_TANGENT">
-<title>step 5: DRIVE path2 reverse tangent to 83.3, 23.2 (t = 13.2 to 14.0 s)</title>
+<title>step 5: DRIVE path2 reverse tangent to 83.3, 23.2 (t = 12.6 to 13.6 s)</title>
 <path class="leg" d="M 489.9 607.26 L 508.3 607.26" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="508.3,607.26 498.3,612.26 498.3,602.26" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="6" data-mode="REVERSE_TANGENT">
-<title>step 6: DRIVE path3 reverse tangent to 129.3, 23.2 (t = 14.0 to 16.1 s)</title>
+<title>step 6: DRIVE path3 reverse tangent to 129.3, 23.2 (t = 13.6 to 15.4 s)</title>
 <path class="leg" d="M 508.3 607.26 L 719.9 607.26" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="614.1,607.26 604.1,612.26 604.1,602.26" fill="#1565c0"/>
 <polygon class="arrowhead" points="719.9,607.26 709.9,612.26 709.9,602.26" fill="#1565c0"/>
@@ -222,7 +222,7 @@
 <polygon class="arrowhead" points="508.65,313.12 503.63,303.13 513.63,303.11" fill="#1565c0"/>
 </g>
 <g class="park-outline" data-step="7">
-<title>step 7: PARK at (129.3, 23.2, 180 deg) (t = 16.1 to 16.1 s)</title>
+<title>step 7: PARK at (129.3, 23.2, 180 deg) (t = 15.4 to 15.4 s)</title>
 <polygon class="outline" points="674.96,648.2 756.84,648.2 756.84,566.32 674.96,566.32" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="687.38,648.2 756.84,648.2 756.84,566.32 687.38,566.32" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="674.96" y1="648.2" x2="674.96" y2="566.32" stroke="#2e7d32" stroke-width="4.5"/>
@@ -252,22 +252,22 @@
 <text x="521.74" y="123.56" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
-<title>step 4: DRIVE path1 reverse tangent to 79.3, 23.2 (t = 9.5 to 13.2 s)</title>
+<title>step 4: DRIVE path1 reverse tangent to 79.3, 23.2 (t = 9.5 to 12.6 s)</title>
 <circle cx="499.1" cy="356.79" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="499.1" y="360.59" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
-<title>step 5: DRIVE path2 reverse tangent to 83.3, 23.2 (t = 13.2 to 14.0 s)</title>
+<title>step 5: DRIVE path2 reverse tangent to 83.3, 23.2 (t = 12.6 to 13.6 s)</title>
 <circle cx="499.1" cy="607.26" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="499.1" y="611.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="DRIVE">
-<title>step 6: DRIVE path3 reverse tangent to 129.3, 23.2 (t = 14.0 to 16.1 s)</title>
+<title>step 6: DRIVE path3 reverse tangent to 129.3, 23.2 (t = 13.6 to 15.4 s)</title>
 <circle cx="614.1" cy="607.26" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="614.1" y="611.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
 <g class="badge" data-step="7" data-kind="PARK">
-<title>step 7: PARK at (129.3, 23.2, 180 deg) (t = 16.1 to 16.1 s)</title>
+<title>step 7: PARK at (129.3, 23.2, 180 deg) (t = 15.4 to 15.4 s)</title>
 <circle cx="719.9" cy="607.26" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="719.9" y="611.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
 </g>
@@ -366,7 +366,7 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 16.1 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 15.4 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#b71c1c">POLLEN: hold 4 at start, +0 taken, -4 fired, 0 at the end (balance -4)   |   Validator: 3 ERROR, 1 WARN</text>
 <g class="issue-line" data-severity="ERROR">
 <title>ERROR step 1 [G304] start footprint at (83.3, 132.1, 90 deg) sticks out of the field by 0.6 in (G304.A): its center of rotation is 9.2 in from the wall at y = 141.3 but the robot&apos;s edge that faces that wall reaches 9.8 in from the center (front 9.8 in, rear 8.0 in, sides 8.9 in); place the real robot with that edge ON the wall, its center 9.8 in out</title>

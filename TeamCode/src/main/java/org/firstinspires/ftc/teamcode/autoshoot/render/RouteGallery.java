@@ -264,7 +264,7 @@ public final class RouteGallery {
 
         // ---- summary table
         h.append("<section id=\"summary\">\n<h2>All routes</h2>\n<div class=\"tablewrap\">\n<table class=\"summary\">\n<thead><tr>");
-        for (String col : new String[] {"Route", "Start tile (RED / BLUE)", "First tip", "Steps", "Estimated time", "Our AUTO points", "POLLEN balance", "Validator"}) {
+        for (String col : new String[] {"Route", "Start tile (RED / BLUE)", "First tip", "Steps", "Estimated time", "Our AUTO points", "Expected points (estimate)", "POLLEN balance", "Validator"}) {
             h.append("<th>").append(esc(col)).append("</th>");
         }
         h.append("</tr></thead>\n<tbody>\n");
@@ -282,6 +282,7 @@ public final class RouteGallery {
             h.append("<td>").append(e.route.size()).append("</td>");
             h.append("<td>").append(seconds(a.totalSeconds())).append("</td>");
             h.append("<td>").append(a.points()).append("</td>");
+            h.append("<td>").append(oneDecimal(a.expectedPoints())).append("</td>");
             h.append("<td>").append(signed(a.pollenBalance())).append("</td>");
             h.append("<td>").append(statusHtml(e)).append("</td>");
             h.append("</tr>\n");
@@ -322,6 +323,10 @@ public final class RouteGallery {
                 + " AUTO (placeholder timing)");
         row(h, "Our AUTO points", a.points() + " = LEAVE " + a.leavePoints() + " + PARK " + a.parkPoints() + " + our HIVE TIP "
                 + a.tipPoints());
+        row(h, "Expected AUTO points (estimate)", esc(a.expectedPointsText()));
+        if (!a.lastTipCompleteText().isEmpty()) {
+            row(h, "When the tip is complete (plan)", esc(a.lastTipCompleteText()));
+        }
         if (a.partnerTipAssumed()) {
             row(h, "Assumed partner tip", a.partnerTips() == 1
                     ? "+" + a.partnerTipPoints() + " for the alliance at " + seconds(a.partnerTipSec())

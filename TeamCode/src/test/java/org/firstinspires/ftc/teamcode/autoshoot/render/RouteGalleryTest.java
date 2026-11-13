@@ -284,9 +284,16 @@ public class RouteGalleryTest {
         assertTrue("the summary row of the partner route carries the latest tip", inSummary);
         // routes that shoot the first tip themselves have no such row
         assertFalse(section(page, "garden_cycle").getTextContent().contains("Latest partner tip"));
+        // (the partner routes: this test's own and every one of the catalog, which are written with partnerTipsFirst())
+        java.util.Set<String> partnerIds = new java.util.HashSet<String>();
+        partnerIds.add("partner_rear");
+        for (AutoRoute r : RouteCatalog.all()) {
+            if (r.firstTip() == org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip.PARTNER) {
+                partnerIds.add(r.id());
+            }
+        }
         for (Element row : withClass(page, "tr", "summary-row")) {
-            // (the two partner routes: this test's own and the one of the catalog)
-            if (!row.getAttribute("data-route").equals("partner_rear") && !row.getAttribute("data-route").equals("partner_rear_shoot_park")) {
+            if (!partnerIds.contains(row.getAttribute("data-route"))) {
                 assertFalse(row.getTextContent(), row.getTextContent().contains("latest tip that works"));
             }
         }
@@ -453,14 +460,14 @@ public class RouteGalleryTest {
     @Test
     public void aVolleyThatWaitsForTheCameraToConfirmOurOwnTipSaysSo() throws Exception {
         // two volleys from the same pose: the second goes into the cell that came up with OUR tip and starts only after the camera has seen it steady
+        // (the first fires exactly the 3 POLLEN that tip, so nothing of it is spent after the tip)
         AutoRoute two = AutoRoute.builder("two").title("Two").description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
-                .shootUp(58, 30, -90, 4).shootSide(org.firstinspires.ftc.teamcode.autoshoot.core.Side.REAR, 58, 30, -90, 2).build();
+                .shootUp(58, 30, -90, 3).shootSide(org.firstinspires.ftc.teamcode.autoshoot.core.Side.REAR, 58, 30, -90, 2).build();
         Document page = parse(RouteGallery.indexHtml(Collections.singletonList(two)));
         List<Element> notes = withClass(section(page, "two"), "div", "confirmnote");
         assertEquals(1, notes.size());
-        // the 4th POLLEN of the first volley is launched before the feeder stops, which is 0.9 s after the 3rd left; the tip lands 0.5 s after it left and is
-        // confirmed 0.5 s after that: the robot has only 0.1 s left to wait
-        assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("stands here for 0.1 s until its camera has seen the cell that came up with its own tip steady"));
+        // the volley ends when the 3rd POLLEN has left; the tip lands 0.5 s after that and is confirmed 0.5 s after that: the robot waits 1.0 s
+        assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("stands here for 1.0 s until its camera has seen the cell that came up with its own tip steady"));
         assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("never because a time has passed"));
         // a route with a single volley has no such wait
         assertEquals(0, withClass(section(parse(RouteGallery.indexHtml(RouteCatalog.all())), "garden_cycle"), "div", "confirmnote").size());

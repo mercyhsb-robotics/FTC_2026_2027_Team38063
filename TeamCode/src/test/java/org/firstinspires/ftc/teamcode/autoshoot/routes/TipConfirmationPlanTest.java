@@ -264,8 +264,10 @@ public class TipConfirmationPlanTest {
         double clear = BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC;
         // stand right at the edge of the spill zone of the cell our volley tips (0.1 in short of it), wait, then step 1 in into it
         AutoRoute.Builder own = AutoRoute.builder("own").start(58, FRONT, -90).shootUp(58, AT_THE_ZONE_Y, -90, 4);
-        // waiting exactly the clear time (3.0 s) after the tip leaves the step into the zone inside the confirmed window (tip + 0.5 + 3.0)
-        List<Issue> inside = RouteValidator.check(own.waitSeconds(clear).driveConstant(58, AT_THE_ZONE_Y + 1.0, -90).build());
+        // the volley ends one time between POLLEN minus the flight after the tip lands (the spare is launched before the feeder stops), and the window runs
+        // until the tip plus the settle time plus the clear time: waiting 0.3 s less than what is left of it leaves the step into the zone inside it
+        double stillInside = clear + SETTLE - (BioBuzzConstants.Auto.TIME_PER_SHOT_SEC - BioBuzzConstants.Auto.BALL_FLIGHT_SEC) - 0.3;
+        List<Issue> inside = RouteValidator.check(own.waitSeconds(stillInside).driveConstant(58, AT_THE_ZONE_Y + 1.0, -90).build());
         assertEquals(inside.toString(), 1, count(inside, Rule.SPILL_G409, Severity.ERROR));
         // waiting the clear time plus the settle time is enough
         AutoRoute.Builder own2 = AutoRoute.builder("own2").start(58, FRONT, -90).shootUp(58, AT_THE_ZONE_Y, -90, 4);

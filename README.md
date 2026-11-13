@@ -28,7 +28,8 @@ connect, check, measure, tune, set up the camera, build the shot table, try auto
 | **BioBuzzRobot** (TeleOp) | Driving. Hold **D-pad up** to auto-score. Alliance is chosen during INIT. |
 | **Limelight Diagnostic** | Check the camera, its mounting constants and the tag readings with the robot standing still. |
 | **Shooter Tuner** | Build the shot table: flywheel speed vs. distance. |
-| RedAlliance_B1 / _C1 / _LeavePark | The existing autonomous routines (Pedro paths), in `autonomous/`. |
+| **Auto Route Picker** (Autonomous, group "2 Autonomous") | **The way to run an auto.** At INIT you choose a route and the alliance (D-pad up / down picks the route, D-pad left = RED, D-pad right = BLUE). The screen shows who tips the HIVE first, the time, our points, the route check, the Limelight, the values still to measure and, in plain words, where to put the robot (measured to its edges). If it says REFUSED the robot will not move: fix it or pick another route. After PLAY the robot drives the route by itself, never fires at a cell the camera has not seen UP, stops everything when AUTO ends and keeps its position for the TeleOp. The routes have a tier word in their title: **Safe**, **Standard** or **Aggressive** (**Advanced** is for experts). |
+| RedAlliance_B1 / _C1 / _LeavePark | The three old hand-written autonomous routines (Pedro paths), in `autonomous/`. With the current numbers they start the robot 0.57 in through the wall: use the Auto Route Picker instead. |
 | PedroPathingAuto_*, AutoPath | Pedro path tests, in `autonomous/pathtests/`. |
 | Pedro tuners | Mecanum, Pinpoint, **Foresight** and Tests procedures. They are a web page (`http://192.168.43.1:10158`, on the Robot Controller's Wi-Fi), not a Driver Station list item. See `docs/START_HERE.md`. |
 
@@ -66,9 +67,11 @@ robot. Two tests enforce this, and the TeleOp lists the values still marked ADD 
 TeamCode/src/main/java/org/firstinspires/ftc/teamcode/
   BioBuzzConstants.java        <- every tunable value
   teleop/                      <- BioBuzzRobot: the driver-controlled OpMode (wiring only)
-  autonomous/                  <- the autonomous OpModes (RedAlliance_*); pathtests/ = Pedro path tests
+  autonomous/                  <- the autonomous OpModes: AutoRoutePicker, and the old RedAlliance_*; pathtests/ = Pedro path tests
   autoshoot/core/              <- the auto-shoot logic: field model, planner, vision analysis, state machine
                                   (plain Java, unit tested)
+  autoshoot/routes/            <- autonomous routes as data: the catalog, the checker, the time and points estimate
+  autoshoot/run/               <- the route runner and the Auto Route Picker's menu logic (plain Java, unit tested)
   autoshoot/hardware/          <- the only classes that touch the Limelight / Pedro / gamepad SDKs
   diagnostics/                 <- OpModes for checking hardware: Limelight Diagnostic, Shooter Tuner,
                                   IntakeTest, LauncherTest, MecanumDriveTest
@@ -82,8 +85,8 @@ docs/                          <- guides (below)
 
 * [`docs/START_HERE.md`](docs/START_HERE.md) — **read this first.** The one guide for the robot day, in order: connect, Robot Check,
   measure, Pedro tuning, Limelight, shot table, the controller map, auto-shoot, autonomous, "if something goes wrong", and how it works
-* [`docs/AUTOS.md`](docs/AUTOS.md) — autonomous routes as data: how to choose a route, where to place the robot, and the rules checks
-  (the pictures are in [`docs/autos/index.html`](docs/autos/index.html))
+* [`docs/AUTOS.md`](docs/AUTOS.md) — autonomous routes as data: the table of all routes, how to choose a route, where to place the robot, the rules checks
+  and how the Auto Route Picker runs a route (the pictures are in [`docs/autos/index.html`](docs/autos/index.html))
 
 ## Build and test
 

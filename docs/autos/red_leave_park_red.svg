@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Copy of RedAlliance_LeavePark: leave the wall and park (no shooting) - RED alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_leave_park for the RED alliance, starting in tile A3, with 4 steps: 1 START at (9.2, 70.3, 180 deg); 2 DRIVE path1 linear to 24.9, 83.6; 3 DRIVE path2 linear to 16.0, 91.5; 4 PARK at (16.0, 91.5, 135 deg). First tip: we shoot the first tip. Estimated 2.7 s, POLLEN balance 0, up to 8 points for our robot; 2 errors and 0 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_leave_park for the RED alliance, starting in tile A3, with 4 steps: 1 START at (9.2, 70.3, 180 deg); 2 DRIVE path1 linear to 24.9, 83.6; 3 DRIVE path2 linear to 16.0, 91.5; 4 PARK at (16.0, 91.5, 135 deg). First tip: we shoot the first tip. Estimated 2.3 s, POLLEN balance 0, up to 8 points for our robot; 2 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -173,12 +173,12 @@
 </g>
 <g id="route" data-ink="#c62828" data-alliance="RED" data-route="red_leave_park">
 <g class="drive-leg" data-step="2" data-mode="LINEAR">
-<title>step 2: DRIVE path1 linear to 24.9, 83.6 (t = 0.0 to 1.5 s) - Paths.line(start, path1).linear(start, path1)</title>
+<title>step 2: DRIVE path1 linear to 24.9, 83.6 (t = 0.0 to 1.3 s) - Paths.line(start, path1).linear(start, path1)</title>
 <path class="leg" d="M 167.27 390.96 L 239.26 329.57" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="239.26,329.57 234.89,339.86 228.41,332.25" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="LINEAR">
-<title>step 3: DRIVE path2 linear to 16.0, 91.5 (t = 1.5 to 2.7 s) - Paths.line(point2Start, point2).linear(point2Start, point2)</title>
+<title>step 3: DRIVE path2 linear to 16.0, 91.5 (t = 1.3 to 2.3 s) - Paths.line(point2Start, point2).linear(point2Start, point2)</title>
 <path class="leg" d="M 239.26 329.57 L 198.5 293.3" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="198.5,293.3 209.29,296.21 202.65,303.68" fill="#c62828"/>
 </g>
@@ -199,7 +199,7 @@
 <polygon class="arrowhead" points="127.33,390.96 137.33,385.96 137.33,395.96" fill="#c62828"/>
 </g>
 <g class="park-outline" data-step="4">
-<title>step 4: PARK at (16.0, 91.5, 135 deg) (t = 2.7 to 2.7 s) - Only a corner of the robot reaches the LOADING ZONE, 5.7 in deep; the source does not call it PARK.</title>
+<title>step 4: PARK at (16.0, 91.5, 135 deg) (t = 2.3 to 2.3 s) - Only a corner of the robot reaches the LOADING ZONE, 5.7 in deep; the source does not call it PARK.</title>
 <polygon class="outline" points="137.77,290.47 195.67,348.37 253.57,290.47 195.67,232.57" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="146.55,299.25 195.67,348.37 253.57,290.47 204.45,241.36" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="137.77" y1="290.47" x2="195.67" y2="232.57" stroke="#2e7d32" stroke-width="4.5"/>
@@ -219,17 +219,17 @@
 <text x="167.27" y="394.76" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="DRIVE">
-<title>step 2: DRIVE path1 linear to 24.9, 83.6 (t = 0.0 to 1.5 s) - Paths.line(start, path1).linear(start, path1)</title>
+<title>step 2: DRIVE path1 linear to 24.9, 83.6 (t = 0.0 to 1.3 s) - Paths.line(start, path1).linear(start, path1)</title>
 <circle cx="203.27" cy="360.26" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="203.27" y="364.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE path2 linear to 16.0, 91.5 (t = 1.5 to 2.7 s) - Paths.line(point2Start, point2).linear(point2Start, point2)</title>
+<title>step 3: DRIVE path2 linear to 16.0, 91.5 (t = 1.3 to 2.3 s) - Paths.line(point2Start, point2).linear(point2Start, point2)</title>
 <circle cx="218.88" cy="311.44" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="218.88" y="315.24" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="PARK">
-<title>step 4: PARK at (16.0, 91.5, 135 deg) (t = 2.7 to 2.7 s) - Only a corner of the robot reaches the LOADING ZONE, 5.7 in deep; the source does not call it PARK.</title>
+<title>step 4: PARK at (16.0, 91.5, 135 deg) (t = 2.3 to 2.3 s) - Only a corner of the robot reaches the LOADING ZONE, 5.7 in deep; the source does not call it PARK.</title>
 <circle cx="198.5" cy="293.3" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="198.5" y="297.1" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
@@ -316,7 +316,7 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 2.7 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 8  (LEAVE 3, PARK 5, HIVE TIP 0)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 2.3 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 8  (LEAVE 3, PARK 5, HIVE TIP 0)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#b71c1c">POLLEN: hold 4 at start, +0 taken, -0 fired, 4 at the end (balance 0)   |   Validator: 2 ERROR, 0 WARN</text>
 <g class="issue-line" data-severity="ERROR">
 <title>ERROR step 1 [G304] start footprint at (9.2, 70.3, 180 deg) sticks out of the field by 0.6 in (G304.A): its center of rotation is 9.2 in from the wall at x = 0.0 but the robot&apos;s edge that faces that wall reaches 9.8 in from the center (front 9.8 in, rear 8.0 in, sides 8.9 in); place the real robot with that edge ON the wall, its center 9.8 in out</title>

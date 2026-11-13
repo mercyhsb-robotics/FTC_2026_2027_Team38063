@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
  * A robot for the tests whose feeder stops the INSTANT the camera sees the HIVE tip.
  *
  * <p>The real plan is less kind: the camera sees a tip only about {@code Auto.TIP_STOP_LATENCY_SEC} after the tipping POLLEN lands, and the next POLLEN
- * of a volley leaves 0.9 s after the last, so the spare POLLEN of a 4-POLLEN volley is probably launched into the cell while it swings down and is
+ * of a volley leaves 1.0 s after the last, so the spare POLLEN of a 4-POLLEN volley is probably launched into the cell while it swings down and is
  * spent ({@link TipModel#launchedBeforeTheFeederStops}); the validator warns and the plan counts it as fired. A test about something ELSE (a wheel, a
  * wall, the timing, the partner's tip) that needs a clean 4-POLLEN volley that keeps its spare asks for this robot: the same everything, with a feeder
  * that stops with no delay. Nothing here changes {@code BioBuzzConstants}. The behaviour of the real numbers is tested in {@code TipStopLatencyTest}.

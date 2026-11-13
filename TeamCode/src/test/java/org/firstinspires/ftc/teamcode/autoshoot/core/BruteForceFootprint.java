@@ -21,7 +21,7 @@ import java.util.Locale;
  * <p>Words used: <b>tol</b> (tolerance) is how many inches of overlap are forgiven, to absorb rounding; the route
  * checker forgives a few hundredths of an inch the same way.
  */
-final class BruteForceFootprint {
+public final class BruteForceFootprint {
     private BruteForceFootprint() {
     }
 
@@ -30,7 +30,7 @@ final class BruteForceFootprint {
      * rectangle is NOT centered on the pose (the robot's center of rotation): it reaches {@code front} ahead, {@code rear}
      * behind, {@code left} to the left and {@code right} to the right of it.
      */
-    static double[][] corners(Pose2 pose, RobotShape robot) {
+    public static double[][] corners(Pose2 pose, RobotShape robot) {
         double front = robot.frontIn();
         double rear = robot.rearIn();
         double left = robot.leftIn();
@@ -47,7 +47,7 @@ final class BruteForceFootprint {
     }
 
     /** How far the robot's corners stick out of the field box at a pose, inches (0 if it is inside). */
-    static double wallPoke(Pose2 pose, RobotShape robot, Rect field) {
+    public static double wallPoke(Pose2 pose, RobotShape robot, Rect field) {
         double poke = 0.0;
         for (double[] p : corners(pose, robot)) {
             poke = Math.max(poke, field.minX - p[0]);
@@ -62,7 +62,7 @@ final class BruteForceFootprint {
      * True if the robot at a pose overlaps the box by more than the tolerance. The box is shrunk by the tolerance on
      * each side first (but never by more than a quarter of its size, so a very thin box is not shrunk away).
      */
-    static boolean overlaps(Pose2 pose, RobotShape shape, Rect box, double tol) {
+    public static boolean overlaps(Pose2 pose, RobotShape shape, Rect box, double tol) {
         // Quick answer for the common case: the box is farther from the robot's center than the robot's farthest corner.
         double dx = Math.max(Math.max(box.minX - pose.x, pose.x - box.maxX), 0.0);
         double dy = Math.max(Math.max(box.minY - pose.y, pose.y - box.maxY), 0.0);
