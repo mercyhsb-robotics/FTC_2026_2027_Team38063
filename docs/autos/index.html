@@ -57,7 +57,7 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <header>
 <h1>BIOBUZZ autonomous routes</h1>
 <p class="muted">Team 38063. Every route of <code>RouteCatalog</code>, drawn for both alliances and checked by the validator. This page and the diagrams are generated: do not edit them by hand, change the catalog and run <code>tools/render-autos.sh</code> (or <code>tools/render-autos.bat</code>).</p>
-<p class="muted">How to read a diagram: top view of the 141.35 x 141.35 in field, the AUDIENCE wall at the bottom, the red alliance on the left. A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a BLUE robot starts on the opposite wall: a RED start on the audience wall (the bottom of the picture) becomes a BLUE start on the rear wall (the top), and a RED start on the rear wall becomes a BLUE start on the audience wall. The words of a route (its title, description and step notes) are written for RED; every route says how to read them for BLUE, and its start tile, start pose and the words for placing the robot are worked out for each alliance. The robot is drawn to scale (17.80 in x 17.80 in, wheels included): the body is tinted, the two flat intake wheels are the dark discs at the front, and the small ringed dot is its center of rotation, the point every pose refers to (it is 9.77 in behind the front edge and 8.03 in in front of the back edge, so it is not in the middle). Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. A FLOWER is emptied by a WIGGLE of ONE flat wheel (the program picks the cheaper wheel): the robot drives in off center so that the wheel is beside the bottom POLLEN, turns on the spot toward it and back, once per POLLEN, and backs out. The diagram draws the robot where the wiggle starts, a faint second outline where it ends the push, a curved arrow for the sweep of the wheel and a label such as 'wiggle x4'; the short solid arrow is the straight final approach and the dotted arrow the straight retreat. Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>
+<p class="muted">How to read a diagram: top view of the 141.35 x 141.35 in field, the AUDIENCE wall at the bottom, the red alliance on the left. A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a BLUE robot starts on the opposite wall: a RED start on the audience wall (the bottom of the picture) becomes a BLUE start on the rear wall (the top), and a RED start on the rear wall becomes a BLUE start on the audience wall. The words of a route (its title, description and step notes) are written for RED; every route says how to read them for BLUE, and its start tile, start pose and the words for placing the robot are worked out for each alliance. The robot is drawn to scale (17.80 in x 17.80 in, wheels included): the body is tinted, the two flat intake wheels are the dark discs at the front, and the small ringed dot is its center of rotation, the point every pose refers to (it is 9.77 in behind the front edge and 8.03 in in front of the back edge, so it is not in the middle). Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. The tinted strips along the walls are where a robot that starts facing the way this route starts may be set up (rule G304: touching a wall, on its own half, clear of a FLOWER and the LOADING ZONE); the start footprint lies on top of them. The pose is a point inside the robot that nobody can measure to, so every route also says in words where to put the robot, by its edges and corners, with a tape measure. A FLOWER is emptied by a WIGGLE of ONE flat wheel (the program picks the cheaper wheel): the robot drives in off center so that the wheel is beside the bottom POLLEN, turns on the spot toward it and back, once per POLLEN, and backs out. The diagram draws the robot where the wiggle starts, a faint second outline where it ends the push, a curved arrow for the sweep of the wheel and a label such as 'wiggle x4'; the short solid arrow is the straight final approach and the dotted arrow the straight retreat. Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>
 <p id="tip-rule" class="muted">How a HIVE tips: A HIVE cell tips when its POLLEN plus 5/3 POLLEN for every NECTAR add up to 8 POLLEN-equivalents (FIRST&apos;s own calibration, Event Field Setup Guide section 12.3: an empty cell tips with the 8th POLLEN and 7 do not; a cell with the 3 staged NECTAR tips with the 3rd POLLEN and 2 do not). The cell that is UP at the start holds those 3 NECTAR, so the FIRST tip needs only 3 POLLEN (the robot starts with 4, so 1 is spare). The cell that comes up after a tip is empty, so each LATER tip needs 8 POLLEN. A real field drifts (FIRST&apos;s Q&amp;A QA46: one HIVE needed 9 instead of 8), so a route plans 1 POLLEN more than the minimum, 4 and 9, and the page shows each route&apos;s spare. Every route says who shoots the first tip: <code>we shoot the first tip</code> (our pre-loads are the first tip: 3 of the 4 tip it) or <code>partner tips first, assumed at 12.0 s</code> (the alliance partner's volley is the first tip and our robot goes to the other side; the HIVE belongs to the alliance, so the partner's launches count for it). The partner's 20 points are shown but never counted in the points of our robot. The robot goes on after a partner's tip only when its camera has SEEN the tipped cell steady for 0.5 s, never because a time has passed.</p>
 </header>
 <main>
@@ -86,6 +86,8 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr><th>Start tile</th><td>RED B1, BLUE E6</td></tr>
 <tr><th>Start pose, RED</th><td>(35.0, 9.2) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(106.3, 132.1) in, heading 90 deg</td></tr>
+<tr><th>Place the robot, RED</th><td>Front on the audience wall. Right edge 26.1 in from the red wall. Facing the audience wall.</td></tr>
+<tr><th>Place the robot, BLUE</th><td>Front on the rear wall. Right edge 26.1 in from the blue wall. Facing the rear wall.</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
 <tr><th>First tip</th><td>we shoot the first tip</td></tr>
 <tr><th>Estimated time</th><td>14.5 s of the 30.0 s AUTO (placeholder timing)</td></tr>
@@ -139,6 +141,8 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
 <tr><th>Start pose, RED</th><td>(58.0, 9.2) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(83.3, 132.1) in, heading 90 deg</td></tr>
+<tr><th>Place the robot, RED</th><td>Front on the audience wall. Right edge 49.1 in from the red wall. Facing the audience wall.</td></tr>
+<tr><th>Place the robot, BLUE</th><td>Front on the rear wall. Right edge 49.1 in from the blue wall. Facing the rear wall.</td></tr>
 <tr><th>Steps</th><td>7</td></tr>
 <tr><th>First tip</th><td>we shoot the first tip</td></tr>
 <tr><th>Estimated time</th><td>16.1 s of the 30.0 s AUTO (placeholder timing)</td></tr>
@@ -190,6 +194,8 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr><th>Start tile</th><td>RED A3, BLUE F4</td></tr>
 <tr><th>Start pose, RED</th><td>(9.2, 70.3) in, heading 180 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(132.1, 71.1) in, heading 0 deg</td></tr>
+<tr><th>Place the robot, RED</th><td>Front on the red wall. Left edge 61.4 in from the audience wall. Facing the red wall.</td></tr>
+<tr><th>Place the robot, BLUE</th><td>Front on the blue wall. Right edge 62.2 in from the audience wall. Facing the blue wall.</td></tr>
 <tr><th>Steps</th><td>4</td></tr>
 <tr><th>First tip</th><td>we shoot the first tip</td></tr>
 <tr><th>Estimated time</th><td>2.7 s of the 30.0 s AUTO (placeholder timing)</td></tr>
@@ -236,6 +242,8 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
 <tr><th>Start pose, RED</th><td>(58.0, 9.8) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(83.3, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Place the robot, RED</th><td>Front on the audience wall. Right edge 49.1 in from the red wall. Facing the audience wall.</td></tr>
+<tr><th>Place the robot, BLUE</th><td>Front on the rear wall. Right edge 49.1 in from the blue wall. Facing the rear wall.</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
 <tr><th>First tip</th><td>we shoot the first tip</td></tr>
 <tr><th>Estimated time</th><td>12.4 s of the 30.0 s AUTO (placeholder timing)</td></tr>
@@ -283,6 +291,8 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr><th>Start tile</th><td>RED B1, BLUE E6</td></tr>
 <tr><th>Start pose, RED</th><td>(35.0, 9.8) in, heading -90 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(106.3, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Place the robot, RED</th><td>Front on the audience wall. Right edge 26.1 in from the red wall. Facing the audience wall.</td></tr>
+<tr><th>Place the robot, BLUE</th><td>Front on the rear wall. Right edge 26.1 in from the blue wall. Facing the rear wall.</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
 <tr><th>First tip</th><td>we shoot the first tip</td></tr>
 <tr><th>Estimated time</th><td>14.1 s of the 30.0 s AUTO (placeholder timing)</td></tr>
@@ -330,6 +340,8 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr><th>Start tile</th><td>RED B6, BLUE E1</td></tr>
 <tr><th>Start pose, RED</th><td>(36.3, 128.2) in, heading 125 deg</td></tr>
 <tr><th>Start pose, BLUE</th><td>(105.1, 13.1) in, heading -55 deg</td></tr>
+<tr><th>Place the robot, RED</th><td>Front-right corner on the rear wall, 37.9 in from the red wall. Turned 35 degrees counter-clockwise (seen from above, as in the diagram) from facing the rear wall.</td></tr>
+<tr><th>Place the robot, BLUE</th><td>Front-right corner on the audience wall, 37.9 in from the blue wall. Turned 35 degrees counter-clockwise (seen from above, as in the diagram) from facing the audience wall.</td></tr>
 <tr><th>Steps</th><td>6</td></tr>
 <tr><th>First tip</th><td>partner tips first, assumed at 12.0 s</td></tr>
 <tr><th>Estimated time</th><td>21.5 s of the 30.0 s AUTO (placeholder timing)</td></tr>

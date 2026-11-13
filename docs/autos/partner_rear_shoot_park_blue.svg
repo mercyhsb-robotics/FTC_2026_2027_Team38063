@@ -161,6 +161,15 @@
 <polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
 <text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
 </g>
+<g id="start-bands" data-heading="-55">
+<title>Where a robot facing -55 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
+<rect class="start-band" data-wall="BLUE" data-from="57.36" data-to="86.8" x="763.6" y="314.91" width="11.5" height="135.41" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="103.46" data-to="129.67" x="763.6" y="117.74" width="11.5" height="120.52" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="82.47" data-to="85.59" x="504.26" y="702.7" width="14.35" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="102.25" data-to="127.16" x="595.26" y="702.7" width="114.58" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="82.47" data-to="128.45" x="504.26" y="64" width="211.52" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
+</g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="partner_rear_shoot_park">
 <g class="approach" data-step="3">
 <title>step 3: move to the pose of SHOOT</title>

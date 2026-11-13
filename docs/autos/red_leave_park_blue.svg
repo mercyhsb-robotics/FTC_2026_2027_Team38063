@@ -161,6 +161,16 @@
 <polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
 <text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
 </g>
+<g id="start-bands" data-heading="0">
+<title>Where a robot facing 0 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
+<rect class="start-band" data-wall="BLUE" data-from="8.9" data-to="15.17" x="763.6" y="644.4" width="11.5" height="28.86" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="55.66" data-to="81.83" x="763.6" y="337.77" width="11.5" height="120.37" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="106.3" data-to="132.45" x="763.6" y="104.94" width="11.5" height="120.27" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="78.6" data-to="80.96" x="486.48" y="702.7" width="10.85" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="105.43" data-to="131.58" x="609.89" y="702.7" width="120.27" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="78.6" data-to="131.58" x="486.48" y="64" width="243.68" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
+</g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="red_leave_park">
 <g class="drive-leg" data-step="2" data-mode="LINEAR">
 <title>step 2: DRIVE path1 linear to 116.5, 57.7 (t = 0.0 to 1.5 s)</title>

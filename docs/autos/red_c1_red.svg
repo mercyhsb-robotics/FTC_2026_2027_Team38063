@@ -161,6 +161,16 @@
 <polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
 <text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
 </g>
+<g id="start-bands" data-heading="-90">
+<title>Where a robot facing -90 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
+<rect class="start-band" data-wall="RED" data-from="9.77" data-to="35.92" x="124.9" y="548.99" width="11.5" height="120.27" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="60.39" data-to="86.55" x="124.9" y="316.05" width="11.5" height="120.37" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="RED" data-from="127.04" data-to="133.32" x="124.9" y="100.94" width="11.5" height="28.86" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="8.9" data-to="61.87" x="165.84" y="702.7" width="243.68" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="8.9" data-to="35.05" x="165.84" y="64" width="120.27" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="59.52" data-to="61.87" x="398.67" y="64" width="10.85" height="11.5" fill="#c62828" fill-opacity="0.35"/>
+<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
+</g>
 <g id="route" data-ink="#c62828" data-alliance="RED" data-route="red_c1">
 <g class="drive-leg" data-step="4" data-mode="REVERSE_TANGENT">
 <title>step 4: DRIVE path1 reverse tangent to 62.0, 118.1 (t = 9.5 to 13.2 s) - line(start, point1).reverseTangent(): a straight line across the HIVE frame footprint.</title>
