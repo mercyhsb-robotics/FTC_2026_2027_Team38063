@@ -46,7 +46,16 @@ public final class BioBuzzConstants {
             "Vision.CAMERA_FORWARD_IN",
             "Vision.CAMERA_LEFT_IN",
             "Vision.CAMERA_HEIGHT_IN",
-            "Vision.CAMERA_PITCH_UP_DEG"};
+            "Vision.CAMERA_PITCH_UP_DEG",
+            "Auto.CRUISE_SPEED_IN_PER_SEC",
+            "Auto.ACCEL_IN_PER_SEC2",
+            "Auto.TURN_RATE_DEG_PER_SEC",
+            "Auto.SETTLE_SEC",
+            "Auto.INTAKE_DWELL_FLOOR_SEC",
+            "Auto.INTAKE_DWELL_FLOWER_SEC",
+            "Auto.INTAKE_DWELL_GARDEN_SEC",
+            "Auto.AIM_SPINUP_SEC",
+            "Auto.TIME_PER_SHOT_SEC"};
 
     // =========================================================================================
     // HARDWARE NAMES (must match the robot configuration on the Driver Station exactly)
@@ -77,6 +86,176 @@ public final class BioBuzzConstants {
 
         /** The Limelight 3A (a USB device named in the robot configuration). */
         public static final String LIMELIGHT = Vision.DEVICE_NAME;
+    }
+
+    // =========================================================================================
+    // AUTONOMOUS ROUTE FRAMEWORK (declarative autos: data model, validator, timing, diagrams)
+    // Used by autoshoot.routes and autoshoot.render only. Field geometry is written for RED.
+    // =========================================================================================
+    public static final class Auto {
+        private Auto() {
+        }
+
+        // ---- match rules and scoring (manual TU09 sections 10.1-10.5, G304, G402, G407) -------
+
+        /** FIXED (manual 10.1, G401): the AUTONOMOUS period lasts 30 s. */
+        public static final double AUTO_DURATION_SEC = 30.0;
+        /** FIXED (G407): a robot may CONTROL at most 4 SCORING ELEMENTS at once. */
+        public static final int POLLEN_CAPACITY = 4;
+        /** FIXED (G304.G / 10.3.4): the robot starts in contact with exactly 4 POLLEN pre-loads. */
+        public static final int PRELOAD_POLLEN = 4;
+        /** FIXED (manual 10.3.1): every FLOWER starts with 4 POLLEN in it. */
+        public static final int FLOWER_POLLEN = 4;
+        /** FIXED (manual 10.3.1): every GARDEN starts with a line of 4 POLLEN. */
+        public static final int GARDEN_POLLEN = 4;
+        /** FIXED (manual 9.8): POLLEN diameter, drawn to scale by the diagrams. */
+        public static final double POLLEN_DIAMETER_IN = 2.8;
+        /**
+         * VERIFY: POLLEN that must be LAUNCHED into the UP cell to tip the HIVE. Team statement:
+         * 5 NECTAR, 8 POLLEN or a mix. Not in the manual; whether the 3 NECTAR staged in the cell
+         * count is unknown. Measure on the real HIVE.
+         */
+        public static final int TIP_POLLEN_THRESHOLD = 8;
+        /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */
+        public static final int LEAVE_POINTS = 3;
+        /** FIXED (manual Table 10-2): PARK is worth 5 points in AUTO. */
+        public static final int PARK_POINTS = 5;
+        /** FIXED (manual Table 10-2): a HIVE TIP is worth 20 points in AUTO. */
+        public static final int TIP_POINTS = 20;
+
+        // ---- field zones and layout used by the validator and the diagrams (RED frame) --------
+
+        /** FIXED (manual 9.3, tile A5): the red LOADING ZONE is x [0, 11] ... */
+        public static final double RED_LOADING_ZONE_X_MIN_IN = 0.0;
+        public static final double RED_LOADING_ZONE_X_MAX_IN = 11.0;
+        /** FIXED (manual 9.3, tile A5): ... y [96, 120]. The blue one is its half-turn image. */
+        public static final double RED_LOADING_ZONE_Y_MIN_IN = 96.0;
+        public static final double RED_LOADING_ZONE_Y_MAX_IN = 120.0;
+
+        /** FIXED (manual 9.3): the red GARDEN is about 23 x 2 in in the corner of tile A1. */
+        public static final double RED_GARDEN_X_MIN_IN = 0.0;
+        public static final double RED_GARDEN_X_MAX_IN = 23.0;
+        public static final double RED_GARDEN_Y_MIN_IN = 0.0;
+        public static final double RED_GARDEN_Y_MAX_IN = 2.0;
+        /** VERIFY (manual Fig 9-17, +/- 0.5 in): centers of the 4 red GARDEN POLLEN along the audience wall. */
+        public static final double[] RED_GARDEN_POLLEN_X_IN = {1.4, 4.5, 7.3, 10.3};
+        /** VERIFY: y of those centers (one POLLEN radius off the wall). */
+        public static final double RED_GARDEN_POLLEN_Y_IN = 1.4;
+
+        /**
+         * VERIFY (field report 2.1, +/- 1 in): plan footprint of the UP cell, as the distance OUT from the
+         * HIVE pivot line (y = 72) to its inner and outer ends. Red audience UP cell = y [52.3, 69.9].
+         */
+        public static final double UP_CELL_PLAN_OUT_NEAR_IN = 2.1;
+        public static final double UP_CELL_PLAN_OUT_FAR_IN = 19.7;
+        /**
+         * VERIFY (field report 2.1, +/- 1 in): the same for the DOWN cell, which overhangs the frame
+         * (red rear DOWN cell = y [79.4, 96.9]).
+         */
+        public static final double DOWN_CELL_PLAN_OUT_NEAR_IN = 7.4;
+        public static final double DOWN_CELL_PLAN_OUT_FAR_IN = 24.9;
+
+        /**
+         * TUNE: an INTAKE step belongs to a FLOWER or GARDEN when its target point is within this
+         * distance of the FLOWER center / the GARDEN zone.
+         */
+        public static final double INTAKE_TARGET_MATCH_RADIUS_IN = 12.0;
+
+        // ---- robot and drive model for the timing estimate (all ADD: the robot is unmeasured) --
+
+        /** ADD: cruise speed along a path. Pedro's provisional maximum in Constants.java is ~72 in/s. */
+        public static final double CRUISE_SPEED_IN_PER_SEC = 40.0;
+        /** ADD: acceleration and deceleration while following a path. */
+        public static final double ACCEL_IN_PER_SEC2 = 60.0;
+        /** ADD: how fast the robot turns (a turn overlaps the drive and costs only what is longer). */
+        public static final double TURN_RATE_DEG_PER_SEC = 180.0;
+        /** ADD: time to settle inside the end tolerance after every stop. */
+        public static final double SETTLE_SEC = 0.3;
+        /** ADD: default time to scoop POLLEN off the floor (INTAKE step data may override it). */
+        public static final double INTAKE_DWELL_FLOOR_SEC = 2.0;
+        /** ADD: default time to empty a FLOWER's POLLEN through its retrieval opening. */
+        public static final double INTAKE_DWELL_FLOWER_SEC = 4.0;
+        /** ADD: default time to sweep up the GARDEN POLLEN line. */
+        public static final double INTAKE_DWELL_GARDEN_SEC = 2.5;
+        /** ADD: aim with the Limelight and spin the flywheel up before the first shot of a volley. */
+        public static final double AIM_SPINUP_SEC = 1.9;
+        /** ADD: feeding one POLLEN through the shooter. */
+        public static final double TIME_PER_SHOT_SEC = 0.9;
+
+        // ---- validator limits ------------------------------------------------------------------
+
+        /** TUNE: finish this long before the 30 s limit; an estimate inside the margin is a WARN. */
+        public static final double TIME_SAFETY_MARGIN_SEC = 2.0;
+        /** FIXED: spacing of the samples that the validator checks along every leg. */
+        public static final double PATH_SAMPLE_STEP_IN = 1.0;
+        /** FIXED: angular spacing of the samples checked while the robot turns in place. */
+        public static final double TURN_SAMPLE_STEP_DEG = 5.0;
+        /** TUNE (G417 design guard): extra clearance kept around the HIVE frame footprint. */
+        public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
+        /** TUNE: extra clearance kept around a FLOWER plate (the plate itself is in Field.FLOWER_KEEPOUT_*). */
+        public static final double FLOWER_KEEPOUT_MARGIN_IN = 0.5;
+        /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
+        public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
+        /** TUNE: how far the footprint may poke past the field edge on a step marked wall-contact. */
+        public static final double WALL_CONTACT_ALLOWANCE_IN = 1.0;
+        /** TUNE: footprint overshoot past a wall that is ignored everywhere (rounding, field tolerance). */
+        public static final double FIELD_BOUNDS_TOLERANCE_IN = 0.1;
+        /** TUNE (field report 3.3): LEAVE needs the whole footprint at least this far off every wall. */
+        public static final double LEAVE_WALL_MARGIN_IN = 1.5;
+        /** TUNE (manual Fig 10-7, field tolerance +/- 1 in): a PARK overlapping the zone by less than this is a WARN. */
+        public static final double PARK_MIN_OVERLAP_IN = 3.0;
+        /** TUNE: an explicit INTAKE/SHOOT/PARK pose farther than this from where the robot is gets a WARN (add a DRIVE). */
+        public static final double IMPLICIT_MOVE_WARN_IN = 3.0;
+        /** VERIFY (hive_tags report 6d, 70-75 deg launcher): closest launch-point distance to the cell aim point. */
+        public static final double SHOOT_STANDOFF_MIN_IN = 30.0;
+        /** VERIFY (hive_tags report 6d): farthest launch-point distance (the audience wall limits the near side). */
+        public static final double SHOOT_STANDOFF_MAX_IN = 38.0;
+        /** TUNE: standoff used for the nominal pose that is drawn when a SHOOT leaves its pose to the solver. */
+        public static final double SHOOT_STANDOFF_NOMINAL_IN = 34.0;
+        /** TUNE (hive_tags report 6d: +/-13..17 deg in line): largest aim error of the back toward the cell before a WARN. */
+        public static final double SHOOT_AIM_TOLERANCE_DEG = 15.0;
+
+        // ---- route diagrams (autoshoot.render; SVG, top view, audience at the bottom) ---------------
+
+        /** TUNE: the SVG is this many pixels wide and tall; the diagrams must stay readable at this size. */
+        public static final double RENDER_CANVAS_PX = 900.0;
+        /** TUNE: pixels per field inch. 144 in x 4.6 = 662 px leaves room for the title above and the footer below. */
+        public static final double RENDER_FIELD_SCALE_PX_PER_IN = 4.6;
+        /** TUNE: distance from the top of the SVG to the rear wall of the field. */
+        public static final double RENDER_FIELD_TOP_PX = 64.0;
+        /** TUNE: an ALLIANCE AREA is really 54 in deep outside the field wall (manual 9.5); only this much of it is drawn (faded out), to leave the field room in a square image. */
+        public static final double RENDER_ALLIANCE_AREA_SHOWN_IN = 20.0;
+        /** VERIFY (field report D7): the ALLIANCE AREA spans y 23 to 121 along the wall. */
+        public static final double RENDER_ALLIANCE_AREA_Y_MIN_IN = 23.0;
+        public static final double RENDER_ALLIANCE_AREA_Y_MAX_IN = 121.0;
+        /** TUNE: ink of a RED alliance route. */
+        public static final String RENDER_INK_RED = "#c62828";
+        /** TUNE: ink of a BLUE alliance route. */
+        public static final String RENDER_INK_BLUE = "#1565c0";
+        /** TUNE: colour of the FRONT (intake) end of a robot footprint. */
+        public static final String RENDER_FRONT_COLOR = "#2e7d32";
+        /** TUNE: colour of the BACK (shooter) end of a robot footprint. */
+        public static final String RENDER_BACK_COLOR = "#ef6c00";
+        /** TUNE: light and dark floor tile fills (they alternate like the real checkerboard of tiles). */
+        public static final String RENDER_TILE_LIGHT = "#f3f1ea";
+        public static final String RENDER_TILE_DARK = "#e0ddd2";
+        /** TUNE: page background and text colour of the diagram. */
+        public static final String RENDER_BACKGROUND = "#ffffff";
+        public static final String RENDER_TEXT_COLOR = "#222222";
+        /** TUNE: base font size of labels, in SVG pixels (smaller items scale from it). */
+        public static final double RENDER_FONT_PX = 11.0;
+        /** TUNE: average glyph width as a fraction of the font size; only used to keep labels from overlapping, not to measure text. */
+        public static final double RENDER_LABEL_CHAR_WIDTH_EM = 0.58;
+        /** TUNE: radius of the numbered circle that marks each step, in SVG pixels. */
+        public static final double RENDER_BADGE_RADIUS_PX = 8.5;
+        /** TUNE: radius, in field inches, of the dashed ring drawn around an INTAKE target of each source. */
+        public static final double RENDER_INTAKE_RING_FLOOR_IN = 5.0;
+        public static final double RENDER_INTAKE_RING_FLOWER_IN = 7.5;
+        public static final double RENDER_INTAKE_RING_GARDEN_IN = 7.0;
+        /** TUNE: validator findings that fit under a diagram; with more, the last line says how many are left out. */
+        public static final int RENDER_MAX_ISSUE_LINES = 5;
+        /** TUNE: gap between the bottom of the field (below its tile letters and the AUDIENCE label) and the legend, in SVG pixels. */
+        public static final double RENDER_LEGEND_GAP_PX = 56.0;
     }
 
     // =========================================================================================
