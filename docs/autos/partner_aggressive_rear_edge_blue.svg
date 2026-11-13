@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Aggressive: start as near the cell as the placement margin allows, shoot from beside its axis, park by the shortest way - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_aggressive_rear_edge for the BLUE alliance, starting in tile E1, with 7 steps: 1 START at (108.8, 9.8, -90 deg); 2 DRIVE off the wall constant to 108.8, 18.3; 3 DRIVE to the shooting pose constant to 90.1, 16.4; 4 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 20.4 s on the route clock; 5 SHOOT 4 at UP cell from (90.1, 16.4, -80 deg); 6 DRIVE to zone linear to 128.8, 35.3; 7 PARK at (128.8, 35.3, 0 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 19.9 s. Estimated 20.0 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_aggressive_rear_edge for the BLUE alliance, starting in tile E1, with 7 steps: 1 START at (108.8, 9.8, -90 deg); 2 DRIVE off the wall constant to 108.8, 18.3; 3 DRIVE to the shooting pose constant to 90.1, 16.4; 4 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 20.7 s on the route clock; 5 SHOOT 4 at UP cell from (90.1, 16.4, -80 deg); 6 DRIVE to zone linear to 128.8, 35.3; 7 PARK at (128.8, 35.3, 0 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 20.2 s. Estimated 19.7 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -16,7 +16,7 @@
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
 <text id="title" x="24" y="27" font-size="11.27" font-weight="bold" fill="#222222">Aggressive: start as near the cell as the placement margin allows, shoot from beside its axis, park by the shortest way - BLUE alliance</text>
-<text id="subtitle" x="24" y="45" font-size="9.6" fill="#555555">id partner_aggressive_rear_edge  |  start tile E1  |  7 steps  |  blue ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 19.9 s</text>
+<text id="subtitle" x="24" y="45" font-size="9.6" fill="#555555">id partner_aggressive_rear_edge  |  start tile E1  |  7 steps  |  blue ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 20.2 s</text>
 <rect x="24" y="52" width="40" height="4" fill="#1565c0"/>
 <g id="field">
 <rect class="alliance-area" data-alliance="RED" x="32.9" y="166.43" width="92" height="445.37" fill="url(#area-red)"/>
@@ -161,19 +161,29 @@
 <polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
 <text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
 </g>
+<g id="start-bands" data-heading="-90">
+<title>Where a robot facing -90 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
+<rect class="start-band" data-wall="BLUE" data-from="9.77" data-to="16.04" x="763.6" y="640.4" width="11.5" height="28.86" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="56.53" data-to="82.7" x="763.6" y="333.77" width="11.5" height="120.37" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="107.17" data-to="133.32" x="763.6" y="100.94" width="11.5" height="120.27" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="79.47" data-to="81.83" x="490.48" y="702.7" width="10.85" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="106.3" data-to="132.45" x="613.89" y="702.7" width="120.27" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="79.47" data-to="132.45" x="490.48" y="64" width="243.68" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
+</g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="partner_aggressive_rear_edge">
 <g class="drive-leg" data-step="2" data-mode="CONSTANT">
-<title>step 2: DRIVE off the wall constant to 108.8, 18.3 (t = 0.0 to 1.1 s)</title>
+<title>step 2: DRIVE off the wall constant to 108.8, 18.3 (t = 0.0 to 1.0 s)</title>
 <path class="leg" d="M 625.6 669.26 L 625.6 629.8" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="625.6,629.8 630.6,639.8 620.6,639.8" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE to the shooting pose constant to 90.1, 16.4 (t = 1.1 to 2.5 s)</title>
+<title>step 3: DRIVE to the shooting pose constant to 90.1, 16.4 (t = 1.0 to 2.2 s)</title>
 <path class="leg" d="M 625.6 629.8 L 539.26 638.72" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="539.26,638.72 548.69,632.72 549.72,642.67" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="6" data-mode="LINEAR">
-<title>step 6: DRIVE to zone linear to 128.8, 35.3 (t = 18.0 to 20.0 s)</title>
+<title>step 6: DRIVE to zone linear to 128.8, 35.3 (t = 18.0 to 19.7 s)</title>
 <path class="leg" d="M 539.26 638.72 L 717.6 551.6" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="628.43,595.16 621.64,604.04 617.25,595.06" fill="#1565c0"/>
 <polygon class="arrowhead" points="717.6,551.6 710.81,560.48 706.42,551.5" fill="#1565c0"/>
@@ -211,7 +221,7 @@
 <polygon class="arrowhead" points="508.65,465.08 515.31,474.06 505.46,475.8" fill="#1565c0"/>
 </g>
 <g class="park-outline" data-step="7">
-<title>step 7: PARK at (128.8, 35.3, 0 deg) (t = 20.0 to 20.0 s)</title>
+<title>step 7: PARK at (128.8, 35.3, 0 deg) (t = 19.7 to 19.7 s)</title>
 <polygon class="outline" points="762.54,510.66 680.66,510.66 680.66,592.54 762.54,592.54" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="750.12,510.66 680.66,510.66 680.66,592.54 750.12,592.54" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="762.54" y1="510.66" x2="762.54" y2="592.54" stroke="#2e7d32" stroke-width="4.5"/>
@@ -231,17 +241,17 @@
 <text x="625.6" y="673.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="DRIVE">
-<title>step 2: DRIVE off the wall constant to 108.8, 18.3 (t = 0.0 to 1.1 s)</title>
+<title>step 2: DRIVE off the wall constant to 108.8, 18.3 (t = 0.0 to 1.0 s)</title>
 <circle cx="625.6" cy="649.53" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="625.6" y="653.33" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE to the shooting pose constant to 90.1, 16.4 (t = 1.1 to 2.5 s)</title>
+<title>step 3: DRIVE to the shooting pose constant to 90.1, 16.4 (t = 1.0 to 2.2 s)</title>
 <circle cx="582.43" cy="634.26" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="582.43" y="638.06" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="WAIT_FOR_TIP">
-<title>step 4: WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 20.4 s on the route clock (t = 2.5 to 12.5 s)</title>
+<title>step 4: WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 20.7 s on the route clock (t = 2.2 to 12.5 s)</title>
 <circle cx="539.26" cy="638.72" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="539.26" y="642.52" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
@@ -251,12 +261,12 @@
 <text x="552.69" y="629.09" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="DRIVE">
-<title>step 6: DRIVE to zone linear to 128.8, 35.3 (t = 18.0 to 20.0 s)</title>
+<title>step 6: DRIVE to zone linear to 128.8, 35.3 (t = 18.0 to 19.7 s)</title>
 <circle cx="628.43" cy="595.16" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="628.43" y="598.96" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
 <g class="badge" data-step="7" data-kind="PARK">
-<title>step 7: PARK at (128.8, 35.3, 0 deg) (t = 20.0 to 20.0 s)</title>
+<title>step 7: PARK at (128.8, 35.3, 0 deg) (t = 19.7 to 19.7 s)</title>
 <circle cx="717.6" cy="551.6" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="717.6" y="555.4" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
 </g>
@@ -269,7 +279,7 @@
 <circle cx="311.1" cy="652.72" r="5.5" fill="#ffffff" stroke="#1565c0" stroke-width="1.6"/>
 <polyline points="311.1,649.22 311.1,652.72 313.9,654.32" fill="none" stroke="#1565c0" stroke-width="1.4" stroke-linecap="round"/>
 </g>
-<text class="step-label" x="524.26" y="656.72" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">WAIT FOR TIP (give up at 20.4 s)</text>
+<text class="step-label" x="524.26" y="656.72" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="end" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">WAIT FOR TIP (give up at 20.7 s)</text>
 <text class="step-label" x="535.75" y="551.72" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4</text>
 <text class="step-label" x="643.43" y="586.16" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">to zone</text>
 <text class="step-label" x="732.6" y="569.6" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">PARK</text>
@@ -342,7 +352,7 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 20.0 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 8  (LEAVE 3, PARK 5, HIVE TIP 0)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 19.7 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 8  (LEAVE 3, PARK 5, HIVE TIP 0)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="11.1" fill="#222222">POLLEN: hold 4 at start, +0 taken, -4 fired, 0 at the end (balance -4)   |   Validator: no findings   |   Partner tip +20 (not ours)</text>
 </g>
 </svg>

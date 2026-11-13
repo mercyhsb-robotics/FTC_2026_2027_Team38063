@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_anchor_shoot_park for the BLUE alliance, starting in tile D6, with 6 steps: 1 START at (83.4, 131.6, 90 deg); 2 SHOOT 4 at UP cell from (83.4, 131.6, 90 deg); 3 DRIVE along the wall constant to 111.3, 126.5; 4 DRIVE corridor reverse tangent to 111.3, 57.3; 5 DRIVE to the zone linear to 129.3, 49.2; 6 PARK at (129.3, 49.2, 180 deg). First tip: we shoot the first tip. Estimated 11.3 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 1 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_anchor_shoot_park for the BLUE alliance, starting in tile D6, with 6 steps: 1 START at (83.4, 131.6, 90 deg); 2 SHOOT 4 at UP cell from (83.4, 131.6, 90 deg); 3 DRIVE along the wall constant to 111.3, 126.5; 4 DRIVE corridor reverse tangent to 111.3, 57.3; 5 DRIVE to the zone linear to 129.3, 49.2; 6 PARK at (129.3, 49.2, 180 deg). First tip: we shoot the first tip. Estimated 10.5 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -161,21 +161,31 @@
 <polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
 <text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
 </g>
+<g id="start-bands" data-heading="90">
+<title>Where a robot facing 90 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
+<rect class="start-band" data-wall="BLUE" data-from="8.03" data-to="14.3" x="763.6" y="648.4" width="11.5" height="28.86" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="54.79" data-to="80.96" x="763.6" y="341.78" width="11.5" height="120.37" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="BLUE" data-from="105.43" data-to="131.58" x="763.6" y="108.94" width="11.5" height="120.27" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="79.47" data-to="81.83" x="490.48" y="702.7" width="10.85" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="AUDIENCE" data-from="106.3" data-to="132.45" x="613.89" y="702.7" width="120.27" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<rect class="start-band" data-wall="REAR" data-from="79.47" data-to="132.45" x="490.48" y="64" width="243.68" height="11.5" fill="#1565c0" fill-opacity="0.35"/>
+<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
+</g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="self_anchor_shoot_park">
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE along the wall constant to 111.3, 126.5 (t = 5.5 to 7.2 s)</title>
+<title>step 3: DRIVE along the wall constant to 111.3, 126.5 (t = 5.5 to 6.9 s)</title>
 <path class="leg" d="M 508.65 108.94 L 637.1 132.08" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="572.88,120.51 562.15,123.66 563.92,113.82" fill="#1565c0"/>
 <polygon class="arrowhead" points="637.1,132.08 626.37,135.23 628.15,125.39" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="4" data-mode="REVERSE_TANGENT">
-<title>step 4: DRIVE corridor reverse tangent to 111.3, 57.3 (t = 7.2 to 9.9 s)</title>
+<title>step 4: DRIVE corridor reverse tangent to 111.3, 57.3 (t = 6.9 to 9.2 s)</title>
 <path class="leg" d="M 637.1 132.08 L 637.1 450.4" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="637.1,291.24 632.1,281.24 642.1,281.24" fill="#1565c0"/>
 <polygon class="arrowhead" points="637.1,450.4 632.1,440.4 642.1,440.4" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="LINEAR">
-<title>step 5: DRIVE to the zone linear to 129.3, 49.2 (t = 9.9 to 11.3 s)</title>
+<title>step 5: DRIVE to the zone linear to 129.3, 49.2 (t = 9.2 to 10.5 s)</title>
 <path class="leg" d="M 637.1 450.4 L 719.9 488.05" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="719.9,488.05 708.73,488.46 712.87,479.36" fill="#1565c0"/>
 </g>
@@ -212,7 +222,7 @@
 <polygon class="arrowhead" points="508.65,313.12 503.65,303.12 513.65,303.12" fill="#1565c0"/>
 </g>
 <g class="park-outline" data-step="6">
-<title>step 6: PARK at (129.3, 49.2, 180 deg) (t = 11.3 to 11.3 s)</title>
+<title>step 6: PARK at (129.3, 49.2, 180 deg) (t = 10.5 to 10.5 s)</title>
 <polygon class="outline" points="674.96,528.99 756.84,528.99 756.84,447.11 674.96,447.11" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="687.38,528.99 756.84,528.99 756.84,447.11 687.38,447.11" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="674.96" y1="528.99" x2="674.96" y2="447.11" stroke="#2e7d32" stroke-width="4.5"/>
@@ -237,22 +247,22 @@
 <text x="522.09" y="99.31" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE along the wall constant to 111.3, 126.5 (t = 5.5 to 7.2 s)</title>
+<title>step 3: DRIVE along the wall constant to 111.3, 126.5 (t = 5.5 to 6.9 s)</title>
 <circle cx="572.88" cy="120.51" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="572.88" y="124.31" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
-<title>step 4: DRIVE corridor reverse tangent to 111.3, 57.3 (t = 7.2 to 9.9 s)</title>
+<title>step 4: DRIVE corridor reverse tangent to 111.3, 57.3 (t = 6.9 to 9.2 s)</title>
 <circle cx="637.1" cy="291.24" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="637.1" y="295.04" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
-<title>step 5: DRIVE to the zone linear to 129.3, 49.2 (t = 9.9 to 11.3 s)</title>
+<title>step 5: DRIVE to the zone linear to 129.3, 49.2 (t = 9.2 to 10.5 s)</title>
 <circle cx="678.5" cy="469.22" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="678.5" y="473.02" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="PARK">
-<title>step 6: PARK at (129.3, 49.2, 180 deg) (t = 11.3 to 11.3 s)</title>
+<title>step 6: PARK at (129.3, 49.2, 180 deg) (t = 10.5 to 10.5 s)</title>
 <circle cx="719.9" cy="488.05" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="719.9" y="491.85" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
@@ -338,10 +348,10 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 11.3 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 10.5 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#222222">POLLEN: hold 4 at start, +0 taken, -4 fired, 0 at the end (balance -4)   |   Validator: 0 ERROR, 1 WARN</text>
 <g class="issue-line" data-severity="WARN">
-<title>WARN step 2 [G417] step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</title>
+<title>WARN step 2 [G417] step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 1.00 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.50 s the spare stays in the robot</title>
 <text x="24" y="838.2" font-size="10" fill="#7a5a00">WARN step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3...</text>
 </g>
 </g>
