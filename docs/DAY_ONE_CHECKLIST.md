@@ -25,7 +25,7 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
 - [ ] Ball exit position: `Robot.LAUNCH_POINT_FORWARD_IN` (negative: it is at the back), `LAUNCH_POINT_LEFT_IN`.
 - [ ] Re-measure the robot's `LENGTH_IN` and `WIDTH_IN` (the CAD says 17.80 × 17.80; it must fit the 18 in start cube).
 - [ ] Camera: `CAMERA_FORWARD_IN`, `CAMERA_LEFT_IN`, `CAMERA_HEIGHT_IN`, `CAMERA_PITCH_UP_DEG` (+30 to +40°).
-- [ ] Launch angle `Robot.LAUNCH_ANGLE_DEG` (only used for the printed ballistics; the real angle is fixed by the build).
+- [ ] Launch angle `Robot.LAUNCH_ANGLE_DEG` is about 68.5° (team measurement): confirm it with a protractor or the CAD (it only feeds the physics check on the Shooter Tuner screen).
 - [ ] The real HIVE: heights of the opening and tag rows, and how many POLLEN tip it (the code assumes the shot
       count only; 8 POLLEN is the team's figure).
 

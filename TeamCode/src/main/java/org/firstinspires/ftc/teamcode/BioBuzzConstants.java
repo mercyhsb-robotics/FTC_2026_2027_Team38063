@@ -42,7 +42,6 @@ public final class BioBuzzConstants {
     public static final String[] PLACEHOLDERS = {
             "Robot.LAUNCH_POINT_FORWARD_IN",
             "Robot.LAUNCH_POINT_LEFT_IN",
-            "Robot.LAUNCH_ANGLE_DEG",
             "Shooter.SHOT_TABLE",
             "Vision.CAMERA_FORWARD_IN",
             "Vision.CAMERA_LEFT_IN",
@@ -110,8 +109,12 @@ public final class BioBuzzConstants {
          * measure the real exit.
          */
         public static final double LAUNCH_HEIGHT_IN = 7.89;
-        /** ADD: fixed launch angle above horizontal (CAD). The manual's geometry wants roughly 65-75 deg. */
-        public static final double LAUNCH_ANGLE_DEG = 70.0;
+        /**
+         * VERIFY: the fixed launch angle above horizontal, about 68.5 degrees (team measurement, 2026-11-13). The manual's
+         * geometry needs roughly 67 degrees or more for a good entry into the opening from 38 in. Used only for the
+         * physics check on the Shooter Tuner screen.
+         */
+        public static final double LAUNCH_ANGLE_DEG = 68.5;
     }
 
     // =========================================================================================
