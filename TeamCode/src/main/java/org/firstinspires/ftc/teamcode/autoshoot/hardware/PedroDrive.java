@@ -151,6 +151,11 @@ public final class PedroDrive {
             return;
         }
         Pose2 start = pose();
+        if (waypoints.isEmpty()) {
+            // No route at all: stay where we are, facing the requested heading.
+            hold(new Pose2(start.x, start.y, endHeadingRad));
+            return;
+        }
         Path path = buildPath(start, waypoints, endHeadingRad);
         if (path == null) {
             // Nowhere to go (we are already at the destination), so just hold it.
