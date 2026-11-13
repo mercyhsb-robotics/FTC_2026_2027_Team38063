@@ -229,14 +229,14 @@ public class StartRobustnessTest {
      * <ul>
      *   <li>{@code red_c1}: its start is 0.57 in through the audience wall (the old OpMode's number), so the first move to the shooting pose already clips the wall;
      *       moved 1 in the clip is a little deeper (a new FIELD_BOUNDS ERROR at step 2).</li>
-     *   <li>{@code partner_rear_shoot_park}: its start x = 61.5 leaves only 0.27 in between the robot's edge and the center line. A hand that is 1 in off puts
-     *       the robot into the other alliance's half (G304.A): the START rule, not the route, breaks.</li>
      * </ul>
+     * {@code partner_rear_shoot_park} used to be in this table: its start x = 61.5 left only 0.27 in between the robot's edge and the center line, so a hand that
+     * was 1 in off put the robot into the other alliance's half (G304.A). It now starts turned in the corner left of the rear FLOWER, which keeps the margin, and
+     * {@code PartnerRouteDataTest} pins that.
      */
     private static Map<String, Set<Rule>> knownPlacementFindings() {
         Map<String, Set<Rule>> known = new HashMap<String, Set<Rule>>();
         known.put("red_c1", EnumSet.of(Rule.FIELD_BOUNDS));
-        known.put("partner_rear_shoot_park", EnumSet.of(Rule.START_G304));
         return known;
     }
 

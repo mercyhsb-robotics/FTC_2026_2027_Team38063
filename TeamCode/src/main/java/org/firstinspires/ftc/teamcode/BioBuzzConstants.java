@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
  *   <li><b>VERIFY</b> - believed right, but must be confirmed on the real robot or field once.</li>
  *   <li><b>TUNE</b> - a starting value that is expected to be adjusted from testing.</li>
  * </ul>
- * The symptom-to-knob table in docs/TUNING.md says which constant to reach for when the robot
+ * The "If something goes wrong" table in docs/START_HERE.md says which constant to reach for when the robot
  * misbehaves.
  */
 public final class BioBuzzConstants {
@@ -205,7 +205,7 @@ public final class BioBuzzConstants {
          * <p>THE STANDARD SHOOTING POSE IS OUTSIDE THE ZONE, ON PURPOSE. The shooter fires out of the robot's BACK, so the rear edge faces the cell:
          * at the nominal standoff (34 in from the aim point) it is about 48 in out, at the measured anchor shot (37.7 in) about 53 in. A zone that
          * reached 48 in would flag every standard shot as standing in the spill; the team has not seen that happen, and the first thing to do on
-         * day one is to look (docs/DAY_ONE_CHECKLIST.md: tip a HIVE and mark where the balls first touch the tiles, and whether any reach the
+         * day one is to look (docs/START_HERE.md: tip a HIVE and mark where the balls first touch the tiles, and whether any reach the
          * robot's rear). If they do, raise this number: the standard pose will then be flagged and the team must shoot from farther away or drive
          * off before the tip. A robot that parks CLOSER than the standard pose (a standoff under about 30 in) is inside the zone and must leave
          * within TIP_SPILL_CLEAR_SEC.
@@ -314,7 +314,7 @@ public final class BioBuzzConstants {
          * and {@link #BALL_FLIGHT_SEC} (0.5 s) that means the POLLEN after the one that tips is launched BEFORE the feeder can stop, so a spare
          * POLLEN in a volley is probably spent, not kept: the route plan counts it as fired and the validator warns. The spare is kept only if this number
          * is no more than the time between POLLEN minus the flight (0.4 s with the numbers above). Measure it on day one: tip a HIVE with a volley and watch whether the
-         * next POLLEN leaves (docs/DAY_ONE_CHECKLIST.md).
+         * next POLLEN leaves (docs/START_HERE.md).
          */
         public static final double TIP_STOP_LATENCY_SEC = 0.85;
 
@@ -799,7 +799,7 @@ public final class BioBuzzConstants {
          * the robot farther forward than {@code Robot.LAUNCH_POINT_FORWARD_IN} says (the robot CAD suggests
          * 6.58 in behind the center of rotation, which would give 37.8 in). On the real robot,
          * re-measure the distance from the ball exit to the cell opening center with a tape (see
-         * docs/DAY_ONE_CHECKLIST.md) before trusting the rows next to the anchor.
+         * docs/START_HERE.md) before trusting the rows next to the anchor.
          */
         public static final double[][] SHOT_TABLE = {
                 {30.0, 1150.0},
@@ -1129,7 +1129,7 @@ public final class BioBuzzConstants {
          */
         public static final double CAMERA_PITCH_UP_DEG = 35.0;
 
-        /** FIXED by the setup checklist (docs/LIMELIGHT_SETUP.md): the AprilTag pipeline is index 0. */
+        /** FIXED by the setup checklist (docs/START_HERE.md): the AprilTag pipeline is index 0. */
         public static final int PIPELINE_INDEX = 0;
         /** FIXED by the setup checklist: hardware-configuration name of the Limelight. */
         public static final String DEVICE_NAME = "limelight";
