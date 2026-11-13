@@ -118,6 +118,45 @@ public class ScoringPlannerWallSafetyTest {
     }
 
     /**
+     * Situation: 600 random starts anywhere on the field (a fixed seed, so the run is the same every time): any position
+     *     that is clear of the HIVE frame and the FLOWER plates, any heading, both alliances, each asked for both of its
+     *     cells. Most of them are nowhere near a wall; some are right beside the HIVE or a FLOWER.
+     * Expected: every plan that comes back OK is clear of the walls, the HIVE and the FLOWERS according to the slow
+     *     referee; at least 95% come back OK.
+     * Why: the walls are not the only thing a turning square can hit. This covers the HIVE frame and the FLOWER plates
+     *     with starts the hand-made list does not think of.
+     */
+    @Test
+    public void randomStartsAnywhereOnTheFieldNeverClip() {
+        java.util.Random rng = new java.util.Random(7);
+        int plans = 0;
+        int ok = 0;
+        List<String> clips = new ArrayList<String>();
+        while (plans < 1200) {
+            Pose2 start = new Pose2(9.0 + rng.nextDouble() * (field.size() - 18.0),
+                    9.0 + rng.nextDouble() * (field.size() - 18.0), (rng.nextDouble() - 0.5) * 2.0 * Math.PI);
+            if (!planner.standingPoseFree(start)) {
+                continue;                       // inside the HIVE frame or a FLOWER plate: not a place a robot can be
+            }
+            for (Alliance alliance : Alliance.values()) {
+                CellSpec cell = field.cell(alliance, rng.nextBoolean() ? Side.AUDIENCE : Side.REAR);
+                ScoringPlanner.Solution s = planner.solve(start, cell);
+                plans++;
+                if (!s.ok()) {
+                    continue;
+                }
+                ok++;
+                String why = clip(start, s);
+                if (why != null && clips.size() < 5) {
+                    clips.add("start " + start + " to " + cell + ": " + why);
+                }
+            }
+        }
+        assertTrue("routes that clip: " + clips, clips.isEmpty());
+        assertTrue("planner refused too many starts: " + ok + " of " + plans, ok >= 0.95 * plans);
+    }
+
+    /**
      * Situation: the SAME 1536 plans, made by a planner whose wall-safety check is switched off (its tolerance is made
      *     enormous, so every route "passes"): the behaviour from before the fix.
      * Expected: the slow referee finds at least 20 of those routes clipping a wall, the HIVE or a FLOWER.
