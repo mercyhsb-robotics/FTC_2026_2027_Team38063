@@ -19,6 +19,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
  */
 public final class DrivePath {
     private static final double TINY = 1e-9;
+    /** A numeric guard, not a tuning value: the heading cut loop never halves one interval more often than this. */
+    private static final int MAX_CUT_DEPTH = 24;
 
     private final Pose2 from;
     private final List<Point2> control;
@@ -249,6 +251,21 @@ public final class DrivePath {
         return out;
     }
 
+    /**
+     * The signed turn in place before the leg starts moving, in radians (positive = counter-clockwise): from the
+     * heading the robot has to {@link #headingAt headingAt(0)}. Zero if the robot already faces the right way.
+     */
+    public double preTurnSignedRadians() {
+        return Angles.error(from.heading, headingAt(0.0));
+    }
+
+    /** The pose at the start point after the robot has turned {@code turned} radians of the pre-turn (0 = not yet). */
+    public Pose2 turnPoseAt(double turned) {
+        Point2 p0 = pointAt(0.0);
+        double total = preTurnSignedRadians();
+        return new Pose2(p0.x, p0.y, from.heading + Math.copySign(turned, total));
+    }
+
     /** All the turning of the leg: the turn in place at the start plus every heading change along the way. */
     public double totalTurnRadians() {
         double total = preTurnRadians();
@@ -301,5 +318,55 @@ public final class DrivePath {
             out.add(length);
         }
         return out;
+    }
+
+    /**
+     * As {@link #sampleArcLengths(double)}, and ALSO cut the path wherever the heading would change by more than
+     * {@code maxHeadingStepRad} between two neighbouring samples. A leg that turns a lot over a short distance would
+     * otherwise be checked only at its two ends while the robot's corners swing through a big arc in between. After
+     * this call the neighbouring samples are at most {@code stepIn} apart along the path AND at most
+     * {@code maxHeadingStepRad} apart in heading, and the heading does not go one way and come back inside one gap:
+     * the two facts the sweep guarantee in {@code Sweep} needs. The start and the end are always included.
+     */
+    public List<Double> sampleArcLengths(double stepIn, double maxHeadingStepRad) {
+        if (!(maxHeadingStepRad > 0.0)) {
+            throw new IllegalArgumentException("heading step must be > 0");
+        }
+        List<Double> base = sampleArcLengths(stepIn);
+        List<Double> out = new ArrayList<Double>();
+        out.add(base.get(0));
+        for (int i = 1; i < base.size(); i++) {
+            cut(base.get(i - 1), base.get(i), maxHeadingStepRad, out, 0);
+            out.add(base.get(i));
+        }
+        return out;
+    }
+
+    /** Poses at the arc lengths of {@link #sampleArcLengths(double, double)}. */
+    public List<Pose2> sample(double stepIn, double maxHeadingStepRad) {
+        List<Pose2> out = new ArrayList<Pose2>();
+        for (double s : sampleArcLengths(stepIn, maxHeadingStepRad)) {
+            out.add(poseAt(s));
+        }
+        return out;
+    }
+
+    /** Adds the arc lengths strictly between a and b that make every gap turn by at most {@code maxStep}. */
+    private void cut(double a, double b, double maxStep, List<Double> out, int depth) {
+        if (depth >= MAX_CUT_DEPTH || b - a < TINY) {
+            return;
+        }
+        double m = (a + b) / 2.0;
+        double first = Angles.error(headingAt(a), headingAt(m));
+        double second = Angles.error(headingAt(m), headingAt(b));
+        boolean tooBig = Math.abs(first + second) > maxStep || Math.abs(first) > maxStep || Math.abs(second) > maxStep;
+        // the heading went one way and came back inside the gap: the two ends alone would hide the swing
+        boolean wiggle = first * second < 0.0 && Math.abs(first) + Math.abs(second) > maxStep;
+        if (!tooBig && !wiggle) {
+            return;
+        }
+        cut(a, m, maxStep, out, depth + 1);
+        out.add(m);
+        cut(m, b, maxStep, out, depth + 1);
     }
 }

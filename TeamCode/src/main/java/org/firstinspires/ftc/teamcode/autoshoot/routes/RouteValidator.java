@@ -157,96 +157,71 @@ public final class RouteValidator {
 
     // ---- 2 and 3. every leg: field, HIVE, FLOWERS, sides -----------------------------------------------
 
-    /** Collects the samples of one leg that break one rule, so the report shows one line per leg and rule. */
-    private static final class Run {
-        int count;
-        double firstArc;
-        double lastArc;
-        Pose2 firstPose;
-        double worst;
-
-        void add(double arc, Pose2 pose, double amount) {
-            if (count == 0) {
-                firstArc = arc;
-                firstPose = pose;
-            }
-            count++;
-            lastArc = arc;
-            worst = Math.max(worst, amount);
-        }
-    }
-
     private void checkMotion(RouteAnalysis a, RouteAnalysis.StepInfo info, List<Issue> out) {
         DrivePath leg = info.path != null ? info.path : info.approach;
         if (leg == null) {
             return;
         }
-        AllianceField f = a.field();
+        final AllianceField f = a.field();
         // A wall may be TOUCHED, never entered: one tolerance for every step, wall-contact legs and GARDEN/FLOWER
         // intakes included (they are not allowed to poke through either).
-        double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
-        boolean[] exempt = exemptFlowers(a, info);
+        final double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
+        final boolean[] exempt = exemptFlowers(a, info);
+        final Rect field = f.fieldRect();
+        final Rect hiveKeepOut = f.hiveKeepOut();
 
-        List<Pose2> poses = new ArrayList<Pose2>(
-                leg.turnInPlaceSamples(Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG)));
-        List<Double> arcs = new ArrayList<Double>();
-        for (int i = 0; i < poses.size(); i++) {
-            arcs.add(0.0);
-        }
-        poses.addAll(leg.sample(BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN));
-        arcs.addAll(leg.sampleArcLengths(BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN));
-
-        Run bounds = new Run();
-        Run hive = new Run();
-        Run side = new Run();
-        Run[] flowers = new Run[f.flowerPlates().size()];
+        // Each rule is a "depth": how far the robot is into what it must stay out of (above 0 = rule broken). Sweep
+        // tests it at every sample of the leg AND proves nothing slips between two samples (see Sweep).
+        Sweep.Result bounds = Sweep.run(leg, new Sweep.Depth() {
+            @Override
+            public double at(Pose2 p) {
+                return Footprint.of(p).signedOvershoot(field) - fieldTol - EPS;
+            }
+        });
+        Sweep.Result hive = Sweep.run(leg, new Sweep.Depth() {
+            @Override
+            public double at(Pose2 p) {
+                return -Footprint.of(p).signedGap(hiveKeepOut) - EPS;
+            }
+        });
+        Sweep.Result side = Sweep.run(leg, new Sweep.Depth() {
+            @Override
+            public double at(Pose2 p) {
+                return f.pastCenterLine(p.x) - EPS;
+            }
+        });
+        Sweep.Result[] flowers = new Sweep.Result[f.flowerPlates().size()];
         for (int i = 0; i < flowers.length; i++) {
-            flowers[i] = new Run();
-        }
-        Rect hiveKeepOut = f.hiveKeepOut();
-        for (int k = 0; k < poses.size(); k++) {
-            Pose2 p = poses.get(k);
-            double arc = arcs.get(k);
-            Footprint fp = Footprint.of(p);
-            double over = fp.overshootOutside(f.fieldRect());
-            if (over > fieldTol + EPS) {
-                bounds.add(arc, p, over);
-            }
-            if (fp.overlaps(hiveKeepOut)) {
-                hive.add(arc, p, 0);
-            }
-            for (int i = 0; i < flowers.length; i++) {
-                if (!exempt[i] && fp.overlaps(f.flowerKeepOut(i))) {
-                    flowers[i].add(arc, p, 0);
+            final Rect keepOut = f.flowerKeepOut(i);
+            flowers[i] = exempt[i] ? new Sweep.Result() : Sweep.run(leg, new Sweep.Depth() {
+                @Override
+                public double at(Pose2 p) {
+                    return -Footprint.of(p).signedGap(keepOut) - EPS;
                 }
-            }
-            double past = f.pastCenterLine(p.x);
-            if (past > EPS) {
-                side.add(arc, p, past);
-            }
+            });
         }
 
         String what = describe(info);
-        if (bounds.count > 0) {
+        if (bounds.broken()) {
             out.add(error(info.index, Rule.FIELD_BOUNDS, what + ": the robot footprint leaves the field by up to "
-                    + in(bounds.worst) + " (first at " + pose(bounds.firstPose) + "); a robot cannot drive or turn through"
+                    + in(bounds.worst + fieldTol + EPS) + " (first at " + pose(bounds.firstPose) + "); a robot cannot drive or turn through"
                     + " a wall"));
         }
-        if (hive.count > 0) {
+        if (hive.broken()) {
             out.add(error(info.index, Rule.HIVE_KEEPOUT, what + ": the robot footprint enters the HIVE frame keep-out ("
                     + "frame + " + in(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN) + ") from "
                     + in(hive.firstArc) + " to " + in(hive.lastArc) + " along the move, first at " + pose(hive.firstPose)));
         }
         for (int i = 0; i < flowers.length; i++) {
-            if (flowers[i].count > 0) {
+            if (flowers[i].broken()) {
                 out.add(error(info.index, Rule.FLOWER_KEEPOUT, what + ": the robot footprint runs into the plate of FLOWER "
                         + (i + 1) + " (first at " + pose(flowers[i].firstPose) + "); only an INTAKE step may touch the"
                         + " FLOWER it takes POLLEN from"));
             }
         }
-        if (side.count > 0) {
+        if (side.broken()) {
             out.add(error(info.index, Rule.SIDE_G402, what + ": the robot center crosses the center line into the opponent"
-                    + " half by up to " + in(side.worst) + " (first at " + pose(side.firstPose) + "); in AUTO a "
+                    + " half by up to " + in(side.worst + EPS) + " (first at " + pose(side.firstPose) + "); in AUTO a "
                     + a.route().alliance() + " robot must stay on its own side"));
         }
     }

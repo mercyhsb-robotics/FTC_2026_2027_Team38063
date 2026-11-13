@@ -186,10 +186,24 @@ public final class BioBuzzConstants {
 
         /** TUNE: finish this long before the 30 s limit; an estimate inside the margin is a WARN. */
         public static final double TIME_SAFETY_MARGIN_SEC = 2.0;
-        /** FIXED: spacing of the samples that the validator checks along every leg. */
+        /**
+         * FIXED: spacing of the COARSE samples that the validator checks along every leg (inches). Between two coarse
+         * samples a corner of the robot can move up to {@code PATH_SAMPLE_STEP_IN + 12.59 in * TURN_SAMPLE_STEP_DEG in
+         * radians} (2.10 in); the validator grows every obstacle by half of that and cuts a gap in two whenever it
+         * cannot prove it is clear, so nothing can slip between two samples (see {@code routes/Sweep.java}).
+         */
         public static final double PATH_SAMPLE_STEP_IN = 1.0;
-        /** FIXED: angular spacing of the samples checked while the robot turns in place. */
+        /**
+         * FIXED: angular spacing of the coarse samples while the robot turns, whether in place or along a leg (degrees).
+         * Together with {@link #PATH_SAMPLE_STEP_IN} it sets how big the first, cheap clearance test is.
+         */
         public static final double TURN_SAMPLE_STEP_DEG = 5.0;
+        /**
+         * FIXED: how finely the validator measures a collision once it is close to one (inches). A gap between two
+         * samples is cut in half until nothing deeper than this can hide in it, so every reported depth is right to
+         * within this much. It is numeric precision, not a safety margin.
+         */
+        public static final double SWEEP_RESOLUTION_IN = 0.001;
         /** TUNE (G417 design guard): extra clearance kept around the HIVE frame footprint. */
         public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
         /** TUNE: extra clearance kept around a FLOWER plate (the plate itself is in Field.FLOWER_KEEPOUT_*). */

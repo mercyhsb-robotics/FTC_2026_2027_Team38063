@@ -126,6 +126,16 @@ Two rules of thumb that the validator enforces:
 Every finding names its step number (the same number as in the picture) and quotes the numbers: how far through the
 wall, where the footprint first enters the keep-out, how far the shot is from the cell.
 
+**Nothing can slip between two samples.** A computer cannot test every one of the infinitely many poses of a leg, so
+the validator tests the robot every 1 in along the path and every 5 degrees of turning. A corner of the robot is
+12.6 in from its center, so between two samples a corner can still move up to 1 + 12.6 x 5 degrees (in radians) =
+2.1 in, and a thin post could stand in the strip it sweeps. So the validator measures how far the robot is from
+each obstacle (a plain distance) and grows every obstacle by half of that 2.1 in: if neither of two neighbouring
+samples reaches the grown obstacle, nothing between them can touch the real one. Wherever it cannot prove the gap is
+clear it cuts the gap in half and looks again, down to 1/1000 in. The result is the same as sampling infinitely
+densely; the proof is the comment at the top of `routes/Sweep.java` and `SweepTest` tries to break it. The first and
+the last pose of every leg are always tested, and so is the last pose of a turn in place.
+
 ## Reading a diagram
 
 * **Top view**, the audience wall at the **bottom**, the red alliance on the **left**. Tiles are labelled A-F and 1-6.
