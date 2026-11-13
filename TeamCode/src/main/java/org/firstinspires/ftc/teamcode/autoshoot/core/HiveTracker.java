@@ -20,6 +20,11 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  *   <li>The driver can force the belief with a button; that always wins.</li>
  * </ul>
  *
+ * <p><b>Confirmed by the camera.</b> {@link #confirmed()} is true when the camera OR the driver has checked the belief. The autonomous
+ * period must not shoot at a cell because a driver (nobody is driving) or a guess said so, so the tracker also keeps
+ * {@link #cameraConfirmed()}: true only when the camera itself saw the believed cell's cluster read UP since the belief last changed.
+ * The driver's button and the "tags never seen, assume the other side" flip both clear it.
+ *
  * <p><b>Why a "belief" at all?</b> Only one cell of the HIVE is tipped UP and scorable, and it flips every time
  * enough POLLEN is launched into it. The robot cannot be sure which one is up at any instant (the camera may see
  * nothing for a moment), so it keeps a best guess, the {@link #upSide() belief}, and a flag saying whether the
@@ -78,6 +83,7 @@ public final class HiveTracker {
     // The belief: which side's cell is UP, whether it has been confirmed, and how many times it has changed.
     private Side upSide;
     private boolean confirmed;
+    private boolean cameraConfirmed;
     private int changes;
 
     // A rival answer from the camera that has not yet been repeated often enough to be believed:
@@ -104,6 +110,8 @@ public final class HiveTracker {
     public void reset(Side up, boolean isConfirmed) {
         this.upSide = up;
         this.confirmed = isConfirmed;
+        // Whoever set the belief by hand (the driver, a saved state, a guess) is not the camera: it has to see the cluster again.
+        this.cameraConfirmed = false;
         // Throw away any half-built evidence: it was about the old belief.
         this.candidate = null;
         this.candidateFrames = 0;
@@ -119,6 +127,15 @@ public final class HiveTracker {
     /** True if the camera has actually seen the UP cell's cluster since the belief last changed. */
     public boolean confirmed() {
         return confirmed;
+    }
+
+    /**
+     * True only if the CAMERA has seen the believed cell's cluster read UP since the belief last changed or was set. Unlike
+     * {@link #confirmed()} it is not set by the driver's button or by the "assume the other side" flip, which is why the autonomous
+     * period uses it: a volley that depends on a tip is shot only on camera evidence (a driver toggle does not exist in AUTO).
+     */
+    public boolean cameraConfirmed() {
+        return cameraConfirmed;
     }
 
     /** How many times the belief has changed since construction (any cause). */
@@ -198,6 +215,7 @@ public final class HiveTracker {
         if (evidence == upSide) {
             candidate = null;
             candidateFrames = 0;
+            cameraConfirmed = true;
             if (!confirmed) {
                 confirmed = true;
                 return Event.CONFIRMED;
@@ -215,6 +233,7 @@ public final class HiveTracker {
         if (candidateFrames >= cfg.confirmFrames && nowSec - candidateSince >= cfg.confirmSec) {
             upSide = evidence;
             confirmed = true;
+            cameraConfirmed = true;
             candidate = null;
             candidateFrames = 0;
             seeing = true;
@@ -240,6 +259,7 @@ public final class HiveTracker {
             // Suspected tip: believe the other cell is up now, but do not call it confirmed until we see its tags.
             upSide = upSide.opposite();
             confirmed = false;
+            cameraConfirmed = false;
             seeing = false;
             candidate = null;
             candidateFrames = 0;
