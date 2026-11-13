@@ -41,7 +41,7 @@ public class ShooterTuner extends OpMode {
     private ShotCounter counter;
 
     private double targetTps = BioBuzzConstants.Shooter.MANUAL_TARGET_TPS;
-    private double rangeIn = 37.7;
+    private double rangeIn = BioBuzzConstants.Shooter.TUNER_START_RANGE_IN;
     private boolean running;
     private long startNanos;
 
@@ -78,8 +78,8 @@ public class ShooterTuner extends OpMode {
     @Override
     public void loop() {
         double now = (System.nanoTime() - startNanos) / 1.0e9;
-        double stepV = gamepad1.left_bumper ? 50.0 : 10.0;
-        double stepR = gamepad1.left_bumper ? 2.0 : 0.5;
+        double stepV = gamepad1.left_bumper ? BioBuzzConstants.Shooter.TUNER_SPEED_BIG_STEP_TPS : BioBuzzConstants.Shooter.TUNER_SPEED_STEP_TPS;
+        double stepR = gamepad1.left_bumper ? BioBuzzConstants.Shooter.TUNER_RANGE_BIG_STEP_IN : BioBuzzConstants.Shooter.TUNER_RANGE_STEP_IN;
 
         if (gamepad1.dpad_up && !prevUp) {
             targetTps += stepV;

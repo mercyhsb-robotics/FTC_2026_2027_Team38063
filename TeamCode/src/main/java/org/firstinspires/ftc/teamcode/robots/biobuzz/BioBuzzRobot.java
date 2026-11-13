@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.AutoShootController;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CameraModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ClusterAnalyzer;
+import org.firstinspires.ftc.teamcode.autoshoot.core.ConstantsCheck;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ClusterView;
 import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.HiveTracker;
@@ -63,7 +64,8 @@ public class BioBuzzRobot extends OpMode {
 
     // ---- logic
     private final FieldModel field = new FieldModel();
-    private final ShotTable table = ShotTable.fromConstants();
+    private ShotTable table;
+    private ConstantsCheck.Report constantsReport;
     private final CameraModel camera = CameraModel.fromConstants();
     private ClusterAnalyzer analyzer;
     private ScoringPlanner planner;
@@ -86,6 +88,13 @@ public class BioBuzzRobot extends OpMode {
 
     @Override
     public void init() {
+        // Refuse nonsense in BioBuzzConstants here, with a message that names the problem, instead of failing later.
+        constantsReport = ConstantsCheck.run();
+        if (!constantsReport.ok()) {
+            throw new IllegalStateException("BioBuzzConstants has errors: " + constantsReport.errors);
+        }
+        table = ShotTable.fromConstants();
+
         for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
@@ -139,6 +148,10 @@ public class BioBuzzRobot extends OpMode {
         telemetry.addData("ALLIANCE", alliance + "  (" + BioBuzzConstants.Controls.ALLIANCE_RED_BUTTON + " = red, "
                 + BioBuzzConstants.Controls.ALLIANCE_BLUE_BUTTON + " = blue)");
         telemetry.addData("Drive", driveNote);
+        if (!constantsReport.warnings.isEmpty()) {
+            telemetry.addData("Constants WARNINGS", constantsReport.warnings);
+        }
+        telemetry.addData("Placeholders still to measure", constantsReport.placeholders.size() + ": " + constantsReport.placeholders);
         telemetry.addData("Vision", visionNote + (vision != null ? "  frames=" + vision.framesSeen() + " link=" + vision.connected() : ""));
         PoseStore.Snapshot snap = PoseStore.load(System.nanoTime(), BioBuzzConstants.Controls.POSE_CARRYOVER_MAX_AGE_SEC);
         telemetry.addData("Start pose", snap != null && snap.alliance == alliance
@@ -284,8 +297,8 @@ public class BioBuzzRobot extends OpMode {
     /** The existing manual launcher, intake and corner-servo controls. */
     private void manualControls() {
         // Corner servos on the triggers.
-        servoLeft.setPower(gamepad1.left_trigger > 0.3 ? -1 : 0);
-        servoRight.setPower(gamepad1.right_trigger > 0.3 ? 1 : 0);
+        servoLeft.setPower(gamepad1.left_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? -1 : 0);
+        servoRight.setPower(gamepad1.right_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? 1 : 0);
 
         // Launcher: triangle spins up and feeds, square stops; the bumpers run the feeder only while held.
         if (gamepad1.triangle) {

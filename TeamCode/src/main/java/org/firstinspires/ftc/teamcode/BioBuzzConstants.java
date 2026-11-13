@@ -34,6 +34,21 @@ public final class BioBuzzConstants {
     private BioBuzzConstants() {
     }
 
+    /**
+     * The name ("Group.NAME") of every value that is still marked ADD, i.e. a placeholder waiting for a real
+     * measurement. The TeleOp lists these at INIT so nothing is forgotten. When you replace a value, change its
+     * marker to VERIFY or TUNE AND delete its name here; a unit test fails if this list and the markers disagree.
+     */
+    public static final String[] PLACEHOLDERS = {
+            "Robot.LAUNCH_POINT_FORWARD_IN",
+            "Robot.LAUNCH_POINT_LEFT_IN",
+            "Robot.LAUNCH_ANGLE_DEG",
+            "Shooter.SHOT_TABLE",
+            "Vision.CAMERA_FORWARD_IN",
+            "Vision.CAMERA_LEFT_IN",
+            "Vision.CAMERA_HEIGHT_IN",
+            "Vision.CAMERA_PITCH_UP_DEG"};
+
     // =========================================================================================
     // HARDWARE NAMES (must match the robot configuration on the Driver Station exactly)
     // =========================================================================================
@@ -148,6 +163,15 @@ public final class BioBuzzConstants {
                 {30.0, 1150.0},
                 {37.7, 1200.0},
                 {44.0, 1250.0}};
+
+        /** TUNE: Shooter Tuner step sizes: flywheel speed in ticks per second (normal and with the left bumper held)... */
+        public static final double TUNER_SPEED_STEP_TPS = 10.0;
+        public static final double TUNER_SPEED_BIG_STEP_TPS = 50.0;
+        /** TUNE: ... and the recorded range in inches. */
+        public static final double TUNER_RANGE_STEP_IN = 0.5;
+        public static final double TUNER_RANGE_BIG_STEP_IN = 2.0;
+        /** TUNE: the range the Shooter Tuner starts at: the measured wall shot. */
+        public static final double TUNER_START_RANGE_IN = 37.7;
 
         /** TUNE: slack on each end of the table when choosing a shooting range, so the planner aims inside it. */
         public static final double RANGE_MARGIN_IN = 1.5;
@@ -404,6 +428,8 @@ public final class BioBuzzConstants {
         /** TUNE: during INIT, press this to choose the BLUE alliance. */
         public static final Button ALLIANCE_BLUE_BUTTON = Button.DPAD_RIGHT;
 
+        /** TUNE: a trigger counts as pressed beyond this (0-1). */
+        public static final double TRIGGER_THRESHOLD = 0.3;
         /** TUNE: stick values smaller than this are treated as zero. */
         public static final double STICK_DEADBAND = 0.05;
         /** VERIFY: +1 or -1. If pushing the left stick forward drives the robot backward, flip this. */
