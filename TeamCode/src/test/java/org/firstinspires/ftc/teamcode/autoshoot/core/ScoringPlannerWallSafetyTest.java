@@ -61,55 +61,16 @@ public class ScoringPlannerWallSafetyTest {
         return BruteForceFootprint.firstClip(driven(start, s), size, size, field.fieldRect(), field.hardObstacles(), tol);
     }
 
-    // ------------------------------------------------------------------ the starting poses
+    // ------------------------------------------------------------------ the starting poses (see WallStarts)
 
-    /**
-     * A robot standing against a wall (or in a corner) at a heading: its rotation center is placed so the rotated
-     * rectangle is {@code gapIn} inches from the wall (0 = touching it). {@code along} is where along the wall; for a
-     * corner both coordinates are set from the walls.
-     */
+    /** A robot against a wall: 0 audience, 1 rear, 2 red, 3 blue; {@code gapIn} inches off it (0 = touching). */
     private Pose2 againstWall(int wall, double along, double headingDeg, double gapIn) {
-        double h = Math.toRadians(headingDeg);
-        double halfX = 0.5 * ShotGeometry.footprintExtentX(size, size, h);
-        double halfY = 0.5 * ShotGeometry.footprintExtentY(size, size, h);
-        double far = field.size();
-        switch (wall) {
-            case 0:  return new Pose2(along, halfY + gapIn, h);                  // audience wall (y = 0)
-            case 1:  return new Pose2(along, far - halfY - gapIn, h);            // rear wall (y = 144)
-            case 2:  return new Pose2(halfX + gapIn, along, h);                  // red wall (x = 0)
-            default: return new Pose2(far - halfX - gapIn, along, h);            // blue wall (x = 144)
-        }
-    }
-
-    /** The corner starts: both walls at the same gap. */
-    private Pose2 inCorner(int corner, double headingDeg, double gapIn) {
-        double h = Math.toRadians(headingDeg);
-        double halfX = 0.5 * ShotGeometry.footprintExtentX(size, size, h);
-        double halfY = 0.5 * ShotGeometry.footprintExtentY(size, size, h);
-        double far = field.size();
-        double x = (corner & 1) == 0 ? halfX + gapIn : far - halfX - gapIn;
-        double y = (corner & 2) == 0 ? halfY + gapIn : far - halfY - gapIn;
-        return new Pose2(x, y, h);
+        return WallStarts.againstWall(field, size, wall, along, headingDeg, gapIn);
     }
 
     /** Every start next to a wall or in a corner: 12 headings, touching and 1.5 in off, 3 places along each wall. */
     private List<Pose2> allWallStarts() {
-        List<Pose2> out = new ArrayList<Pose2>();
-        double[] gaps = {0.0, 1.5};
-        double[] places = {30.0, 72.0, 114.0};
-        for (double gap : gaps) {
-            for (int deg = -180; deg < 180; deg += 30) {
-                for (int wall = 0; wall < 4; wall++) {
-                    for (double along : places) {
-                        out.add(againstWall(wall, along, deg, gap));
-                    }
-                }
-                for (int corner = 0; corner < 4; corner++) {
-                    out.add(inCorner(corner, deg, gap));
-                }
-            }
-        }
-        return out;
+        return WallStarts.all(field, size);
     }
 
     // ------------------------------------------------------------------ tests
