@@ -8,21 +8,30 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
  *
  * <p>All field data is therefore written ONCE, for RED, and converted for BLUE here:
  * {@code blue = (size - x, size - y, heading + 180 deg)}.
+ *
+ * <p>Why not just mirror left/right? Because the field is not a mirror image: the blue HIVE is the red one
+ * turned half a turn, so the blue cell that is on the audience side is the half-turn image of the red cell on
+ * the REAR side. A mirror would put the blue features in the wrong places.
+ *
+ * <p>Used by {@code FieldModel} (to build the blue cells) and the TeleOp and Limelight Diagnostic OpModes (to
+ * turn the red-frame start pose into the real one for whichever alliance the driver picked). Any number that
+ * {@code BioBuzzConstants} labels "RED frame" must go through {@link #fromRed} before it is used for BLUE.
  */
 public enum Alliance {
     RED,
     BLUE;
 
+    /** The other alliance. */
     public Alliance opposite() {
         return this == RED ? BLUE : RED;
     }
 
-    /** Converts a RED-frame x to this alliance's equivalent x. */
+    /** Converts a RED-frame x to this alliance's equivalent x. {@code fieldSize} is the field width in inches (144). */
     public double fromRedX(double redX, double fieldSize) {
         return this == RED ? redX : fieldSize - redX;
     }
 
-    /** Converts a RED-frame y to this alliance's equivalent y. */
+    /** Converts a RED-frame y to this alliance's equivalent y. {@code fieldSize} is the field depth in inches (144). */
     public double fromRedY(double redY, double fieldSize) {
         return this == RED ? redY : fieldSize - redY;
     }
