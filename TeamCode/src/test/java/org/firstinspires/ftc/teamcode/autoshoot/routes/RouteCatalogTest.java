@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.junit.Test;
 
 /** The route catalog: ids, both alliances, the faithful conversions of the old autos and their validator findings. */

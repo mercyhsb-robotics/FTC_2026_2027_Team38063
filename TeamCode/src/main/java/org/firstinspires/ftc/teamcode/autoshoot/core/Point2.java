@@ -1,8 +1,6 @@
-package org.firstinspires.ftc.teamcode.autoshoot.routes;
+package org.firstinspires.ftc.teamcode.autoshoot.core;
 
 import java.util.Locale;
-
-import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 
 /** An immutable field point in inches (Pedro frame, see {@code Pose2}). Used for via points, targets and aim points. */
 public final class Point2 {
@@ -34,7 +32,7 @@ public final class Point2 {
 
     @Override
     public int hashCode() {
-        return 31 * Double.valueOf(x).hashCode() + Double.valueOf(y).hashCode();
+        return java.util.Objects.hash(x, y);
     }
 
     @Override

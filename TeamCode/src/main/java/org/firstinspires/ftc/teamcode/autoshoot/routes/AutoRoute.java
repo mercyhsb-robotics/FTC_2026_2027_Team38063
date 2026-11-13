@@ -8,6 +8,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 
 /**
  * An autonomous route as DATA: an id, a title, and an ordered list of immutable {@link Step}s.

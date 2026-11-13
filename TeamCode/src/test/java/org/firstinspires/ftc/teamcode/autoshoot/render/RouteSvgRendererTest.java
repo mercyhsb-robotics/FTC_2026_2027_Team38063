@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
-import org.firstinspires.ftc.teamcode.autoshoot.routes.Footprint;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
 import org.junit.Test;

@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 
 /**
  * One immutable step of an autonomous route. A route is written ONCE, in the RED frame; the BLUE

@@ -15,6 +15,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.junit.Test;
 
 /** Footprint, shot geometry and the alliance-specific zones. */

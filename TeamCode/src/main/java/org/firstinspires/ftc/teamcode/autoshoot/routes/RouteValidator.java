@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 
 /**
  * Checks a route against the real field geometry and the AUTO rules of the BIOBUZZ manual (TU09),

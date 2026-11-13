@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 
 /**
  * Plays a route through, step by step, WITHOUT any physics: where the robot is after each step (the

@@ -4,6 +4,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 
 /**
  * Where a shot leaves the robot and how it relates to a HIVE cell. The shooter fires out the BACK, so

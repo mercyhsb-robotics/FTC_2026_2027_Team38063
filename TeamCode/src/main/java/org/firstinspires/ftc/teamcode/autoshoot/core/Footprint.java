@@ -1,11 +1,9 @@
-package org.firstinspires.ftc.teamcode.autoshoot.routes;
+package org.firstinspires.ftc.teamcode.autoshoot.core;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
-import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
-import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 
 /**
  * The robot's floor footprint at a pose: a rectangle {@code LENGTH x WIDTH} (front to back by side to

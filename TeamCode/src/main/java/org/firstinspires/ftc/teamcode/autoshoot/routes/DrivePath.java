@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 
 /**
  * The geometry of one DRIVE leg: a straight line or a Bezier curve (the via points are its control

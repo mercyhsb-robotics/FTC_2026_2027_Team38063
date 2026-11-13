@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.junit.Test;
 
 /** The route data model: builder behaviour and the red -> blue half turn of every step kind. */
