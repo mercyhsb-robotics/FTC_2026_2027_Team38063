@@ -33,7 +33,7 @@ POLLEN, so one is spare. After a tip the new UP cell is empty, so every later ti
 **The robot.** It is a goBILDA StarterBot with mecanum wheels (wheels that let it slide sideways). The
 **intake** is at the front. The **shooter** is at the back: a **flywheel** (a fast spinning wheel that throws the
 POLLEN) and a **feeder** (also called the indexer: a servo that pushes one POLLEN at a time into the flywheel). A
-**Limelight** camera on top faces the back, like the shooter. It finds **AprilTags** (black and white square codes
+**Limelight** camera on top faces the back, like the shooter (it is mounted upside down: see step 36b). It finds **AprilTags** (black and white square codes
 with a number) on the HIVE.
 
 **What it can do for you.** In TeleOp (the driver-controlled part of a match), **hold D-pad up** and the robot drives
@@ -187,9 +187,9 @@ The code treats the robot as **one point** with a direction. That point is the *
 spot that stays still when the robot turns on the spot. The point plus the direction is called the **pose**
 (position in inches, and **heading**: the way the robot faces). The Pinpoint reports the pose.
 
-**The center of rotation is not the middle of the robot.** The outline is 17.80 in long and 17.80 in wide, but the
+**The center of rotation is not the middle of the robot.** The outline is 17.80 in long and 17.62 in wide (the team measured it), but the
 intake sticks out at the front. From the center of rotation the outline is about 9.8 in to the front, 8.0 in to the
-rear and 8.9 in to each side. Every check of "does the robot fit here?" uses these four distances. A wrong number here
+rear and 8.8 in to each side. Every check of "does the robot fit here?" uses these four distances. A wrong number here
 makes the robot hit walls or stand in the wrong place.
 
 **The field frame.** Positions are measured in inches from the inside corner where the red wall meets the audience wall.
@@ -214,28 +214,32 @@ at its own front distance from that wall (the file's `Robot.FRONT_EXTENT_IN` is 
   |---|---|---|
   | `Robot.FRONT_EXTENT_IN` | front edge (the outer edge of the two flat intake wheels) | 9.77 |
   | `Robot.REAR_EXTENT_IN` | rear edge (the back lip, where the ball leaves) | 8.03 |
-  | `Robot.LEFT_EXTENT_IN` | left edge (the outer face of the left wheels) | 8.90 |
-  | `Robot.RIGHT_EXTENT_IN` | right edge (the outer face of the right wheels) | 8.90 |
+  | `Robot.LEFT_EXTENT_IN` | left edge (the outer face of the left wheels) | 8.81 |
+  | `Robot.RIGHT_EXTENT_IN` | right edge (the outer face of the right wheels) | 8.81 |
 
+  The team measured these numbers on 2026-11-13: the robot is 17.80 in long, the center of rotation is 8.03 in from the back, and it is exactly half way across the 17.62 in width, so 8.81 in to each side.
+  Check them once with your tape.
   Example: you measure 9.8 in to the front, so type `9.8`.
-  The sums must match the size of the robot: front + rear = `Robot.LENGTH_IN` and left + right = `Robot.WIDTH_IN` (both 17.80 in).
+  The sums must match the size of the robot: front + rear = `Robot.LENGTH_IN` (17.80 in) and left + right = `Robot.WIDTH_IN` (17.62 in).
   **You should see:** later, at INIT of the TeleOp, no error.
   **If not:** if the sums do not match, the TeleOp refuses to start at INIT and the message names the two numbers that disagree.
   Measure again, or fix the size in step 14.
 
 - [ ] **14. Measure the whole outline.** With the robot standing normally, measure the longest length and width in inches.
-  Write them in `Robot.LENGTH_IN` and `Robot.WIDTH_IN` (the drawing says 17.80 and 17.80). The robot must fit in the 18 in start cube (rule R102).
+  Write them in `Robot.LENGTH_IN` and `Robot.WIDTH_IN` (the team measured 17.80 and 17.62; the drawing says 17.80 and 17.80). The robot is 17.62 x 17.80 in, so it fits in the 18 in start cube (rule R102) with 0.38 in to spare in width and 0.20 in in length. If you add a part that sticks out, measure again: the Robot Check and the TeleOp INIT warn "larger than the 18 in start cube" if the robot grows past 18 in.
 
 - [ ] **15. ★ Measure where the ball leaves the robot.** The ball leaves the ramp at the back. Tape a measure straight
   back from the center-of-rotation mark to the point where the ball leaves the ramp. Write it as a **negative** number
-  (behind the center) in `Robot.LAUNCH_POINT_FORWARD_IN`. Example: the tape says 6.6 in, so type `-6.6`. The robot drawing says
-  about 6.58 in behind the center, but use your tape, not the drawing. If the exit is not on the center line, measure how far it is to the left (positive) or right
-  (negative) in `Robot.LAUNCH_POINT_LEFT_IN` (0.0 if it is centered).
-  **You should see:** a negative number, usually a little smaller than your rear distance in step 13 (the ball leaves inside the outline).
-  **If not:** measure again. A positive number means you measured in front of the center.
+  (behind the center) in `Robot.LAUNCH_POINT_FORWARD_IN`. **File starts at -5.38.** The team measured it on 2026-11-13: at the moment the POLLEN stops touching the flywheel,
+  its back edge is about 1.25 in in front of the back of the robot, so the middle of the 2.8 in ball is 1.25 + 1.4 = 2.65 in in front of the back, which is 8.03 - 2.65 = 5.38 in behind the center of rotation.
+  (The robot drawing said 6.58 in; use the tape, not the drawing.)
+  The ball is not centered left to right. The team measured the middle of the ball about **0.16 in to the right of the center line**, so `Robot.LAUNCH_POINT_LEFT_IN` is `-0.16` (left is positive, right is negative).
+  Recheck it with a tape: from the center line to the middle of the ball at the moment it leaves the flywheel. It is small (about 0.2 degrees of aim at 38 in), but the robot aims with it.
+  **You should see:** a negative number, a little smaller than your rear distance in step 13 (the ball leaves inside the outline), and a sideways number near -0.16.
+  **If not:** measure again. A positive first number means you measured in front of the center.
 
 - [ ] **16. Measure how high the ball leaves.** With the tape from the floor to where the ball leaves the ramp (in
-  inches), write it in `Robot.LAUNCH_HEIGHT_IN`. The drawing says about 8.71 in. Check the launch angle
+  inches), write it in `Robot.LAUNCH_HEIGHT_IN`. The team measured 5.975 in (the top edge of the POLLEN is about 7.375 in above the floor when it leaves the flywheel, minus the 1.4 in radius of the ball); the drawing said about 8.71 in. Check the launch angle
   `Robot.LAUNCH_ANGLE_DEG` (about 68.5 degrees) with a protractor or a phone level app. These two numbers only feed the
   physics check on the Shooter Tuner screen.
 
@@ -251,17 +255,21 @@ at its own front distance from that wall (the file's `Robot.FRONT_EXTENT_IN` is 
   **You should see:** numbers within about 1.5 in of the code.
   **If not:** tell a mentor before you change `Field.SIZE_IN`: other numbers move with it.
 
-- [ ] **19. Check the one measured good shot.** The team once measured a good shot with the robot's front touching the audience wall, in line with the HIVE: **37.7 in** from the ball exit to the cell, at about 1200 ticks per second.
+- [ ] **19. Check the one good shot.** The team saw a good shot with the robot's front touching the audience wall, in line with the HIVE: the POLLEN went through the middle of the opening, slightly high, at about 1200 ticks per second.
+  Nobody measured the distance with a tape: the code **computes** it from the field and the robot numbers, **39.0 in** from the ball exit to the cell. The shot table row `{39.0, 1200}` uses it.
   Work out the same range from your numbers: 51.2 (audience wall to the HIVE foot bar, or your own number from step 18) minus (`Robot.FRONT_EXTENT_IN` plus the distance from step 15, without its minus sign) plus 2.95.
-  Example: 51.2 - (9.77 + 6.58) + 2.95 = 37.8 in.
+  Example: 51.2 - (9.77 + 5.38) + 2.95 = 39.0 in.
   Then re-measure the distance from the ball exit to the cell opening center with a tape: stand the robot front-on to the audience wall, in line with the HIVE, and hold the tape level from the lip of the ramp to the middle of the cell's opening (look from the side).
-  **You should see:** the sum and the tape agree within about 0.5 in, near 37.7 in.
-  **If not:** if they disagree, measure steps 15 and 18 again. If the sum and the tape agree with each other but say about 36.4 in, the old 37.7 in was a little long: in step 47 change the table row `{37.7, 1200}` to the range your
-  tape says. Its speed stays 1200.
+  **You should see:** the sum and the tape agree within about 0.5 in, near 39.0 in.
+  **If not:** if they disagree, measure steps 15 and 18 again. If the sum and the tape agree with each other but say something else (for example 38 in), the computed 39.0 in was off: in step 47 change the table row `{39.0, 1200}` to the range your
+  tape says. Its speed stays 1200. Check the row with the Shooter Tuner (steps 45 to 47) before you trust the rows next to it.
 
 - [ ] **20. Where the Pinpoint pods are.** The two small tracking wheels ("pods") of the Pinpoint touch the floor. The x pod measures forward
   and backward motion. The y pod measures sideways motion. With a tape, measure from the center-of-rotation mark to each pod
   (forward or back, left or right, in inches) and write the four numbers down. You need them in step 25.
+  The team measured them on 2026-11-13. The forward-measuring pod is about 0.42 in to the right of the center line and about 1 in in from the back of the robot. The sideways-measuring pod is about 5.1875 in from the back and about 6.34 in to the right of the center line.
+  The code wants two numbers: `xPodOffset`, how far to the **left** of the center of rotation the forward pod is (0.42 in to the right, so **-0.42**), and `yPodOffset`, how far **forward** of the center of rotation the sideways pod is
+  (it is 5.1875 in from the back and the back is 8.03 in behind the center, so it is 8.03 - 5.1875 = 2.8425 in behind the center, so **-2.8425**). Both are in the Pedro file (`pedro/Constants.java`) already.
 
 - [ ] **21. Finish the list.** For every ADD number you replaced in steps 13 to 17, change ADD to VERIFY in its comment and delete its name from `PLACEHOLDERS` (see "How to change a number"). Run the code again (step 2).
   **You should see:** the TeleOp's INIT screen no longer lists the names you did. (Names that start with `Auto.` are for planning autonomous routes on a computer. Ignore them today.)
@@ -294,7 +302,7 @@ Run them in this order: each one needs the one before it to be right.
   the "heading" on the screen reads about **3.14** (half a turn, in radians), then press stop. It prints the two pod offsets in inches.
   **Run the whole Pinpoint Tuner three times** and use the **average** of the three results for each offset. Compare them with your tape
   numbers from step 20: they should agree within about 0.5 in. Copy `xPodOffset`, `yPodOffset`, `xPodDirection` and `yPodDirection` into `localizerConfig` in the Pedro file.
-  **You should see:** offsets that are not tiny. (The numbers the file had at the start, -0.167 and 0.037 in, are far smaller than a real robot's.)
+  **You should see:** offsets close to the tape numbers of step 20 (the file has -0.42 and -2.8425 in).
   **If not:** if the three runs differ by more than about 0.5 in, the spin was uneven. Spin slower and exactly to 3.14.
 
 - [ ] **26. Foresight Tuner** (6 ft / 180 cm of clear floor in front of and beside the robot, fresh battery). It runs a long list of short tests:
@@ -330,8 +338,9 @@ Run them in this order: each one needs the one before it to be right.
 
 A **pipeline** is one saved set of detection settings inside the Limelight. The code uses **pipeline 0** and checks that it is selected.
 
-- [ ] **32. Mount the camera.** Fix it firmly, **facing the back** (the same way as the shooter), upright (not tilted sideways), on a part that does
+- [ ] **32. Mount the camera.** Fix it firmly, **facing the back** (the same way as the shooter), not tilted sideways, on a part that does
   not flex. **Tilt it up** by 30 to 40 degrees: the tags are 36 to 50 in above the floor and the Limelight 3A sees only 42 degrees up and down.
+  The team's camera is mounted **upside down** and tilted about 40 degrees up (step 36b says what that changes).
   Connect it with a USB-C cable to the Control Hub's **blue** USB 3 port, with strain relief at both ends.
   **You should see:** the Limelight's light, about 20 s after the robot is switched on.
   **If not:** a different cable or port. The blue USB 3 port is the right one.
@@ -340,11 +349,12 @@ A **pipeline** is one saved set of detection settings inside the Limelight. The 
 
   | Constant | What to measure | File starts at |
   |---|---|---|
-  | `Vision.CAMERA_FORWARD_IN` | lens position, forward is positive. The camera is behind the center, so the number is negative | -6.0 |
+  | `Vision.CAMERA_FORWARD_IN` | lens position, forward is positive. The camera is behind the center, so the number is negative | -3.655 |
   | `Vision.CAMERA_LEFT_IN` | sideways offset, left is positive | 0.0 |
-  | `Vision.CAMERA_HEIGHT_IN` | lens height above the floor | 13.0 |
-  | `Vision.CAMERA_PITCH_UP_DEG` | tilt above level (use a phone level app) | 35.0 |
+  | `Vision.CAMERA_HEIGHT_IN` | lens height above the floor | 14.25 |
+  | `Vision.CAMERA_PITCH_UP_DEG` | tilt above level (use a phone level app) | 40.0 |
 
+  The team measured these on 2026-11-13: the middle of the lens is centered left to right, about 14.25 in above the floor and about 4.375 in in front of the back of the robot, which is 8.03 - 4.375 = 3.655 in behind the center of rotation. The tilt is about 40 degrees up from level.
   Example: the lens is 5.5 in behind the mark, so type `-5.5`.
 
 - [ ] **34. Name it in the robot configuration.** Configure Robot, scan for devices, and rename the Limelight `limelight` (it appears as a USB device). Save and activate.
@@ -373,6 +383,16 @@ A **pipeline** is one saved set of detection settings inside the Limelight. The 
   starts to fail, and back off a little. The camera pose on the Advanced tab is not used by the code. Leave it at zero.
   **You should see:** a green box around each HIVE tag in the picture.
 
+- [ ] **36b. The camera is mounted upside down.** The team's Limelight hangs upside down (the lens is centered and about 14.25 in above the floor, tilted about 40 degrees up). Two things follow.
+  (a) **The picture.** In the Limelight web page open pipeline 0, tab **Input**, and set **Stream Orientation** to **Upside-down** (the other choices are 90 degrees clockwise, 90 degrees counter-clockwise and the two mirrors).
+  This only turns the picture you see in the browser, so the HIVE looks the right way up and you can aim and check it. The Limelight's own documents say it does **NOT** change `tx`, `ty` or any other number the camera sends:
+  those still come from the upside-down sensor. (Older Limelight software had a "camera orientation" setting that did; it was removed in 2024 and the documents tell teams to flip the numbers themselves in code.)
+  (b) **The numbers.** Because the sensor is upside down, `tx` (left and right) and `ty` (up and down) come out backwards: an upside-down camera flips **both**. The code has two switches for it, `Vision.TX_POSITIVE_IS_RIGHT` and `Vision.TY_POSITIVE_IS_UP`.
+  Do the three-move test (step 41). If `tx` or `ty` is backwards, flip **both** switches together (change `true` to `false`), install the code (step 2) and test again.
+  **You should see:** the picture the right way up in the browser; after the test, `tx` goes up when the tag moves to the right of the picture and `ty` goes down when you lift the back of the robot.
+  **If not:** if the implied position of step 43 is mirrored left to right or up and down even after the three-move test passes, tell a mentor: the 3D numbers of the camera may need the same flip (`Vision.CAMERA_SPACE_CONVENTION`).
+  **Run the Limelight Diagnostic again after this step** (steps 39 to 43).
+
 - [ ] **37. Back up the pipeline.** Use the download button next to the pipeline name, or run this on the laptop:
   `curl "http://limelight.local:5807/pipeline-atindex?index=0" -o pipeline0.json`
   Keep the file in the folder `docs/limelight/` of this project. New camera firmware erases pipelines. The code never uploads a pipeline: it only checks that pipeline 0 is selected.
@@ -397,8 +417,8 @@ A **pipeline** is one saved set of detection settings inside the Limelight. The 
      Slide the robot about 6 in to **its left** instead: `tx` goes **down**, and the cluster's `left` number **shrinks**.
   3. **Up and down.** Lift the back of the robot (the camera end) a few inches with a block. The tag sinks in the picture, so `ty` goes **down**. Lower it: `ty` goes up.
   **You should see:** all three moves behave as written.
-  **If not:** do not change anything yet. Ask a mentor: the settings are `Vision.CAMERA_SPACE_CONVENTION`, `Vision.TX_POSITIVE_IS_RIGHT` and `Vision.TY_POSITIVE_IS_UP`. The values in the file are
-  believed correct.
+  **If not:** do not change anything yet. Ask a mentor: the settings are `Vision.CAMERA_SPACE_CONVENTION`, `Vision.TX_POSITIVE_IS_RIGHT` and `Vision.TY_POSITIVE_IS_UP`.
+  The camera is upside down (step 36b), so `tx` and `ty` are probably BOTH backwards: flip `Vision.TX_POSITIVE_IS_RIGHT` and `Vision.TY_POSITIVE_IS_UP` **together** and run the test again.
 
 - [ ] **42. UP or DOWN.** For the cell that is tipped up toward the robot, the screen must say `UP`. At the start of a match the RED audience-side cell is UP, and the BLUE far-side cell is UP.
   **You should see:** "CLUSTER ... UP  tags=4".
@@ -410,19 +430,19 @@ A **pipeline** is one saved set of detection settings inside the Limelight. The 
   **If not:** correct `Vision.CAMERA_FORWARD_IN`, `CAMERA_LEFT_IN`, `CAMERA_HEIGHT_IN` and `CAMERA_PITCH_UP_DEG` until they agree. A height error shows as a range error. A pitch error shows as
   a range error that grows with distance.
 
-- [ ] **44. Tidy up.** Change the markers of the four camera numbers from ADD to VERIFY, and delete `Vision.CAMERA_FORWARD_IN`, `Vision.CAMERA_LEFT_IN`, `Vision.CAMERA_HEIGHT_IN` and
-  `Vision.CAMERA_PITCH_UP_DEG` from `PLACEHOLDERS`. Run the code again (step 2).
+- [ ] **44. Tidy up.** The four camera numbers are the team's measurements, so they are already out of `PLACEHOLDERS`. If you changed one, keep its marker VERIFY. Run the code again (step 2).
+  **After step 36b, run the Limelight Diagnostic once more** (steps 39 to 43): the picture's orientation changes what the camera sees, so check the frame, the three-move test and the implied position again.
   The camera also corrects the robot's position when the Pinpoint drifts. That is **off** (`Vision.POSE_CORRECTION_ENABLED` is `false`) until you have checked the mount (step 59).
 
 ## Build the shot table
 
 The shooter has one fixed angle. To reach the HIVE from different distances, you change how fast the flywheel spins. The **shot table** lists, for several
 distances, the flywheel speed that scores. It is `Shooter.SHOT_TABLE`. Each row is `{range in inches, speed in ticks per second}`. The three rows in the file are
-placeholders except one: `{37.7, 1200}`, the team's one measured good shot.
+placeholders except one: `{39.0, 1200}`, the spot where the team saw a good shot (its range is computed from the field and robot numbers, not measured with a tape: check it, see step 19).
 
 **The range.** It is the distance from the **ball exit** (step 15) to the aim point (the middle of the cell's opening). To measure it: hold a tape from the ball exit to the
-**foot line** of the HIVE frame at the end you shoot into (the near edge of the foot bar), level with the floor, then **add 3 in** (2.95 in exactly: the aim point is that far inside the foot line). The one measured good shot: robot **front against the audience wall**,
-in line with the HIVE, range 37.7 in, speed about 1200 ticks per second, slightly high (the best speed is probably a little lower).
+**foot line** of the HIVE frame at the end you shoot into (the near edge of the foot bar), level with the floor, then **add 3 in** (2.95 in exactly: the aim point is that far inside the foot line). The one good shot the team saw: robot **front against the audience wall**,
+in line with the HIVE, range 39.0 in (computed), speed about 1200 ticks per second, slightly high (the best speed is probably a little lower).
 
 - [ ] **45. Set up.** Put the robot at a measured range from the HIVE, in line with the cell (the cell axis is the middle of the 20 in wide opening). Load one POLLEN. Everyone stands clear of the back of the robot, where the POLLEN is thrown.
 
@@ -433,8 +453,8 @@ in line with the HIVE, range 37.7 in, speed about 1200 ticks per second, slightl
 
 - [ ] **47. Find the speed that scores, for at least three ranges between 30 and 44 in.** For each range, find the **lowest** speed that sends the POLLEN through the middle of the opening. Too fast flies over the cell. Hitting the outside of a cell is a
   foul. Set the range to your tape number with D-pad left and right (0.5 in per press, 2 in with the left bumper held). Press triangle to **record a row**. The rows appear on the screen and in the robot log. (Square clears them.)
-  A robot against the audience wall, in line, reaches at most 37.7 in. For longer ranges stand to one side of the line (no more than 20 degrees: `AutoShoot.SHOOT_CONE_HALF_ANGLE_DEG`). For shorter ones stand closer to the HIVE.
-  If step 19 told you to move the 37.7 row, do it now: use the range your tape says and keep the speed.
+  A robot against the audience wall, in line, reaches at most 39.0 in. For longer ranges stand to one side of the line (no more than 20 degrees: `AutoShoot.SHOOT_CONE_HALF_ANGLE_DEG`). For shorter ones stand closer to the HIVE.
+  If step 19 told you to move the 39.0 row, do it now: use the range your tape says and keep the speed.
   **You should see:** at least three rows like `{30.0, 1150},`.
 
 - [ ] **48. Paste the rows into `Shooter.SHOT_TABLE`**, sorted by range, replacing the old rows. Change its marker from ADD to TUNE and delete `Shooter.SHOT_TABLE` from `PLACEHOLDERS`.
@@ -647,11 +667,11 @@ If the last line says **REFUSED**, the robot **will not move** after PLAY. Fix w
 
 | OpMode | Where to place the robot | What it does |
 |---|---|---|
-| "RedAlliance_B1" | tile B1, front touching the audience wall. Right edge 26.1 in from the red wall | turns, shoots, then drives backward up the left side to the LOADING ZONE |
-| "RedAlliance_C1" | tile C1, front touching the audience wall. Right edge 49.1 in from the red wall | shoots, then drives backward to the far end and toward the red wall |
-| "RedAlliance_LeavePark" | tile A3, front touching the red wall. Left edge 61.4 in from the audience wall | drives out in two short lines. No shooting |
+| "RedAlliance_B1" | tile B1, front touching the audience wall. Right edge 26.2 in from the red wall | turns, shoots, then drives backward up the left side to the LOADING ZONE |
+| "RedAlliance_C1" | tile C1, front touching the audience wall. Right edge 49.2 in from the red wall | shoots, then drives backward to the far end and toward the red wall |
+| "RedAlliance_LeavePark" | tile A3, front touching the red wall. Left edge 61.5 in from the audience wall | drives out in two short lines. No shooting |
 
-The edge distances use the file's `Robot.RIGHT_EXTENT_IN` and `Robot.LEFT_EXTENT_IN` of 8.90 in: the program starts with its center of rotation 35.0, 58.0 and 70.3 in from the wall, and the edge is that minus 8.90 in.
+The edge distances use the file's `Robot.RIGHT_EXTENT_IN` and `Robot.LEFT_EXTENT_IN` of 8.81 in: the program starts with its center of rotation 35.0, 58.0 and 70.3 in from the wall, and the edge is that minus 8.81 in.
 Left and right are the robot's own: stand behind the robot and look where it faces.
 These three programs start with the center of rotation 9.2 in from the wall (the start line `poseFactory.of(..., 9.2, ...)` in `RedAlliance_B1.java` and `RedAlliance_C1.java`, and 9.2112 in `RedAlliance_LeavePark.java`).
 With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_IN` away. If you want to use an old OpMode, change that number in its start line to your measured number.
@@ -683,7 +703,7 @@ With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_
 | It goes to the wrong side after a tip | Press D-pad down. If it happens often, check the camera steps. Settings: `Vision.HIVE_CONFIRM_FRAMES`, `HIVE_CONFIRM_SEC`, `HIVE_LOST_SEC`. |
 | It switches sides in the middle of a volley when nothing tipped | Raise `Vision.HIVE_LOST_SEC` (the tags were blocked for a moment). |
 | It swings wide near the wall or the HIVE | Lower `AutoShoot.KEEPOUT_MARGIN_IN` or `WALL_CLEARANCE_IN`. Check the robot size numbers. |
-| The camera says DOWN for the up cell | Step 41, and make sure the camera is upright. |
+| The camera says DOWN for the up cell | Step 41, and step 36b: the camera is upside down, so the signs of `tx` and `ty` may need flipping together. |
 | The position slowly drifts | Put the robot on the start place and hold Share for 0.6 s. After step 43, try drift correction (step 59). |
 
 ## How it works, in ten lines
@@ -717,4 +737,5 @@ You do not need these today. They feed the planner that checks routes on a compu
   `Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`, `Auto.FLOWER_WHEEL_BALL_INBOARD`, `Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC`, `Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC`, `Auto.FLOWER_WIGGLE_TURN_SEC`, `Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN`,
   `Auto.FLOWER_CHASSIS_CLEARANCE_IN` and `Robot.INTAKE_REACH_IN`. The spinning wheel must pull the ball toward the robot. Print or watch the robot's pose during one wiggle: the pose point must not slide more than about 0.3 in. Also measure the real FLOWER: the distance from the wall to the middle of the POLLEN stack (the drawing says 2.634 in), the hole the bottom POLLEN sits in (3.04 in; the rule book says 2.79 in), the height of the ring's lip (0.35 in; the rule book says 0.43 in), and which parts of your robot are taller than 11.44 in (the FLOWER's wall bracket sticks out 1.67 in from the wall at 11.44 to 11.84 in above the floor). Details: "Taking POLLEN from a FLOWER" in [`docs/AUTOS.md`](AUTOS.md).
 * **FLOWER pick-ups:** the model says the flat wheels fall about 0.8 in short of the POLLEN with the chassis kept outside the FLOWER base; check with a tape and by trying it at the real FLOWER whether the robot body can drive over the 0.35 in bottom ring of the FLOWER (ground clearance is about 0.94 in); if it can, tell the lead so the keep-out can be relaxed.
+* **The real top of the Limelight** (`Robot.HEIGHT_IN`): the team says the robot is about 15 in tall with the camera on top, but that is a rounded number. Measure from the floor to the very top of the Limelight with a tape. The planner uses it (with a 1 in margin, `Auto.HIVE_SOLID_HEIGHT_IN`, 16 in) to decide which parts of the HIVE the robot can pass under.
 * **The lane under the HIVE** (only if a route uses it): the distance between the inner faces of the two foot bars (about 45.5 in) and between the leg stubs at your tallest part's height. Push the robot through by hand with the camera on: nothing may touch.
