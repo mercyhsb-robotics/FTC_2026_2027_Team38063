@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * Pedro path test: drives the robot 48 inches (4 feet) straight FORWARD and then 48 inches back to where it started.
  * It is the simplest check that Pedro Pathing, the Pinpoint odometry and the drive motors work together.
  *
- * <p><b>When to run it.</b> After the Pedro tuning steps in docs/TUNING.md (or after changing the drive or the
+ * <p><b>When to run it.</b> After the Pedro tuning steps in docs/START_HERE.md (or after changing the drive or the
  * odometry), before trusting a real autonomous routine. It shows up in the Driver Station Autonomous list as
  * "PedroPathingAuto_Forward". Put the robot on clear floor with at least 4 feet free in FRONT of it (more is safer:
  * the robot may overshoot), press INIT, then PLAY. The field walls are not needed: the code simply tells Pedro "the

@@ -34,7 +34,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * newest {@link VisionFrame} and the {@link ClusterView}s. If it gets a {@link Correction} back it writes the new
  * position into the odometry ({@code PedroDrive.setPose}). The TeleOp skips this class while a ball is being fed,
  * so the robot's position never jumps in the middle of a shot. Only after the camera mount constants have been
- * checked on the robot is it safe to turn on; see docs/LIMELIGHT_SETUP.md section 4, step 9.
+ * checked on the robot is it safe to turn on; see docs/START_HERE.md, "Set up the Limelight camera" and "Try drift correction".
  */
 public final class PoseCorrector {
 

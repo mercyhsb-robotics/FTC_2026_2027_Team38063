@@ -331,7 +331,7 @@ and shooter numbers, so read the order and the sizes, not the decimals):
 What this says about the shortcuts one might expect:
 
 * **Start in a shooting pose** (front on the audience wall, in line with the HIVE): confirmed, and it is what C1 already is. At x = 58 the ball leaves 36.4 in
-  from the aim point (the measured shot is 37.7 in, see the day-one list), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
+  from the aim point (the measured shot is 37.7 in, see docs/START_HERE.md, step 19), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
   to a pose is in the plan. The search finds something slightly better: **start turned about 40 degrees with the back toward the cell** and a front corner on the
   wall, standing about 23 in nearer the corridor to the LOADING ZONE. It saves about 0.8 s over C1 for every family that goes down the left side, and the robot is still a
   shooting pose (the back points within about 15 degrees of the aim point). This is the "start rotated" shortcut of Figure 11-1.
@@ -430,7 +430,7 @@ every route goes **around** it.
 That is the loop of a partner route (the robot must get from the audience side to the cell that comes up on the rear side
 after the partner's tip): about 0.6 s at the placeholder cruise speed of 40 in/s, which is a tenth of the 6 s a 3-POLLEN
 FLOWER pick-up is estimated to take. Worth having if the HIVE is known to be at rest; not worth a foul. Day one: measure the real
-lane with a tape before the first run (`docs/DAY_ONE_CHECKLIST.md`).
+lane with a tape before the first run (`docs/START_HERE.md`, "Measure later").
 
 ## Taking POLLEN from a FLOWER (the wiggle)
 
@@ -490,7 +490,7 @@ derived from the constants**, so nobody computes it by hand:
   (wheels that stick out 2.7 in) the wheel falls 0.77 in short**: the validator says so as an ERROR, with the missing inches:
   *"the flat wheels would have to stick out 3.5 in in front of the chassis, 0.8 in more than they do"*. What helps is longer wheels,
   or a smaller `Auto.FLOWER_CHASSIS_CLEARANCE_IN`, or a smaller `Auto.FLOWER_WHEEL_START_OFFSET_IN` (a smaller swing): **measure the
-  real robot** (the day-one checklist) before believing this ERROR, it follows from placeholder numbers. (If the wheel would
+  real robot** ("Measure later" in docs/START_HERE.md) before believing this ERROR, it follows from placeholder numbers. (If the wheel would
   have to turn more than 20 degrees, no length of wheel helps and the finding says so.)
 * **Which wheel.** `intakeFlower(x, y, count)` leaves the wheel to `IntakeWheel.AUTO`; `LEFT` or `RIGHT` forces it. The program
   plans the whole pick-up for each wheel and **keeps only the legal ones** (the wheel reaches, nothing breaks a rule on the
@@ -536,7 +536,7 @@ not simulated (the validator checks them as straight legs). The margin is thin a
 is 1.1 in, 1.2 in and 8 degrees. And with the minimum standoff the wheel stands exactly on the stop line, so any slide toward the wall breaks
 it. The script reads only the heading by design (the follower holds the position, the runner only alternates the target heading); a runner
 that also reads the pose and gives up when the pose point leaves a small circle would close the gap, but there is no runner yet, so it is a
-design note and not built. Until then the day-one checklist asks to watch the pose during one wiggle, and `Auto.FLOWER_CHASSIS_CLEARANCE_IN` is the knob.
+design note and not built. Until then "Measure later" in docs/START_HERE.md asks to watch the pose during one wiggle, and `Auto.FLOWER_CHASSIS_CLEARANCE_IN` is the knob.
 
 In the diagram a FLOWER INTAKE draws the robot where the wiggle **starts** (the working wheel has a green ring), a faint
 second outline where the push **ends**, a **curved arrow** for the sweep of the wheel, a small label such as `wiggle x4`, a short
@@ -570,7 +570,7 @@ NECTAR x 5  +  POLLEN x 3  >=  8 x 3 = 24
 | 4 NECTAR | 20 | no | (not official) |
 
 Any NECTAR weight from 5/3 up to (not including) 2 POLLEN agrees with the official table; 5/3 is the lightest, and it also
-gives the team's "5 NECTAR tip, 4 do not". Weigh your own balls (day-one checklist). `ConstantsCheck` refuses constants that do
+gives the team's "5 NECTAR tip, 4 do not". Weigh your own balls ("Measure later" in docs/START_HERE.md). `ConstantsCheck` refuses constants that do
 not reproduce the table, and `TipModelTest` pins all six cases. (The first version of this planner used `NECTAR / 5 + POLLEN / 8 >= 1`, which
 said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first tip: that was wrong.)
 
@@ -627,7 +627,7 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
   **The shooter fires out of the robot's BACK**, so its rear edge is what faces the landing band. The standard shooting pose is outside the zone on
   purpose (the rear edge is about 48 in out at the nominal 34 in standoff, 53 in at the measured anchor shot, 45 in at the closest legal
   standoff, 30 in): a zone that reached 48 in would call every standard shot "standing in the spill". The swing of the cell is not modelled, so
-  day one looks (see the checklist) and `Auto.TIP_SPILL_REACH_IN` is the knob. So after a tip a route must not drive diagonally toward the HIVE: slide
+  day one looks (see "Measure later" in docs/START_HERE.md) and `Auto.TIP_SPILL_REACH_IN` is the knob. So after a tip a route must not drive diagonally toward the HIVE: slide
   along the wall at the height of the shooting pose first (the demonstration routes do), or wait the 3.5 s out.
 * **G402 (AUTO sides).** The foul is disrupting the other alliance (controlling their elements or touching their robot on
   their side); merely crossing the center line is risky, not itself a foul. The validator keeps the stricter rule (the robot
@@ -737,7 +737,7 @@ PARK) after the volley**, so they are done whether or not the tip comes.
   close it gets (`Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`), which side of the wheel the ball is on (`Auto.FLOWER_WHEEL_BALL_INBOARD`), the holds
   and the cycles (`Auto.FLOWER_WIGGLE_*`), and how far the chassis stays off the plate (`Auto.FLOWER_CHASSIS_CLEARANCE_IN`). **With the
   numbers of the drawing the validator reports that the wheel falls 0.77 in short of the ball** (see "Taking POLLEN from a
-  FLOWER"): that is the finding to check first with the real robot. They are on the day-one checklist (section C); measure
+  FLOWER"): that is the finding to check first with the real robot. They are in "Measure later" in docs/START_HERE.md; measure
   them with the real robot at a real FLOWER, both wheels.
 * **The tip figures** (`Auto.NECTAR_POLLEN_EQUIVALENT_NUMERATOR` / `_DENOMINATOR` = 5/3 and `Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD` = 8,
   VERIFY) come from FIRST's calibration (see "How a HIVE tips"), not from the manual. `Auto.TIP_PLANNING_MARGIN_POLLEN` = 1 (TUNE) is
@@ -791,7 +791,7 @@ shoot the GARDEN POLLEN: the UP cell is on the far side of the HIVE after the ti
   FLOWER pick-up of 4 (about 7.4 s) + a second volley of 4 (5.5 s) = 30.9 s with NO driving at all, over the 30 s of AUTO: the route as the team
   asked for it cannot fit with the shipped numbers (written out as a test in `RouteCatalogTest`). It needs a partner that tips by about 6 s, and
   wheels that really reach the POLLEN (the validator says the shipped wheels fall 0.8 in short). 12 s is the team's own "about 12 s" guess and
-  is NOT changed here: agree the real time with the partner team (day-one checklist) and measure the wheels first. Two things the timing model does
+  is NOT changed here: agree the real time with the partner team ("Measure later" in docs/START_HERE.md) and measure the wheels first. Two things the timing model does
   not know yet could win a few seconds: it charges the aim and spin-up (1.9 s) after every WAIT_FOR_TIP and after every volley, never in parallel with
   the wait or a drive, and it does not know the partner could be faster. Even with both spin-ups free the total is about 27 s with no driving at all,
   which leaves no room for the drives.

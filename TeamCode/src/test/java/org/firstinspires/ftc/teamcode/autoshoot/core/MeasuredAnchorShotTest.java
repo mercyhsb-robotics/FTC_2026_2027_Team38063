@@ -30,7 +30,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * 54.156 - 17.80 = <b>36.36 in, 1.34 in shorter</b> than the measurement. Either the tape measure measured something slightly
  * different (for example from a different point of the cell), or the ball leaves the robot farther forward than the 8.03 in
  * behind the center of rotation that the constants say: the robot CAD suggests 6.58 in, which would give 37.8 in. The row of the
- * table is not changed. The day-one checklist says to re-measure; this test makes sure that, as long as the two differ by more
+ * table is not changed. The robot-day guide (docs/START_HERE.md) says to re-measure; this test makes sure that, as long as the two differ by more
  * than 1 in, the checklist and the constants say so.
  *
  * <p>Words used: <b>ball exit</b> is where the POLLEN leaves the shooter (8.03 in behind the center of rotation for now); <b>aim
@@ -126,7 +126,7 @@ public class MeasuredAnchorShotTest {
 
     /**
      * Situation: the model's range for the anchor situation compared with the measured 37.7 in.
-     * Expected: if they differ by more than 1 in, the day-one checklist AND the Javadoc of the shot table in BioBuzzConstants both
+     * Expected: if they differ by more than 1 in, the robot-day guide AND the Javadoc of the shot table in BioBuzzConstants both
      *     tell the team to "re-measure the distance from the ball exit to the cell opening center with a tape".
      * Why: a disagreement between the model and the one measurement must never be left unsaid, and the table row must not be
      *     changed silently to hide it. (If the launch point is measured and the two agree again, this test asks for nothing.)
@@ -137,8 +137,8 @@ public class MeasuredAnchorShotTest {
         if (difference <= DOCUMENT_ABOVE_IN) {
             return;
         }
-        String checklist = read("docs/DAY_ONE_CHECKLIST.md");
-        assertTrue("docs/DAY_ONE_CHECKLIST.md must say '" + REMEASURE + "' (the model's range differs by " + difference + " in)",
+        String checklist = read("docs/START_HERE.md");
+        assertTrue("docs/START_HERE.md must say '" + REMEASURE + "' (the model's range differs by " + difference + " in)",
                 flat(checklist).contains(REMEASURE));
         String constants = read("TeamCode/src/main/java/org/firstinspires/ftc/teamcode/BioBuzzConstants.java");
         assertTrue("the Javadoc of Shooter.SHOT_TABLE must say '" + REMEASURE + "'", flat(constants).contains(REMEASURE));
