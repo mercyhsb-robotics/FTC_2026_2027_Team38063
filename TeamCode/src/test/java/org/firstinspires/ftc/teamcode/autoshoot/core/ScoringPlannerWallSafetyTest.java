@@ -183,7 +183,7 @@ public class ScoringPlannerWallSafetyTest {
     }
 
     /**
-     * Situation: the TeleOp default start (the center of tile C1: x 60, y 9.77, facing -90, front against the audience
+     * Situation: the TeleOp default start (the center of tile C1: x 58.924, y 9.77, facing -90, front against the audience
      *     wall) and the measured anchor shot (front against the wall, exactly in line with the HIVE), each asking for
      *     the RED audience cell, which is the cell that is up at the start of the match.
      * Expected: both plan, both with no turn window and no detour (the robot only needs to settle a few inches), the
