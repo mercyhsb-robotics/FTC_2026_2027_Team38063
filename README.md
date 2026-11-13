@@ -47,6 +47,7 @@ connect, check, measure, tune, set up the camera, build the shot table, try auto
 | Right bumper (hold) | feeder forward |
 | **Left bumper (hold)** | **clear a jam:** run the indexer (feeder) slowly backward; also cancels auto-score |
 | **D-pad right (hold, after PLAY)** | **clear a jam:** run the shooter flywheel slowly backward; also cancels auto-score |
+| **Options (hold)** | **park:** drive into your own LOADING ZONE and hold there (5 PARK points at the end); release to take over |
 
 Moving the left stick hard while the robot is driving itself cancels the automatic drive.
 

@@ -1051,6 +1051,48 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // PARK ASSIST (TeleOp: hold Controls.PARK_BUTTON and the robot drives itself into its own LOADING ZONE and holds there)
+    // The logic is autoshoot/core/ParkAssist. It reuses the hold-to-shoot route planner, the wall-safety check and the same
+    // driver-stick cancel rule, so those numbers are in AutoShoot above, not repeated here. It also drives with the same
+    // PedroDrive and the same Pedro speed settings as hold-to-shoot, so it can never move faster than that feature: there is
+    // deliberately NO speed setting in this group.
+    // =========================================================================================
+    public static final class Park {
+        private Park() {
+        }
+
+        /**
+         * TUNE (the same measure as {@link Auto#PARK_MIN_OVERLAP_IN}: the smaller side of the part of the robot's outline that lies
+         * inside the zone, in inches): the assist drives to a spot where the robot overlaps its LOADING ZONE by at least this much. It
+         * is bigger than the 3 in the autonomous validator calls safe, on purpose: the Pinpoint drifts a little during a match, the
+         * tape is only accurate to about 1 in, and the drive stops up to {@link #ARRIVE_IN} short. The zone is 11 in deep, so 8 in
+         * leaves the near edge of the robot within 3 in of the wall; touching the wall is allowed in TeleOp.
+         */
+        public static final double MIN_OVERLAP_IN = 8.0;
+        /**
+         * TUNE: the park spots the assist considers lie on a grid this many inches apart (smaller = a finer choice but a slower plan
+         * when the button goes down; 1 in costs a few thousand quick checks).
+         */
+        public static final double GRID_STEP_IN = 1.0;
+        /**
+         * TUNE: besides the heading the robot has now, the assist tries to park facing every this many degrees (90 = square to the
+         * walls). Turning costs {@code AutoShoot.PLAN_ROTATION_COST_IN_PER_DEG}, so it keeps its heading unless a turn makes a shorter trip.
+         */
+        public static final double HEADING_STEP_DEG = 90.0;
+        /**
+         * TUNE: the most park spots whose whole route is wall-checked before the assist gives up and says there is no safe route
+         * (the spots are tried nearest first, so a clear field needs one or two). It bounds how long the button press can take.
+         */
+        public static final int MAX_ROUTE_CHECKS = 150;
+        /** TUNE: the robot counts as arrived when it is this close to its park spot (inches) ... */
+        public static final double ARRIVE_IN = 2.0;
+        /** TUNE: ... and facing within this many degrees of it ... */
+        public static final double ARRIVE_DEG = 10.0;
+        /** TUNE: ... and slower than this (inches per second). The screen then says "Parked". */
+        public static final double ARRIVE_SPEED_IN_S = 4.0;
+    }
+
+    // =========================================================================================
     // VISION (Limelight 3A, AprilTag pipeline, mounted on top facing the REAR with the shooter)
     // =========================================================================================
     public static final class Vision {
@@ -1182,6 +1224,22 @@ public final class BioBuzzConstants {
          * the same D-pad button chooses the alliance; the two uses never overlap.)
          */
         public static final Button UNJAM_SHOOTER_BUTTON = Button.DPAD_RIGHT;
+        /**
+         * TUNE: HOLD this to park. The robot drives itself into its own LOADING ZONE (the 5 points of PARK at the end of TeleOp),
+         * stops there and holds the spot; let go and you are driving again at once. It needs a trusted pose (see
+         * {@link #RESET_POSE_BUTTON}), never runs while the robot is shooting, and holding the shoot button or a jam-clearing button
+         * cancels it. It must be a button nothing else uses ({@code ConstantsCheck} says so at INIT). OPTIONS is the small button
+         * on the right of the pad; the Driver Station calls it Start, so do not hold it together with cross or circle (that
+         * pair re-assigns the gamepad).
+         */
+        public static final Button PARK_BUTTON = Button.OPTIONS;
+        /**
+         * FIXED (the buttons {@code BioBuzzRobot.manualControls} reads directly, the ones that are not set above): intake on (cross),
+         * intake off (circle), manual launch on (triangle), manual launch off (square) and the feeder forward (right bumper).
+         * {@code ConstantsCheck} refuses a setting above that uses one of them, because two jobs on one button fire together.
+         */
+        public static final Button[] FIXED_MANUAL_BUTTONS = {
+                Button.CROSS, Button.CIRCLE, Button.TRIANGLE, Button.SQUARE, Button.RIGHT_BUMPER};
 
         /** TUNE: a trigger counts as pressed beyond this (0-1). */
         public static final double TRIGGER_THRESHOLD = 0.3;

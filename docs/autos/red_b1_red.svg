@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Red B1: shoot, then drive up the left side to the LOADING ZONE - RED alliance</title>
+<title id="svg-title">Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE - RED alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_b1 for the RED alliance, starting in tile B1, with 6 steps: 1 START at (35.0, 9.2, -90 deg); 2 SHOOT 4 at UP cell from (35.0, 9.2, -115 deg); 3 WAIT 4.5 s; 4 DRIVE path1 reverse tangent to 35.8, 90.0; 5 DRIVE path2 reverse tangent to 12.0, 90.0; 6 PARK at (12.0, 90.0, 0 deg). First tip: we shoot the first tip. Estimated 14.5 s, POLLEN balance -4, up to 28 points for our robot; 5 errors and 2 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="19.76" font-weight="bold" fill="#222222">Red B1: shoot, then drive up the left side to the LOADING ZONE - RED alliance</text>
+<text id="title" x="24" y="27" font-size="15.52" font-weight="bold" fill="#222222">Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE - RED alliance</text>
 <text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id red_b1  |  start tile B1  |  6 steps  |  red ink  |  first tip: we shoot the first tip</text>
 <rect x="24" y="52" width="40" height="4" fill="#c62828"/>
 <g id="field">
