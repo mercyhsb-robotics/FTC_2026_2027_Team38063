@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
@@ -238,7 +239,8 @@ public final class RouteGallery {
         h.append("<code>tools/render-autos.sh</code> (or <code>tools/render-autos.bat</code>).</p>\n");
         h.append("<p class=\"muted\">How to read a diagram: top view of the ").append(n(BioBuzzConstants.Field.SIZE_IN)).append(" x ")
                 .append(n(BioBuzzConstants.Field.SIZE_IN)).append(" in field, the AUDIENCE wall at the bottom, the red alliance on the left. ");
-        h.append("A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a blue robot starts at the top. ");
+        h.append("A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a BLUE robot starts on the opposite wall: a RED start on the audience wall (the bottom of the picture) becomes a BLUE start on the rear wall (the top), and a RED start on the rear wall becomes a BLUE start on the audience wall. ");
+        h.append("The words of a route (its title, description and step notes) are written for RED; every route says how to read them for BLUE, and its start tile, start pose and the words for placing the robot are worked out for each alliance. ");
         h.append("The robot is drawn to scale (").append(inches(BioBuzzConstants.Robot.LENGTH_IN)).append(" x ")
                 .append(inches(BioBuzzConstants.Robot.WIDTH_IN)).append(", wheels included): the body is tinted, the two flat intake wheels are the dark discs at the front, ");
         h.append("and the small ringed dot is its center of rotation, the point every pose refers to (it is ").append(inches(BioBuzzConstants.Robot.FRONT_EXTENT_IN))
@@ -259,7 +261,7 @@ public final class RouteGallery {
 
         // ---- summary table
         h.append("<section id=\"summary\">\n<h2>All routes</h2>\n<div class=\"tablewrap\">\n<table class=\"summary\">\n<thead><tr>");
-        for (String col : new String[] {"Route", "Start tile", "First tip", "Steps", "Estimated time", "Our AUTO points", "POLLEN balance", "Validator"}) {
+        for (String col : new String[] {"Route", "Start tile (RED / BLUE)", "First tip", "Steps", "Estimated time", "Our AUTO points", "POLLEN balance", "Validator"}) {
             h.append("<th>").append(esc(col)).append("</th>");
         }
         h.append("</tr></thead>\n<tbody>\n");
@@ -268,7 +270,7 @@ public final class RouteGallery {
             h.append("<tr class=\"summary-row\" data-route=\"").append(esc(e.route.id())).append("\">");
             h.append("<td><a href=\"#").append(esc(e.route.id())).append("\">").append(esc(e.route.title())).append("</a><br /><code>")
                     .append(esc(e.route.id())).append("</code></td>");
-            h.append("<td>").append(esc(e.route.startTile())).append("</td>");
+            h.append("<td>").append(esc(tileOf(e.red))).append(" / ").append(esc(tileOf(e.blue))).append("</td>");
             h.append("<td>").append(esc(e.route.firstTipSummary()));
             if (a.partnerTipAssumed()) {
                 h.append("<br /><span class=\"note\">").append(esc(latestTipText(a))).append("</span>");
@@ -299,12 +301,13 @@ public final class RouteGallery {
         h.append("<section class=\"route\" id=\"").append(esc(route.id())).append("\" data-route=\"").append(esc(route.id())).append("\">\n");
         h.append("<h2>").append(esc(route.title())).append("</h2>\n");
         h.append("<p class=\"muted\"><code>").append(esc(route.id())).append("</code></p>\n");
+        h.append("<p class=\"readingkey muted\">").append(esc(readingKey(e))).append("</p>\n");
         if (!route.description().isEmpty()) {
             h.append("<p>").append(esc(route.description())).append("</p>\n");
         }
 
         h.append("<table class=\"meta\">\n");
-        row(h, "Start tile", esc(route.startTile()));
+        row(h, "Start tile", "RED " + esc(tileOf(e.red)) + ", BLUE " + esc(tileOf(e.blue)));
         row(h, "Start pose, RED", esc(pose(e.red.startPose())));
         row(h, "Start pose, BLUE", esc(pose(e.blue.startPose())));
         row(h, "Steps", Integer.toString(route.size()));
@@ -554,6 +557,23 @@ public final class RouteGallery {
         return "The robot shoots after the camera has SEEN the HIVE tipped, never at a time. It stops waiting at " + seconds(giveUp)
                 + " on the route clock; the steps after this one take " + seconds(a.totalSeconds() - info.endSec())
                 + ", so it may wait until " + seconds(a.latestGiveUpSec(info)) + " at the latest.";
+    }
+
+    /** The name of the tile the route's start pose is in, worked out from the pose (the authored name is only a label for people). */
+    private static String tileOf(AutoRoute r) {
+        return TileGrid.nameAt(r.startPose().x, r.startPose().y);
+    }
+
+    /**
+     * How to read the words of a route for the BLUE alliance. The title, description and notes are written once, for RED; the BLUE route is the same route
+     * turned half a turn about the field center, so every word that names a place turns with it. The tile names are worked out for this route.
+     */
+    private static String readingKey(Entry e) {
+        return "How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn"
+                + " about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too"
+                + " (this route's start tile " + tileOf(e.red) + " is " + tileOf(e.blue) + " for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4)."
+                + " The robot's own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is " + n(BioBuzzConstants.Field.SIZE_IN)
+                + " minus the RED one. The start tile and start pose rows are worked out for each alliance.";
     }
 
     private static String pose(Pose2 p) {
