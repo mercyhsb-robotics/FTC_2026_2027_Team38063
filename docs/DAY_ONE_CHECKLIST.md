@@ -30,6 +30,14 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       8 POLLEN or a mix, and 3 NECTAR are staged in the up cell at the start, so the first tip needs only 4 POLLEN.
       Check that, and check how many POLLEN the second tip needs (we assume 8). The TeleOp does not count tips (the
       camera sees them), but the autonomous route planner does.
+- [ ] Watch a real HIVE tip from the side. How many seconds until the NECTAR and POLLEN have landed and stopped
+      rolling, and how far from the cell do they end up? The planner keeps the robot out of the tipped cell's spill zone
+      for `Auto.TIP_SPILL_CLEAR_SEC` (3 s) and 6 in around the cell (`Auto.TIP_SPILL_MARGIN_IN`): replace both with
+      what you see (rule G409: a robot may not catch what a tipped HIVE releases).
+- [ ] Ask the alliance partner team: does their auto shoot the first tip of the HIVE, and how many seconds into AUTO
+      is it done? Write the answer into `Auto.PARTNER_FIRST_TIP_DONE_SEC` (12 s is a guess). Then pick the auto that
+      matches: the gallery (`docs/autos/index.html`) says for every route whether it assumes "we shoot the first tip" or
+      "partner tips first", and for a partner route it shows how late the partner may tip and the route still works.
 
 ## D. Limelight — `docs/LIMELIGHT_SETUP.md`
 
