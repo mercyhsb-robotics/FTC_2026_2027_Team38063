@@ -20,8 +20,10 @@ or dark setting). They are generated, so never edit them by hand.
 ## Add an auto in five steps
 
 1. **Pick a start.** The robot must start touching a field wall, completely inside its own half, not in the LOADING
-   ZONE, not touching a FLOWER or the HIVE frame (rule G304). The robot is a 17.80 x 17.80 in square, so a robot
-   facing the audience wall at tile B1 or C1 has its *center* 9.2 in from the wall: `start(35.0, 9.2, -90)`.
+   ZONE, not touching a FLOWER or the HIVE frame (rule G304). A pose is the robot's **center of rotation**, and that is not
+   the middle of its 17.80 x 17.80 in outline: the front edge is 9.77 in ahead of it, the back edge 8.03 in behind it. So a
+   robot facing the audience wall at tile B1 or C1 with its **front edge on the wall** has its center 9.77 in from the
+   wall: `start(35.0, 9.77, -90)`. (Facing away from the wall, back edge on it: 8.03 in; sideways: 8.90 in.)
 2. **Add one entry** to the file of its family (see "Who shoots the first tip" below):
    `SelfTipRoutes.java` if your own 4 pre-loads tip the HIVE, `PartnerTipRoutes.java` if the alliance partner tips it.
    Both are in `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/autoshoot/routes/`, and each has a `routes()`
@@ -34,7 +36,7 @@ or dark setting). They are generated, so never edit them by hand.
            .title("C1: shoot 4, then park")                  // what people read
            .description("Fires the 4 pre-loads, then drives up the left corridor into the LOADING ZONE.")
            .startTile("C1")                                  // must match the tile of the start pose
-           .start(58.0, 9.2, -90)                            // x, y in inches, heading in degrees
+           .start(58.0, 9.77, -90)                           // x, y in inches (front edge on the wall), heading in degrees
            .shootUp(4)                                       // 4 POLLEN at the UP cell, pose chosen by the solver
            .driveReverseTangent(30.0, 45.0).via(30.0, 12.6)  // a curve: shooter first, bends toward (30, 12.6)
            .driveReverseTangent(30.0, 100.0).label("corridor")
@@ -72,15 +74,28 @@ toward blue**, **+y away from the audience**. Heading 0 is +x and angles grow co
 columns A-F run along x, rows 1-6 along y, so A1 is the corner and B1 is x 24-48, y 0-24.
 
 **The robot** has its intake at the **FRONT** and its shooter at the **BACK**, so a robot shooting at the HIVE
-stands with its back toward it. The ball leaves 8.9 in behind the robot's center
-(`BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN`).
+stands with its back toward it. The ball leaves 8.03 in behind the robot's center of rotation
+(`BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN`, the rear edge according to the CAD drawing; to be measured).
+
+**Where the outline is.** The pose of a route step (and everything Pedro and the odometry report) is the robot's **center
+of rotation**: the point it spins about. The 17.80 x 17.80 in outline (every wheel included) is **not centered on it**,
+because the intake sticks out in front of the front axle. The outline reaches **9.77 in in front of** that point, **8.03 in
+behind** it and **8.90 in to the left and to the right** (`Robot.FRONT_EXTENT_IN`, `REAR_EXTENT_IN`, `LEFT_EXTENT_IN`,
+`RIGHT_EXTENT_IN`: all VERIFY, the team measures them on day one). Everything that checks a pose uses them, so:
+
+* with its **front edge on a wall** the robot's pose is **9.77 in** from the wall; with its **back** on the wall, **8.03 in**;
+  with a **side** on the wall, **8.90 in**;
+* the farthest corner is a front corner, **13.22 in** from the pose (`hypot(9.77, 8.90)`), so a robot spinning on the spot
+  needs a pose at least 13.22 in from every wall;
+* the picture draws the outline at its true place around the pose and marks the pose itself with a small ringed dot.
 
 The intake is **two small wheels that lie flat** (their discs are parallel to the floor, like coins on a table) at the
 two front corners, one on each side of the center line. In front of the chassis frame there is nothing else, so the
-robot is drawn and checked as **three shapes** (`Footprint`): the whole **perimeter** (17.80 x 17.80 in, every wheel
-included: used for walls and the HIVE), the **chassis** (the body without the part where only the wheels stick out in
-front, `Robot.INTAKE_REACH_IN`) and the **two wheel discs** (2.8 in across, 6.1 in either side of the center line,
-`Robot.INTAKE_WHEEL_OFFSET_IN`). The reason for the split is the FLOWER (see "Taking POLLEN from a FLOWER").
+robot is drawn and checked as **three shapes** (`Footprint`, built from `RobotShape`): the whole **perimeter** (every wheel
+included: used for walls, the HIVE, the start rule and the center line), the **chassis** (the body without the part where
+only the wheels stick out in front, `Robot.INTAKE_REACH_IN`, so its front edge is 7.07 in ahead of the pose) and the
+**two wheel discs** (2.8 in across, 6.1 in either side of the center line, `Robot.INTAKE_WHEEL_OFFSET_IN`). The reason
+for the split is the FLOWER (see "Taking POLLEN from a FLOWER").
 
 ## The steps you can write
 
@@ -136,8 +151,8 @@ Two rules of thumb that the validator enforces:
 
 | Check | Rule | ERROR when | WARN when |
 |---|---|---|---|
-| Start | G304 | outside the field or the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
-| Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the corners of the square sweep out to 12.6 in from the center), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
+| Start | G304 | outside the field (a start whose real outline pokes through a wall: the finding says how far the pose is from the wall and where the robot's edge that faces it lies), outside the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
+| Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the front corners sweep out to 13.22 in from the center of rotation), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
 | HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the floor area of its rails and legs, 49.46 x 38.95 in). The gaps under and inside the frame count as solid: a 12.13 in robot might physically fit between the legs, but nobody has measured the real frame, so no route goes there. A DOWN cell hangs out past the frame by up to 5.4 in, but only 30.6 in up or higher, so it is not an obstacle | |
 | FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.75 x 5.87 in). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its press-in (next row): the chassis, the other wheel and every other step stay out | |
 | FLOWER press-in | 9.7, G415 | the chassis comes within 0.5 in of the plate; the pressing wheel goes past the **press stop line**; the wheels are too short to reach it (the finding says how many inches are missing); the line-up heading is more than 5 degrees off "facing the wall squarely"; the middle of the pressing wheel is more than 1 in from the FLOWER's center line; the final approach is shorter than 6 in | the retreat is shorter than 6 in |
@@ -155,10 +170,10 @@ Every finding names its step number (the same number as in the picture) and quot
 wall, where the footprint first enters the keep-out, how far the shot is from the cell.
 
 **Nothing can slip between two samples.** A computer cannot test every one of the infinitely many poses of a leg, so
-the validator tests the robot every 1 in along the path and every 5 degrees of turning. A corner of the robot is
-12.6 in from its center, so between two samples a corner can still move up to 1 + 12.6 x 5 degrees (in radians) =
-2.1 in, and a thin post could stand in the strip it sweeps. So the validator measures how far the robot is from
-each obstacle (a plain distance) and grows every obstacle by half of that 2.1 in: if neither of two neighbouring
+the validator tests the robot every 1 in along the path and every 5 degrees of turning. The farthest corner of the robot is
+13.22 in from its center of rotation, so between two samples a corner can still move up to 1 + 13.22 x 5 degrees (in
+radians) = 2.15 in, and a thin post could stand in the strip it sweeps. So the validator measures how far the robot is from
+each obstacle (a plain distance) and grows every obstacle by half of that 2.15 in: if neither of two neighbouring
 samples reaches the grown obstacle, nothing between them can touch the real one. Wherever it cannot prove the gap is
 clear it cuts the gap in half and looks again, down to 1/1000 in. The result is the same as sampling infinitely
 densely; the proof is the comment at the top of `routes/Sweep.java` and `SweepTest` tries to break it. The first and
@@ -287,7 +302,8 @@ allows: write that number, or a little less, into `waitForTip(...)`.
 * The route is drawn in the alliance's **ink**: red ink for the red alliance, blue ink for the blue one.
 * The **robot is drawn to scale**, in two tones: the **body** is tinted in the alliance ink and the **two flat intake
   wheels** are the dark discs at the front. Its **FRONT edge (the wheel tips) is green** and its **BACK edge (shooter)
-  is orange**. The START footprint has an arrow along its heading. A robot drawn with an **amber outline** breaks a
+  is orange**. The small **ringed dot** is the robot's **center of rotation**, the point the route's poses refer to; it is
+  9.77 in behind the front edge and 8.03 in in front of the back edge, so it is not in the middle of the outline. The START footprint has an arrow along its heading. A robot drawn with an **amber outline** breaks a
   rule (an ERROR) at that step.
 * **DRIVE legs** are solid lines or curves with arrowheads. **Dotted arrows** are the moves to a pose that a step makes
   by itself (a SHOOT pose, an INTAKE pose, a PARK pose).
@@ -334,18 +350,36 @@ allows: write that number, or a little less, into `waitForTip(...)`.
 
 ## What the validator says about today's autos
 
-(For the current list open `docs/autos/index.html`; this is the situation with the 17.80 in square robot.)
+(For the current list open `docs/autos/index.html`; this is the situation with the robot's outline reaching 9.77 in in
+front of its center of rotation, 8.03 in behind it and 8.90 in to each side.)
 
-* **`red_leave_park`** has no findings.
-* **`red_c1`** drives its first leg, straight from (58, 9.2) to (62, 118.1), **through the HIVE frame**. The route
-  cannot work as written.
-* **`red_b1`** turns to -115 degrees right against the audience wall (a corner pokes **2.6 in through the wall**), shoots
-  from 43 in (the good band is 30-38 in), drives so close to the HIVE that the robot is **0.4 in inside the 3 in
-  keep-out** (the numbers were written for a narrower robot), and parks only **2.9 in** into the LOADING ZONE.
-* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: the first shoots the pre-loads
-  (the first tip), leaves through the left corridor and parks deep in the zone (28 points); the second shoots the
-  pre-loads (the first tip), sweeps up the 4 GARDEN POLLEN and steps off the wall (23 points). It does not shoot the
+**All three old OpModes start with the robot's center 9.2 in from the wall** (`RedAlliance_B1` and `RedAlliance_C1` at
+y = 9.2, `RedAlliance_LeavePark` at x = 9.21). That number is from before the center of rotation was known. The real front
+edge is 9.77 in from the center of rotation, so a robot placed there would reach **0.57 in through the wall**: every
+conversion therefore has a start ERROR (G304.A), and the first leg that leaves the wall has a wall ERROR too. The note on the
+START step of each route says it: **place the real robot with its FRONT edge ON the wall** (center 9.77 in out) and change
+the OpMode's start y (or x) to match once the real center of rotation is measured. (The OpMode comments say the front was
+"about 0.3 in from the wall", which would mean a front extent of about 9.5 in: the measurement decides.)
+
+* **`red_leave_park`** has only that start finding (the start and its first leg 0.6 in through the red wall). It still
+  earns LEAVE and PARK.
+* **`red_c1`** drives its first leg, straight from (58, 9.2) to (62, 118.1), **through the HIVE frame**. The route cannot
+  work as written. At y = 9.2 its shot is also 38.3 in from the aim point, just outside the 30-38 in band (placed with the
+  front on the wall, 37.7 in: the measured shot).
+* **`red_b1`** turns to -115 degrees right against the audience wall (a corner pokes **3.4 in through the wall**: with its
+  center 9.2 in out the robot needs 12.6 in to turn that far), shoots from 44 in (the good band is 30-38 in), drives so close
+  to the HIVE that the robot is inside the 3 in keep-out (the numbers were written for a narrower robot), and parks only
+  **2.9 in** into the LOADING ZONE.
+* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: both start with the **front edge on the
+  audience wall** (`start(x, 9.77, -90)`, written with `Robot.FRONT_EXTENT_IN`). The first shoots the pre-loads (the first
+  tip), leaves through the left corridor and parks deep in the zone (28 points); the second shoots the pre-loads (the first
+  tip), sweeps up the 4 GARDEN POLLEN (standing 0.8 in off the wall) and steps off the wall (23 points). It does not shoot the
   GARDEN POLLEN: the UP cell is on the far side of the HIVE after the tip and needs 8 POLLEN.
+
+One thing to know about a start with the front exactly on the wall: the robot cannot turn toward that wall at all, not even
+a degree, because the corner that leads would poke through (0.1 in is forgiven as measurement noise). A route that begins
+with a reverse-tangent leg, which turns the robot a degree or two while it leaves, should start a few tenths of an inch off
+the wall (the start check allows 0.75 in), or begin with a SHOOT that the solver plans.
 
 These are findings about the **route data**. Whether the old OpModes should be corrected is the team's call; the
 catalog deliberately does not "improve" them.
@@ -354,7 +388,7 @@ catalog deliberately does not "improve" them.
 
 | Package | What is in it |
 |---|---|
-| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`, `FirstTip`), the simulation (`RouteAnalysis`, `TimingModel`, and `TipModel` for the tip arithmetic), the checks (`RouteValidator`, `TipRules`, `Sweep`, `Issue`), the field geometry (`AllianceField`, `ShotGeometry`, `FlowerPress`) and the lists of routes: **`SelfTipRoutes`** (we shoot the first tip) and **`PartnerTipRoutes`** (the partner does), gathered by `RouteCatalog`. The robot's own shape (`Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`. |
+| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`, `FirstTip`), the simulation (`RouteAnalysis`, `TimingModel`, and `TipModel` for the tip arithmetic), the checks (`RouteValidator`, `TipRules`, `Sweep`, `Issue`), the field geometry (`AllianceField`, `ShotGeometry`, `FlowerPress`) and the lists of routes: **`SelfTipRoutes`** (we shoot the first tip) and **`PartnerTipRoutes`** (the partner does), gathered by `RouteCatalog`. The robot's own shape (`RobotShape`: the four distances from the center of rotation to its edges; `Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`. |
 | `autoshoot.render` | `RouteSvgRenderer` (one route to one SVG), `RouteGallery` (the page), `RenderRoutesMain` (the command line), `SvgWriter` (escaping and number formatting). |
 | `tools/` | `render-autos.sh` and `render-autos.bat`. |
 | `docs/autos/` | The generated page and the SVG files. |

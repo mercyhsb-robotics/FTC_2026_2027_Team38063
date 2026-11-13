@@ -11,7 +11,7 @@ both alliances and both sides of the HIVE.
 
 | | |
 |---|---|
-| Drive | goBILDA mecanum, 17.80 × 17.80 in footprint, 104 mm wheels, Pinpoint odometry |
+| Drive | goBILDA mecanum, 17.80 × 17.80 in outline (its center of rotation is 9.77 in behind the front edge, see `docs/ARCHITECTURE.md`), 104 mm wheels, Pinpoint odometry |
 | Intake | front: roller + two corner-pulling servos |
 | Shooter | back: one flywheel (1:1 Yellow Jacket) and a feeder "windmill" servo, fixed launch angle |
 | Camera | Limelight 3A on top, facing the back with the shooter |

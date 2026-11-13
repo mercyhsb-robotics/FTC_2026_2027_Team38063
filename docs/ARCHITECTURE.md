@@ -107,9 +107,10 @@ candidate wins: travel, plus small costs for turning and for being away from the
 ### Why the route is checked as a rectangle, not a point
 
 The route finder (`PathPlanner`) plans for one dot, the robot's center, and keeps the dot a little way from walls and
-obstacles. A dot has no corners. The real robot is a 17.8 in square, and a square that turns takes more room than one
-that faces straight: turned 25 degrees it needs 11.8 in between its center and the wall (not 8.9 in), turned 45 degrees
-it needs 12.6 in. The robot does turn while it drives, so a route that is fine for the dot can swing a corner through a
+obstacles. A dot has no corners. The real robot is a 17.8 x 17.8 in rectangle, and a rectangle that turns takes more
+room than one that faces straight: facing the wall front-first its center of rotation must be 9.77 in from it, turned
+25 degrees it needs 12.6 in, turned 45 degrees about 13.2 in (a front corner leads; see "Where the robot's edges are"
+below). The robot does turn while it drives, so a route that is fine for the dot can swing a corner through a
 wall, or through the HIVE frame or a FLOWER, in between two poses that each fit. A standing pose was always checked with
 the real rectangle; the road between the poses was not.
 
@@ -133,6 +134,31 @@ closed-loop simulation (see below). The numbers are `AutoShoot.PATH_*` in `BioBu
 What is NOT covered: the real robot never follows a route exactly, and the check keeps only the 0.25 in wall clearance
 (plus 1.5 in around the HIVE and FLOWERS). The first time the robot drives out of a wall start, watch its corners and
 retune `PATH_TURN_SETTLE_IN` and `PATH_MAX_TURN_DEG_PER_IN` if it turns late or clips.
+
+## Where the robot's edges are (`RobotShape`)
+
+The robot's **position** (the x, y and heading that Pedro Pathing and the Pinpoint report, and that every pose in the
+code means) is its **center of rotation**: the one point that stays still while the robot spins on the spot. It is
+**not** the middle of the 17.80 x 17.80 in outline. The intake sticks out in front of the front axle, so the outline
+reaches **9.77 in in front** of that point, **8.03 in behind** it and **8.90 in to each side**
+(`Robot.FRONT_EXTENT_IN`, `REAR_EXTENT_IN`, `LEFT_EXTENT_IN`, `RIGHT_EXTENT_IN`; they must add up to `LENGTH_IN` and
+`WIDTH_IN`, and `ConstantsCheck` says so at INIT). The numbers come from the goBILDA drawing, taking the center of rotation
+as the middle between the two axles; the team measures the real one (`docs/DAY_ONE_CHECKLIST.md`, section C).
+
+`RobotShape` holds the four numbers and nothing else in the code writes `LENGTH_IN / 2`. `Footprint` builds the rotated
+outline (the whole **perimeter**, the **chassis** without the front stretch where only the two flat wheels stick out, and
+each flat **wheel disc**) from it, so every check that asks "does the robot fit here?" sees the same rectangle:
+`RouteSweep`, `ScoringPlanner`, `RouteValidator`, the TeleOp planner, the start-pose check in `ConstantsCheck` and the
+route diagrams. What it changes in practice:
+
+* A robot facing a wall with its **front** touching it has its position **9.77 in** from the wall; with its **back** to the
+  wall, **8.03 in**; sideways, **8.90 in**. (So the TeleOp default start is `y = FRONT_EXTENT_IN`, not 8.9.)
+* A turning robot sweeps its farthest corner, a front corner, in a circle of **13.22 in** (`hypot(9.77, 8.90)`), not the
+  12.59 in of a centered square.
+* The ball leaves the **rear edge**, `Robot.LAUNCH_POINT_FORWARD_IN` = -8.03 in from the center of rotation (derived from
+  the drawing, still to be measured). With the front on the audience wall the ball exit is 9.77 + 8.03 = 17.80 in from the
+  wall, exactly the situation of the one measured shot (37.7 in from the aim point), so the physical shot did not change
+  when the center of rotation moved.
 
 ## Rules the design follows
 

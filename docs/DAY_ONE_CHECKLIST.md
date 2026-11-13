@@ -22,8 +22,38 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
 
 ## C. Measurements
 
-- [ ] Ball exit position: `Robot.LAUNCH_POINT_FORWARD_IN` (negative: it is at the back), `LAUNCH_POINT_LEFT_IN`.
-- [ ] Re-measure the robot's `LENGTH_IN` and `WIDTH_IN` (the CAD says 17.80 × 17.80; it must fit the 18 in start cube).
+- [ ] **Find the robot's center of rotation, then measure from it to the four edges of the robot.** This matters more than it
+      looks. The robot's *position* (the x and y that Pedro and the Pinpoint report, and that every pose in the code means) is the
+      point the robot **spins about**, and on this robot that point is **not** in the middle of the 17.80 × 17.80 in outline,
+      because the intake sticks out in front. Every check of "does the robot fit here?" uses these four distances.
+      1. Tape a big sheet of paper to a smooth floor and set the robot on it. Tape a marker pen to the robot, pointing down, at
+         your best guess: halfway between the left and right wheels, and about halfway between the front and rear wheels.
+      2. Turn the robot slowly on the spot (right stick only). If the pen draws only a dot, you found the point. If it draws a
+         circle, the point is at the middle of that circle: move the pen there and try again until it draws only a dot. Then put a
+         strip of tape on the robot over that spot and write "center of rotation" on it.
+      3. The Pinpoint pod offsets in `pedro/Constants.java` were measured from some point of the robot. Check that it is this same
+         point. If it is not, tell a mentor before going on: the position the robot reports is that point.
+      4. With a tape measure, measure in a straight line from the tape mark to the **front edge** (the outer edge of the two flat
+         intake wheels), the **rear edge** (the back lip, where the ball leaves), the **left edge** and the **right edge** (the
+         outer faces of the wheels), in inches. Write them into `Robot.FRONT_EXTENT_IN` (the drawing says 9.77),
+         `REAR_EXTENT_IN` (8.03), `LEFT_EXTENT_IN` (8.90) and `RIGHT_EXTENT_IN` (8.90), and change their marker to FIXED if you
+         are sure. Front + rear must equal `LENGTH_IN` and left + right must equal `WIDTH_IN`; if they do not, the TeleOp refuses to
+         start at INIT and the message names the two numbers that disagree.
+      5. Measure the whole outline too: `LENGTH_IN` and `WIDTH_IN` (the CAD says 17.80 × 17.80; it must fit the 18 in start cube).
+      6. Stand the robot with its **front edge on the audience wall** (the wheel tips touching the wall, facing the wall) and
+         read the position it reports: its y should be about `FRONT_EXTENT_IN` (9.77). If it shows something else, the center of
+         rotation you marked and the point the odometry reports are not the same point. The old autonomous OpModes
+         (`RedAlliance_B1`, `RedAlliance_C1`) start at y = 9.2 and their comments say the front was about 0.3 in from the wall: that
+         would make the real front extent about 9.5 in. Your measurement decides; then change the OpModes' start y to match.
+- [ ] Ball exit position: `Robot.LAUNCH_POINT_FORWARD_IN` (negative, measured straight back from the center of rotation to where the
+      ball leaves the shooter; the starting value, -8.03, is only the rear edge from the CAD drawing) and `LAUNCH_POINT_LEFT_IN`.
+      Then redo the one measured shot (front on the audience wall, in line with the HIVE: 37.7 in from the aim point) and check
+      that the ball exit is still about 17.8 in from the wall.
+- [ ] **How to place the robot at the start of AUTO.** The robot must touch a wall with its outline, not its center. Set it so
+      that the edge that faces the wall is ON the wall (for the audience wall facing it: the wheel tips touching; with the back
+      to the wall: the back lip touching), measure from the field wall to the robot's EDGES with a tape measure, never to its
+      center, and check the position the robot reports against the route's start pose. A start with the front 0.5 in off the wall is
+      still legal (the check allows 0.75 in), but a start with the front *through* the wall is not.
 - [ ] **The two flat intake wheels** (the discs that lie flat at the front corners). Three numbers, with a ruler:
       `Robot.INTAKE_REACH_IN` is how far a wheel's front tip sticks out in front of the chassis frame (measure from
       the front edge of the frame, the part that must never touch a FLOWER plate, to the front tip of the wheel; the
@@ -43,7 +73,7 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
         and `Auto.FLOWER_ALIGN_TOLERANCE_IN` (1 in), and how long the slow approach and the retreat should be
         (`FLOWER_APPROACH_LENGTH_IN`, `FLOWER_RETREAT_LENGTH_IN`, 6 in each) at what speed
         (`FLOWER_APPROACH_SPEED_FRACTION`, 0.3), plus how long it takes (`INTAKE_DWELL_FLOWER_SEC`).
-- [ ] Camera: `CAMERA_FORWARD_IN`, `CAMERA_LEFT_IN`, `CAMERA_HEIGHT_IN`, `CAMERA_PITCH_UP_DEG` (+30 to +40°).
+- [ ] Camera: `CAMERA_FORWARD_IN` and `CAMERA_LEFT_IN` (measured from the **center of rotation**, the tape mark above, not from the middle of the outline), `CAMERA_HEIGHT_IN`, `CAMERA_PITCH_UP_DEG` (+30 to +40°).
 - [ ] Launch angle `Robot.LAUNCH_ANGLE_DEG` is about 68.5° (team measurement): confirm it with a protractor or the CAD (it only feeds the physics check on the Shooter Tuner screen).
 - [ ] The real HIVE: heights of the opening and tag rows, and how many POLLEN tip it. The team's figures: 5 NECTAR,
       8 POLLEN or a mix, and 3 NECTAR are staged in the up cell at the start, so the first tip needs only 4 POLLEN.
