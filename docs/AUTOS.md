@@ -776,7 +776,7 @@ the OpMode's start y (or x) to match once the real center of rotation is measure
 * **`red_b1`** turns to -115 degrees right against the audience wall (a corner pokes **3.4 in through the wall**: with its
   center 9.2 in out the robot needs 12.6 in to turn that far), shoots from 42.4 in (the good band is 30-38 in), drives so close
   to the HIVE that the robot is inside the 3 in keep-out (the numbers were written for a narrower robot), and parks only
-  **4.3 in** into the LOADING ZONE (the zone is 11 in deep; the footprint is 17.8 in wide and the pose is 12 in from the wall).
+  **4.3 in** into the LOADING ZONE (the robot reaches only to y 98.9 and the zone starts at y 94.58).
 * **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes with no ERROR (one WARN each, see below): both start with the **front edge on the
   audience wall** (`start(x, 9.77, -90)`, written with `Robot.FRONT_EXTENT_IN`). The first shoots the pre-loads (the first
   tip: 3 POLLEN; the 4th is the spare and is probably launched before the feeder can stop, which is the one WARN), slides along the wall and leaves through the left corridor and parks deep in the zone, standing about

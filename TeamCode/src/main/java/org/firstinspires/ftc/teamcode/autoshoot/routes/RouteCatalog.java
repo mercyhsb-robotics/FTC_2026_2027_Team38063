@@ -91,7 +91,9 @@ public final class RouteCatalog {
                             + " in out) and change the OpMode's y to match once the center of rotation is measured.")
                 .shootUp(35.0, 9.2, -115, 4).launchSeconds(5.0)
                     .note("hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an "
-                            + "instant command, so the shot really starts without waiting for the turn.")
+                            + "instant command, so the shot really starts without waiting for the turn. The model charges the flat 5 s only: the OpMode first waits for the "
+                            + "flywheel to reach speed (waitUntil isAtTargetRpm, about 1.9 s in the model's own numbers), so the real tip and finish times are about that much later "
+                            + "than shown.")
                 .waitSeconds(4.5)
                     .note("waitMs(4500) before launcher.stop(): the volley holds the launcher on for 9.5 s in total.")
                 .driveReverseTangent(35.8, 90, -90).label("path1")
@@ -121,7 +123,7 @@ public final class RouteCatalog {
                             + FRONT_ON_WALL_IN + " in ahead of it: the real footprint would reach 0.57 in through the wall. Place the "
                             + "real robot with its FRONT ON the wall (center " + FRONT_ON_WALL_IN + " in out) and change the OpMode's y to match.")
                 .shootUp(58.0, 9.2, -90, 4).launchSeconds(5.0)
-                    .note("hold(follower, (58.0, 9.2, -90)) then aimAndLaunch(): fixed waitMs(5000).")
+                    .note("hold(follower, (58.0, 9.2, -90)) then aimAndLaunch(): fixed waitMs(5000), after a wait for the flywheel to reach speed that the model does not charge (about 1.9 s), so the real times are later than shown.")
                 .waitSeconds(4.5)
                     .note("waitMs(4500) before launcher.stop().")
                 .driveReverseTangent(62.0, 118.1, -90).label("path1")
@@ -197,7 +199,7 @@ public final class RouteCatalog {
                 .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the 3 NECTAR already in that "
                         + "cell the 3rd POLLEN tips the HIVE (+20); the 4th pre-load is the spare for a stiff HIVE, and because the camera "
                         + "sees the tip only about 0.85 s after the 3rd POLLEN lands it is probably launched into the swinging cell and spent. After a "
-                        + "tip the UP cell is on the OTHER side of the HIVE, about 111 in away around it, and it holds no NECTAR, "
+                        + "tip the UP cell is on the OTHER side of the HIVE, about 170 in of driving away around it, and it holds no NECTAR, "
                         + "so it needs 8 POLLEN (plan 9): far more than this route can carry there. So the route does not shoot "
                         + "again: it sweeps up 3 of the 4 POLLEN of the red GARDEN along the audience wall (the robot holds 0 + 3 = 3; "
                         + "if the feeder does stop in time it holds 1 + 3 = 4, the most it may hold, G407, so never take a 4th) to carry "
@@ -211,11 +213,14 @@ public final class RouteCatalog {
                             + "NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only "
                             + "about 0.85 s after the tip); the REAR cell is the UP one from now on.")
                 .driveConstant(9.0, 18.0, -90).label("to GARDEN")
-                    .note("Slides along the audience wall with the intake still facing it.")
+                    .note("Slides along the audience wall with the intake still facing it. The robot's side edge is only 0.1 in from the red wall all the way to the GARDEN and "
+                            + "back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.")
                 .driveConstant(9.0, FRONT_ON_WALL_IN + 0.8, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
                 .intakeGarden(5.7, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 3)
-                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare "
+                    .note("NOT MEASURED YET (day one): at this pose a flat wheel disc sits over two GARDEN POLLEN (its middle is 1.6 to 1.7 in from them, and a wheel and a POLLEN "
+                            + "need 2.8 in between their middles), so which 3 of the 4 are taken, the +3 and the 2.5 s are placeholders until the intake is tried on the real GARDEN. "
+                            + "The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare "
                             + "pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; "
                             + "4 is the most it may hold (G407), so the intake never takes a 4th.")
                 .driveConstant(20.0, 24.0, -90).label("off the wall")
