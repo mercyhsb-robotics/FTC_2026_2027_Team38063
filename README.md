@@ -28,7 +28,7 @@ both alliances and both sides of the HIVE.
 | PedroPathingAuto_*, AutoPath | Pedro path tests, in `autonomous/pathtests/`. |
 | Pedro tuning menu | Mecanum, Pinpoint, **Foresight** and Tests procedures (see `docs/TUNING.md`). |
 
-### TeleOp controls (all assignable in `BioBuzzConstants.Controls`)
+### TeleOp controls (the shoot, flip, reset and alliance buttons and the stick settings are in `BioBuzzConstants.Controls`)
 
 | Control | Action |
 |---|---|
