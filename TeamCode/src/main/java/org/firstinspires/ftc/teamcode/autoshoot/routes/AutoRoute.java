@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
 
 /**
  * An autonomous route as DATA: an id, a title, and an ordered list of immutable {@link Step}s.
@@ -63,7 +64,11 @@ public final class AutoRoute {
         return description;
     }
 
-    /** The start tile label, e.g. "B1" (column A-F, row 1-6, in the RED frame). */
+    /**
+     * The tile the START pose is in, e.g. "B1" (column A-F, row 1-6). It is the tile name in THIS route's own alliance frame: a route authored for RED says
+     * "B1", and its BLUE version says the tile the half-turned start is in ("E6"), which {@link #forAlliance} works out. The tile is a name for people (the
+     * start pose is the truth); a test keeps the authored name and the pose together.
+     */
     public String startTile() {
         return startTile;
     }
@@ -136,7 +141,10 @@ public final class AutoRoute {
         for (Step s : steps) {
             turned.add(s.halfTurn(BioBuzzConstants.Field.SIZE_IN));
         }
-        return new AutoRoute(id, title, description, startTile, target, firstTip, turned);
+        // the tile name is a word about WHERE the robot starts, so it turns with the pose (B1 for red is E6 for blue); copying it would name the wrong tile
+        Pose2 turnedStart = ((Step.Start) turned.get(0)).pose();
+        String turnedTile = startTile.isEmpty() ? "" : TileGrid.nameAt(turnedStart.x, turnedStart.y);
+        return new AutoRoute(id, title, description, turnedTile, target, firstTip, turned);
     }
 
     // ---- derived values ------------------------------------------------------------------------

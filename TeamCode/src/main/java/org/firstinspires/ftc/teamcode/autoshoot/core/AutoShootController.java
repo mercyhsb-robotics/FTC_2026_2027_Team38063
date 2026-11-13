@@ -39,7 +39,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * method per state ({@code plan}, {@code approach}, {@code align}, {@code feed}). Every state method may fill in the
  * {@link Outputs} and may switch state with {@code enter(...)}.
  *
- * <p>Where it sits in the data flow (see docs/ARCHITECTURE.md): the TeleOp ({@code BioBuzzRobot.loop}) reads the
+ * <p>Where it sits in the data flow (see "How it works, in ten lines" in docs/START_HERE.md): the TeleOp ({@code BioBuzzRobot.loop}) reads the
  * Pinpoint pose, the Limelight frame and the analyzed {@link ClusterView}s, fills an {@link Inputs}, calls
  * {@link #update}, and then applies the {@link Outputs}: flywheel speed and feeder go to the Launcher, the drive
  * mode goes to PedroDrive, and the {@link Cue} becomes a gamepad rumble. The {@link HiveTracker} is updated by the

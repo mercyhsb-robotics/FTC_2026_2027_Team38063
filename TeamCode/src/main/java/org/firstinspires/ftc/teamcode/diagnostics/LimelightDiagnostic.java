@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.hardware.LimelightVision;
  * the audience wall) and pick the alliance during INIT. The OpMode then compares the position the camera
  * implies with the position you stated: with the mount constants right they agree within about an inch.
  *
- * <p>Checks to make (see docs/LIMELIGHT_SETUP.md):
+ * <p>Checks to make (see docs/START_HERE.md, "Set up the Limelight camera"):
  * <ul>
  *   <li>tag IDs are 30-45, the family is 36H11C and the pipeline is the AprilTag one;</li>
  *   <li>slide the robot to the LEFT: the left value of the cluster centre must SHRINK (a tag that does not move

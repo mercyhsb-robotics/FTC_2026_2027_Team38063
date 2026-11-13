@@ -31,7 +31,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * target; a ball leaves after every 0.45 s of feeding and dips the flywheel by 10%; the camera sees the four tags
  * exactly (unless a test adds noise or dropouts) while they are inside its field of view and the robot is on the side
  * of the HIVE whose cell is really up. So a pass here shows the logic is sound, NOT that the real robot will behave.
- * docs/DAY_ONE_CHECKLIST.md is the order to verify it on the robot.
+ * docs/START_HERE.md is the order to verify it on the robot.
  *
  * <p>Run it with {@code ./gradlew :TeamCode:testDebugUnitTest} (add {@code --tests "*AutoShootSequenceTest"} to run
  * only this class). {@code run(25, DONE, FAULT)} advances the simulation up to 25 SIMULATED seconds (it takes only

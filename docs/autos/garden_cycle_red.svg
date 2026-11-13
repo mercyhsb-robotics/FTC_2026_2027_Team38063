@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall - RED alliance</title>
+<title id="svg-title">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall - RED alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route garden_cycle for the RED alliance, starting in tile B1, with 6 steps: 1 START at (35.0, 9.8, -90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE to GARDEN constant to 9.0, 18.0; 4 DRIVE into GARDEN constant to 9.0, 10.6; 5 INTAKE GARDEN +3 from (9.0, 10.6, -90 deg); 6 DRIVE off the wall constant to 20.0, 24.0. First tip: we shoot the first tip. Estimated 14.1 s, POLLEN balance -1, up to 23 points for our robot; 0 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="14.77" font-weight="bold" fill="#222222">Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall - RED alliance</text>
+<text id="title" x="24" y="27" font-size="17.29" font-weight="bold" fill="#222222">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall - RED alliance</text>
 <text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id garden_cycle  |  start tile B1  |  6 steps  |  red ink  |  first tip: we shoot the first tip</text>
 <rect x="24" y="52" width="40" height="4" fill="#c62828"/>
 <g id="field">

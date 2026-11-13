@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * the Pinpoint's sideways-measuring (strafe) pod and on all four mecanum wheels turning the right way, so this is
  * the test that shows whether they work together.
  *
- * <p><b>When to run it.</b> After the Pedro tuning steps in docs/TUNING.md (or after changing the drive or the
+ * <p><b>When to run it.</b> After the Pedro tuning steps in docs/START_HERE.md (or after changing the drive or the
  * odometry), before trusting a real autonomous routine. It shows up in the Driver Station Autonomous list as
  * "PedroPathingAuto_Strafe". Put the robot on clear floor with at least 4 feet free on its RIGHT side (more is safer:
  * the robot may overshoot), press INIT, then PLAY. The field walls are not needed: the code simply tells Pedro "the

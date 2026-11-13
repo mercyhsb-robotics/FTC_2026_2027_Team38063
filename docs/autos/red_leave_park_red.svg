@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Red A3: leave the wall and park (no shooting) - RED alliance</title>
+<title id="svg-title">Copy of RedAlliance_LeavePark: leave the wall and park (no shooting) - RED alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_leave_park for the RED alliance, starting in tile A3, with 4 steps: 1 START at (9.2, 70.3, 180 deg); 2 DRIVE path1 linear to 24.9, 83.6; 3 DRIVE path2 linear to 16.0, 91.5; 4 PARK at (16.0, 91.5, 135 deg). First tip: we shoot the first tip. Estimated 2.7 s, POLLEN balance 0, up to 8 points for our robot; 2 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="20" font-weight="bold" fill="#222222">Red A3: leave the wall and park (no shooting) - RED alliance</text>
+<text id="title" x="24" y="27" font-size="18.33" font-weight="bold" fill="#222222">Copy of RedAlliance_LeavePark: leave the wall and park (no shooting) - RED alliance</text>
 <text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id red_leave_park  |  start tile A3  |  4 steps  |  red ink  |  first tip: we shoot the first tip</text>
 <rect x="24" y="52" width="40" height="4" fill="#c62828"/>
 <g id="field">

@@ -658,6 +658,61 @@ public final class ScoringPlanner {
                 Math.max(turnSafeBounds.minY, Math.min(turnSafeBounds.maxY, y))};
     }
 
+    /**
+     * A wall-checked road to a pose that is not a shooting pose (the park assist uses it). It carries the same three things as a
+     * {@link Solution}: the points to drive through, and the turn window the road was checked with, which the drive has to use.
+     */
+    public static final class Route {
+        /** Points to drive through, ending at the target position (the start is not included). Each is {x, y} in inches. */
+        public final List<double[]> waypoints;
+        /** Length of the road from where the robot was, in inches. */
+        public final double travelIn;
+        /** Keep the starting heading for this many inches of the road before turning (see {@link HeadingProfile}). */
+        public final double turnHoldIn;
+        /** Be finished turning this many inches before the road ends. */
+        public final double turnSettleIn;
+
+        Route(List<double[]> waypoints, double travelIn, double turnHoldIn, double turnSettleIn) {
+            this.waypoints = waypoints;
+            this.travelIn = travelIn;
+            this.turnHoldIn = turnHoldIn;
+            this.turnSettleIn = turnSettleIn;
+        }
+    }
+
+    /**
+     * The same safe road {@link #solve} drives to a shooting pose, but to ANY pose: the cheapest road around the HIVE frame and the
+     * FLOWERS that the whole turning robot can drive without touching a wall or an obstacle, repaired the same ways (turn only where
+     * there is room, or a detour). It is the one place the park assist gets its roads, so it can never use a looser check than shooting.
+     *
+     * @param robot  where the robot is now
+     * @param target where it should end (position and heading)
+     * @return the road, or null if the target does not fit there ({@link #standingPoseFree}) or no safe road exists
+     */
+    public Route routeTo(Pose2 robot, Pose2 target) {
+        if (!standingPoseFree(target)) {
+            return null;
+        }
+        Route viaLane = routeWith(travel, robot, target);
+        if (viaLane != null || travelAround == null) {
+            return viaLane;
+        }
+        return routeWith(travelAround, robot, target);
+    }
+
+    /** One road to the target with the given route finder, wall-checked and repaired; null if there is none. */
+    private Route routeWith(PathPlanner finder, Pose2 robot, Pose2 target) {
+        List<double[]> waypoints = finder.plan(robot.x, robot.y, target.x, target.y);
+        if (waypoints == null) {
+            return null;
+        }
+        SafeRoute safe = makeSafe(robot, target, waypoints);
+        if (safe == null) {
+            return null;
+        }
+        return new Route(safe.waypoints, PathPlanner.length(robot.x, robot.y, safe.waypoints), safe.holdIn, safe.settleIn);
+    }
+
     /** The field model this planner was built with. */
     public FieldModel field() {
         return field;

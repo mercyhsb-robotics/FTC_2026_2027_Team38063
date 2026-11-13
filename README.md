@@ -7,11 +7,14 @@ The headline feature: **hold one button and the robot drives to the closest feas
 cell of your HIVE is tipped up, aligns on the AprilTags, and shoots every POLLEN it is holding.** It works for
 both alliances and both sides of the HIVE.
 
+**New to the robot? Start with [`docs/START_HERE.md`](docs/START_HERE.md).** It is the one guide for the robot day:
+connect, check, measure, tune, set up the camera, build the shot table, try auto-shoot, and fix problems.
+
 ## The robot at a glance
 
 | | |
 |---|---|
-| Drive | goBILDA mecanum, 17.80 × 17.80 in outline (its center of rotation is 9.77 in behind the front edge, see `docs/ARCHITECTURE.md`), 104 mm wheels, Pinpoint odometry |
+| Drive | goBILDA mecanum, 17.80 × 17.80 in outline (its center of rotation is not the middle of the outline: about 9.77 in behind the front edge until you measure it, see `docs/START_HERE.md`), 104 mm wheels, Pinpoint odometry |
 | Intake | front: roller + two corner-pulling servos |
 | Shooter | back: one flywheel (1:1 Yellow Jacket) and a feeder "windmill" servo, fixed launch angle |
 | Camera | Limelight 3A on top, facing the back with the shooter |
@@ -21,14 +24,15 @@ both alliances and both sides of the HIVE.
 
 | OpMode | What it is for |
 |---|---|
+| **00 Robot Check** (TeleOp, group "1 Start here") | A guided test of every part (battery, names, wheels, Pinpoint, intake, flywheel, feeder, camera, gamepad). Run it first, with the robot on blocks. |
 | **BioBuzzRobot** (TeleOp) | Driving. Hold **D-pad up** to auto-score. Alliance is chosen during INIT. |
 | **Limelight Diagnostic** | Check the camera, its mounting constants and the tag readings with the robot standing still. |
 | **Shooter Tuner** | Build the shot table: flywheel speed vs. distance. |
 | RedAlliance_B1 / _C1 / _LeavePark | The existing autonomous routines (Pedro paths), in `autonomous/`. |
 | PedroPathingAuto_*, AutoPath | Pedro path tests, in `autonomous/pathtests/`. |
-| Pedro tuning menu | Mecanum, Pinpoint, **Foresight** and Tests procedures (see `docs/TUNING.md`). |
+| Pedro tuners | Mecanum, Pinpoint, **Foresight** and Tests procedures. They are a web page (`http://192.168.43.1:10158`, on the Robot Controller's Wi-Fi), not a Driver Station list item. See `docs/START_HERE.md`. |
 
-### TeleOp controls (the shoot, flip, reset and alliance buttons and the stick settings are in `BioBuzzConstants.Controls`)
+### TeleOp controls (short version: every button of every OpMode is in the [Controller map](docs/START_HERE.md#controller-map); the shoot, flip, reset, alliance and jam buttons and the stick settings are in `BioBuzzConstants.Controls`)
 
 | Control | Action |
 |---|---|
@@ -40,7 +44,9 @@ both alliances and both sides of the HIVE.
 | Cross / circle | intake motor on / off |
 | Triggers | the two corner servos |
 | Triangle / square | manual launch on / off (feeds once the flywheel is fast enough) |
-| Bumpers (hold) | feeder reverse / forward |
+| Right bumper (hold) | feeder forward |
+| **Left bumper (hold)** | **clear a jam:** run the indexer (feeder) slowly backward; also cancels auto-score |
+| **D-pad right (hold, after PLAY)** | **clear a jam:** run the shooter flywheel slowly backward; also cancels auto-score |
 
 Moving the left stick hard while the robot is driving itself cancels the automatic drive.
 
@@ -73,10 +79,10 @@ docs/                          <- guides (below)
 
 ## Guides
 
-* [`docs/DAY_ONE_CHECKLIST.md`](docs/DAY_ONE_CHECKLIST.md) — what to measure and check first on the real robot
-* [`docs/LIMELIGHT_SETUP.md`](docs/LIMELIGHT_SETUP.md) — configuring the Limelight so it matches the code
-* [`docs/TUNING.md`](docs/TUNING.md) — Pedro tuning order, the shot table, and a "robot does X → change Y" table
-* [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the auto-shoot sequence works and why
+* [`docs/START_HERE.md`](docs/START_HERE.md) — **read this first.** The one guide for the robot day, in order: connect, Robot Check,
+  measure, Pedro tuning, Limelight, shot table, the controller map, auto-shoot, autonomous, "if something goes wrong", and how it works
+* [`docs/AUTOS.md`](docs/AUTOS.md) — autonomous routes as data: how to choose a route, where to place the robot, and the rules checks
+  (the pictures are in [`docs/autos/index.html`](docs/autos/index.html))
 
 ## Build and test
 

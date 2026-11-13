@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
  *   <li><b>VERIFY</b> - believed right, but must be confirmed on the real robot or field once.</li>
  *   <li><b>TUNE</b> - a starting value that is expected to be adjusted from testing.</li>
  * </ul>
- * The symptom-to-knob table in docs/TUNING.md says which constant to reach for when the robot
+ * The "If something goes wrong" table in docs/START_HERE.md says which constant to reach for when the robot
  * misbehaves.
  */
 public final class BioBuzzConstants {
@@ -205,7 +205,7 @@ public final class BioBuzzConstants {
          * <p>THE STANDARD SHOOTING POSE IS OUTSIDE THE ZONE, ON PURPOSE. The shooter fires out of the robot's BACK, so the rear edge faces the cell:
          * at the nominal standoff (34 in from the aim point) it is about 48 in out, at the measured anchor shot (37.7 in) about 53 in. A zone that
          * reached 48 in would flag every standard shot as standing in the spill; the team has not seen that happen, and the first thing to do on
-         * day one is to look (docs/DAY_ONE_CHECKLIST.md: tip a HIVE and mark where the balls first touch the tiles, and whether any reach the
+         * day one is to look (docs/START_HERE.md: tip a HIVE and mark where the balls first touch the tiles, and whether any reach the
          * robot's rear). If they do, raise this number: the standard pose will then be flagged and the team must shoot from farther away or drive
          * off before the tip. A robot that parks CLOSER than the standard pose (a standoff under about 30 in) is inside the zone and must leave
          * within TIP_SPILL_CLEAR_SEC.
@@ -283,7 +283,7 @@ public final class BioBuzzConstants {
         // ---- robot and drive model for the timing estimate (all ADD: the robot is unmeasured) --
         // The starting values come from the benchmark research (docs/AUTOS.md, "About the numbers"). They are plausible, NOT measured: the
         // range in each comment is how far a real robot like ours could be from the starting value. Replace each by a measurement
-        // (docs/DAY_ONE_CHECKLIST.md), change its marker from ADD to VERIFY or TUNE and delete its name from PLACEHOLDERS.
+        // (docs/AUTOS.md, "About the numbers"), change its marker from ADD to VERIFY or TUNE and delete its name from PLACEHOLDERS.
 
         /**
          * ADD: cruise speed along a path, in inches per second. Starting value 48 (range 40 to 56). Why: the motors (312 rpm) and wheels
@@ -295,7 +295,7 @@ public final class BioBuzzConstants {
         /**
          * ADD: acceleration and braking along a path, in inches per second per second. Starting value 110 (range 70 to 160). Why: real
          * Pedro robots stop from 50 to 60 in/s at about 150 in/s per second, and the wheels' grip allows about 270. Replace by 0.8 x
-         * the number the Pedro velocity tuner measures, or time a 100 in path five times (docs/TUNING.md) and choose the number
+         * the number the Pedro velocity tuner measures, or time a 100 in path five times (docs/AUTOS.md, "About the numbers") and choose the number
          * that gives the same time in the route estimate (a 100 in leg is about 2.5 s of driving, plus the settle time, with the starting values).
          */
         public static final double ACCEL_IN_PER_SEC2 = 110.0;
@@ -338,7 +338,7 @@ public final class BioBuzzConstants {
          * ADD: feeding one POLLEN through the shooter, in seconds. It is NOT a separate guess: it is worked out from the feeder power in
          * {@code Shooter.FEEDER_FORWARD_POWER} as {@link #FEED_SEC_PER_POLLEN_AT_FULL_POWER} divided by that power, but never less than
          * {@link #TIME_PER_SHOT_MIN_SEC}. So 1.0 s at power 0.3 (today), 0.5 s at 0.6 and 0.35 s at 1.0. Change the feeder power and this
-         * follows. Replace by timing ten volleys of 4 at your power (docs/DAY_ONE_CHECKLIST.md): the time of one volley divided by 4.
+         * follows. Replace by timing ten volleys of 4 at your power (docs/AUTOS.md, "About the numbers"): the time of one volley divided by 4.
          */
         public static final double TIME_PER_SHOT_SEC = timePerShotAt(Shooter.FEEDER_FORWARD_POWER);
 
@@ -382,7 +382,7 @@ public final class BioBuzzConstants {
          * and {@link #BALL_FLIGHT_SEC} (0.5 s) that means the POLLEN after the one that tips is launched BEFORE the feeder can stop, so a spare
          * POLLEN in a volley is probably spent, not kept: the route plan counts it as fired and the validator warns. The spare is kept only if this number
          * is no more than the time between POLLEN minus the flight (0.5 s with the numbers above). Measure it on day one: tip a HIVE with a volley and watch whether the
-         * next POLLEN leaves (docs/DAY_ONE_CHECKLIST.md).
+         * next POLLEN leaves (docs/START_HERE.md).
          */
         public static final double TIP_STOP_LATENCY_SEC = 0.85;
 
@@ -867,7 +867,7 @@ public final class BioBuzzConstants {
          * the robot farther forward than {@code Robot.LAUNCH_POINT_FORWARD_IN} says (the robot CAD suggests
          * 6.58 in behind the center of rotation, which would give 37.8 in). On the real robot,
          * re-measure the distance from the ball exit to the cell opening center with a tape (see
-         * docs/DAY_ONE_CHECKLIST.md) before trusting the rows next to the anchor.
+         * docs/START_HERE.md) before trusting the rows next to the anchor.
          */
         public static final double[][] SHOT_TABLE = {
                 {30.0, 1150.0},
@@ -1119,6 +1119,48 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // PARK ASSIST (TeleOp: hold Controls.PARK_BUTTON and the robot drives itself into its own LOADING ZONE and holds there)
+    // The logic is autoshoot/core/ParkAssist. It reuses the hold-to-shoot route planner, the wall-safety check and the same
+    // driver-stick cancel rule, so those numbers are in AutoShoot above, not repeated here. It also drives with the same
+    // PedroDrive and the same Pedro speed settings as hold-to-shoot, so it can never move faster than that feature: there is
+    // deliberately NO speed setting in this group.
+    // =========================================================================================
+    public static final class Park {
+        private Park() {
+        }
+
+        /**
+         * TUNE (the same measure as {@link Auto#PARK_MIN_OVERLAP_IN}: the smaller side of the part of the robot's outline that lies
+         * inside the zone, in inches): the assist drives to a spot where the robot overlaps its LOADING ZONE by at least this much. It
+         * is bigger than the 3 in the autonomous validator calls safe, on purpose: the Pinpoint drifts a little during a match, the
+         * tape is only accurate to about 1 in, and the drive stops up to {@link #ARRIVE_IN} short. The zone is 11 in deep, so 8 in
+         * leaves the near edge of the robot within 3 in of the wall; touching the wall is allowed in TeleOp.
+         */
+        public static final double MIN_OVERLAP_IN = 8.0;
+        /**
+         * TUNE: the park spots the assist considers lie on a grid this many inches apart (smaller = a finer choice but a slower plan
+         * when the button goes down; 1 in costs a few thousand quick checks).
+         */
+        public static final double GRID_STEP_IN = 1.0;
+        /**
+         * TUNE: besides the heading the robot has now, the assist tries to park facing every this many degrees (90 = square to the
+         * walls). Turning costs {@code AutoShoot.PLAN_ROTATION_COST_IN_PER_DEG}, so it keeps its heading unless a turn makes a shorter trip.
+         */
+        public static final double HEADING_STEP_DEG = 90.0;
+        /**
+         * TUNE: the most park spots whose whole route is wall-checked before the assist gives up and says there is no safe route
+         * (the spots are tried nearest first, so a clear field needs one or two). It bounds how long the button press can take.
+         */
+        public static final int MAX_ROUTE_CHECKS = 150;
+        /** TUNE: the robot counts as arrived when it is this close to its park spot (inches) ... */
+        public static final double ARRIVE_IN = 2.0;
+        /** TUNE: ... and facing within this many degrees of it ... */
+        public static final double ARRIVE_DEG = 10.0;
+        /** TUNE: ... and slower than this (inches per second). The screen then says "Parked". */
+        public static final double ARRIVE_SPEED_IN_S = 4.0;
+    }
+
+    // =========================================================================================
     // VISION (Limelight 3A, AprilTag pipeline, mounted on top facing the REAR with the shooter)
     // =========================================================================================
     public static final class Vision {
@@ -1155,7 +1197,7 @@ public final class BioBuzzConstants {
          */
         public static final double CAMERA_PITCH_UP_DEG = 35.0;
 
-        /** FIXED by the setup checklist (docs/LIMELIGHT_SETUP.md): the AprilTag pipeline is index 0. */
+        /** FIXED by the setup checklist (docs/START_HERE.md): the AprilTag pipeline is index 0. */
         public static final int PIPELINE_INDEX = 0;
         /** FIXED by the setup checklist: hardware-configuration name of the Limelight. */
         public static final String DEVICE_NAME = "limelight";
@@ -1250,6 +1292,22 @@ public final class BioBuzzConstants {
          * the same D-pad button chooses the alliance; the two uses never overlap.)
          */
         public static final Button UNJAM_SHOOTER_BUTTON = Button.DPAD_RIGHT;
+        /**
+         * TUNE: HOLD this to park. The robot drives itself into its own LOADING ZONE (the 5 points of PARK at the end of TeleOp),
+         * stops there and holds the spot; let go and you are driving again at once. It needs a trusted pose (see
+         * {@link #RESET_POSE_BUTTON}), never runs while the robot is shooting, and holding the shoot button or a jam-clearing button
+         * cancels it. It must be a button nothing else uses ({@code ConstantsCheck} says so at INIT). OPTIONS is the small button
+         * on the right of the pad; the Driver Station calls it Start, so do not hold it together with cross or circle (that
+         * pair re-assigns the gamepad).
+         */
+        public static final Button PARK_BUTTON = Button.OPTIONS;
+        /**
+         * FIXED (the buttons {@code BioBuzzRobot.manualControls} reads directly, the ones that are not set above): intake on (cross),
+         * intake off (circle), manual launch on (triangle), manual launch off (square) and the feeder forward (right bumper).
+         * {@code ConstantsCheck} refuses a setting above that uses one of them, because two jobs on one button fire together.
+         */
+        public static final Button[] FIXED_MANUAL_BUTTONS = {
+                Button.CROSS, Button.CIRCLE, Button.TRIANGLE, Button.SQUARE, Button.RIGHT_BUMPER};
 
         /** TUNE: a trigger counts as pressed beyond this (0-1). */
         public static final double TRIGGER_THRESHOLD = 0.3;

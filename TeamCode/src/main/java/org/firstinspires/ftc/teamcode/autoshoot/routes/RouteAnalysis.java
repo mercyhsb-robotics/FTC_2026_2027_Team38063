@@ -1088,7 +1088,7 @@ public final class RouteAnalysis {
         s.append("about ").append(one(expectedPoints(each))).append(" (an estimate, not a promise): LEAVE ").append(leavePoints()).append(" + PARK ")
                 .append(parkPoints()).append(" are certain if the route gets there");
         if (tips == 0) {
-            s.append("; this route tips the HIVE by no volley of its own, so no tip is counted");
+            s.append("; no volley of this route tips the HIVE by itself (a partner's assumed tip is never counted), so no tip is counted");
         } else {
             s.append(", plus ").append(one(expectedTipPoints(each))).append(" for the HIVE ").append(tips == 1 ? "TIP" : "TIPs").append(": ");
             int n = 0;
