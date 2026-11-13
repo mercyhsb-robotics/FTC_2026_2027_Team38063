@@ -16,7 +16,7 @@ order, tick each box, and read the "You should see" line after every step. If yo
 * [Build the shot table](#build-the-shot-table) (steps 45 to 51)
 * [Controller map](#controller-map) (every button, for every OpMode)
 * [Try auto-shoot on the field mat](#try-auto-shoot-on-the-field-mat) (steps 52 to 59)
-* [Autonomous](#autonomous) (steps 60 to 62)
+* [Autonomous](#autonomous) (steps 60 to 62: the Auto Route Picker)
 * [If something goes wrong](#if-something-goes-wrong)
 * [How it works, in ten lines](#how-it-works-in-ten-lines)
 * [Measure later, for the planned autonomous routes](#measure-later-for-the-planned-autonomous-routes)
@@ -134,7 +134,7 @@ driving library. We call it the **Pedro file**. Pedro's own tuners write its num
 
 - [ ] **5. Look at the OpMode lists.**
   **You should see:** under TeleOp: "00 Robot Check" (group "1 Start here"), "BioBuzzRobot", "Limelight Diagnostic" and "Shooter Tuner" (group "AutoShoot").
-  Under Autonomous: "RedAlliance_B1", "RedAlliance_C1", "RedAlliance_LeavePark", "PedroPathingAuto_Forward", "PedroPathingAuto_Strafe" and "AutoPath".
+  Under Autonomous: "Auto Route Picker" (group "2 Autonomous"), "RedAlliance_B1", "RedAlliance_C1", "RedAlliance_LeavePark", "PedroPathingAuto_Forward", "PedroPathingAuto_Strafe" and "AutoPath".
   **If not:** step 2 did not finish. Run again.
 
 - [ ] **6. Find your gamepad buttons.** Open the [Controller map](#controller-map) below once and look at the picture. You
@@ -534,6 +534,19 @@ A press that comes less than 0.4 s after the screen changed is ignored (`RobotCh
 | Square | **Press:** forget all recorded rows. | fixed in the code |
 | Everything else | Not used. | none |
 
+### Autonomous: "Auto Route Picker"
+
+You use it **before PLAY** (INIT) with gamepad 1. After PLAY the robot drives by itself and no button does anything.
+
+| Control | What it does | Setting that changes it |
+|---|---|---|
+| D-pad up | **Press:** the route before this one in the list (the list goes round). | `Run.MENU_PREVIOUS_ROUTE_BUTTON` |
+| D-pad down | **Press:** the next route in the list. | `Run.MENU_NEXT_ROUTE_BUTTON` |
+| D-pad left | **Press:** choose the RED alliance. | `Run.MENU_RED_BUTTON` |
+| D-pad right | **Press:** choose the BLUE alliance. | `Run.MENU_BLUE_BUTTON` |
+
+The Options button (park assist) is a TeleOp button: it is in the table of "BioBuzzRobot" above and does nothing in the Auto Route Picker.
+
 ## Try auto-shoot on the field mat
 
 - [ ] **52. Place the robot** on the default start place (step 38): RED, front touching the audience wall, centered on tile C1, in line with the HIVE, facing the wall. Put in the POLLEN the way you do in a match (at most 4).
@@ -599,8 +612,38 @@ the camera has seen it), the Vision line and the Pose.
 
 ## Autonomous
 
-**Autonomous** is the first 30 seconds of a match, when the robot drives itself. In today's code there are three hand-written programs, all for the **RED** alliance (there is no blue version yet), in the Autonomous list.
-The **LOADING ZONE** is the taped area beside the red wall where a robot ends and parks.
+**Autonomous** is the first 30 seconds of a match, when the robot drives itself. The way to run an auto is the OpMode **"Auto Route Picker"** (Driver Station, Autonomous list, group "2 Autonomous").
+It has a **list of routes**. You choose one and the alliance (RED or BLUE) before PLAY, and the robot drives it by itself. The **LOADING ZONE** is the taped area beside the red wall where a robot ends and parks.
+
+**What you see on the screen at INIT** (the picker shows it for the route and alliance you chose):
+
+* **who tips the HIVE first**: our robot ("we tip first") or our partner's robot ("the partner tips first": then our robot waits for the partner and needs the camera);
+* the **time** the route should take (the auto lasts 30 s) and **our points** (the partner's tip is never counted for us);
+* the **route check**: the number of ERRORs and WARNs. An ERROR means the route breaks a rule or cannot work;
+* the **Limelight** (the camera): is it working? A partner route cannot run without it;
+* the **values still to measure** (the numbers in the constants file that are still guesses);
+* **in plain words where to put the robot**, measured from the walls to the robot's **edges** (not to the middle of the robot).
+
+If the last line says **REFUSED**, the robot **will not move** after PLAY. Fix what the screen says (for example the route check, or the camera) or pick another route.
+
+**The routes.** Every route's title starts with a **tier** word: **Safe** (easy to set up, nothing extra: start with these), **Standard** (one extra job or a harder place to start) and **Aggressive** (more points are possible, but there is more that can go wrong and it uses nearly all of the 30 s). A title that starts with **Advanced** is for experts only. Open `docs/autos/index.html` in a browser to see every route drawn for both alliances with its start place, time and points; the table of all routes is in [`docs/AUTOS.md`](AUTOS.md).
+
+**What the robot does by itself.** It runs the route you chose, step by step. It **never fires at a cell the camera has not seen UP**: no camera, no shot. The only volley that needs no camera is the first one, at the cell that is UP from the start of the match. When AUTO ends it **stops everything** (the wheels, the shooter and the intake). It **keeps its position** (and the alliance) for the TeleOp, so you can start the TeleOp without resetting. Nobody has run the picker on the real robot yet: stay next to it with the Driver Station, ready to press **STOP**.
+
+- [ ] **60. Place the robot with a tape measure.** Choose the alliance and a route with the gamepad (see the controller map). Read the line **where to put the robot** on the screen. Put the side that faces the wall **on** the wall, square to it, and measure from the wall to the robot's **edge**, never to the tape mark.
+  **You should see:** the distances on the screen match your tape measure.
+  **If not:** move the robot. Never start a route from a different place than the screen says: the robot believes it stands there.
+
+- [ ] **61. Look at the screen until it says READY.** Check the route check (0 ERROR), the Limelight line and the values still to measure. A line that says **REFUSED** means the robot will not move: fix it or pick another route.
+  **You should see:** a line that starts with READY.
+  **If not:** read the reason on the screen. A route with an ERROR cannot be fixed on the field: pick another route.
+
+- [ ] **62. Clear the path, stand back, press PLAY.** Choose Autonomous, "Auto Route Picker", INIT, then PLAY. Watch the first route in the Safe tier first.
+  **You should see:** the robot follows the route, the screen says the step, how many POLLEN the robot holds and how much of the 30 s is left, and then the robot stops.
+  **If not:** press STOP. Look at the PROBLEM line on the screen and at the start place.
+  The things nobody has checked on the real robot yet are listed in the last section of [`docs/AUTOS.md`](AUTOS.md), "Running an auto on the robot".
+
+**The three old OpModes.** "RedAlliance_B1", "RedAlliance_C1" and "RedAlliance_LeavePark" still exist and still work the way they did, for the **RED** alliance only (there is no blue version). **With the current numbers they start the robot 0.57 in through the wall**, and the picker refuses their routes for that reason. So use the routes of the Auto Route Picker; the old OpModes are only for when you want to compare.
 
 | OpMode | Where to place the robot | What it does |
 |---|---|---|
@@ -610,18 +653,8 @@ The **LOADING ZONE** is the taped area beside the red wall where a robot ends an
 
 The edge distances use the file's `Robot.RIGHT_EXTENT_IN` and `Robot.LEFT_EXTENT_IN` of 8.90 in: the program starts with its center of rotation 35.0, 58.0 and 70.3 in from the wall, and the edge is that minus 8.90 in.
 Left and right are the robot's own: stand behind the robot and look where it faces.
-
-- [ ] **60. Place the robot with a tape measure.** Put the side that faces the wall **on** the wall, square to it. Measure from the wall to the robot's **edge**, never to the tape mark. Use the table, with your own numbers
-  from step 13 (center distance minus your extent).
-
-- [ ] **61. Fix the start line.** These three programs start with the center of rotation 9.2 in from the wall (the start line `poseFactory.of(..., 9.2, ...)` in `RedAlliance_B1.java` and `RedAlliance_C1.java`, and 9.2112 in `RedAlliance_LeavePark.java`).
-  With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_IN` away. If your measured number is not 9.2, change that number in the start line to match.
-
-- [ ] **62. Choose and run one.** Open `docs/autos/index.html` in a browser. It draws each route for both alliances, with its start place, its time and any rule problems. How to place the robot is explained in [`docs/AUTOS.md`](AUTOS.md),
-  section "Where to set the robot up (rule G304)". Clear the path, stand back, then choose Autonomous, your OpMode, INIT, PLAY.
-  **You should see:** the robot follows the route and stops.
-  **If not:** press STOP. Check the start place against the table.
-  The diagrams also show routes that are only plans (for example "wall_shoot_park"). **No program drives those yet.** Only the three OpModes above move the robot.
+These three programs start with the center of rotation 9.2 in from the wall (the start line `poseFactory.of(..., 9.2, ...)` in `RedAlliance_B1.java` and `RedAlliance_C1.java`, and 9.2112 in `RedAlliance_LeavePark.java`).
+With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_IN` away. If you want to use an old OpMode, change that number in its start line to your measured number.
 
 ## If something goes wrong
 
@@ -683,4 +716,5 @@ You do not need these today. They feed the planner that checks routes on a compu
 * **The FLOWER pick-up.** One flat intake wheel turns into the bottom POLLEN of a FLOWER and rolls it out over the ring's lip. Do it by hand with both wheels. The numbers: `Auto.FLOWER_WHEEL_START_OFFSET_IN`,
   `Auto.FLOWER_WHEEL_PRESS_OFFSET_IN`, `Auto.FLOWER_WHEEL_BALL_INBOARD`, `Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC`, `Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC`, `Auto.FLOWER_WIGGLE_TURN_SEC`, `Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN`,
   `Auto.FLOWER_CHASSIS_CLEARANCE_IN` and `Robot.INTAKE_REACH_IN`. The spinning wheel must pull the ball toward the robot. Print or watch the robot's pose during one wiggle: the pose point must not slide more than about 0.3 in. Also measure the real FLOWER: the distance from the wall to the middle of the POLLEN stack (the drawing says 2.634 in), the hole the bottom POLLEN sits in (3.04 in; the rule book says 2.79 in), the height of the ring's lip (0.35 in; the rule book says 0.43 in), and which parts of your robot are taller than 11.44 in (the FLOWER's wall bracket sticks out 1.67 in from the wall at 11.44 to 11.84 in above the floor). Details: "Taking POLLEN from a FLOWER" in [`docs/AUTOS.md`](AUTOS.md).
+* **FLOWER pick-ups:** the model says the flat wheels fall about 0.8 in short of the POLLEN with the chassis kept outside the FLOWER base; check with a tape and by trying it at the real FLOWER whether the robot body can drive over the 0.35 in bottom ring of the FLOWER (ground clearance is about 0.94 in); if it can, tell the lead so the keep-out can be relaxed.
 * **The lane under the HIVE** (only if a route uses it): the distance between the inner faces of the two foot bars (about 45.5 in) and between the leg stubs at your tallest part's height. Push the robot through by hand with the camera on: nothing may touch.
