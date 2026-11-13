@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.HiveSolid;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
-import org.firstinspires.ftc.teamcode.autoshoot.core.RobotShape;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
@@ -29,7 +28,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       start heading) is inside the field and inside the own half, touches a perimeter wall (within
  *       {@code START_WALL_CONTACT_TOLERANCE_IN}), and is not in the own LOADING ZONE (G304.E), not touching
  *       a FLOWER (G304.D) and not attached to the HIVE frame (G304.B). A start that stands clear of a FLOWER plate but over
- *       the end of its wall bracket (it is 0.36 in longer than the plate, at a height the robot reaches) is a WARN.</li>
+ *       the end of its wall bracket (it is 0.36 in longer than the plate, at a height the robot reaches) is a WARN. This check is {@link StartRules},
+ *       the one piece of code that also decides which starts {@link StartPoseSearch} may propose.</li>
  *   <li><b>Every leg, 9.2/G412, G417/G409, G415.</b> Every DRIVE leg and every unplanned move to an INTAKE,
  *       SHOOT or PARK pose is swept by {@link Sweep}: sampled every {@code PATH_SAMPLE_STEP_IN} (and every
  *       {@code TURN_SAMPLE_STEP_DEG} while turning) and proven not to miss anything between two samples. The footprint
@@ -151,88 +151,14 @@ public final class RouteValidator {
 
     // ---- 1. START (G304) ---------------------------------------------------------------------------
 
-    private void checkStart(RouteAnalysis a, List<Issue> out) {
-        AllianceField f = a.field();
-        Pose2 start = a.route().startPose();
-        Footprint fp = Footprint.of(start);
-        double tol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
-        String at = "start footprint at " + pose(start);
-
-        double outside = fp.overshootOutside(f.fieldRect());
-        if (outside > tol) {
-            out.add(error(0, Rule.START_G304, at + " sticks out of the field by " + in(outside) + " (G304.A)"
-                    + wallHint(start, f.fieldRect())));
-        }
-        double past = 0.0;
-        for (int i = 0; i < 4; i++) {
-            past = Math.max(past, f.pastCenterLine(fp.corner(i).x));
-        }
-        if (past > tol) {
-            out.add(error(0, Rule.START_G304, at + " reaches " + in(past)
-                    + " into the opponent half; the robot must start fully inside its own columns (G304.A)"));
-        }
-        Rect b = fp.bounds();
-        double size = f.fieldRect().maxX;
-        double gap = Math.min(Math.min(b.minX, b.minY), Math.min(size - b.maxX, size - b.maxY));
-        if (gap > BioBuzzConstants.Auto.START_WALL_CONTACT_TOLERANCE_IN) {
-            out.add(error(0, Rule.START_G304, at + " is " + in(gap) + " away from the nearest wall; it must touch a"
-                    + " perimeter wall (G304.C, tolerance " + in(BioBuzzConstants.Auto.START_WALL_CONTACT_TOLERANCE_IN) + ")"));
-        }
-        if (fp.overlaps(f.ownLoadingZone())) {
-            out.add(error(0, Rule.START_G304, at + " overlaps the own LOADING ZONE " + f.ownLoadingZone()
-                    + "; no robot may start there (G304.E)"));
-        }
-        for (int i = 0; i < f.flowerPlates().size(); i++) {
-            if (fp.overlaps(f.flowerPlates().get(i))) {
-                out.add(error(0, Rule.START_G304, at + " touches FLOWER " + (i + 1)
-                        + "; a start may not contact a FLOWER (G304.D)"));
-            } else if (BioBuzzConstants.Robot.HEIGHT_IN > BioBuzzConstants.Field.FLOWER_BRACKET_BOTTOM_Z_IN
-                    && fp.overlaps(f.flowerBracket(i))) {
-                // The bracket is longer than the plate, so a robot can stand clear of the plate and still be over the bracket.
-                out.add(warn(0, Rule.START_G304, at + " is over the wall bracket of FLOWER " + (i + 1) + " (it sticks out "
-                        + in(BioBuzzConstants.Field.FLOWER_BRACKET_PROTRUSION_IN) + " from the wall, " + in(BioBuzzConstants.Field.FLOWER_BRACKET_ALONG_WALL_IN)
-                        + " along it, at " + in(BioBuzzConstants.Field.FLOWER_BRACKET_BOTTOM_Z_IN) + " to " + in(BioBuzzConstants.Field.FLOWER_BRACKET_TOP_Z_IN)
-                        + " above the floor): any part of the robot taller than " + in(BioBuzzConstants.Field.FLOWER_BRACKET_BOTTOM_Z_IN)
-                        + " there would be touching the FLOWER (G304.D). Slide the start along the wall"));
-            }
-        }
-        if (fp.overlaps(f.hiveFrame())) {
-            out.add(error(0, Rule.START_G304, at + " overlaps the HIVE frame " + f.hiveFrame()
-                    + "; a start may not be attached to a FIELD element (G304.B)"));
-        }
-    }
-
     /**
-     * For a start that pokes through a wall: which wall it is, how far the pose point (the center of rotation) is from it,
-     * and how far it has to be for the robot's edge that faces the wall to just touch it. The robot is not centered on its
-     * pose point, so the answer depends on which way it faces: the front edge is {@code Robot.FRONT_EXTENT_IN} from the
-     * pose point, the back edge {@code REAR_EXTENT_IN}, the sides {@code LEFT_EXTENT_IN} and {@code RIGHT_EXTENT_IN}.
-     * Empty if no wall is poked through.
+     * Rule G304 is {@link StartRules}: the same code the search for a start and the TeleOp start check use, so what the validator calls legal is exactly
+     * what {@link StartPoseSearch} proposes. This only turns its findings into issues of step 1 (the START).
      */
-    private static String wallHint(Pose2 start, Rect field) {
-        double[] direction = {Math.PI, 0.0, -Math.PI / 2.0, Math.PI / 2.0};       // toward the wall at x = min, x = max, y = min, y = max
-        double[] distance = {start.x - field.minX, field.maxX - start.x, start.y - field.minY, field.maxY - start.y};
-        double[] wallAt = {field.minX, field.maxX, field.minY, field.maxY};
-        String[] axis = {"x", "x", "y", "y"};
-        RobotShape shape = RobotShape.fromConstants();
-        int worst = -1;
-        double worstPoke = EPS;
-        for (int i = 0; i < 4; i++) {
-            double poke = shape.reachTowardIn(start.heading, direction[i]) - distance[i];
-            if (poke > worstPoke) {
-                worstPoke = poke;
-                worst = i;
-            }
+    private void checkStart(RouteAnalysis a, List<Issue> out) {
+        for (StartRules.Finding finding : StartRules.check(a.field(), a.route().startPose())) {
+            out.add(finding.error ? error(0, Rule.START_G304, finding.message) : warn(0, Rule.START_G304, finding.message));
         }
-        if (worst < 0) {
-            return "";
-        }
-        double needed = shape.reachTowardIn(start.heading, direction[worst]);
-        return ": its center of rotation is " + in(distance[worst]) + " from the wall at " + axis[worst] + " = "
-                + String.format(Locale.ROOT, "%.1f", wallAt[worst])
-                + " but the robot's edge that faces that wall reaches " + in(needed) + " from the center (front " + in(shape.frontIn())
-                + ", rear " + in(shape.rearIn()) + ", sides " + in(shape.leftIn())
-                + "); place the real robot with that edge ON the wall, its center " + in(needed) + " out";
     }
 
     // ---- 2 and 3. every leg: field, HIVE, FLOWERS, sides -----------------------------------------------
