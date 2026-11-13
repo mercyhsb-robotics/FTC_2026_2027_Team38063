@@ -169,6 +169,9 @@ public class BioBuzzRobot extends OpMode {
     private AutoShootController.State prevState = AutoShootController.State.IDLE;
     // The triangle / square latch: true while the manual launch is switched on.
     private boolean manualLaunchOn;
+    // True while a jam-clearing button is held (shown on the screen).
+    private boolean unjamIndexerNow;
+    private boolean unjamShooterNow;
     // The latest auto-shoot output. Only stored; nothing reads it yet.
     private AutoShootController.Outputs lastOut;
     // The latest camera results, kept so report() can show them.
@@ -351,7 +354,11 @@ public class BioBuzzRobot extends OpMode {
             gamepad1.rumble(BioBuzzConstants.Controls.RUMBLE_STARTED_MS);
         }
         prevToggle = toggle;
-        boolean shootHeld = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.SHOOT_BUTTON);
+        // Holding a jam-clearing button cancels any automatic shooting (it counts as letting go of the shoot button),
+        // so the driver can free a stuck POLLEN at once and the robot never fights them.
+        boolean unjamRequested = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON)
+                || GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
+        boolean shootHeld = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.SHOOT_BUTTON) && !unjamRequested;
         handlePoseReset(now);
 
         // 3. Decide. Hand every measurement to the auto-shoot state machine and get back what to command.
@@ -386,6 +393,8 @@ public class BioBuzzRobot extends OpMode {
             // Carry out the controller's drive command: follow a route, hold a pose, or (FAULT) use the sticks.
             drive.apply(out, sticks[0], sticks[1], sticks[2]);
             manualLaunchOn = false;
+            unjamIndexerNow = false;
+            unjamShooterNow = false;
         } else {
             if (prevState != AutoShootController.State.IDLE) {
                 launcher.stop();                    // the button was just released: stop the flywheel and feeder
@@ -460,21 +469,38 @@ public class BioBuzzRobot extends OpMode {
         servoLeft.setPower(gamepad1.left_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? -1 : 0);
         servoRight.setPower(gamepad1.right_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? 1 : 0);
 
-        // Launcher: triangle spins up and feeds, square stops; the bumpers run the feeder only while held.
+        // Launcher: triangle spins up and feeds, square stops. While held, the jam-clearing buttons run the indexer or
+        // the flywheel slowly BACKWARD to free a stuck POLLEN; the right bumper runs the feeder forward while held.
+        // Clearing a jam always wins over a manual launch that was left on.
+        boolean unjamIndexer = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON);
+        boolean unjamShooter = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
+        unjamIndexerNow = unjamIndexer;
+        unjamShooterNow = unjamShooter;
         if (gamepad1.triangle) {
             manualLaunchOn = true;
         }
         if (gamepad1.square) {
             manualLaunchOn = false;
         }
-        if (gamepad1.left_bumper) {
-            launcher.feederReverse();
-        } else if (gamepad1.right_bumper) {
-            launcher.feederForward();
-        } else if (manualLaunchOn) {
-            launcher.launch(true);
+        if (unjamShooter) {
+            launcher.setTargetVelocity(0.0);       // no forward speed target while the flywheel runs backward
+            launcher.reverseFlywheel(true);
+            if (unjamIndexer) {
+                launcher.feederReverse();
+            } else {
+                launcher.feederStop();
+            }
         } else {
-            launcher.launch(false);
+            launcher.reverseFlywheel(false);
+            if (unjamIndexer) {
+                launcher.feederReverse();
+            } else if (gamepad1.right_bumper) {
+                launcher.feederForward();
+            } else if (manualLaunchOn) {
+                launcher.launch(true);
+            } else {
+                launcher.launch(false);
+            }
         }
 
         // The intake motor stays on after cross until circle is pressed.
@@ -538,6 +564,10 @@ public class BioBuzzRobot extends OpMode {
     /** Puts the useful numbers on the Driver Station screen (docs/TUNING.md explains the Waiting / Stopped reasons). */
     private void report(AutoShootController.Outputs out, Pose2 pose) {
         telemetry.addData("Alliance", alliance + "   Drive: " + driveNote);
+        if (unjamIndexerNow || unjamShooterNow) {
+            telemetry.addData("CLEARING A JAM", (unjamIndexerNow ? "indexer BACKWARD (slow)  " : "")
+                    + (unjamShooterNow ? "shooter wheel BACKWARD (slow)" : ""));
+        }
         if (out == null) {
             telemetry.addLine("AUTO-SHOOT DISABLED: " + driveNote);
         } else {
