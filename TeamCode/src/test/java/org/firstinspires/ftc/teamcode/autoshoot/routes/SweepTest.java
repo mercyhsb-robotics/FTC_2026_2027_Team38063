@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
@@ -130,21 +131,20 @@ public class SweepTest {
     }
 
     @Test
-    public void theChassisAndTheIntakeStripTileTheFootprintExactly() {
-        Pose2 p = Pose2.ofDegrees(30, 40, 25);
-        double reach = 3.0;
-        Footprint chassis = Footprint.chassis(p, reach);
-        Footprint strip = Footprint.intakeStrip(p, reach);
-        Footprint whole = Footprint.of(p);
-        // the strip's front corners are the robot's front corners and its back edge is the chassis' front edge
-        assertEquals(whole.corner(0).x, strip.corner(0).x, 1e-9);
-        assertEquals(whole.corner(0).y, strip.corner(0).y, 1e-9);
-        assertEquals(chassis.corner(0).x, strip.corner(1).x, 1e-9);
-        assertEquals(chassis.corner(0).y, strip.corner(1).y, 1e-9);
-        assertEquals(whole.corner(1).x, chassis.corner(1).x, 1e-9);
-        assertEquals(whole.corner(2).y, chassis.corner(2).y, 1e-9);
-        assertEquals(BioBuzzConstants.Robot.LENGTH_IN - reach, chassis.corner(0).distanceTo(chassis.corner(1)), 1e-9);
-        assertEquals(reach, strip.corner(0).distanceTo(strip.corner(1)), 1e-9);
+    public void theChassisAndTheWheelDiscsNeverReachFartherFromTheCenterThanTheWholeFootprint() {
+        // the proof of the sweep uses ONE radius R for every shape of the robot: the chassis and the two wheel discs are
+        // parts of the footprint, so a corner of either never travels more than a corner of the footprint does
+        Random rnd = new Random(5);
+        for (int k = 0; k < 200; k++) {
+            Pose2 p = new Pose2(rnd.nextDouble() * 100, rnd.nextDouble() * 100, rnd.nextDouble() * 6.0 - 3.0);
+            Footprint[] parts = {Footprint.chassis(p), Footprint.wheelDisc(p, IntakeWheel.LEFT),
+                    Footprint.wheelDisc(p, IntakeWheel.RIGHT)};
+            for (Footprint part : parts) {
+                for (int i = 0; i < 4; i++) {
+                    assertTrue("a corner of a part is within R of the center", part.corner(i).distanceTo(new Point2(p.x, p.y)) <= R + EPS);
+                }
+            }
+        }
     }
 
     // ---- 2. the sampler keeps its promises ------------------------------------------------------------------
