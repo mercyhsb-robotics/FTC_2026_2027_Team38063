@@ -1223,6 +1223,87 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
+    // RUNNING A ROUTE ON THE ROBOT (the "Auto Route Picker" OpMode and the route runner, autoshoot.run)
+    // The route DATA (what a route is) is in Auto above. These numbers say how the robot FOLLOWS a route: the INIT menu buttons,
+    // when a move counts as finished, how long to wait before giving up on one, and the powers of the intake while it takes POLLEN.
+    // =========================================================================================
+    public static final class Run {
+        private Run() {
+        }
+
+        // ---- the INIT menu of the Auto Route Picker (gamepad 1) --------------------------------------------
+
+        /** TUNE: during INIT, press this to go to the PREVIOUS route in the list (up the list). */
+        public static final Button MENU_PREVIOUS_ROUTE_BUTTON = Button.DPAD_UP;
+        /** TUNE: during INIT, press this to go to the NEXT route in the list (down the list). */
+        public static final Button MENU_NEXT_ROUTE_BUTTON = Button.DPAD_DOWN;
+        /** TUNE: during INIT, press this to choose the RED alliance (the same button the TeleOp uses). */
+        public static final Button MENU_RED_BUTTON = Button.DPAD_LEFT;
+        /** TUNE: during INIT, press this to choose the BLUE alliance (the same button the TeleOp uses). */
+        public static final Button MENU_BLUE_BUTTON = Button.DPAD_RIGHT;
+        /** TUNE: how many validator findings (ERROR first, then WARN) the INIT screen lists; the rest are only counted, so the screen stays readable. */
+        public static final int MENU_MAX_ISSUE_LINES = 6;
+        /** TUNE: how many of the names of the values still waiting for a measurement (marked ADD) the INIT screen spells out; the rest are only counted. */
+        public static final int MENU_MAX_PLACEHOLDER_NAMES = 5;
+
+        // ---- the clock ----------------------------------------------------------------------------------------
+
+        /**
+         * FIXED (manual 10.1, G401): the route clock, seconds since AUTO started, stops EVERYTHING at this time: the drive holds where it is, the flywheel
+         * goes to 0, the feeder and the intake switch off. It is the whole AUTO period, so a robot that is slower than the plan still ends by the rules.
+         */
+        public static final double CLOCK_STOP_SEC = Auto.AUTO_DURATION_SEC;
+
+        // ---- when a move is finished and when to give up on it -------------------------------------------------
+
+        /** TUNE: a move counts as arrived when the robot's center is within this many inches of where it was sent (Pedro's own hold is about this good). */
+        public static final double ARRIVE_POS_TOL_IN = 1.5;
+        /** TUNE: ... and it is moving slower than this (inches per second): a robot still rolling has not arrived. */
+        public static final double ARRIVE_SPEED_IN_S = 6.0;
+        /** TUNE: a turn on the spot counts as finished when the heading is within this many degrees of the wanted one. */
+        public static final double TURN_DONE_DEG = 4.0;
+        /**
+         * TUNE: a robot that has stopped within this many inches of the end of a move but not within {@link #ARRIVE_POS_TOL_IN} (a follower that
+         * stops a little short) is counted as arrived after {@link #ARRIVE_LOOSE_STILL_SEC}, so one stubborn inch cannot hold up the whole route.
+         */
+        public static final double ARRIVE_LOOSE_IN = 4.0;
+        /** TUNE: how long (seconds) the robot must stand still within {@link #ARRIVE_LOOSE_IN} of the end of a move to count as arrived. */
+        public static final double ARRIVE_LOOSE_STILL_SEC = 0.6;
+        /**
+         * TUNE: before a DRIVE leg the robot first turns on the spot to the heading the leg starts with, because that is what the route checker
+         * swept against the walls (turn first, then drive). A turn smaller than this many degrees is not worth stopping for.
+         */
+        public static final double PRE_TURN_MIN_DEG = 5.0;
+        /** TUNE: a turn on the spot gives up after this many seconds (the robot is blocked or its heading controller is not working); it then goes on. */
+        public static final double TURN_TIMEOUT_SEC = 2.5;
+        /**
+         * TUNE: a move gives up after (its length divided by this speed, in inches per second) plus {@code AutoShoot.APPROACH_TIMEOUT_EXTRA_SEC}. It is a
+         * slow, safe guess of the speed (a slow robot still arrives in time), so a robot that is blocked stops waiting at the end of it, records why and goes
+         * on with the next step.
+         */
+        public static final double MOVE_TIMEOUT_SPEED_IN_S = AutoShoot.APPROACH_TIMEOUT_SPEED_IN_S;
+
+        // ---- taking POLLEN ------------------------------------------------------------------------------------
+
+        /** VERIFY: power of the LEFT corner intake servo while the intake is on in AUTO: the same as the TeleOp's left trigger (BioBuzzRobot), -1 to 1. */
+        public static final double INTAKE_LEFT_SERVO_POWER = -1.0;
+        /** VERIFY: power of the RIGHT corner intake servo while the intake is on in AUTO: the same as the TeleOp's right trigger (BioBuzzRobot), -1 to 1. */
+        public static final double INTAKE_RIGHT_SERVO_POWER = 1.0;
+        /** TUNE: the straight approach to a FLOWER starts when the robot is within this many inches of its line-up pose. */
+        public static final double FLOWER_LINEUP_TOL_IN = 1.0;
+        /** TUNE: the wiggle starts when the straight approach has brought the robot within this many inches of the pose where the wheel is beside the ball. */
+        public static final double FLOWER_START_TOL_IN = 1.0;
+
+        // ---- shooting -----------------------------------------------------------------------------------------
+
+        /**
+         * TUNE: one SHOOT step (driving to the pose, waiting for the camera, aiming and the whole volley) gives up after this many seconds, whatever the
+         * shooting sequence says. The route clock and the sequence's own time limits come first; this is the last net, so one stuck volley cannot eat the AUTO.
+         */
+        public static final double SHOOT_STEP_TIMEOUT_SEC = 12.0;
+    }
+
+    // =========================================================================================
     // FIELD AND HIVE (the official field CAD, v26-27.2, read with the manual TU09 sections 9.2-9.9; RED frame)
     //
     // THE FRAME. Every coordinate in this group (and in Auto below) is in the WALL-CORNER frame: the origin is the
