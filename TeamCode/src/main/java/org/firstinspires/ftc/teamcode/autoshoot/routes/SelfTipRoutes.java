@@ -2,8 +2,12 @@ package org.firstinspires.ftc.teamcode.autoshoot.routes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
@@ -37,13 +41,13 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
  * </ul>
  *
  * <p><b>The starts</b> come from the start search ({@link StartPoseSearch}, rule G304; see {@link StartShortcuts}): the <i>anchor start</i> (front on the
- * audience wall, in line with the HIVE: the robot already stands where it shoots from, and it is the one shot the team has measured; 7 of the 8 routes use it)
+ * audience wall, in line with the HIVE: the robot already stands where it shoots from, and it is the spot where the team saw the shot work; 7 of the 8 routes use it)
  * and the <i>turned start</i> (a front corner on the audience wall, the robot turned 20 degrees: still a shooting pose, 13 in nearer the GARDEN and the left
  * corridor). The turned start saves only 0.4 s on a route with one trip along the wall, so no route is written just for it (it would be the same plan with a
  * harder placement); it saves 1.0 s on the top-up route that makes two trips to the GARDEN, and that route uses it.
- * The search's best start (turned 40 degrees, x = 35) was left out on purpose: its shot is 38.8 in from the aim point, outside the 30 to 38 in band, and
- * 28 degrees off the direction the cell faces, outside the 20 degree cone of the TeleOp planner ({@code AutoShoot.SHOOT_CONE_HALF_ANGLE_DEG}). The turned
- * start used here is 17 degrees off, inside the cone. The route validator does not check that cone (it checks the standoff band and that the back points
+ * The search's best start (turned 40 degrees, x = 37.75) was left out on purpose: its shot is 40.5 in from the aim point, outside the 30 to 39.5 in band, and
+ * 25 degrees off the direction the cell faces, outside the 20 degree cone of the TeleOp planner ({@code AutoShoot.SHOOT_CONE_HALF_ANGLE_DEG}). The turned
+ * start used here is 18 degrees off, inside the cone. The route validator does not check that cone (it checks the standoff band and that the back points
  * at the cell), so this file keeps to it by hand: every volley below is within 20 degrees of the cell's own direction. For the same reason no route
  * shoots at the rear cell from the LOADING ZONE, however short the drive would be: from the side the cell's opening is seen edge-on.
  */
@@ -61,19 +65,19 @@ public final class SelfTipRoutes {
 
     // ---- the starts and poses the routes share (route data: poses an author types in) ---------------------------------------------
 
-    /** Front edge on the audience wall, in line with the HIVE: the measured shot (the ball leaves about 36 in from the aim point), no drive before the first volley. */
+    /** Front edge on the audience wall, in line with the HIVE: the spot where the team saw the shot work (the ball leaves 39.0 in from the aim point), no drive before the first volley. */
     static final Pose2 ANCHOR_START = Pose2.ofDegrees(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, FRONT, -90.0);
-    /** A front corner on the audience wall, turned 20 degrees: a shooting pose (36 in from the aim point, 17 degrees off the cell's direction) 13 in nearer the corridor. */
+    /** A front corner on the audience wall, turned 20 degrees: a shooting pose (38.7 in from the aim point, 18 degrees off the cell's direction) 13 in nearer the corridor. */
     static final Pose2 TURNED_START = StartPoseSearch.seatedAt(Wall.AUDIENCE, 44.5, -110.0);
     /** The parking pose in the lower half of the LOADING ZONE: it overlaps the zone by 6.5 in (PARK needs 3) and stands 4 in off the red wall (LEAVE needs 1.5). */
     static final Pose2 PARK_LOW = Pose2.ofDegrees(12.0, BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MIN_IN - BioBuzzConstants.Robot.LEFT_EXTENT_IN + 6.5, 0.0);
-    /** The shooting pose in front of the rear cell: the back toward it, 32.8 in from its aim point, in line with it, clear of the rear-wall FLOWER (x 44 to 51). */
+    /** The shooting pose in front of the rear cell: the back toward it, 35.6 in from its aim point, 6 degrees off its axis, clear of the rear-wall FLOWER (x 44 to 51). */
     static final Pose2 REAR_SHOT = Pose2.ofDegrees(61.5, 128.0, 90.0);
 
     /**
      * Where the robot stands to take the GARDEN POLLEN, its front 0.8 in off the audience wall (as in the catalog's garden_cycle). The robot comes along the wall,
-     * so it stops moving toward the red wall: 9.5 leaves 0.6 in between its side (8.9 in from the center) and that wall, so a follower that overshoots by a quarter
-     * of an inch (the runner's simulation does) still stays on the field. The row of 4 POLLEN is 11.5 in wide and the robot 17.8 in, so all 4 are still in front of it after the shift of 0.5 in.
+     * so it stops moving toward the red wall: 9.5 leaves 0.7 in between its side (8.81 in from the center) and that wall, so a follower that overshoots by a quarter
+     * of an inch (the runner's simulation does) still stays on the field. The row of 4 POLLEN is 11.5 in wide and the robot 17.62 in, so all 4 are still in front of it after the shift of 0.5 in.
      */
     private static final double GARDEN_ROBOT_X = 9.5;
     private static final double GARDEN_ROBOT_Y = FRONT + 0.8;
@@ -88,6 +92,31 @@ public final class SelfTipRoutes {
     private static final double CORRIDOR_END_Y = 84.0;
 
     private SelfTipRoutes() {
+    }
+
+    // ---- numbers the texts quote, worked out from the constants so they cannot go stale ---------------------------------------------
+
+    /** How far the ball exit of a RED robot at this pose is from the aim point of the AUDIENCE cell, in inches with one decimal. */
+    static String audienceStandoff(double x, double y, double headingDeg) {
+        CellSpec cell = new AllianceField(new FieldModel(), Alliance.RED).cell(Side.AUDIENCE);
+        return String.format(Locale.ROOT, "%.1f", ShotGeometry.standoff(Pose2.ofDegrees(x, y, headingDeg), cell));
+    }
+
+    /** How far the ball exit of the robot at this pose is from the aim point of the REAR cell, in inches with one decimal. */
+    static String rearStandoff(Pose2 p) {
+        CellSpec cell = new AllianceField(new FieldModel(), Alliance.RED).cell(Side.REAR);
+        return String.format(Locale.ROOT, "%.1f", ShotGeometry.standoff(p, cell));
+    }
+
+    /** The standoff band of the validator in words, for example "30.0 to 39.5 in". */
+    static String bandText() {
+        return String.format(Locale.ROOT, "%.0f to %.1f in", BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN, BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
+    }
+
+    /** How far the left edge of the robot at {@link #REAR_SHOT} is clear of the plate of the rear-wall FLOWER, in inches with one decimal. */
+    static String rearPlateGapText() {
+        double plateRight = BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0] + BioBuzzConstants.Field.FLOWER_PLATE_ALONG_WALL_IN / 2.0;
+        return String.format(Locale.ROOT, "%.1f", (REAR_SHOT.x - BioBuzzConstants.Robot.LEFT_EXTENT_IN) - plateRight);
     }
 
     /** Every route of this family, authored for the RED alliance (BLUE is the half turn). A new list on every call. */
@@ -159,15 +188,15 @@ public final class SelfTipRoutes {
         return toTheZoneAndPark(firstVolley(opening(ANCHOR_SHOOT_PARK, ANCHOR_START,
                 "Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE",
                 "THE BASIC ROUTE. Put the robot with its front edge on the audience wall, in line with the HIVE (the placement words above). It already stands where it shoots "
-                        + "from, so it fires the 4 pre-loads at once with no drive first, and this is the one shot the team has measured; that start saves about 0.7 s against tile C1 and "
+                        + "from, so it fires the 4 pre-loads at once with no drive first, and this is the spot where the team saw the shot work; that start saves about 0.7 s against tile C1 and "
                         + "1.5 s against tile B1, which must drive to a shooting pose first. Then it slides along the wall, goes up the left corridor and parks in the LOWER half of the "
                         + "LOADING ZONE. POINTS: LEAVE 3 + PARK 5 + the HIVE tip 20 if 3 of the 4 shots land = 28 (8 if the tip does not happen). SPARE POLLEN: 1 in the volley "
                         + "(probably spent, see the WARN). It needs no camera and no pick-up and is over in about 11 s. WHAT CAN GO WRONG: fewer than 3 shots land (real teams land about "
                         + "6 in 10, so this happens about half of the time): the tip is missed and nothing tries again; use a top-up route if you want a second chance. THE PARTNER: "
                         + "it may park in the upper half of the zone; it must not shoot into our audience cell first.",
                 "Front edge ON the audience wall (the center of rotation is " + FRONT + " in out), facing the wall, the middle of the robot over the HIVE's line (x "
-                        + BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN + " in). Chosen because it is a shooting pose already (the ball leaves about 36 in from the aim point, inside the "
-                        + "30 to 38 in band, straight at the cell) and the only start where the measured shot applies."), ANCHOR_START)).build();
+                        + BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN + " in). Chosen because it is a shooting pose already (the ball leaves " + audienceStandoff(ANCHOR_START.x, ANCHOR_START.y, ANCHOR_START.headingDegrees()) + " in from the aim point, inside the "
+                        + bandText() + " band, straight at the cell) and the only start where the anchor shot applies."), ANCHOR_START)).build();
     }
 
     // ---- 2. Safe: anchor start, shoot 4, step off -------------------------------------------------------------------------------
@@ -225,7 +254,7 @@ public final class SelfTipRoutes {
         return takeTheGarden(firstVolley(opening(GARDEN_REFILL_READY, ANCHOR_START,
                 "Standard: shoot 4, take the 4 GARDEN POLLEN and wait 5 in off the wall at the shooting spot",
                 "A LOADED ROBOT AT THE SHOOTING SPOT. The anchor start fires the 4 pre-loads, the robot takes the 4 GARDEN POLLEN and comes back to the spot it shot from, 5 in off the wall "
-                        + "(still 31 in from the audience cell: still a shooting pose) and stops there: LEAVE, no PARK, no second volley in AUTO. At the start of TELEOP the robot is loaded "
+                        + "(still " + audienceStandoff(ANCHOR_START.x, SLIDE_Y, -90.0) + " in from the audience cell: still a shooting pose) and stops there: LEAVE, no PARK, no second volley in AUTO. At the start of TELEOP the robot is loaded "
                         + "and aimed: if the first volley did not tip the HIVE (the audience cell is still UP) the drivers can fire at once; if it did, the REAR cell is the UP one and they "
                         + "drive round. It is the same plan as the top-up routes without the AUTO volley, so it needs no camera in AUTO. POINTS: LEAVE 3 + the tip 20 if 3 of the 4 shots land "
                         + "= 23. SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: it gives up the PARK (5) and the second chance in AUTO; the volley is not "
@@ -233,8 +262,8 @@ public final class SelfTipRoutes {
                 "Front edge ON the audience wall (the center of rotation is " + FRONT + " in out), facing the wall, in line with the HIVE: the same start as the basic route, "
                         + "a shooting pose, so the first volley needs no drive."), ANCHOR_START))
                 .driveLinear(ANCHOR_START.x, SLIDE_Y, -90.0).label("back to the shot")
-                .note("Back to the spot of the first volley but 5 in off the wall: the whole robot is more than 1.5 in off every wall (LEAVE), and the ball would leave about 31 in from the "
-                        + "audience cell's aim point, inside the 30 to 38 in band, straight at it.")
+                .note("Back to the spot of the first volley but 5 in off the wall: the whole robot is more than 1.5 in off every wall (LEAVE), and the ball would leave " + audienceStandoff(ANCHOR_START.x, SLIDE_Y, -90.0) + " in from the "
+                        + "audience cell's aim point, inside the " + bandText() + " band, straight at it.")
                 .build();
     }
 
@@ -243,7 +272,7 @@ public final class SelfTipRoutes {
     private static AutoRoute gardenTopUpStepOff() {
         return topUp(takeTheGarden(firstVolley(opening(GARDEN_TOPUP_STEP_OFF, ANCHOR_START,
                 "Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park)",
-                "THE SECOND CHANCE WITHOUT THE LONG DRIVE. The anchor start (front on the audience wall in line with the HIVE, the measured shot) fires the 4 pre-loads at once. "
+                "THE SECOND CHANCE WITHOUT THE LONG DRIVE. The anchor start (front on the audience wall in line with the HIVE, where the team saw the shot work) fires the 4 pre-loads at once. "
                         + "The robot then slides to the GARDEN, takes its 4 POLLEN, comes BACK to the anchor pose and fires again at the audience cell, only if its camera still shows "
                         + "that cell UP (the first volley did not tip it). Then it steps 5 in off the wall and stops: it does NOT drive to the LOADING ZONE, so it is over at about 20 s, "
                         + "3 s earlier than the parking version, and it never has to share the zone. If the first volley DID tip, the robot sees the cell DOWN, skips the second volley "
@@ -251,7 +280,7 @@ public final class SelfTipRoutes {
                         + "the tip 20 = 23 (the PARK's 5 points are given up for time and for the zone; the second volley can only replace the first volley's tip, never add one). "
                         + "SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: with no camera, or on a bad read, the second volley is not fired; the GARDEN trip is 49 in "
                         + "each way. THE PARTNER: it may use the whole LOADING ZONE; it must NOT shoot into our audience cell in AUTO.",
-                "Front edge ON the audience wall, facing it, in line with the HIVE: a shooting pose. Chosen because the SAME measured shot is used twice: the robot returns to this exact "
+                "Front edge ON the audience wall, facing it, in line with the HIVE: a shooting pose. Chosen because the SAME shot is used twice: the robot returns to this exact "
                         + "spot for the second volley, and it is the easiest start to place. The turned start would save about 1.1 s on the two trips."), ANCHOR_START)), ANCHOR_START)
                 .driveConstant(CORRIDOR_X, SLIDE_Y, -90.0).label("off the wall")
                 .note("Slides along the audience wall to 5 in off it and stops: LEAVE (the whole robot is more than 1.5 in off every wall).")
@@ -291,7 +320,7 @@ public final class SelfTipRoutes {
                 "BANK FOR THE SECOND TIP. After our own tip the OTHER (rear) cell comes up and holds no NECTAR, so it needs 8 POLLEN (two volleys of 4); there is no time for both in "
                         + "AUTO, but the first 4 can be put in, so TELEOP needs only 4 more (POLLEN left in a cell are worth 2 each at the end of the match if nothing tips them). The robot "
                         + "fires the 4 pre-loads from the anchor start (the tip), takes the GARDEN's 4 POLLEN, drives up the left corridor and across above the HIVE to the REAR cell's "
-                        + "shooting pose (33 in from it, straight at it) and fires there ONLY after its camera has seen that cell UP and steady. It stops there, 3.6 in off the rear wall, "
+                        + "shooting pose (" + rearStandoff(REAR_SHOT) + " in from it, a few degrees off its axis) and fires there ONLY after its camera has seen that cell UP and steady. It stops there, 3.6 in off the rear wall, "
                         + "next to the rear FLOWER: TELEOP can fetch the other 4 from it. POINTS: LEAVE 3 + the tip 20 if 3 of the 4 first shots land = 23; the 4 banked POLLEN score "
                         + "nothing in AUTO. SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: it works only if the first volley tipped the HIVE (about half of the time): "
                         + "otherwise the rear cell never comes up, the camera never sees it, and the robot just stands there with 4 POLLEN (use a top-up route if the tip matters more); "
@@ -304,12 +333,12 @@ public final class SelfTipRoutes {
                 .driveReverseTangent(CORRIDOR_X, 112.0).label("up the left corridor")
                 .note("Backwards up the left corridor, past the HIVE (13 in clear of its keep-out) and above it, out of the spill zone of the cell that tipped (it has been clear for a long time).")
                 .driveLinear(REAR_SHOT.x, REAR_SHOT.y, REAR_SHOT.headingDegrees()).label("to the rear shot")
-                .note("Across above the HIVE to the rear cell's shooting pose, turning to face the rear wall with the back toward the HIVE; the robot's left edge is 2.3 in clear of the rear-wall FLOWER's plate (x 44 to 50.3).")
+                .note("Across above the HIVE to the rear cell's shooting pose, turning to face the rear wall with the back toward the HIVE; the robot's left edge is " + rearPlateGapText() + " in clear of the rear-wall FLOWER's plate (x 44 to 50.3).")
                 .shootUp(REAR_SHOT.x, REAR_SHOT.y, REAR_SHOT.headingDegrees(), 4)
                 .note("THE BANK. After our own tip the REAR cell is the one that is UP, and it is empty, so these 4 POLLEN do not tip it (it needs 8): they wait in it for TELEOP. The robot "
                         + "fires ONLY after its camera has seen the rear cell UP and steady (0.5 s). With no camera, or if our first volley did not tip the HIVE (then the audience cell is "
-                        + "still the UP one), the volley is skipped and the robot just stays here with the 4 POLLEN. From this pose the ball leaves 32.8 in from the cell's aim point, in line "
-                        + "with it, and the robot ends 3.6 in off the rear wall, so the LEAVE is kept.")
+                        + "still the UP one), the volley is skipped and the robot just stays here with the 4 POLLEN. From this pose the ball leaves " + rearStandoff(REAR_SHOT) + " in from the cell's aim point, a few degrees off "
+                        + "its axis, and the robot ends 3.6 in off the rear wall, so the LEAVE is kept.")
                 .build();
     }
 }

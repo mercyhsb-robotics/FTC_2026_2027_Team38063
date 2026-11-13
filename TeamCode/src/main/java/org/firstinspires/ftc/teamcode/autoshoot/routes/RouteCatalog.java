@@ -3,8 +3,16 @@ package org.firstinspires.ftc.teamcode.autoshoot.routes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 
 /**
  * Every autonomous route the team has, as data. Each route is written ONCE, for the RED alliance;
@@ -27,8 +35,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * {@link TipModel}), so the 4 pre-loads tip it with 1 spare, and a volley that tips stops there and keeps the rest.
  *
  * <p><b>Where the robot stands at the start.</b> A pose is the robot's CENTER OF ROTATION, which is not the middle of
- * its 17.80 x 17.80 in outline: the front edge is 9.77 in ahead of it, the back edge 8.03 in behind it
- * ({@code Robot.FRONT_EXTENT_IN} and {@code REAR_EXTENT_IN}, to be measured on the real robot). So a robot that faces the
+ * its 17.80 x 17.62 in outline: the front edge is 9.77 in ahead of it, the back edge 8.03 in behind it
+ * ({@code Robot.FRONT_EXTENT_IN} and {@code REAR_EXTENT_IN}, measured by the team). So a robot that faces the
  * audience wall with its FRONT edge on the wall has its pose 9.77 in from it ({@link #FRONT_ON_WALL_IN}); the old OpModes
  * wrote 9.2 in, a number from before the center of rotation was known, and the validator reports honestly that the real
  * footprint would then reach 0.57 in through the wall. Place the real robot with its front edge ON the wall.
@@ -102,9 +110,11 @@ public final class RouteCatalog {
                     .note("line(point1, point2).reverseTangent(): the 0 deg heading in the source is ignored; the robot "
                             + "turns to face +x by itself because it drives toward -x backwards.")
                 .park(12, 90, 0)
-                    .note("The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone "
-                            + "by 4.3 in (the robot reaches 8.9 in to its left, y 98.9; the zone, taken from the CAD tape, starts at y 94.58), "
-                            + "deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.")
+                    .note(String.format(Locale.ROOT, "The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone "
+                            + "by %.1f in (the robot reaches %.2f in to its left, y %.1f; the zone, taken from the CAD tape, starts at y %.2f), "
+                            + "deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.",
+                            parkDepth(12, 90, 0), BioBuzzConstants.Robot.LEFT_EXTENT_IN, 90 + BioBuzzConstants.Robot.LEFT_EXTENT_IN,
+                            BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MIN_IN))
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -133,7 +143,8 @@ public final class RouteCatalog {
                 .driveReverseTangent(12.0, 118.1, -90).label("path3")
                     .note("The -90 deg heading in the source is ignored: the robot ends facing 0 deg.")
                 .park(12.0, 118.1, 0)
-                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.0 x 8.1 in (the back edge is 8.03 in behind the center of rotation; the zone ends at y 117.27).")
+                    .note(String.format(Locale.ROOT, "The source never says PARK; this pose overlaps the red LOADING ZONE by %s in (the back edge is 8.03 in behind the center of rotation; the zone ends at y 117.27).",
+                            parkSizes(12.0, 118.1, 0)))
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -181,8 +192,9 @@ public final class RouteCatalog {
                             + "pre-load is the spare for a stiff HIVE (the camera cannot stop the feeder before the 4th is launched, so it "
                             + "is probably spent).")
                 .driveConstant(30.0, 14.8, -90.0).label("along the wall")
-                    .note("Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose "
-                            + "the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). "
+                    .note(String.format(Locale.ROOT, "Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose "
+                            + "the center is %.1f in from the wall, only %.1f in more than the %.1f in a robot needs to turn on the spot there). ",
+                            nominalAudienceY(), nominalAudienceY() - Footprint.circumscribedRadiusIn(), Footprint.circumscribedRadiusIn())
                             + "Staying low matters for the tip: what falls out of the tipped cell lands up to 40 in out from the HIVE's middle line, "
                             + "and the robot's rear edge (14.8 + 8.03 = 22.8 in from the wall) is 47.8 in out, so it is clear of the spill (G409) "
                             + "until it is beside the cell, where it turns up the corridor.")
@@ -213,7 +225,7 @@ public final class RouteCatalog {
                             + "NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only "
                             + "about 0.85 s after the tip); the REAR cell is the UP one from now on.")
                 .driveConstant(9.0, 18.0, -90).label("to GARDEN")
-                    .note("Slides along the audience wall with the intake still facing it. The robot's side edge is only 0.1 in from the red wall all the way to the GARDEN and "
+                    .note("Slides along the audience wall with the intake still facing it. The robot's side edge is only " + String.format(Locale.ROOT, "%.1f", 9.0 - BioBuzzConstants.Robot.LEFT_EXTENT_IN) + " in from the red wall all the way to the GARDEN and "
                             + "back (by design, so that the wheel can reach the POLLEN): touching a wall is legal, but a heading error of about half a degree would press a corner into it.")
                 .driveConstant(9.0, FRONT_ON_WALL_IN + 0.8, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
@@ -234,6 +246,26 @@ public final class RouteCatalog {
         routes.addAll(PartnerTipRoutes.routes());
 
         return routes;
+    }
+
+    // ---- numbers the notes quote, worked out from the constants so they cannot go stale -----------------------------------------------
+
+    /** How deep (the smaller of the two overlaps) the robot parked at this pose reaches into the red LOADING ZONE, inches. */
+    private static double parkDepth(double x, double y, double headingDeg) {
+        Rect c = Footprint.of(Pose2.ofDegrees(x, y, headingDeg)).clippedBounds(new AllianceField(new FieldModel(), Alliance.RED).ownLoadingZone());
+        return Math.min(c.maxX - c.minX, c.maxY - c.minY);
+    }
+
+    /** The two overlaps of the robot parked at this pose with the red LOADING ZONE, as "7.0 x 8.0". */
+    private static String parkSizes(double x, double y, double headingDeg) {
+        Rect c = Footprint.of(Pose2.ofDegrees(x, y, headingDeg)).clippedBounds(new AllianceField(new FieldModel(), Alliance.RED).ownLoadingZone());
+        return String.format(Locale.ROOT, "%.1f x %.1f", c.maxX - c.minX, c.maxY - c.minY);
+    }
+
+    /** How far from the audience wall the center of rotation stands at the nominal shooting pose of the audience cell, inches. */
+    private static double nominalAudienceY() {
+        CellSpec cell = new FieldModel().cell(Alliance.RED, Side.AUDIENCE);
+        return ShotGeometry.nominalPose(cell).y;
     }
 
     /**

@@ -25,7 +25,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
  * The families it covers, each with the standard starts (tiles B1 and C1, front on the audience wall) to compare with:
  * <ol>
  *   <li><b>Shoot, then leave and park.</b> The first volley goes into the cell that is UP at the start. Shortcut: START IN A SHOOTING POSE (front on the audience
- *       wall, in line with the HIVE, the ball leaves 36 in from the aim point) so the 4 pre-loads are fired without driving first.</li>
+ *       wall, in line with the HIVE, the ball leaves 39.0 in from the aim point) so the 4 pre-loads are fired without driving first.</li>
  *   <li><b>Shoot, take 3 GARDEN POLLEN, step off the wall.</b> Shortcut: a start that is a shooting pose AND near the GARDEN corner.</li>
  *   <li><b>Shoot, take POLLEN from the red-wall FLOWER, park.</b> Shortcut: start nearer the first pick-up.</li>
  *   <li><b>Partner tips first: wait for the camera, shoot 4 at the rear cell, leave and park.</b> The rear-wall equivalent of 1: front on the rear wall, in line with
@@ -131,6 +131,57 @@ public final class StartShortcuts {
         return isShootingPose(s, side) ? b.shootUp(s.x, s.y, s.headingDegrees(), 4) : b.shootUp(4);
     }
 
+    /**
+     * The pose to fire from when the start is only a little too far from the cell: the start moved straight along its own back direction (the way the shooter
+     * points) until the ball exit is {@code AutoShoot.PREFERRED_RANGE_IN} (the anchor range) from the aim point. Null if the start is not too far (it
+     * is inside the band already, or the cell is too near), if the shooter does not point at the cell, or if the step is longer than
+     * {@code Auto.IMPLICIT_MOVE_WARN_IN} (then the solver's own pose is used, with a drive first).
+     *
+     * <p>Why: the ball now leaves 2.65 in nearer the front of the robot than the drawing said, so a start in a corner of the rear wall, where the robot cannot stand
+     * closer to the cell, is a short step too far from it. The step is a planned move of the route, so a start that is a hair off the way it was
+     * planned still ends on the same shooting spot relative to itself and keeps the placement margin.
+     */
+    static Pose2 stepIntoTheBand(Pose2 start, Side side) {
+        CellSpec cell = new AllianceField(new FieldModel(), Alliance.RED).cell(side);
+        double standoff = ShotGeometry.standoff(start, cell);
+        if (standoff <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN) {
+            return null;
+        }
+        // walk along the back direction: |exit + t u - aim| = target, the nearer root
+        double back = start.heading + Math.PI;
+        double ux = Math.cos(back);
+        double uy = Math.sin(back);
+        org.firstinspires.ftc.teamcode.autoshoot.core.Point2 exit = ShotGeometry.launchPoint(start);
+        double wx = exit.x - cell.originX;
+        double wy = exit.y - cell.originY;
+        double target = BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN;
+        double along = ux * wx + uy * wy;
+        double disc = along * along - (wx * wx + wy * wy - target * target);
+        if (disc < 0.0) {
+            return null;
+        }
+        double t = -along - Math.sqrt(disc);
+        if (t <= 0.0 || t > BioBuzzConstants.Auto.IMPLICIT_MOVE_WARN_IN) {
+            return null;
+        }
+        Pose2 moved = new Pose2(start.x + t * ux, start.y + t * uy, start.heading);
+        return Math.toDegrees(ShotGeometry.aimError(moved, cell)) <= BioBuzzConstants.Auto.SHOOT_AIM_TOLERANCE_DEG ? moved : null;
+    }
+
+    /**
+     * Where a robot that may step a short way toward the cell fires from: the start itself when it is a shooting pose, else the pose one short step along
+     * the back direction ({@link #stepIntoTheBand}), else null (the solver's own pose, with a drive first).
+     */
+    static Pose2 shootingPoseWithAStep(Pose2 s, Side side) {
+        CellSpec cell = new AllianceField(new FieldModel(), Alliance.RED).cell(side);
+        double standoff = ShotGeometry.standoff(s, cell);
+        boolean inTheBand = standoff >= BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN && standoff <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN;
+        if (inTheBand && isShootingPose(s, side)) {
+            return s;
+        }
+        return stepIntoTheBand(s, side);
+    }
+
     // ---- the six families --------------------------------------------------------------------------------------------------------
 
     private static RouteTemplate shootThenPark() {
@@ -178,7 +229,14 @@ public final class StartShortcuts {
         return new RouteTemplate() {
             @Override
             public AutoRoute build(Pose2 s) {
-                return shoot4(opening("partner_park", "Partner tips: wait, shoot 4 at the rear cell, park", s, true).waitForTip(PartnerTipRoutes.GIVE_UP_SEC), s, Side.REAR)
+                // the short step (if the start needs one) is made BEFORE the wait, so the partner's shooting hides it: the robot waits at the shooting pose
+                AutoRoute.Builder b = opening("partner_park", "Partner tips: wait, shoot 4 at the rear cell, park", s, true);
+                Pose2 at = shootingPoseWithAStep(s, Side.REAR);
+                if (at != null && at != s) {
+                    b.driveLinear(at.x, at.y, at.headingDegrees()).label("step to the shooting pose");
+                }
+                b.waitForTip(PartnerTipRoutes.GIVE_UP_SEC);
+                return (at != null ? b.shootUp(at.x, at.y, at.headingDegrees(), 4) : b.shootUp(4))
                         .driveConstant(s.x, 112.0, s.headingDegrees()).label("off the wall")
                         .driveLinear(12.0, 108.0, 0.0).label("to zone")
                         .park(12.0, 108.0, 0.0).build();

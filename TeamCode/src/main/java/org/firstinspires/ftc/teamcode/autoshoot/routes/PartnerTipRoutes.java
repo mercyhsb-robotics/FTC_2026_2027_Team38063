@@ -5,9 +5,13 @@ import java.util.List;
 import java.util.Locale;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
 
 /**
@@ -36,7 +40,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
  *
  * <p><b>Where the robot starts, and why not straight on the wall.</b> A robot standing straight on the rear wall, in line with the rear cell, would have
  * the gap between the rear-wall FLOWER (its bracket ends at x = 50.6 in) and the center line (x = 70.67 in) to stand in: about 20 in for a robot that is
- * 17.8 in wide. No place in it survives a hand that is 1 in and 3 degrees off ({@code StartRobustness}). The start search ({@code tools/start-shortcuts.sh})
+ * 17.62 in wide. No place in it survives a hand that is 1 in and 3 degrees off ({@code StartRobustness}). The start search ({@code tools/start-shortcuts.sh})
  * found a start TURNED in the corner left of the FLOWER that does, and is also a shooting pose, so that is the one used. Its numbers are below.
  */
 public final class PartnerTipRoutes {
@@ -52,19 +56,20 @@ public final class PartnerTipRoutes {
     private static final double START_HEADING_DEG = 125.0;
 
     /**
-     * Where the robot fires from: the start moved about 1 in straight toward the cell it shoots at (along its own back direction). From the start itself the
-     * launch point is 38.5 in from the aim point, 0.5 in outside the 30 to 38 in band of the validator; one inch closer it is 37.5 in, the standoff of the
-     * only shot the team has measured (37.7 in).
+     * Where the robot fires from: the start moved about 2 in straight toward the cell it shoots at (along its own back direction). From the start itself the
+     * launch point is 41.1 in from the aim point, 1.6 in outside the 30 to 39.5 in band of the validator; two inches closer it is 39.0 in, the range of the anchor
+     * spot (front on the audience wall, in line with the HIVE: 39.0 in), which is as near as the corner allows to the one shot the team saw work.
+     * (A test keeps these numbers and the texts that quote them true.)
      */
-    private static final double SHOOT_X_IN = 36.8;
-    private static final double SHOOT_Y_IN = 127.4;
+    private static final double SHOOT_X_IN = 37.5;
+    private static final double SHOOT_Y_IN = 126.5;
 
     /**
      * The give-up time of the wait for the partner's tip, seconds on the route clock. It is the latest the rest of the route allows, rounded down to a
      * tenth ({@code RouteAnalysis.latestGiveUpSec}; a test keeps the two together): a partner that tips later than this gets no volley from us, and the
      * robot still leaves and parks.
      */
-    static final double GIVE_UP_SEC = 19.4;
+    static final double GIVE_UP_SEC = 20.0;
 
     private PartnerTipRoutes() {
     }
@@ -92,18 +97,22 @@ public final class PartnerTipRoutes {
                 .startTile("B6")
                 .start(START_X_IN, START_Y_IN, START_HEADING_DEG)
                     .note("Set down TURNED in the corner left of the wall FLOWER (rule G304 has no required heading): its front-right corner touches the wall, and its "
-                            + "back (the shooter) already points at the cell that comes up, so there is no drive before the volley. A robot standing straight on that wall "
+                            + "back (the shooter) already points at the cell that comes up, so only a short step toward it comes before the volley. A robot standing straight on that wall "
                             + "cannot be placed safely here: it is squeezed between the FLOWER and the center line, so a hand that is 1 in and 3 degrees off puts it over "
                             + "the line or onto the FLOWER. This turned start keeps that 1 in and 3 degree placement margin. The gallery prints the tape-measure "
                             + "words for each alliance.")
+                .driveLinear(SHOOT_X_IN, SHOOT_Y_IN, START_HEADING_DEG).label("step toward the cell")
+                    .note(String.format(Locale.ROOT, "Steps about %.0f in toward the cell first (the start itself is %s in from the aim point, outside the %.1f in far end of the band), "
+                            + "so the launch point is %s in from the aim point: the range of the anchor spot, where the team saw a shot work (%.1f in). 4 POLLEN into an empty cell "
+                            + "do not tip it (it needs 8); they are banked for the second tip.",
+                            Math.hypot(SHOOT_X_IN - START_X_IN, SHOOT_Y_IN - START_Y_IN), standoffText(START_X_IN, START_Y_IN, START_HEADING_DEG),
+                            BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN, standoffText(SHOOT_X_IN, SHOOT_Y_IN, START_HEADING_DEG), BioBuzzConstants.AutoShoot.PREFERRED_RANGE_IN))
                 .waitForTip(GIVE_UP_SEC)
                     .note("Waits for the CAMERA to see the cell up and steady (0.5 s). " + seconds(GIVE_UP_SEC) + " on the route clock is the give-up time, nearly the latest "
                             + "the rest of the route allows (the validator and the gallery say the exact latest): a partner that tips later than that gets no volley from "
                             + "us, the robot skips it and goes on to LEAVE and PARK.")
                 .shootUp(SHOOT_X_IN, SHOOT_Y_IN, START_HEADING_DEG, 4)
-                    .note("Steps about 1 in toward the cell first (the start itself is 0.5 in too far for the 30 to 38 in band), so the launch point is 37.5 in from the "
-                            + "aim point: as near as we get to the 37.7 in of the only measured shot. 4 POLLEN into an empty cell do not tip it (it needs 8); they are "
-                            + "banked for the second tip.")
+                    .note("4 POLLEN into an empty cell do not tip it (it needs 8); they are banked for the second tip.")
                 .driveConstant(START_X_IN, 112.0, START_HEADING_DEG).label("off the wall")
                     .note("Straight away from the wall toward the open floor beside the HIVE, keeping the heading and clear of the FLOWER; the whole robot ends more than "
                             + "1.5 in off every wall (LEAVE).")
@@ -136,18 +145,18 @@ public final class PartnerTipRoutes {
     private static final double REAR_WALL_FRONT_ON_Y = SIZE - BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double AXIS_X = BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN;
     private static final double SIDE_ON_WALL_X = BioBuzzConstants.Robot.LEFT_EXTENT_IN;
-    /** The y of the long drive east along the rear side: the front edge then stays about 3 in below the FLOWER plate, so a start that is a little off still clears it. */
+    /** The y of the long drive east along the rear side: the front edge then stays about 3.5 in below the FLOWER plate, so a start that is a little off still clears it. */
     private static final double ACROSS_Y = 123.0;
     /** The x of the drive up the left corridor: its right edge is 8 in short of the HIVE keep-out, its left edge 17 in off the wall. */
     private static final double CORRIDOR_X = 26.0;
     /** Where the drive away from the rear wall after the volley ends, before the turn toward the zone. */
     private static final double EXIT_Y = 112.0;
 
-    /** Shooting pose 1: on the rear wall right of the FLOWER (its left edge 0.8 in past the FLOWER keep-out, its right edge 1.3 in short of the center line), facing the wall, 35.8 in from the aim point (the measured shot is 37.7). */
+    /** Shooting pose 1: on the rear wall right of the FLOWER (its left edge 0.9 in past the FLOWER keep-out, its right edge 1.4 in short of the center line), facing the wall, 38.5 in from the aim point (inside the band: 30 to 39.5 in). */
     private static final double[] SHOOT_1 = {60.5, REAR_WALL_FRONT_ON_Y - 0.6, 90.0};
-    /** Shooting pose 2: in line with the cell, 30.2 in from the aim point (just inside the 30 in minimum), well below the FLOWER plate. */
+    /** Shooting pose 2: in line with the cell, 32.8 in from the aim point (the band is 30 to 39.5 in), well below the FLOWER plate. */
     private static final double[] SHOOT_2 = {AXIS_X, 125.4, 90.0};
-    /** Shooting pose 3: 10 degrees to the left of the cell's axis (its back still points at the cell), 30.3 in out: the closest to the LOADING ZONE a shot within the 20 degree cone allows. */
+    /** Shooting pose 3: 10 degrees to the left of the cell's axis (its back still points at the cell), 33.0 in out, on the LOADING ZONE side of the cell and inside the 20 degree cone. */
     private static final double[] SHOOT_3 = {51.27, 124.94, 100.0};
     /** The x of the Aggressive route's start: the nearest straight place to the rear FLOWER from which a start that is 1 in and 3 degrees off still clears it on the first drive. */
     private static final double AGGRESSIVE_START_X = 32.5;
@@ -167,8 +176,8 @@ public final class PartnerTipRoutes {
                         + "facing it. Nothing is turned, so it is the easiest start to measure and place, and it keeps the 1 in and 3 degree placement margin.",
                 "WE DO: 1) drive off the wall, past the FLOWER and into a straight shooting pose on the rear wall just right of it, while the partner shoots; "
                         + "2) wait there until the camera has seen the rear cell up and steady; 3) shoot 4; 4) drive off the wall across the open floor and park in the LOADING ZONE.",
-                "WHAT COULD GO WRONG: the roll passes the rear-wall FLOWER about 3 in below its plate and ends 0.8 in from the FLOWER keep-out and 1.3 in from the center line, "
-                        + "so a robot that slides sideways while it drives can touch the FLOWER (G415) or cross the line (G402): watch the first practice run.",
+                "WHAT COULD GO WRONG: the roll passes the rear-wall FLOWER about " + oneDecimal(plateGapAcross()) + " in below its plate and ends " + oneDecimal(keepOutGap1())
+                        + " in from the FLOWER keep-out and " + oneDecimal(centerGap1()) + " in from the center line, so a robot that slides sideways while it drives can touch the FLOWER (G415) or cross the line (G402): watch the first practice run.",
                 new Plan() {
                     @Override
                     public AutoRoute.Builder steps(AutoRoute.Builder b, double g) {
@@ -179,7 +188,8 @@ public final class PartnerTipRoutes {
                                 .driveConstant(SHOOT_1[0], ACROSS_Y, 90.0).label("past the FLOWER")
                                     .note("East along the rear side, below the FLOWER plate.")
                                 .driveConstant(SHOOT_1[0], SHOOT_1[1], 90.0).label("to the shooting pose")
-                                    .note("Up beside the FLOWER to the wall: the robot's left edge is 0.8 in clear of the FLOWER keep-out and its right edge 1.3 in short of the center line.")
+                                    .note("Up beside the FLOWER to the wall: the robot's left edge is " + oneDecimal(keepOutGap1()) + " in clear of the FLOWER keep-out and its right edge "
+                                            + oneDecimal(centerGap1()) + " in short of the center line.")
                                 .waitForTip(g).note(waitNote(g))
                                 .shootUp(SHOOT_1[0], SHOOT_1[1], SHOOT_1[2], 4).note(shootNote())
                                 .driveConstant(SHOOT_1[0], EXIT_Y, 90.0).label("off the wall").note(exitNote())
@@ -195,8 +205,9 @@ public final class PartnerTipRoutes {
                 "WE DO: 1) drive away from the corner and east along the rear side, below the FLOWER, into a shooting pose in line with the rear cell, while the partner shoots; "
                         + "2) wait there until the camera has seen the cell up and steady; 3) shoot 4 from the close end of the shooting band; 4) drive off the wall and park "
                         + "facing the red wall (front first).",
-                "WHAT COULD GO WRONG: the shooting pose is the closest allowed (30.2 in from the aim point, the minimum is 30), so a robot that stops 1 in short of it is outside "
-                        + "the band; the robot also parks front first, so its front intake wheels end 2.7 in from the red wall.",
+                "WHAT COULD GO WRONG: the shooting pose is " + standoffText(SHOOT_2[0], SHOOT_2[1], SHOOT_2[2]) + " in from the aim point (the band is "
+                        + oneDecimal(BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN) + " to " + oneDecimal(BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN) + " in), the nearest of the three poses to the HIVE, "
+                        + "and the robot parks front first, so its front intake wheels end 2.7 in from the red wall.",
                 new Plan() {
                     @Override
                     public AutoRoute.Builder steps(AutoRoute.Builder b, double g) {
@@ -222,8 +233,8 @@ public final class PartnerTipRoutes {
                         + "straight run up the left corridor to the rear side, and it leaves the audience wall free for the partner's shooting position.",
                 "WE DO: 1) drive straight up the left corridor, then east along the rear side to a shooting pose on the rear wall right of the FLOWER, while the partner shoots; "
                         + "2) wait there until the camera has seen the rear cell up and steady; 3) shoot 4; 4) drive off the wall and park facing the red wall.",
-                "WHAT COULD GO WRONG: the run up the corridor passes the LOADING ZONE and the HIVE's keep-out on the way; the shooting pose is 0.8 in from the FLOWER keep-out "
-                        + "and 1.3 in from the center line, as in the other routes that shoot from it.",
+                "WHAT COULD GO WRONG: the run up the corridor passes the LOADING ZONE and the HIVE's keep-out on the way; the shooting pose is " + oneDecimal(keepOutGap1()) + " in from the FLOWER keep-out "
+                        + "and " + oneDecimal(centerGap1()) + " in from the center line, as in the other routes that shoot from it.",
                 new Plan() {
                     @Override
                     public AutoRoute.Builder steps(AutoRoute.Builder b, double g) {
@@ -352,7 +363,8 @@ public final class PartnerTipRoutes {
                         + "left of the cell's axis (inside the 20 degree cone), the point of the allowed shots nearest the LOADING ZONE, so the way out is the shortest too.",
                 "WE DO: 1) roll a short way east along the rear side into a shooting pose left of the cell's axis, while the partner shoots; 2) wait there until the camera has "
                         + "seen the rear cell up and steady; 3) shoot 4; 4) drive off the wall and park front first, with the shortest drive of any route here.",
-                "WHAT COULD GO WRONG: everything is tight. The start is at the edge of what a hand can place; the shooting pose is 30.3 in from the aim point (the minimum is 30) and "
+                "WHAT COULD GO WRONG: everything is tight. The start is at the edge of what a hand can place; the shooting pose is " + standoffText(SHOOT_3[0], SHOOT_3[1], SHOOT_3[2]) + " in from the aim point (the band is " + oneDecimal(BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN)
+                        + " to " + oneDecimal(BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN) + " in) and "
                         + "1.3 in from the FLOWER plate, and a shot from the side sees a narrower window in the cell opening (the TeleOp solver allows 20 degrees, this uses 10).",
                 new Plan() {
                     @Override
@@ -462,5 +474,32 @@ public final class PartnerTipRoutes {
 
     private static String seconds(double v) {
         return String.format(Locale.ROOT, "%.1f s", v);
+    }
+
+    private static String oneDecimal(double v) {
+        return String.format(Locale.ROOT, "%.1f", v);
+    }
+
+    /** How far the ball exit of a robot at this pose is from the aim point of the RED REAR cell, as the validator measures it, in inches with one decimal. */
+    static String standoffText(double x, double y, double headingDeg) {
+        CellSpec rear = new AllianceField(new FieldModel(), Alliance.RED).cell(Side.REAR);
+        return oneDecimal(ShotGeometry.standoff(Pose2.ofDegrees(x, y, headingDeg), rear));
+    }
+
+    /** How far the left edge of shooting pose 1 is past the keep-out of the rear-wall FLOWER (its plate plus {@code Auto.FLOWER_KEEPOUT_MARGIN_IN}), inches. */
+    static double keepOutGap1() {
+        Rect plate = new AllianceField(new FieldModel(), Alliance.RED).flowerPlate(1);
+        return (SHOOT_1[0] - BioBuzzConstants.Robot.LEFT_EXTENT_IN) - (plate.maxX + BioBuzzConstants.Auto.FLOWER_KEEPOUT_MARGIN_IN);
+    }
+
+    /** How far the right edge of shooting pose 1 is short of the center line, inches. */
+    static double centerGap1() {
+        return BioBuzzConstants.Field.CENTER_IN - (SHOOT_1[0] + BioBuzzConstants.Robot.RIGHT_EXTENT_IN);
+    }
+
+    /** How far the front edge of the long drive east along the rear side ({@link #ACROSS_Y}) stays below the plate of the rear-wall FLOWER, inches. */
+    static double plateGapAcross() {
+        Rect plate = new AllianceField(new FieldModel(), Alliance.RED).flowerPlate(1);
+        return plate.minY - (ACROSS_Y + BioBuzzConstants.Robot.FRONT_EXTENT_IN);
     }
 }
