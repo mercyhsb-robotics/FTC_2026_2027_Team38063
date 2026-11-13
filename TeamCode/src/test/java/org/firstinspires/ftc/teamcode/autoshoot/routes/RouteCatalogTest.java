@@ -52,7 +52,69 @@ public class RouteCatalogTest {
         assertTrue(seen.contains("red_leave_park"));
         assertTrue(seen.contains("wall_shoot_park"));
         assertTrue(seen.contains("garden_cycle"));
-        assertEquals(5, RouteCatalog.all().size());
+        assertEquals("the five routes of the catalog itself plus whatever the two family files hold",
+                5 + SelfTipRoutes.routes().size() + PartnerTipRoutes.routes().size(), RouteCatalog.all().size());
+    }
+
+    @Test
+    public void theCatalogIsItsOwnRoutesThenTheSelfFamilyThenThePartnerFamily() {
+        List<String> expected = new java.util.ArrayList<String>(java.util.Arrays.asList(RouteCatalog.RED_B1, RouteCatalog.RED_C1,
+                RouteCatalog.RED_LEAVE_PARK, RouteCatalog.WALL_SHOOT_PARK, RouteCatalog.GARDEN_CYCLE));
+        for (AutoRoute r : SelfTipRoutes.routes()) {
+            expected.add(r.id());
+        }
+        for (AutoRoute r : PartnerTipRoutes.routes()) {
+            expected.add(r.id());
+        }
+        List<String> actual = new java.util.ArrayList<String>();
+        for (AutoRoute r : RouteCatalog.all()) {
+            actual.add(r.id());
+        }
+        assertEquals(expected, actual);
+        // and all of them have different ids, across the three places
+        assertEquals(actual.size(), new HashSet<String>(actual).size());
+    }
+
+    @Test
+    public void everyRouteSaysWhoShootsTheFirstTipAndEachFamilyFileKeepsItsOwnAssumption() {
+        for (AutoRoute r : RouteCatalog.all()) {
+            assertNotNull(r.id(), r.firstTip());
+            assertFalse(r.id(), r.firstTipSummary().isEmpty());
+        }
+        // the routes written in the catalog itself shoot the first tip themselves
+        for (String id : new String[] {RouteCatalog.RED_B1, RouteCatalog.RED_C1, RouteCatalog.RED_LEAVE_PARK,
+                RouteCatalog.WALL_SHOOT_PARK, RouteCatalog.GARDEN_CYCLE}) {
+            assertEquals(id, FirstTip.SELF, RouteCatalog.byId(id).firstTip());
+        }
+        assertEquals(java.util.Collections.<String>emptyList(),
+                RouteCatalog.familyProblems("SelfTipRoutes", SelfTipRoutes.routes(), FirstTip.SELF));
+        assertEquals(java.util.Collections.<String>emptyList(),
+                RouteCatalog.familyProblems("PartnerTipRoutes", PartnerTipRoutes.routes(), FirstTip.PARTNER));
+    }
+
+    @Test
+    public void aRouteInTheWrongFamilyFileIsReportedByName() {
+        AutoRoute self = AutoRoute.builder("shoots_itself").start(58, 9.2, -90).waitSeconds(1).build();
+        AutoRoute partner = AutoRoute.builder("waits_for_partner").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(1).build();
+        List<String> inPartnerFile = RouteCatalog.familyProblems("PartnerTipRoutes", java.util.Arrays.asList(self, partner), FirstTip.PARTNER);
+        assertEquals(inPartnerFile.toString(), 1, inPartnerFile.size());
+        assertTrue(inPartnerFile.get(0), inPartnerFile.get(0).contains("shoots_itself"));
+        assertTrue(inPartnerFile.get(0), inPartnerFile.get(0).contains("PartnerTipRoutes"));
+        assertTrue(inPartnerFile.get(0), inPartnerFile.get(0).contains("partnerTipsFirst()"));
+        List<String> inSelfFile = RouteCatalog.familyProblems("SelfTipRoutes", java.util.Arrays.asList(self, partner), FirstTip.SELF);
+        assertEquals(inSelfFile.toString(), 1, inSelfFile.size());
+        assertTrue(inSelfFile.get(0), inSelfFile.get(0).contains("waits_for_partner"));
+    }
+
+    @Test
+    public void theFamilyFilesHandOutAFreshListEveryTime() {
+        // a route list that somebody changes must not change the catalog
+        List<AutoRoute> a = SelfTipRoutes.routes();
+        a.add(AutoRoute.builder("stray").start(58, 9.2, -90).waitSeconds(1).build());
+        assertEquals(a.size() - 1, SelfTipRoutes.routes().size());
+        List<AutoRoute> b = PartnerTipRoutes.routes();
+        b.add(AutoRoute.builder("stray2").start(58, 9.2, -90).waitSeconds(1).build());
+        assertEquals(b.size() - 1, PartnerTipRoutes.routes().size());
     }
 
     @Test

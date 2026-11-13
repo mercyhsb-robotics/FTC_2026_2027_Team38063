@@ -8,6 +8,10 @@ import java.util.List;
  * Every autonomous route the team has, as data. Each route is written ONCE, for the RED alliance;
  * the BLUE version is {@link AutoRoute#forAlliance} (a half turn about the field center).
  *
+ * <p>The catalog is the routes written here (the three conversions and the two demonstrations), then the routes of
+ * {@link SelfTipRoutes} (we shoot the first tip) and {@link PartnerTipRoutes} (the partner shoots it), in that order.
+ * Every route says in its data which of the two it assumes ({@link AutoRoute#firstTip()}).
+ *
  * <p><b>To add an auto, add one entry to {@link #build()}</b> and re-run {@code tools/render-autos.sh}
  * (or {@code .bat}): the validator checks it, the timing model estimates it and the diagram of
  * it appears in {@code docs/autos/}. See {@code docs/AUTOS.md}.
@@ -165,6 +169,29 @@ public final class RouteCatalog {
                     .note("Ends with the whole footprint more than 1.5 in off every wall: LEAVE.")
                 .build());
 
+        // -----------------------------------------------------------------------------------------
+        // the two families of routes, each in its own file (see their documentation)
+        // -----------------------------------------------------------------------------------------
+        routes.addAll(SelfTipRoutes.routes());
+        routes.addAll(PartnerTipRoutes.routes());
+
         return routes;
+    }
+
+    /**
+     * Describes every route of a family file that does not assume {@code expected} (the files are
+     * {@link SelfTipRoutes}, which must be SELF, and {@link PartnerTipRoutes}, which must be PARTNER), so that a route
+     * cannot sit in the wrong file and print the wrong assumption. Empty when the family is fine.
+     */
+    static List<String> familyProblems(String fileName, List<AutoRoute> routes, FirstTip expected) {
+        List<String> problems = new ArrayList<String>();
+        for (AutoRoute r : routes) {
+            if (r.firstTip() != expected) {
+                problems.add("route '" + r.id() + "' is in " + fileName + " but assumes " + r.firstTip() + "; every route in that file"
+                        + " must assume " + expected + (expected == FirstTip.PARTNER ? " (start its entry with partnerTipsFirst())"
+                        : " (remove partnerTipsFirst() or move the route to PartnerTipRoutes)"));
+            }
+        }
+        return problems;
     }
 }

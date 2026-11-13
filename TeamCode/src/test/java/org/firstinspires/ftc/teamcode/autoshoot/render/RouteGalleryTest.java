@@ -328,7 +328,7 @@ public class RouteGalleryTest {
             System.setOut(old);
         }
         String out = captured.toString("UTF-8");
-        assertTrue(out, out.contains("Wrote 11 files"));
+        assertTrue(out, out.contains("Wrote " + (1 + 2 * RouteCatalog.all().size()) + " files"));
         for (AutoRoute r : RouteCatalog.all()) {
             assertTrue(out, out.contains(r.id()));
             assertTrue(new File(dir, r.id() + "_red.svg").isFile());
