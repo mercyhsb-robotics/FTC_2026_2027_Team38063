@@ -194,7 +194,9 @@ public class RouteExecutorSimTest {
     @Test
     public void aTipThatComesAfterTheGiveUpDeadlineMakesTheRobotSkipTheVolleyAndStillPark() {
         for (AutoRoute r : partnerRoutes()) {
-            for (double tipAt : new double[] {20.0, Double.POSITIVE_INFINITY}) {
+            // a tip one second after the latest one the route can use (each route has its own give-up deadline: 20 s was late for every route of the first lane,
+            // but the aggressive routes wait longer), and a tip that never comes
+            for (double tipAt : new double[] {r.analyze().latestPartnerTipSec() + 1.0, Double.POSITIVE_INFINITY}) {
                 RouteWorld w = worldFor(r);
                 w.partnerTipAt = tipAt;
                 w.runUntilFinished(LIMIT + 1.0);
