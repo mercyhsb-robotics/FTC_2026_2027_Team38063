@@ -18,6 +18,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.ConstantsCheck;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ClusterView;
 import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.HiveTracker;
+import org.firstinspires.ftc.teamcode.autoshoot.core.ParkAssist;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.PoseCorrector;
 import org.firstinspires.ftc.teamcode.autoshoot.core.PoseStore;
@@ -39,6 +40,10 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * <p>HOLD the shoot button (BioBuzzConstants.Controls.SHOOT_BUTTON) and the robot drives to the closest
  * feasible scoring pose for whichever cell of its HIVE is tipped up, aligns on the AprilTags, and fires
  * every POLLEN it holds; release it and you are driving again. Everything else is the manual robot.
+ *
+ * <p>HOLD the park button (BioBuzzConstants.Controls.PARK_BUTTON) near the end of the match and the robot drives itself into its own
+ * LOADING ZONE (PARK, 5 points), stops there and holds the spot; release it and you are driving again. Shooting and the
+ * jam-clearing buttons take priority over it.
  *
  * <p>Choose the alliance during INIT with the red/blue buttons. If the Pinpoint or Pedro cannot start,
  * the robot still drives with the legacy mecanum code and the automatic shooting is disabled; if the
@@ -91,6 +96,8 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  *   <li>Left stick: drive forward / back and strafe left / right, relative to the robot. Right stick, left / right:
  *       turn. Pushing the left stick hard while the robot is driving itself cancels the automatic drive.</li>
  *   <li>D-pad up (hold): drive to the scoring pose and shoot everything; release to take over again.</li>
+ *   <li>Options (hold): park. The robot drives itself into its own LOADING ZONE, stops and holds the spot (5 points); release to
+ *       take over again. It needs a trusted pose, never runs while shooting, and holding the shoot or a jam-clearing button cancels it.</li>
  *   <li>D-pad down: "the other cell is up": flips which cell the robot believes is tipped up.</li>
  *   <li>Share (hold about 0.6 s, only while not auto-shooting): "I am standing on the default start pose":
  *       resets the odometry position to it.</li>
@@ -149,6 +156,8 @@ public class BioBuzzRobot extends OpMode {
     private HiveTracker tracker;
     // The hold-to-shoot sequence (plan, drive, align, feed). A state machine: it is always in exactly one state.
     private AutoShootController controller;
+    // The hold-to-park helper: drives into the own LOADING ZONE while the park button is held (see ParkAssist).
+    private ParkAssist parkAssist;
     // Uses the camera to correct slow odometry drift (off unless BioBuzzConstants.Vision.POSE_CORRECTION_ENABLED).
     private PoseCorrector corrector;
 
@@ -174,6 +183,8 @@ public class BioBuzzRobot extends OpMode {
     private boolean unjamShooterNow;
     // The latest auto-shoot output. Only stored; nothing reads it yet.
     private AutoShootController.Outputs lastOut;
+    // The latest park-assist output (null until the first loop, or without Pedro): the screen shows its message.
+    private ParkAssist.Outputs lastPark;
     // The latest camera results, kept so report() can show them.
     private List<ClusterView> lastViews = Collections.emptyList();
     private VisionFrame lastFrame;
@@ -269,6 +280,7 @@ public class BioBuzzRobot extends OpMode {
         tracker = new HiveTracker(field, alliance, HiveTracker.Config.fromConstants());
         controller = new AutoShootController(alliance, field, planner, table, tracker,
                 AutoShootController.Config.fromConstants());
+        parkAssist = new ParkAssist(alliance, field, planner, ParkAssist.Config.fromConstants());
 
         PoseStore.Snapshot snap = PoseStore.load(System.nanoTime(), BioBuzzConstants.Controls.POSE_CARRYOVER_MAX_AGE_SEC);
         Pose2 startPose;
@@ -380,10 +392,31 @@ public class BioBuzzRobot extends OpMode {
             lastOut = out;
         }
 
+        // The park assist (hold the park button: drive into the own LOADING ZONE and hold). The shoot button, the jam-clearing
+        // buttons and a running auto-shoot all have priority over it, so it is told when one of them is active and stops.
+        ParkAssist.Outputs park = null;
+        if (drive != null) {
+            boolean autoShootActive = out != null && out.state != AutoShootController.State.IDLE;
+            ParkAssist.Inputs pin = new ParkAssist.Inputs();
+            pin.nowSec = now;
+            pin.parkHeld = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.PARK_BUTTON);
+            pin.otherFeatureActive = ParkAssist.otherFeatureActive(
+                    GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.SHOOT_BUTTON), unjamRequested, autoShootActive);
+            pin.pose = pose;
+            pin.speedInS = drive.speedInPerSec();
+            pin.poseTrusted = poseTrusted;
+            pin.stickMagnitude = sticks[3];
+            park = parkAssist.update(pin);
+            lastPark = park;
+        }
+
         // 4. Act.
         // "Automatic" covers every auto-shoot state except IDLE, including DONE and FAULT, which last until the
         // shoot button is released.
         boolean automatic = out != null && out.state != AutoShootController.State.IDLE;
+        // The park assist drives the robot while it is planning, driving or parked; after a refusal the driver has the sticks.
+        boolean parkDriving = park != null && (park.state == ParkAssist.State.PLAN || park.state == ParkAssist.State.DRIVING
+                || park.state == ParkAssist.State.PARKED);
         if (automatic) {
             intake.stopIntake();                    // never intake while shooting: the robot may hold at most 4
             servoLeft.setPower(0);
@@ -400,7 +433,8 @@ public class BioBuzzRobot extends OpMode {
                 launcher.stop();                    // the button was just released: stop the flywheel and feeder
             }
             if (drive != null) {
-                drive.apply(out, sticks[0], sticks[1], sticks[2]);
+                // Parking drives with the very same follow / hold code as hold-to-shoot; the mechanisms stay on the manual buttons.
+                drive.apply(parkDriving ? park.toDriveCommand() : out, sticks[0], sticks[1], sticks[2]);
             } else {
                 // Legacy drive wants the raw stick values; see MecanumDrive.drive for the sign convention.
                 legacyDrive.drive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
@@ -409,7 +443,10 @@ public class BioBuzzRobot extends OpMode {
         }
         if (out != null) {
             prevState = out.state;
-            giveFeedback(out);
+            giveFeedback(out.cue);
+        }
+        if (park != null) {
+            giveFeedback(park.cue);
         }
 
         // 5. Report.
@@ -519,7 +556,8 @@ public class BioBuzzRobot extends OpMode {
      */
     private void handlePoseReset(double now) {
         boolean held = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.RESET_POSE_BUTTON);
-        boolean idle = controller == null || controller.state() == AutoShootController.State.IDLE;
+        boolean idle = (controller == null || controller.state() == AutoShootController.State.IDLE)
+                && (parkAssist == null || parkAssist.state() == ParkAssist.State.IDLE);
         if (!held || !idle) {
             resetHeldSinceSec = Double.NaN;
             resetLatched = false;
@@ -541,8 +579,8 @@ public class BioBuzzRobot extends OpMode {
      * Turns the controller's one-shot cue into gamepad rumble (the driver may be looking at the field, not the
      * screen). The durations are in BioBuzzConstants.Controls.
      */
-    private void giveFeedback(AutoShootController.Outputs out) {
-        switch (out.cue) {
+    private void giveFeedback(AutoShootController.Cue cue) {
+        switch (cue) {
             case STARTED:
                 gamepad1.rumble(BioBuzzConstants.Controls.RUMBLE_STARTED_MS);
                 break;
@@ -583,6 +621,13 @@ public class BioBuzzRobot extends OpMode {
             }
             if (out.fault != AutoShootController.Fault.NONE) {
                 telemetry.addData("  stopped because", out.fault);
+            }
+        }
+        if (lastPark != null) {
+            // 'Ready', 'Parking: driving to the LOADING ZONE', 'Parked: release the button' or the reason it refused.
+            telemetry.addData("Park assist", lastPark.message);
+            if (lastPark.state != ParkAssist.State.IDLE && !Double.isNaN(lastPark.overlapIn)) {
+                telemetry.addData("  in the LOADING ZONE by", String.format("%.1f in", lastPark.overlapIn));
             }
         }
         telemetry.addData("HIVE up side", tracker.upSide() + (tracker.confirmed() ? " (seen)" : " (not confirmed)")
