@@ -224,8 +224,10 @@ public final class RouteGallery {
                 .append(n(BioBuzzConstants.Field.SIZE_IN)).append(" in field, the AUDIENCE wall at the bottom, the red alliance on the left. ");
         h.append("A BLUE route is the RED route turned half a turn about the field center (not a mirror image), so a blue robot starts at the top. ");
         h.append("The robot is drawn to scale (").append(inches(BioBuzzConstants.Robot.LENGTH_IN)).append(" x ")
-                .append(inches(BioBuzzConstants.Robot.WIDTH_IN)).append("): the body is tinted, the two flat intake wheels are the dark discs at the front, ");
-        h.append("its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. ");
+                .append(inches(BioBuzzConstants.Robot.WIDTH_IN)).append(", wheels included): the body is tinted, the two flat intake wheels are the dark discs at the front, ");
+        h.append("and the small ringed dot is its center of rotation, the point every pose refers to (it is ").append(inches(BioBuzzConstants.Robot.FRONT_EXTENT_IN))
+                .append(" behind the front edge and ").append(inches(BioBuzzConstants.Robot.REAR_EXTENT_IN)).append(" in front of the back edge, so it is not in the middle). ");
+        h.append("Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. ");
         h.append("A FLOWER is emptied by pressing ONE flat wheel into its bottom POLLEN: the arrow shows that straight press-in and the dotted arrow the straight retreat. ");
         h.append("Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>\n");
         h.append("<p id=\"tip-rule\" class=\"muted\">How a HIVE tips: ").append(esc(TipModel.explainRule())).append(" Every route says who shoots the first tip: ")

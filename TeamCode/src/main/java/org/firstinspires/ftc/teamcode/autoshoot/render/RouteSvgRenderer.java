@@ -611,7 +611,9 @@ public final class RouteSvgRenderer {
          * The robot to scale, in two tones: the whole PERIMETER as a faint outline, the CHASSIS (the body) in the ink tone and
          * the two flat intake WHEELS as dark discs at the front corners; the FRONT edge (wheel tips) is marked in the front
          * colour and the BACK edge in the back colour. {@code pressing} (or null) is the wheel that presses a FLOWER: it is
-         * ringed in the front colour. A footprint that {@code broken} a rule (an ERROR at its step) gets an amber outline.
+         * ringed in the front colour. The small ringed dot is the robot's center of rotation (see {@link #poseMarker}), drawn at its true
+         * place inside the outline: the outline is NOT centered on it. A footprint that {@code broken} a rule (an ERROR at its
+         * step) gets an amber outline.
          */
         private void footprint(Pose2 pose, double fillOpacity, boolean dashed, boolean broken, IntakeWheel pressing) {
             Footprint fp = Footprint.of(pose);
@@ -621,6 +623,23 @@ public final class RouteSvgRenderer {
             chassisBody(pose);
             frontAndBackEdges(fp);
             flatWheels(pose, pressing);
+            poseMarker(pose);
+        }
+
+        /**
+         * The robot's POSITION, its center of rotation, as a small ringed dot with a cross: the point every pose of the route
+         * refers to and the point the robot spins about. It is drawn where it really is inside the outline, which is NOT the
+         * middle of it: the front edge (the wheel tips) is farther from it than the back edge.
+         */
+        private void poseMarker(Pose2 pose) {
+            double cx = sx(pose.x);
+            double cy = sy(pose.y);
+            double r = BioBuzzConstants.Auto.RENDER_POSE_MARK_RADIUS_PX;
+            w.open("g", "class", "pose-point", "data-x", n(pose.x), "data-y", n(pose.y));
+            w.empty("circle", "cx", n(cx), "cy", n(cy), "r", n(r), "fill", "#ffffff", "fill-opacity", "0.92", "stroke", ink, "stroke-width", "1.6");
+            w.empty("line", "x1", n(cx - r), "y1", n(cy), "x2", n(cx + r), "y2", n(cy), "stroke", ink, "stroke-width", "1");
+            w.empty("line", "x1", n(cx), "y1", n(cy - r), "x2", n(cx), "y2", n(cy + r), "stroke", ink, "stroke-width", "1");
+            w.close("g");
         }
 
         /** The front edge (the wheel tips) in the front colour and the back edge (the shooter) in the back colour. */
@@ -764,6 +783,7 @@ public final class RouteSvgRenderer {
             chassisBody(p);
             frontAndBackEdges(fp);
             flatWheels(p, null);
+            poseMarker(p);
             w.close("g");
         }
 
@@ -1002,7 +1022,7 @@ public final class RouteSvgRenderer {
             x = legendItem(x, y1, "drive", "DRIVE leg");
             x = legendItem(x, y1, "approach", "move to a pose");
             x = legendItem(x, y1, "badge", "step number");
-            x = legendItem(x, y1, "robot", "robot: body + 2 flat wheels");
+            x = legendItem(x, y1, "robot", "robot, dot = center of rotation");
             x = legendItem(x, y1, "front", "FRONT = intake");
             x = legendItem(x, y1, "back", "BACK = shooter");
             x = 24;
@@ -1039,6 +1059,8 @@ public final class RouteSvgRenderer {
                     w.empty("rect", "x", n(x), "y", n(y - 6), "width", "19", "height", "12", "fill", ink, "fill-opacity", CHASSIS_OPACITY);
                     w.empty("circle", "cx", n(x + 20.5), "cy", n(y - 3.5), "r", "2.6", "fill", WHEEL_FILL);
                     w.empty("circle", "cx", n(x + 20.5), "cy", n(y + 3.5), "r", "2.6", "fill", WHEEL_FILL);
+                    // the ringed dot is the center of rotation, a little nearer the back than the middle
+                    w.empty("circle", "cx", n(x + 11), "cy", n(y), "r", "2.2", "fill", "#ffffff", "stroke", ink, "stroke-width", "1.2");
                     break;
                 case "front":
                     w.empty("line", "x1", n(x), "y1", n(y), "x2", n(x + 24), "y2", n(y), "stroke", BioBuzzConstants.Auto.RENDER_FRONT_COLOR, "stroke-width", "4.5");

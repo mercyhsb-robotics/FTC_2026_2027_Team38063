@@ -222,6 +222,9 @@ public class RouteSvgFootprintTest {
             assertEquals(px(press.press.x - BioBuzzConstants.Robot.FRONT_EXTENT_IN), outline[0], 0.05);
             assertEquals(px(press.press.x + BioBuzzConstants.Robot.REAR_EXTENT_IN), outline[1], 0.05);
             assertEquals(py(press.press.y), (outline[2] + outline[3]) / 2.0, 0.05);
+            Element dot = all(withClass(intake, "g", "pose-point").get(0), "circle").get(0);
+            assertEquals(px(press.press.x), num(dot, "cx"), 0.05);
+            assertEquals(py(press.press.y), num(dot, "cy"), 0.05);
             // exactly one wheel is ringed: the one the step names, and it sits on the FLOWER's center line
             List<Element> pressing = withClass(intake, "circle", "pressing");
             assertEquals(1, pressing.size());

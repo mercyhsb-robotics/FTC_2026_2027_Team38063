@@ -273,6 +273,8 @@ public class RouteSvgLayoutTest {
         assertEquals(X0 + 30.0 * S, (b[0] + b[1]) / 2.0, 0.05);
         assertEquals(Y_BOTTOM - (30.0 - BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[3], 0.05);
         assertEquals(Y_BOTTOM - (30.0 + BioBuzzConstants.Robot.REAR_EXTENT_IN) * S, b[2], 0.05);
+        Element dot = all(withClass(end.get(0), "g", "pose-point").get(0), "circle").get(0);
+        assertEquals("the center of rotation is marked on the last pose", Y_BOTTOM - 30.0 * S, num(dot, "cy"), 0.05);
         assertTrue(stepLabels(d).contains("END"));
         for (AutoRoute r : RouteCatalog.all()) {
             assertEquals(r.id(), endsOnADrive(r) ? 1 : 0,

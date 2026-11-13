@@ -329,6 +329,12 @@ public class RouteSvgRendererTest {
         assertEquals("front edge", Y_BOTTOM - (9.2 - BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[3], 0.05);
         assertEquals("back edge", Y_BOTTOM - (9.2 + BioBuzzConstants.Robot.REAR_EXTENT_IN) * S, b[2], 0.05);
         assertTrue("the outline is not centered on the pose", Math.abs((b[2] + b[3]) / 2.0 - (Y_BOTTOM - 9.2 * S)) > 3.0);
+        // the center of rotation is marked, at the pose itself
+        Element mark = withClass(start, "g", "pose-point").get(0);
+        Element dot = all(mark, "circle").get(0);
+        assertEquals("pose point x", X0 + 58.0 * S, Double.parseDouble(dot.getAttribute("cx")), 0.05);
+        assertEquals("pose point y", Y_BOTTOM - 9.2 * S, Double.parseDouble(dot.getAttribute("cy")), 0.05);
+        assertEquals(58.0, Double.parseDouble(mark.getAttribute("data-x")), 1e-6);
         // FRONT at the audience wall (bottom of the image), BACK at the top, in different colours
         Element front = withClass(start, "line", "front-edge").get(0);
         Element back = withClass(start, "line", "back-edge").get(0);
@@ -354,6 +360,9 @@ public class RouteSvgRendererTest {
         assertEquals(X0 + (fp.bounds().minX + fp.bounds().maxX) / 2.0 * S, (b[0] + b[1]) / 2.0, 0.05);
         assertEquals(Y_BOTTOM - (fp.bounds().minY + fp.bounds().maxY) / 2.0 * S, (b[2] + b[3]) / 2.0, 0.05);
         assertEquals((fp.bounds().maxX - fp.bounds().minX) * S, b[1] - b[0], 0.05);
+        Element dot = all(withClass(byId(d, "start-footprint"), "g", "pose-point").get(0), "circle").get(0);
+        assertEquals(X0 + blueStart.x * S, Double.parseDouble(dot.getAttribute("cx")), 0.05);
+        assertEquals(Y_BOTTOM - blueStart.y * S, Double.parseDouble(dot.getAttribute("cy")), 0.05);
         // the blue robot starts at the top (rear wall) of the image: smaller pixel y than the field middle
         assertTrue((b[2] + b[3]) / 2.0 < Y_BOTTOM - 72 * S);
     }
@@ -426,6 +435,10 @@ public class RouteSvgRendererTest {
         assertEquals(X0 + (12.0 + BioBuzzConstants.Robot.FRONT_EXTENT_IN) * S, b[1], 0.1);
         assertEquals(Y_BOTTOM - (108.0 + BioBuzzConstants.Robot.LEFT_EXTENT_IN) * S, b[2], 0.1);
         assertEquals(Y_BOTTOM - 116.9 * S, b[2], 0.1);
+        // the center of rotation is marked inside the park outline too
+        Element dot = all(withClass(park, "g", "pose-point").get(0), "circle").get(0);
+        assertEquals(X0 + 12.0 * S, Double.parseDouble(dot.getAttribute("cx")), 0.05);
+        assertEquals(Y_BOTTOM - 108.0 * S, Double.parseDouble(dot.getAttribute("cy")), 0.05);
         assertFalse(all(park, "polygon").get(0).getAttribute("stroke-dasharray").isEmpty());
         double zoneRight = X0 + 11.0 * S;
         assertTrue("part of the outline lies inside the zone", b[0] < zoneRight);

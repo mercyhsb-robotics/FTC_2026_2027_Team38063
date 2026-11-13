@@ -400,6 +400,12 @@ public final class BioBuzzConstants {
         public static final double RENDER_LABEL_CHAR_WIDTH_EM = 0.58;
         /** TUNE: radius of the numbered circle that marks each step, in SVG pixels. */
         public static final double RENDER_BADGE_RADIUS_PX = 8.5;
+        /**
+         * TUNE: radius, in SVG pixels, of the small ringed dot drawn on every robot outline at the robot's center of rotation
+         * (its position: the point the route's poses refer to). The dot is not in the middle of the outline, because the
+         * robot is not centered on it (the front edge is 9.77 in from it, the rear edge 8.03 in).
+         */
+        public static final double RENDER_POSE_MARK_RADIUS_PX = 3.4;
         /** TUNE: radius, in field inches, of the dashed ring drawn around an INTAKE target of each source. */
         public static final double RENDER_INTAKE_RING_FLOOR_IN = 5.0;
         public static final double RENDER_INTAKE_RING_FLOWER_IN = 7.5;
