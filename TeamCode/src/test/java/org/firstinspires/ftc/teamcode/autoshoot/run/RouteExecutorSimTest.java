@@ -17,12 +17,15 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.PoseStore;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.WiggleTestRobot;
 
 /**
@@ -280,9 +283,58 @@ public class RouteExecutorSimTest {
             w.runUntilFinished(LIMIT + 1.0);
             String what = name(r);
             assertSafeRun(what, w);
-            assertTrue(what + ": the volley happened: " + w.shotsFired, w.shotsFired >= 3 && w.shotsFired <= 4);
+            // A route that ends with its volley (nothing to drive afterwards) is "finished" the moment the last POLLEN leaves; the ones in the air
+            // still land and the HIVE still swings while the robot stands there (AUTO goes on until the buzzer), so let them.
+            w.runFor(w.flightSec + w.swingSec + 0.5);
+            // the first volley fires 3 or 4 (the 4th is the spare); a later volley at the cell that came up with this tip (the rear bank) fires its own count
+            int most = 4;
+            for (RouteAnalysis.StepInfo info : r.analyze().steps()) {
+                if (info.step.kind() == StepKind.SHOOT && info.tipDependent) {
+                    most += ((Step.Shoot) info.step).count();
+                }
+            }
+            assertTrue(what + ": the volley happened: " + w.shotsFired, w.shotsFired >= 3 && w.shotsFired <= most);
             assertTrue(what + ": the 3rd POLLEN tipped the HIVE, so the other cell is up", w.trueUp != w.field.initialUpSide(w.alliance));
         }
+    }
+
+    @Test
+    public void aTopUpVolleyFiresOnlyWhenTheFirstVolleyDidNotTipAndTheCameraStillSeesTheCellUp() {
+        int topUps = 0;
+        for (AutoRoute r : runnableRoutes()) {
+            int wanted = 0;
+            for (RouteAnalysis.StepInfo info : r.analyze().steps()) {
+                if (info.step.kind() == StepKind.SHOOT && !info.tipDependent && !info.targetWasUp) {
+                    wanted += ((Step.Shoot) info.step).count();
+                }
+            }
+            if (r.firstTip() != FirstTip.SELF || wanted == 0) {
+                continue;
+            }
+            topUps++;
+            // the first volley misses the tip (the HIVE never tips): the camera still sees the cell UP, so the second volley goes into it
+            RouteWorld miss = worldFor(r);
+            miss.tipAfterHits = 1000;
+            miss.runUntilFinished(LIMIT + 1.0);
+            String what = name(r) + ", the first volley did not tip";
+            assertSafeRun(what, miss);
+            assertEquals(what + ": the second volley fired as well", 4 + wanted, miss.shotsFired);
+            assertEquals(what + ": every ball into the cell that is up", 4 + wanted, miss.shotsIntoUpCell);
+            // the first volley tips (the normal case): the camera sees the cell fall, the second volley is left out, and nothing is recorded as wrong
+            RouteWorld tipped = worldFor(r);
+            tipped.runUntilFinished(LIMIT + 1.0);
+            assertSafeRun(name(r), tipped);
+            assertTrue(name(r) + ": the second volley was left out: " + tipped.shotsFired, tipped.shotsFired <= 4);
+            assertTrue(name(r) + ": nothing went wrong: " + tipped.executor.failures(), tipped.executor.failures().isEmpty());
+            // the camera dies before the second volley: it is left out, whatever the HIVE did
+            RouteWorld blind = worldFor(r);
+            blind.tipAfterHits = 1000;
+            blind.cameraDeadFrom = 1.0;
+            blind.runUntilFinished(LIMIT + 1.0);
+            assertSafeRun(name(r) + ", the camera lost at 1 s", blind);
+            assertTrue(name(r) + ": no second volley without a camera: " + blind.shotsFired, blind.shotsFired <= 4);
+        }
+        assertTrue("the catalog has self routes with a top-up", topUps >= 2);
     }
 
     @Test
@@ -297,7 +349,26 @@ public class RouteExecutorSimTest {
             String what = name(r) + ", the partner tipped at 0.8 s";
             assertTrue(what + ": finished", w.executor.finished());
             assertEquals(what + ": nothing fired at a cell that faces down", 0, w.shotsAtDownCell);
-            assertEquals(what + ": no POLLEN at all, the cell the route wants is down", 0, w.shotTimes.size());
+            // The first volley wants the cell that was UP at the start; the partner has just tipped it, so it faces down and the volley must be skipped.
+            // Only a LATER volley of the plan at the OTHER cell (the one that came up, like the rear bank) may fire, once the camera has seen that cell UP.
+            Side wanted = w.field.initialUpSide(w.alliance);
+            int atTheCellThatIsDown = 0;
+            for (Side side : w.shotSides) {
+                atTheCellThatIsDown += side == wanted ? 1 : 0;
+            }
+            assertEquals(what + ": no POLLEN at the cell the route wants, it is down", 0, atTheCellThatIsDown);
+            int allowed = 0;
+            boolean first = true;
+            for (RouteAnalysis.StepInfo info : w.plan.steps()) {
+                if (info.step.kind() != StepKind.SHOOT) {
+                    continue;
+                }
+                if (!first && info.targetSide == wanted.opposite()) {
+                    allowed += ((Step.Shoot) info.step).count();
+                }
+                first = false;
+            }
+            assertTrue(what + ": " + w.shotTimes.size() + " POLLEN fired, the plan has " + allowed + " for a later volley at the cell that comes up", w.shotTimes.size() <= allowed);
             assertTrue(what + ": inside the field", w.clipTicks == 0);
         }
     }
@@ -528,7 +599,13 @@ public class RouteExecutorSimTest {
             assertSafeRun(what, w);
             assertTrue(what + ": the volley at the cell that is up from the start needs no camera: " + w.shotsFired, w.shotsFired >= 3);
             assertEquals(what, "", w.executor.stoppedBy());
-            assertFalse(what + ": nothing was left out for want of a tip", w.executor.tipNeverConfirmed());
+            if (r.analyze().dependsOnTipConfirmation()) {
+                // a later volley at the cell that comes up after our own tip (the rear bank) needs the camera: with none it is left out, and the first volley is all that was fired
+                assertTrue(what + ": the volley that needs a camera was left out", w.executor.tipNeverConfirmed());
+                assertTrue(what + ": only the first volley was fired: " + w.shotsFired, w.shotsFired <= 4);
+            } else {
+                assertFalse(what + ": nothing was left out for want of a tip", w.executor.tipNeverConfirmed());
+            }
         }
     }
 

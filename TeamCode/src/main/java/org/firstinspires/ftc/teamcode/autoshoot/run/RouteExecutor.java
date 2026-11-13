@@ -993,6 +993,16 @@ public final class RouteExecutor {
             } else if (tracker.upSide() != target) {
                 skipReason = "the robot believes the " + tracker.upSide() + " cell is up now, not the " + target + " cell the route shoots at: not firing at a cell that may face down (G417)";
             }
+            if (skipReason.isEmpty() && !info.tipDependent && !info.targetWasUp) {
+                // A TOP-UP: the plan itself says our own earlier volley tipped this cell down, so this volley is only for the day that tip did not happen. Only a
+                // working camera that has seen the cell UP can tell, and the first volley of a route needs none (the cell is known to be up at the start): a robot
+                // that cannot see would fire 4 POLLEN into a cell that very likely faces down (G417).
+                if (!frame.usable()) {
+                    skipReason = "the camera is not working (" + frame.status + "), so the robot cannot know whether the " + target + " cell is still up: not firing at a cell the plan says has tipped (no camera, no shot)";
+                } else if (!tracker.cameraConfirmed()) {
+                    skipReason = "the camera has not seen the " + target + " cell up, and the plan says it has tipped: not firing at it (G417)";
+                }
+            }
             if (!skipReason.isEmpty()) {
                 return;
             }

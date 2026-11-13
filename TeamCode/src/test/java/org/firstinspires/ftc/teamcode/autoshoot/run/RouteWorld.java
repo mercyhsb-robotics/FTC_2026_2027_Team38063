@@ -15,10 +15,13 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.RobotShape;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ShootWorld;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.core.VisionFrame;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AllianceField;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.DrivePath;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.IntakeSource;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
 
 /**
  * The closed-loop world for the route runner's tests: {@link ShootWorld} (the HIVE that tips, the camera that sees the real tags, the flywheel
@@ -53,14 +56,22 @@ public final class RouteWorld extends ShootWorld {
     /** The route time at which the alliance partner's tip is done (the HIVE flips); infinity = it never tips. */
     public double partnerTipAt = Double.POSITIVE_INFINITY;
     private boolean partnerTipped;
-    /** Seconds the robot must stand at the GARDEN with the intake on for one POLLEN (0.8 s: the plan's dwell of 2.5 s then brings in 3). */
-    public double gardenSecPerPollen = 0.8;
+    /**
+     * Seconds the robot must stand at the GARDEN with the intake on for one POLLEN. The constructor sets it from the plan: the plan's pace for
+     * the GARDEN pick-up is its dwell divided by the POLLEN it expects ({@code Auto.INTAKE_DWELL_GARDEN_SEC}, 3.0 s), and the simulated robot is 4 percent
+     * quicker than that, so the dwell always brings in what the plan expects (the old numbers were the same: 0.8 s against 2.5 s for 3 POLLEN) and never
+     * a POLLEN more than the plan's count in the runner's time. A test may set another value after the constructor.
+     */
+    public double gardenSecPerPollen = GARDEN_PACE_OF_THE_SIMULATION * BioBuzzConstants.Auto.INTAKE_DWELL_GARDEN_SEC / BioBuzzConstants.Auto.GARDEN_POLLEN;
+    private static final double GARDEN_PACE_OF_THE_SIMULATION = 0.96;
     /** How near the robot's center must be to the middle of the GARDEN POLLEN line to take from it, inches. */
     public double gardenReachIn = 14.0;
 
     // what the world counted
     /** Route times at which a POLLEN left the robot. */
     public final List<Double> shotTimes = new ArrayList<Double>();
+    /** The side of the HIVE the robot stood on (so the cell its ball was aimed at) for each POLLEN that left, in the same order as {@link #shotTimes}. */
+    public final List<Side> shotSides = new ArrayList<Side>();
     /** The most POLLEN the robot held at one moment (the hopper count of the simulation). */
     public int maxHeld = 4;
     /** POLLEN the robot took from FLOWERs and from the GARDEN. */
@@ -112,6 +123,13 @@ public final class RouteWorld extends ShootWorld {
         this.allianceField = plan.field();
         this.executor = new RouteExecutor(plan);
         setIntakeReach(BioBuzzConstants.Robot.INTAKE_REACH_IN);
+        for (RouteAnalysis.StepInfo info : plan.steps()) {
+            if (info.step instanceof Step.Intake && ((Step.Intake) info.step).source() == IntakeSource.GARDEN) {
+                Step.Intake pickUp = (Step.Intake) info.step;
+                gardenSecPerPollen = GARDEN_PACE_OF_THE_SIMULATION * pickUp.dwellSec() / pickUp.expectedCount();
+                break;
+            }
+        }
         for (int i = 0; i < flowerBalls.length; i++) {
             flowerBalls[i] = BioBuzzConstants.Auto.FLOWER_POLLEN;
         }
@@ -200,6 +218,7 @@ public final class RouteWorld extends ShootWorld {
     @Override
     public void fire(AutoShootController.Outputs out) {
         shotTimes.add(t);
+        shotSides.add(robotSide());
         super.fire(out);
     }
 
@@ -283,7 +302,13 @@ public final class RouteWorld extends ShootWorld {
             return;
         }
         if (balls >= BioBuzzConstants.Auto.POLLEN_CAPACITY) {
-            intakeOnWhenFullSec += DT;
+            // A robot that stands at the GARDEN after its last POLLEN is in (a route that takes all 4 of them, with a robot a little quicker than the plan) can take
+            // nothing more by running the intake a moment longer, so that is no risk for G407; anywhere else, or with a POLLEN left in reach, it counts.
+            Point2 g = allianceField.ownGardenPollenCenter();
+            boolean emptiedGarden = gardenBalls == 0 && Math.hypot(x - g.x, y - g.y) <= gardenReachIn;
+            if (!emptiedGarden) {
+                intakeOnWhenFullSec += DT;
+            }
         }
         double half = (BioBuzzConstants.Auto.FLOWER_WHEEL_PRESS_OFFSET_IN + BioBuzzConstants.Auto.FLOWER_WHEEL_START_OFFSET_IN) / 2.0;
         for (int f = 0; f < flowerBalls.length; f++) {
