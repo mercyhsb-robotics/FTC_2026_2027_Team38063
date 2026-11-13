@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.AllianceField;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.StartRules;
 
 /**
  * Checks {@link BioBuzzConstants} for values that cannot work, so a typo shows up at INIT as a clear
@@ -276,8 +278,11 @@ public final class ConstantsCheck {
                     }
                 }
             }
-            checkStartPose(r, f, "Controls.DEFAULT_START_*", Pose2.ofDegrees(BioBuzzConstants.Controls.DEFAULT_START_X_IN,
-                    BioBuzzConstants.Controls.DEFAULT_START_Y_IN, BioBuzzConstants.Controls.DEFAULT_START_HEADING_DEG));
+            Pose2 defaultStart = Pose2.ofDegrees(BioBuzzConstants.Controls.DEFAULT_START_X_IN,
+                    BioBuzzConstants.Controls.DEFAULT_START_Y_IN, BioBuzzConstants.Controls.DEFAULT_START_HEADING_DEG);
+            checkStartPose(r, f, "Controls.DEFAULT_START_*", defaultStart);
+            // The TeleOp's default start is where the team puts the robot when no AUTO has run: it must be a place the rules allow a robot to be set up (G304).
+            checkLegalStart(r, f, "Controls.DEFAULT_START_*", defaultStart);
         } catch (RuntimeException e) {
             r.errors.add("Field geometry is invalid: " + e.getMessage());
         }
@@ -686,6 +691,34 @@ public final class ConstantsCheck {
             r.warnings.add("Robot.LAUNCH_POINT_* (" + lf + " in forward, " + ll + " in left) is outside the robot's perimeter"
                     + " (" + (-rear) + " to " + front + " in forward, " + (-right) + " to " + left + " in left of the center of"
                     + " rotation).");
+        }
+    }
+
+    /**
+     * A start pose (RED frame) must be a legal AUTO start by rule G304: the robot's real outline is inside the field and on its own half, touches a perimeter
+     * wall, is clear of the HIVE frame and the FLOWERS and is not in the LOADING ZONE. This is the same code as the route validator's start check
+     * ({@code StartRules}), so the TeleOp's default start and the starts of the autonomous routes are judged by one rule. (This class otherwise stays out of the
+     * routes package, which depends on it; the start rule is the one deliberate exception, because two copies of a rule can disagree.) The pose is checked for both
+     * alliances (the BLUE one is the half turn of the RED one): a problem both share is reported once. Every ERROR of the rule is an error here; the one WARN of
+     * the rule (over a FLOWER's wall bracket) is a warning.
+     *
+     * @param what the name to put in the message, for example {@code Controls.DEFAULT_START_*}
+     */
+    static void checkLegalStart(Report r, FieldModel field, String what, Pose2 redStart) {
+        java.util.Set<StartRules.Part> reported = java.util.EnumSet.noneOf(StartRules.Part.class);
+        for (Alliance alliance : Alliance.values()) {
+            AllianceField f = new AllianceField(field, alliance);
+            for (StartRules.Finding finding : StartRules.check(f, alliance.fromRed(redStart, field.size()))) {
+                if (!reported.add(finding.part)) {
+                    continue;
+                }
+                String text = what + " is not a legal start (" + finding.part.rule + ", rule G304)" + (alliance == Alliance.BLUE ? " for the BLUE alliance" : "") + ": " + finding.message;
+                if (finding.error) {
+                    r.errors.add(text);
+                } else {
+                    r.warnings.add(text);
+                }
+            }
         }
     }
 
