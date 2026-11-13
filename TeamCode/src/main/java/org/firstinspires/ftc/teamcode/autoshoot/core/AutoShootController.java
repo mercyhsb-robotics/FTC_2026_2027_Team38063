@@ -331,6 +331,14 @@ public final class AutoShootController {
         public DriveMode driveMode = DriveMode.MANUAL;
         /** For FOLLOW: the points to drive through; the last is {@link #holdPose}'s position (x, y in inches). */
         public List<double[]> waypoints = Collections.emptyList();
+        /**
+         * For FOLLOW: keep the heading the robot had at the start for this many inches of the route before turning
+         * (0 = start turning at once). The route was checked against the walls with this exact turn, so the drive
+         * must use it; see {@link HeadingProfile}.
+         */
+        public double turnHoldIn;
+        /** For FOLLOW: be finished turning to {@link #holdPose}'s heading this many inches before the route ends. */
+        public double turnSettleIn;
         /** For FOLLOW (the destination) and HOLD (the pose to hold). Only meaningful in those two modes. */
         public Pose2 holdPose;
         /** Flywheel speed to command, in ticks per second. */

@@ -250,10 +250,139 @@ public class HeadingProfileTest {
         List<double[]> wps = route(1.0, 0, 2.0, 0, 20.0, 0);
         Pose2 start = Pose2.ofDegrees(0, 0, 0);
         HeadingProfile byDefault = HeadingProfile.build(start, wps, 1.0);
-        HeadingProfile explicit = HeadingProfile.build(start, wps, 1.0, BioBuzzConstants.AutoShoot.PATH_MIN_LEG_IN);
+        HeadingProfile explicit = HeadingProfile.buildWithMinLeg(start, wps, 1.0, 0.0, 0.0,
+                BioBuzzConstants.AutoShoot.PATH_MIN_LEG_IN);
         assertEquals(explicit.vertexCount(), byDefault.vertexCount());
-        HeadingProfile coarse = HeadingProfile.build(start, wps, 1.0, 3.0);
+        HeadingProfile coarse = HeadingProfile.buildWithMinLeg(start, wps, 1.0, 0.0, 0.0, 3.0);
         assertTrue(coarse.vertexCount() < byDefault.vertexCount());
         assertEquals(Arrays.asList(0.0, 20.0), Arrays.asList(coarse.x(0), coarse.x(1)));
+    }
+
+    // ---------------------------------------------------------------- the turn window
+
+    /**
+     * Situation: a straight 100 in route east, a 90 degree turn, hold the start heading for 30 in and be finished
+     *     turning for the last 20 in.
+     * Expected: corners are added at 30 in and 80 in; the heading is 0 up to 30 in, climbs evenly to 90 at 80 in
+     *     (45 degrees at 55 in), and stays 90 to the end. The positions are still the straight line.
+     * Why: this is the "drive straight out of the wall, then turn, then arrive already facing the right way" rule the
+     *     planner uses to keep a turning robot away from a wall.
+     */
+    @Test
+    public void aTurnWindowHoldsTheStartHeadingTurnsEvenlyThenHoldsTheEndHeading() {
+        HeadingProfile p = HeadingProfile.build(Pose2.ofDegrees(0, 0, 0), route(100, 0), Math.toRadians(90), 30.0, 20.0);
+        assertEquals(4, p.vertexCount());
+        assertEquals(30.0, p.distanceAtVertex(1), EPS);
+        assertEquals(80.0, p.distanceAtVertex(2), EPS);
+        assertEquals(0.0, Math.toDegrees(p.headingAtVertex(1)), EPS);
+        assertEquals(90.0, Math.toDegrees(p.headingAtVertex(2)), EPS);
+        assertEquals(0.0, p.headingAt(10.0), EPS);
+        assertEquals(45.0, Math.toDegrees(p.headingAt(55.0)), EPS);
+        assertEquals(90.0, Math.toDegrees(p.headingAt(95.0)), EPS);
+        for (double s = 0.0; s <= 100.0; s += 7.0) {
+            assertEquals(s, p.poseAt(s).x, EPS);
+            assertEquals(0.0, p.poseAt(s).y, EPS);
+        }
+    }
+
+    /**
+     * Situation: the same route with no window (hold 0, settle 0), and with the 3-argument version.
+     * Expected: both equal the ordinary rule (27 degrees at 30 in), and the windowed version above is different there
+     *     (0 degrees at 30 in).
+     * Why: the window must be opt-in. Everything that does not ask for one keeps the pinned original behaviour.
+     */
+    @Test
+    public void noWindowIsTheOrdinaryRule() {
+        Pose2 start = Pose2.ofDegrees(0, 0, 0);
+        HeadingProfile plain = HeadingProfile.build(start, route(100, 0), Math.toRadians(90));
+        HeadingProfile zero = HeadingProfile.build(start, route(100, 0), Math.toRadians(90), 0.0, 0.0);
+        HeadingProfile windowed = HeadingProfile.build(start, route(100, 0), Math.toRadians(90), 30.0, 0.0);
+        assertEquals(27.0, Math.toDegrees(plain.headingAt(30.0)), EPS);
+        assertEquals(27.0, Math.toDegrees(zero.headingAt(30.0)), EPS);
+        assertEquals(2, zero.vertexCount());
+        assertEquals(0.0, Math.toDegrees(windowed.headingAt(30.0)), EPS);
+    }
+
+    /**
+     * Situation: a route with a corner at 30 in. A window edge asked for at 30.3 in (within the 0.5 in short-leg limit
+     *     of the corner), and another asked for at 31 in.
+     * Expected: 30.3 moves onto the corner (no new corner, so no 0.3 in leg); 31 gets its own new corner.
+     * Why: Pedro cannot follow a tiny leg, so a window edge must never create one.
+     */
+    @Test
+    public void aWindowEdgeNearACornerMovesOntoTheCorner() {
+        Pose2 start = Pose2.ofDegrees(0, 0, 0);
+        HeadingProfile snapped = HeadingProfile.build(start, route(30, 0, 100, 0), Math.toRadians(90), 30.3, 0.0);
+        assertEquals(3, snapped.vertexCount());
+        assertEquals(0.0, Math.toDegrees(snapped.headingAtVertex(1)), EPS);
+        HeadingProfile own = HeadingProfile.build(start, route(30, 0, 100, 0), Math.toRadians(90), 31.0, 0.0);
+        assertEquals(4, own.vertexCount());
+        assertEquals(31.0, own.distanceAtVertex(2), EPS);
+    }
+
+    /**
+     * Situation: a hold and a settle that together are longer than the 100 in route (90 + 90), and a hold of 500 in.
+     * Expected: the settle is cut back to what is left (10 in), leaving a window of zero length: the heading steps
+     *     from the start heading to the end heading at 90 in. A hold longer than the route puts the step at the very end.
+     * Why: nonsense windows must not crash or produce a heading outside the start..end range.
+     */
+    @Test
+    public void aWindowLongerThanTheRouteIsClamped() {
+        Pose2 start = Pose2.ofDegrees(0, 0, 0);
+        HeadingProfile p = HeadingProfile.build(start, route(100, 0), Math.toRadians(90), 90.0, 90.0);
+        assertEquals(3, p.vertexCount());
+        assertEquals(0.0, Math.toDegrees(p.headingAtVertex(0)), EPS);
+        assertEquals(90.0, Math.toDegrees(p.headingAtVertex(1)), EPS);
+        assertEquals(90.0, Math.toDegrees(p.headingAtVertex(2)), EPS);
+        HeadingProfile q = HeadingProfile.build(start, route(100, 0), Math.toRadians(90), 500.0, 0.0);
+        assertEquals(2, q.vertexCount());
+        assertEquals(0.0, Math.toDegrees(q.headingAtVertex(0)), EPS);
+        assertEquals(90.0, Math.toDegrees(q.headingAtVertex(1)), EPS);
+    }
+
+    /**
+     * Situation: 300 random routes with random windows.
+     * Expected: the windowed route is the same polyline (same length, and the position at every distance is the same as
+     *     without a window); no leg is shorter than the short-leg limit; every heading lies between the start and the
+     *     end heading (it never turns more than the one shortest turn).
+     * Why: a window changes WHEN the robot turns, never where it drives or how far it turns.
+     */
+    @Test
+    public void aWindowOnlyChangesWhenTheRobotTurns() {
+        Random rng = new Random(9);
+        double limit = BioBuzzConstants.AutoShoot.PATH_MIN_LEG_IN;
+        for (int trial = 0; trial < 300; trial++) {
+            Pose2 start = new Pose2(rng.nextDouble() * 100, rng.nextDouble() * 100, (rng.nextDouble() - 0.5) * 6.0);
+            List<double[]> wps = new ArrayList<double[]>();
+            double x = start.x;
+            double y = start.y;
+            int n = 1 + rng.nextInt(4);
+            for (int i = 0; i < n; i++) {
+                double len = 3 + rng.nextDouble() * 40;
+                double ang = rng.nextDouble() * 2 * Math.PI;
+                x += len * Math.cos(ang);
+                y += len * Math.sin(ang);
+                wps.add(new double[]{x, y});
+            }
+            double end = (rng.nextDouble() - 0.5) * 6.0;
+            HeadingProfile plain = HeadingProfile.build(start, wps, end);
+            double hold = rng.nextDouble() * plain.length();
+            double settle = rng.nextDouble() * plain.length();
+            HeadingProfile w = HeadingProfile.build(start, wps, end, hold, settle);
+            assertEquals(plain.length(), w.length(), EPS);
+            double turn = Angles.error(start.heading, end);
+            for (int i = 0; i + 1 < w.vertexCount(); i++) {
+                assertTrue("trial " + trial + " leg " + i, w.distanceAtVertex(i + 1) - w.distanceAtVertex(i) >= limit - EPS);
+            }
+            for (int i = 0; i < w.vertexCount(); i++) {
+                double s = w.distanceAtVertex(i);
+                assertEquals(plain.poseAt(s).x, w.x(i), EPS);
+                assertEquals(plain.poseAt(s).y, w.y(i), EPS);
+                double done = w.headingAtVertex(i) - start.heading;       // how much of the turn is done at this corner
+                double lo = Math.min(0.0, turn);
+                double hi = Math.max(0.0, turn);
+                assertTrue("trial " + trial, done >= lo - EPS && done <= hi + EPS);
+            }
+        }
     }
 }

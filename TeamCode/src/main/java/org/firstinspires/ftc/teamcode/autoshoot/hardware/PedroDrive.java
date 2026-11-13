@@ -143,6 +143,15 @@ public final class PedroDrive {
      * @param endHeadingRad the heading to have at the destination (radians, field frame)
      */
     public void follow(List<double[]> waypoints, double endHeadingRad) {
+        follow(waypoints, endHeadingRad, 0.0, 0.0);
+    }
+
+    /**
+     * Same, with the planner's turn window: keep the start heading for the first {@code turnHoldIn} inches of the
+     * route and be done turning for the last {@code turnSettleIn} inches (see {@link HeadingProfile}). The planner
+     * checks the route with exactly these numbers, so the robot must be given the same ones.
+     */
+    public void follow(List<double[]> waypoints, double endHeadingRad, double turnHoldIn, double turnSettleIn) {
         // Same list object = the route we are already driving; do nothing, so the path is not rebuilt (and
         // Pedro's state reset) every loop. A new list object means the controller has planned a new route.
         if (applied == Applied.FOLLOW && waypoints == activeRoute) {
@@ -154,7 +163,7 @@ public final class PedroDrive {
             hold(new Pose2(start.x, start.y, endHeadingRad));
             return;
         }
-        Path path = buildPath(start, waypoints, endHeadingRad);
+        Path path = buildPath(start, waypoints, endHeadingRad, turnHoldIn, turnSettleIn);
         if (path == null) {
             // Nowhere to go (we are already at the destination), so just hold it.
             hold(new Pose2(waypoints.get(waypoints.size() - 1)[0], waypoints.get(waypoints.size() - 1)[1], endHeadingRad));
@@ -170,7 +179,7 @@ public final class PedroDrive {
     public void apply(AutoShootController.Outputs out, double manualForward, double manualStrafe, double manualTurn) {
         switch (out.driveMode) {
             case FOLLOW:
-                follow(out.waypoints, out.holdPose.heading);
+                follow(out.waypoints, out.holdPose.heading, out.turnHoldIn, out.turnSettleIn);
                 break;
             case HOLD:
                 hold(out.holdPose);
@@ -203,8 +212,9 @@ public final class PedroDrive {
      * route checker ({@code RouteSweep}) asks the same class, so what is checked is exactly what is driven. This
      * method only turns the profile's corners into Pedro lines.
      */
-    private static Path buildPath(Pose2 start, List<double[]> waypoints, double endHeading) {
-        HeadingProfile profile = HeadingProfile.build(start, waypoints, endHeading);
+    private static Path buildPath(Pose2 start, List<double[]> waypoints, double endHeading,
+                                  double turnHoldIn, double turnSettleIn) {
+        HeadingProfile profile = HeadingProfile.build(start, waypoints, endHeading, turnHoldIn, turnSettleIn);
         if (profile.isEmpty()) {
             return null;
         }
