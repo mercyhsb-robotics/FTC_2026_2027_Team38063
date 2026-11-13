@@ -70,8 +70,12 @@ public final class SelfTipRoutes {
     /** The shooting pose in front of the rear cell: the back toward it, 32.8 in from its aim point, in line with it, clear of the rear-wall FLOWER (x 44 to 51). */
     static final Pose2 REAR_SHOT = Pose2.ofDegrees(61.5, 128.0, 90.0);
 
-    /** Where the robot stands to take the GARDEN POLLEN, its front 0.8 in off the audience wall (as in the catalog's garden_cycle). */
-    private static final double GARDEN_ROBOT_X = 9.0;
+    /**
+     * Where the robot stands to take the GARDEN POLLEN, its front 0.8 in off the audience wall (as in the catalog's garden_cycle). The robot comes along the wall,
+     * so it stops moving toward the red wall: 9.5 leaves 0.6 in between its side (8.9 in from the center) and that wall, so a follower that overshoots by a quarter
+     * of an inch (the runner's simulation does) still stays on the field. The row of 4 POLLEN is 11.5 in wide and the robot 17.8 in, so all 4 are still in front of it after the shift of 0.5 in.
+     */
+    private static final double GARDEN_ROBOT_X = 9.5;
     private static final double GARDEN_ROBOT_Y = FRONT + 0.8;
     /** The middle of the 4 GARDEN POLLEN (they lie along the audience wall). */
     private static final double GARDEN_TARGET_X = (BioBuzzConstants.Auto.RED_GARDEN_POLLEN_X_IN[0]
