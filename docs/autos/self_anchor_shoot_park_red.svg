@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Safe: shoot 4 from the start, drive up the left side and park in the LOADING ZONE - RED alliance</title>
+<title id="svg-title">Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE - RED alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_anchor_shoot_park for the RED alliance, starting in tile C1, with 6 steps: 1 START at (57.9, 9.8, -90 deg); 2 SHOOT 4 at UP cell from (57.9, 9.8, -90 deg); 3 DRIVE along the wall constant to 30.0, 14.8; 4 DRIVE corridor reverse tangent to 30.0, 84.0; 5 DRIVE to the zone linear to 12.0, 92.2; 6 PARK at (12.0, 92.2, 0 deg). First tip: we shoot the first tip. Estimated 11.3 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="15.85" font-weight="bold" fill="#222222">Safe: shoot 4 from the start, drive up the left side and park in the LOADING ZONE - RED alliance</text>
+<text id="title" x="24" y="27" font-size="15.21" font-weight="bold" fill="#222222">Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE - RED alliance</text>
 <text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id self_anchor_shoot_park  |  start tile C1  |  6 steps  |  red ink  |  first tip: we shoot the first tip</text>
 <rect x="24" y="52" width="40" height="4" fill="#c62828"/>
 <g id="field">

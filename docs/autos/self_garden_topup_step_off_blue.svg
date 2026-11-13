@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park) - BLUE alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_garden_topup_step_off for the BLUE alliance, starting in tile C1, with 7 steps: 1 START at (83.4, 131.6, 90 deg); 2 SHOOT 4 at UP cell from (83.4, 131.6, 90 deg); 3 DRIVE into the GARDEN constant to 132.3, 130.8; 4 INTAKE GARDEN +4 from (132.3, 130.8, 90 deg); 5 DRIVE back to the shot linear to 83.4, 131.6; 6 SHOOT 4 at REAR cell from (83.4, 131.6, 90 deg); 7 DRIVE off the wall constant to 111.3, 126.5. First tip: we shoot the first tip. Estimated 19.6 s, POLLEN balance -4, up to 23 points for our robot; 0 errors and 2 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route self_garden_topup_step_off for the BLUE alliance, starting in tile D6, with 7 steps: 1 START at (83.4, 131.6, 90 deg); 2 SHOOT 4 at UP cell from (83.4, 131.6, 90 deg); 3 DRIVE into the GARDEN constant to 132.3, 130.8; 4 INTAKE GARDEN +4 from (132.3, 130.8, 90 deg); 5 DRIVE back to the shot linear to 83.4, 131.6; 6 SHOOT 4 at REAR cell from (83.4, 131.6, 90 deg); 7 DRIVE off the wall constant to 111.3, 126.5. First tip: we shoot the first tip. Estimated 19.6 s, POLLEN balance -4, up to 23 points for our robot; 0 errors and 2 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -16,7 +16,7 @@
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
 <text id="title" x="24" y="27" font-size="12.79" font-weight="bold" fill="#222222">Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park) - BLUE alliance</text>
-<text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id self_garden_topup_step_off  |  start tile C1  |  7 steps  |  blue ink  |  first tip: we shoot the first tip</text>
+<text id="subtitle" x="24" y="45" font-size="12" fill="#555555">id self_garden_topup_step_off  |  start tile D6  |  7 steps  |  blue ink  |  first tip: we shoot the first tip</text>
 <rect x="24" y="52" width="40" height="4" fill="#1565c0"/>
 <g id="field">
 <rect class="alliance-area" data-alliance="RED" x="32.9" y="166.43" width="92" height="445.37" fill="url(#area-red)"/>
@@ -163,25 +163,25 @@
 </g>
 <g id="route" data-ink="#1565c0" data-alliance="BLUE" data-route="self_garden_topup_step_off">
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE into the GARDEN constant to 132.3, 130.8 (t = 5.5 to 7.7 s) - Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</title>
+<title>step 3: DRIVE into the GARDEN constant to 132.3, 130.8 (t = 5.5 to 7.7 s)</title>
 <path class="leg" d="M 508.65 108.94 L 733.7 112.62" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="621.18,110.78 611.09,115.62 611.26,105.62" fill="#1565c0"/>
 <polygon class="arrowhead" points="733.7,112.62 723.62,117.46 723.78,107.46" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="LINEAR">
-<title>step 5: DRIVE back to the shot linear to 83.4, 131.6 (t = 10.2 to 12.4 s) - Back to the pose of the first volley, turning evenly while it slides away from the wall.</title>
+<title>step 5: DRIVE back to the shot linear to 83.4, 131.6 (t = 10.2 to 12.4 s)</title>
 <path class="leg" d="M 733.7 112.62 L 508.65 108.94" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="621.18,110.78 631.26,105.95 631.09,115.94" fill="#1565c0"/>
 <polygon class="arrowhead" points="508.65,108.94 518.73,104.11 518.57,114.1" fill="#1565c0"/>
 </g>
 <g class="drive-leg" data-step="7" data-mode="CONSTANT">
-<title>step 7: DRIVE off the wall constant to 111.3, 126.5 (t = 17.9 to 19.6 s) - Slides along the audience wall to 5 in off it and stops: LEAVE (the whole robot is more than 1.5 in off every wall).</title>
+<title>step 7: DRIVE off the wall constant to 111.3, 126.5 (t = 17.9 to 19.6 s)</title>
 <path class="leg" d="M 508.65 108.94 L 637.1 132.08" fill="none" stroke="#1565c0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="572.88,120.51 562.15,123.66 563.92,113.82" fill="#1565c0"/>
 <polygon class="arrowhead" points="637.1,132.08 626.37,135.23 628.15,125.39" fill="#1565c0"/>
 </g>
 <g id="start-footprint" class="footprint start" data-step="1">
-<title>step 1: START at (83.4, 131.6, 90 deg) (t = 0.0 to 0.0 s) - Front edge ON the audience wall, facing it, in line with the HIVE: a shooting pose. Chosen because the SAME measured shot is used twice: the robot returns to this exact spot for the second volley, and it is the easiest start to place. The turned start would save about 1.1 s on the two trips.</title>
+<title>step 1: START at (83.4, 131.6, 90 deg) (t = 0.0 to 0.0 s)</title>
 <polygon class="outline" points="467.71,64 467.71,145.88 549.59,145.88 549.59,64" fill="#1565c0" fill-opacity="0.14" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
 <polygon class="chassis" points="467.71,76.42 467.71,145.88 549.59,145.88 549.59,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="467.71" y1="64" x2="549.59" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
@@ -197,7 +197,7 @@
 <polygon class="arrowhead" points="508.65,69 513.65,79 503.65,79" fill="#1565c0"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
-<title>step 2: SHOOT 4 at UP cell from (83.4, 131.6, 90 deg) (t = 0.0 to 5.5 s) - The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</title>
+<title>step 2: SHOOT 4 at UP cell from (83.4, 131.6, 90 deg) (t = 0.0 to 5.5 s)</title>
 <polygon class="outline" points="467.71,64 467.71,145.88 549.59,145.88 549.59,64" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
 <polygon class="chassis" points="467.71,76.42 467.71,145.88 549.59,145.88 549.59,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="467.71" y1="64" x2="549.59" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
@@ -213,7 +213,7 @@
 <polygon class="arrowhead" points="508.65,313.12 503.65,303.12 513.65,303.12" fill="#1565c0"/>
 </g>
 <g class="intake" data-step="4" data-source="GARDEN">
-<title>step 4: INTAKE GARDEN +4 from (132.3, 130.8, 90 deg) (t = 7.7 to 10.2 s) - The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</title>
+<title>step 4: INTAKE GARDEN +4 from (132.3, 130.8, 90 deg) (t = 7.7 to 10.2 s)</title>
 <polygon class="outline" points="692.76,67.68 692.76,149.56 774.64,149.56 774.64,67.68" fill="#1565c0" fill-opacity="0.07" stroke="#1565c0" stroke-width="1.8" stroke-dasharray="6 3" stroke-linejoin="round"/>
 <polygon class="chassis" points="692.76,80.1 692.76,149.56 774.64,149.56 774.64,80.1" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="692.76" y1="67.68" x2="774.64" y2="67.68" stroke="#2e7d32" stroke-width="4.5"/>
@@ -228,7 +228,7 @@
 <circle class="intake-ring" cx="748.72" cy="70.44" r="32.2" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-dasharray="7 4"/>
 </g>
 <g class="shoot-pose" data-step="6" data-nominal="false">
-<title>step 6: SHOOT 4 at REAR cell from (83.4, 131.6, 90 deg) (t = 12.4 to 17.9 s) - THE TOP-UP. The plan says the first volley tipped the HIVE, so on paper the audience cell is already DOWN: that is the WARN on this step. On the field the robot fires only if its camera still shows the audience cell UP (tags in view, steady), which means the first volley did not tip it; the cell then still holds the 3 NECTAR and whatever landed, so 1 to 3 more POLLEN tip it. If the camera shows the cell DOWN (the HIVE tipped), or sees nothing, the volley is skipped and the robot goes on. The plan counts the volley&apos;s time (5.5 s) as if it fired, so the finish time is the worst case.</title>
+<title>step 6: SHOOT 4 at REAR cell from (83.4, 131.6, 90 deg) (t = 12.4 to 17.9 s)</title>
 <polygon class="outline" points="467.71,64 467.71,145.88 549.59,145.88 549.59,64" fill="#1565c0" fill-opacity="0.1" stroke="#1565c0" stroke-width="1.8" stroke-linejoin="round"/>
 <polygon class="chassis" points="467.71,76.42 467.71,145.88 549.59,145.88 549.59,76.42" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="467.71" y1="64" x2="549.59" y2="64" stroke="#2e7d32" stroke-width="4.5"/>
@@ -244,7 +244,7 @@
 <polygon class="arrowhead" points="508.65,313.12 503.65,303.12 513.65,303.12" fill="#1565c0"/>
 </g>
 <g class="end-outline" data-step="7">
-<title>step 7: DRIVE off the wall constant to 111.3, 126.5 (t = 17.9 to 19.6 s) - Slides along the audience wall to 5 in off it and stops: LEAVE (the whole robot is more than 1.5 in off every wall).</title>
+<title>step 7: DRIVE off the wall constant to 111.3, 126.5 (t = 17.9 to 19.6 s)</title>
 <polygon class="outline" points="596.16,87.14 596.16,169.02 678.04,169.02 678.04,87.14" fill="#1565c0" fill-opacity="0.12" stroke="#1565c0" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="596.16,99.56 596.16,169.02 678.04,169.02 678.04,99.56" fill="#1565c0" fill-opacity="0.2" stroke="#1565c0" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="596.16" y1="87.14" x2="678.04" y2="87.14" stroke="#2e7d32" stroke-width="4.5"/>
@@ -259,43 +259,43 @@
 </g>
 <g id="badges">
 <g class="badge" data-step="1" data-kind="START">
-<title>step 1: START at (83.4, 131.6, 90 deg) (t = 0.0 to 0.0 s) - Front edge ON the audience wall, facing it, in line with the HIVE: a shooting pose. Chosen because the SAME measured shot is used twice: the robot returns to this exact spot for the second volley, and it is the easiest start to place. The turned start would save about 1.1 s on the two trips.</title>
+<title>step 1: START at (83.4, 131.6, 90 deg) (t = 0.0 to 0.0 s)</title>
 <circle cx="508.65" cy="108.94" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="508.65" y="112.74" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
-<title>step 2: SHOOT 4 at UP cell from (83.4, 131.6, 90 deg) (t = 0.0 to 5.5 s) - The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</title>
+<title>step 2: SHOOT 4 at UP cell from (83.4, 131.6, 90 deg) (t = 0.0 to 5.5 s)</title>
 <circle cx="522.09" cy="95.51" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="522.09" y="99.31" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE into the GARDEN constant to 132.3, 130.8 (t = 5.5 to 7.7 s) - Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</title>
+<title>step 3: DRIVE into the GARDEN constant to 132.3, 130.8 (t = 5.5 to 7.7 s)</title>
 <circle cx="621.18" cy="110.78" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="621.18" y="114.58" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="INTAKE">
-<title>step 4: INTAKE GARDEN +4 from (132.3, 130.8, 90 deg) (t = 7.7 to 10.2 s) - The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</title>
+<title>step 4: INTAKE GARDEN +4 from (132.3, 130.8, 90 deg) (t = 7.7 to 10.2 s)</title>
 <circle cx="733.7" cy="112.62" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="733.7" y="116.42" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
-<title>step 5: DRIVE back to the shot linear to 83.4, 131.6 (t = 10.2 to 12.4 s) - Back to the pose of the first volley, turning evenly while it slides away from the wall.</title>
+<title>step 5: DRIVE back to the shot linear to 83.4, 131.6 (t = 10.2 to 12.4 s)</title>
 <circle cx="634.61" cy="97.35" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="634.61" y="101.15" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="SHOOT">
-<title>step 6: SHOOT 4 at REAR cell from (83.4, 131.6, 90 deg) (t = 12.4 to 17.9 s) - THE TOP-UP. The plan says the first volley tipped the HIVE, so on paper the audience cell is already DOWN: that is the WARN on this step. On the field the robot fires only if its camera still shows the audience cell UP (tags in view, steady), which means the first volley did not tip it; the cell then still holds the 3 NECTAR and whatever landed, so 1 to 3 more POLLEN tip it. If the camera shows the cell DOWN (the HIVE tipped), or sees nothing, the volley is skipped and the robot goes on. The plan counts the volley&apos;s time (5.5 s) as if it fired, so the finish time is the worst case.</title>
+<title>step 6: SHOOT 4 at REAR cell from (83.4, 131.6, 90 deg) (t = 12.4 to 17.9 s)</title>
 <circle cx="522.09" cy="122.38" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="522.09" y="126.18" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
 <g class="badge" data-step="7" data-kind="DRIVE">
-<title>step 7: DRIVE off the wall constant to 111.3, 126.5 (t = 17.9 to 19.6 s) - Slides along the audience wall to 5 in off it and stops: LEAVE (the whole robot is more than 1.5 in off every wall).</title>
+<title>step 7: DRIVE off the wall constant to 111.3, 126.5 (t = 17.9 to 19.6 s)</title>
 <circle cx="572.88" cy="120.51" r="8.5" fill="#ffffff" stroke="#1565c0" stroke-width="2.5"/>
 <text x="572.88" y="124.31" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">7</text>
 </g>
 </g>
 <g id="step-labels">
-<text class="step-label" x="538.65" y="144.94" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START C1</text>
+<text class="step-label" x="538.65" y="144.94" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">START D6</text>
 <text class="step-label" x="523.65" y="247.5" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">SHOOT 4 (step 2)</text>
 <text class="step-label" x="523.65" y="331.12" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">HIVE TIP +20</text>
 <text class="step-label" x="636.18" y="128.78" font-size="10" font-weight="bold" fill="#1565c0" text-anchor="start" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" paint-order="stroke">into the GARDEN</text>

@@ -72,6 +72,14 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <tr class="summary-row" data-route="red_leave_park"><td><a href="#red_leave_park">Copy of RedAlliance_LeavePark: leave the wall and park (no shooting)</a><br /><code>red_leave_park</code></td><td>A3 / F4</td><td>we shoot the first tip</td><td>4</td><td>2.7 s</td><td>8</td><td>0</td><td><span class="status-error">2 ERROR</span></td></tr>
 <tr class="summary-row" data-route="wall_shoot_park"><td><a href="#wall_shoot_park">Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park</a><br /><code>wall_shoot_park</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>6</td><td>12.4 s</td><td>28</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
 <tr class="summary-row" data-route="garden_cycle"><td><a href="#garden_cycle">Shoot 4 (tips the HIVE, 1 spare), take 3 GARDEN POLLEN, step off the wall</a><br /><code>garden_cycle</code></td><td>B1 / E6</td><td>we shoot the first tip</td><td>6</td><td>14.1 s</td><td>23</td><td>-1</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_anchor_shoot_park"><td><a href="#self_anchor_shoot_park">Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE</a><br /><code>self_anchor_shoot_park</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>6</td><td>11.3 s</td><td>28</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_shoot_step_off"><td><a href="#self_shoot_step_off">Safe: shoot 4 from the start and step off the wall (stay out of the LOADING ZONE)</a><br /><code>self_shoot_step_off</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>3</td><td>7.2 s</td><td>23</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_shoot_only"><td><a href="#self_shoot_only">Safe: shoot 4 from the start and do not move (the drive or the odometry cannot be trusted)</a><br /><code>self_shoot_only</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>2</td><td>5.5 s</td><td>20</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_garden_carry_park"><td><a href="#self_garden_carry_park">Standard: shoot 4, take the 4 GARDEN POLLEN and park in the LOADING ZONE with them</a><br /><code>self_garden_carry_park</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>8</td><td>15.8 s</td><td>28</td><td>0</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_garden_refill_ready"><td><a href="#self_garden_refill_ready">Standard: shoot 4, take the 4 GARDEN POLLEN and wait 5 in off the wall at the shooting spot</a><br /><code>self_garden_refill_ready</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>5</td><td>12.4 s</td><td>23</td><td>0</td><td><span class="status-warn">1 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_garden_topup_step_off"><td><a href="#self_garden_topup_step_off">Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park)</a><br /><code>self_garden_topup_step_off</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>7</td><td>19.6 s</td><td>23</td><td>-4</td><td><span class="status-warn">2 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_garden_topup_park"><td><a href="#self_garden_topup_park">Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, then park</a><br /><code>self_garden_topup_park</code></td><td>B1 / E6</td><td>we shoot the first tip</td><td>10</td><td>22.6 s</td><td>28</td><td>-4</td><td><span class="status-warn">2 WARN</span></td></tr>
+<tr class="summary-row" data-route="self_rear_bank"><td><a href="#self_rear_bank">Advanced: shoot 4, take the GARDEN, drive round the HIVE and shoot 4 into the cell that came up</a><br /><code>self_rear_bank</code></td><td>C1 / D6</td><td>we shoot the first tip</td><td>8</td><td>22.3 s</td><td>23</td><td>-4</td><td><span class="status-warn">1 WARN</span></td></tr>
 <tr class="summary-row" data-route="partner_rear_shoot_park"><td><a href="#partner_rear_shoot_park">Partner tips first: wait beside the cell that comes up, shoot 4 into it, park</a><br /><code>partner_rear_shoot_park</code></td><td>B6 / E1</td><td>partner tips first, assumed at 12.0 s<br /><span class="note">latest tip that works: 18.5 s</span></td><td>6</td><td>21.5 s</td><td>8</td><td>-4</td><td><span class="status-ok">no findings</span></td></tr>
 </tbody>
 </table>
@@ -319,6 +327,389 @@ footer { padding-bottom: 32px; color: var(--muted); font-size: 0.9rem; }
 <p class="muted">Same for RED and BLUE.</p>
 <ul class="issues">
 <li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="self_anchor_shoot_park" data-route="self_anchor_shoot_park">
+<h2>Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE</h2>
+<p class="muted"><code>self_anchor_shoot_park</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>THE BASIC ROUTE. Put the robot with its front edge on the audience wall, in line with the HIVE (the placement words above). It already stands where it shoots from, so it fires the 4 pre-loads at once with no drive first, and this is the one shot the team has measured; that start saves about 0.7 s against tile C1 and 1.5 s against tile B1, which must drive to a shooting pose first. Then it slides along the wall, goes up the left corridor and parks in the LOWER half of the LOADING ZONE. POINTS: LEAVE 3 + PARK 5 + the HIVE tip 20 if 3 of the 4 shots land = 28 (8 if the tip does not happen). SPARE POLLEN: 1 in the volley (probably spent, see the WARN). It needs no camera and no pick-up and is over in about 11 s. WHAT CAN GO WRONG: fewer than 3 shots land (real teams land about 6 in 10, so this happens about half of the time): the tip is missed and nothing tries again; use a top-up route if you want a second chance. THE PARTNER: it may park in the upper half of the zone; it must not shoot into our audience cell first.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>6</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>11.3 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>28 = LEAVE 3 + PARK 5 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 6.50 in inside the LOADING ZONE, at (12.0, 92.2) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">1 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_anchor_shoot_park_red.svg"><img class="diagram" src="self_anchor_shoot_park_red.svg" alt="Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_anchor_shoot_park_blue.svg"><img class="diagram" src="self_anchor_shoot_park_blue.svg" alt="Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, the middle of the robot over the HIVE&apos;s line (x 57.92400000000001 in). Chosen because it is a shooting pose already (the ball leaves about 36 in from the aim point, inside the 30 to 38 in band, straight at the cell) and the only start where the measured shot applies.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> along the wall constant to 30.0, 14.8 <span class="time">t = 5.5 to 7.2 s</span><div class="note">Slides sideways along the audience wall with the front still toward it, 5 in off the wall, until it is beside the left corridor.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> corridor reverse tangent to 30.0, 84.0 <span class="time">t = 7.2 to 9.9 s</span><div class="note">Backwards (the shooter end first) up the left corridor, 13 in clear of the HIVE keep-out and of the spill zone of the cell that tipped.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to the zone linear to 12.0, 92.2 <span class="time">t = 9.9 to 11.3 s</span><div class="note">Turns to face +x while it slides into the LOADING ZONE.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 92.2, 0 deg) <span class="time">t = 11.3 to 11.3 s</span><div class="note">Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="self_shoot_step_off" data-route="self_shoot_step_off">
+<h2>Safe: shoot 4 from the start and step off the wall (stay out of the LOADING ZONE)</h2>
+<p class="muted"><code>self_shoot_step_off</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>THE SHORTEST ROUTE. The same start and the same first volley as the basic route (front on the audience wall in line with the HIVE, 4 pre-loads fired at once), then it slides 5 in off the wall and stops: LEAVE only. Use it when the partner is going to park in the LOADING ZONE and the zone is too crowded for two robots, or when you do not trust a long drive. It is over in about 7 s, so the robot is free for TELEOP at once. POINTS: LEAVE 3 + the HIVE tip 20 if 3 of the 4 shots land = 23 (3 if the tip does not happen). SPARE POLLEN: 1 in the volley (probably spent). WHAT CAN GO WRONG: the tip is missed and nothing tries again; no PARK (5 points). THE PARTNER: it may take the whole LOADING ZONE.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>3</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>7.2 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>23 = LEAVE 3 + PARK 0 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK no, at (30.0, 14.8) in, heading -90 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">1 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_shoot_step_off_red.svg"><img class="diagram" src="self_shoot_step_off_red.svg" alt="Safe: shoot 4 from the start and step off the wall (stay out of the LOADING ZONE), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_shoot_step_off_blue.svg"><img class="diagram" src="self_shoot_step_off_blue.svg" alt="Safe: shoot 4 from the start and step off the wall (stay out of the LOADING ZONE), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, in line with the HIVE. The same start as the basic route: a shooting pose, so no drive comes before the volley.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> off the wall constant to 30.0, 14.8 <span class="time">t = 5.5 to 7.2 s</span><div class="note">Slides sideways along the audience wall, ending 5 in off it: the whole robot is more than 1.5 in off every wall, so the LEAVE is claimed. The robot is far below the cell that tipped by then, outside its spill zone (the rear edge is 23 in out, the zone starts 30.7 in out).</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="self_shoot_only" data-route="self_shoot_only">
+<h2>Safe: shoot 4 from the start and do not move (the drive or the odometry cannot be trusted)</h2>
+<p class="muted"><code>self_shoot_only</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>THE NO-DRIVE FALLBACK. Use it only when the drive base or the odometry (the Pinpoint) is broken or not trusted, so you do not want the robot to move at all. The robot stands where it is put (front on the audience wall, in line with the HIVE), fires the 4 pre-loads and stops: nothing in the route depends on where it thinks it is after the start, so only the placement matters. It is over in about 5.5 s. POINTS: the HIVE tip 20 if 3 of the 4 shots land (0 if not). No LEAVE: the robot ends touching the audience wall (QA21 takes the LEAVE away from a robot that touches any wall at the end), and no PARK. SPARE POLLEN: 1 in the volley (probably spent). WHAT CAN GO WRONG: the tip is missed and nothing tries again; it gives up 8 points that a working robot would take (see the basic route). THE PARTNER: it may take the whole LOADING ZONE; keep clear of the audience cell&apos;s spill (it falls in front of the HIVE) for 3.5 s after the tip.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>2</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>5.5 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>20 = LEAVE 0 + PARK 0 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +0 taken, -4 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE no (the robot ends 0.00 in from the audience wall (y = 0); LEAVE needs 1.50 in off every wall at the end of AUTO, and touching any wall loses it, the one in the LOADING ZONE too: QA21), PARK no, at (57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">1 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_shoot_only_red.svg"><img class="diagram" src="self_shoot_only_red.svg" alt="Safe: shoot 4 from the start and do not move (the drive or the odometry cannot be trusted), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_shoot_only_blue.svg"><img class="diagram" src="self_shoot_only_blue.svg" alt="Safe: shoot 4 from the start and do not move (the drive or the odometry cannot be trusted), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, in line with the HIVE: a shooting pose, so the robot fires where it stands, with nothing to drive.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="self_garden_carry_park" data-route="self_garden_carry_park">
+<h2>Standard: shoot 4, take the 4 GARDEN POLLEN and park in the LOADING ZONE with them</h2>
+<p class="muted"><code>self_garden_carry_park</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>POLLEN FOR TELEOP. From the anchor start (front on the audience wall, in line with the HIVE) the robot fires the 4 pre-loads at once, slides 49 in along the wall to the GARDEN, takes all 4 of its POLLEN, goes up the left corridor and parks in the lower half of the LOADING ZONE holding them, so TELEOP starts with 4 POLLEN loaded. POINTS: LEAVE 3 + PARK 5 + the tip 20 if 3 of the 4 shots land = 28; the GARDEN POLLEN score nothing in AUTO. SPARE POLLEN: 1 in the volley (probably spent). It is over in about 16 s, so about 12 s are left: a slow GARDEN pick-up (the plan says 2.5 s) does not hurt. WHAT CAN GO WRONG: it does not shoot again, so a missed tip stays missed; if the feeder did stop in time the robot still holds 1 POLLEN and the intake must stop at 3 (never more than 4 held, G407). THE PARTNER: the GARDEN is ours alone; the partner may park in the upper half of the zone.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>8</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>15.8 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>28 = LEAVE 3 + PARK 5 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +4 taken, -4 fired, 4 at the end (balance 0)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 6.50 in inside the LOADING ZONE, at (12.0, 92.2) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">1 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_garden_carry_park_red.svg"><img class="diagram" src="self_garden_carry_park_red.svg" alt="Standard: shoot 4, take the 4 GARDEN POLLEN and park in the LOADING ZONE with them, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_garden_carry_park_blue.svg"><img class="diagram" src="self_garden_carry_park_blue.svg" alt="Standard: shoot 4, take the 4 GARDEN POLLEN and park in the LOADING ZONE with them, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, in line with the HIVE: a shooting pose already. The turned start would save only about 0.3 s here, which is not worth the harder placement.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> into the GARDEN constant to 9.0, 10.6 <span class="time">t = 5.5 to 7.7 s</span><div class="note">Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</div></li>
+<li class="step" data-kind="INTAKE"><span class="kind">INTAKE</span> GARDEN +4 from (9.0, 10.6, -90 deg) <span class="time">t = 7.7 to 10.2 s</span><div class="note">The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> along the wall constant to 30.0, 14.8 <span class="time">t = 10.2 to 11.7 s</span><div class="note">Slides sideways along the audience wall with the front still toward it, 5 in off the wall, until it is beside the left corridor.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> corridor reverse tangent to 30.0, 84.0 <span class="time">t = 11.7 to 14.4 s</span><div class="note">Backwards (the shooter end first) up the left corridor, 13 in clear of the HIVE keep-out and of the spill zone of the cell that tipped.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to the zone linear to 12.0, 92.2 <span class="time">t = 14.4 to 15.8 s</span><div class="note">Turns to face +x while it slides into the LOADING ZONE.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 92.2, 0 deg) <span class="time">t = 15.8 to 15.8 s</span><div class="note">Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="self_garden_refill_ready" data-route="self_garden_refill_ready">
+<h2>Standard: shoot 4, take the 4 GARDEN POLLEN and wait 5 in off the wall at the shooting spot</h2>
+<p class="muted"><code>self_garden_refill_ready</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>A LOADED ROBOT AT THE SHOOTING SPOT. The anchor start fires the 4 pre-loads, the robot takes the 4 GARDEN POLLEN and comes back to the spot it shot from, 5 in off the wall (still 31 in from the audience cell: still a shooting pose) and stops there: LEAVE, no PARK, no second volley in AUTO. At the start of TELEOP the robot is loaded and aimed: if the first volley did not tip the HIVE (the audience cell is still UP) the drivers can fire at once; if it did, the REAR cell is the UP one and they drive round. It is the same plan as the top-up routes without the AUTO volley, so it needs no camera in AUTO. POINTS: LEAVE 3 + the tip 20 if 3 of the 4 shots land = 23. SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: it gives up the PARK (5) and the second chance in AUTO; the volley is not taken until TELEOP starts, after the 8 s pause in which no robot may move (G403). THE PARTNER: it may use the whole LOADING ZONE.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>5</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>12.4 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>23 = LEAVE 3 + PARK 0 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +4 taken, -4 fired, 4 at the end (balance 0)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK no, at (57.9, 14.8) in, heading -90 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">1 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_garden_refill_ready_red.svg"><img class="diagram" src="self_garden_refill_ready_red.svg" alt="Standard: shoot 4, take the 4 GARDEN POLLEN and wait 5 in off the wall at the shooting spot, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_garden_refill_ready_blue.svg"><img class="diagram" src="self_garden_refill_ready_blue.svg" alt="Standard: shoot 4, take the 4 GARDEN POLLEN and wait 5 in off the wall at the shooting spot, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, in line with the HIVE: the same start as the basic route, a shooting pose, so the first volley needs no drive.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> into the GARDEN constant to 9.0, 10.6 <span class="time">t = 5.5 to 7.7 s</span><div class="note">Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</div></li>
+<li class="step" data-kind="INTAKE"><span class="kind">INTAKE</span> GARDEN +4 from (9.0, 10.6, -90 deg) <span class="time">t = 7.7 to 10.2 s</span><div class="note">The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> back to the shot linear to 57.9, 14.8 <span class="time">t = 10.2 to 12.4 s</span><div class="note">Back to the spot of the first volley but 5 in off the wall: the whole robot is more than 1.5 in off every wall (LEAVE), and the ball would leave about 31 in from the audience cell&apos;s aim point, inside the 30 to 38 in band, straight at it.</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+</ul>
+</section>
+<section class="route" id="self_garden_topup_step_off" data-route="self_garden_topup_step_off">
+<h2>Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park)</h2>
+<p class="muted"><code>self_garden_topup_step_off</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>THE SECOND CHANCE WITHOUT THE LONG DRIVE. The anchor start (front on the audience wall in line with the HIVE, the measured shot) fires the 4 pre-loads at once. The robot then slides to the GARDEN, takes its 4 POLLEN, comes BACK to the anchor pose and fires again at the audience cell, only if its camera still shows that cell UP (the first volley did not tip it). Then it steps 5 in off the wall and stops: it does NOT drive to the LOADING ZONE, so it is over at about 20 s, 3 s earlier than the parking version, and it never has to share the zone. If the first volley DID tip, the robot sees the cell DOWN, skips the second volley and is done about 5 s sooner. With both volleys the chance of the tip goes from about 47 in 100 to about 95 in 100 (if 6 shots in 10 land). POINTS: LEAVE 3 + the tip 20 = 23 (the PARK&apos;s 5 points are given up for time and for the zone; the second volley can only replace the first volley&apos;s tip, never add one). SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: with no camera, or on a bad read, the second volley is not fired; the GARDEN trip is 49 in each way. THE PARTNER: it may use the whole LOADING ZONE; it must NOT shoot into our audience cell in AUTO.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>7</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>19.6 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>23 = LEAVE 3 + PARK 0 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +4 taken, -8 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK no, at (30.0, 14.8) in, heading -90 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">2 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_garden_topup_step_off_red.svg"><img class="diagram" src="self_garden_topup_step_off_red.svg" alt="Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park), RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_garden_topup_step_off_blue.svg"><img class="diagram" src="self_garden_topup_step_off_blue.svg" alt="Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, step off (no park), BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall, facing it, in line with the HIVE: a shooting pose. Chosen because the SAME measured shot is used twice: the robot returns to this exact spot for the second volley, and it is the easiest start to place. The turned start would save about 1.1 s on the two trips.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> into the GARDEN constant to 9.0, 10.6 <span class="time">t = 5.5 to 7.7 s</span><div class="note">Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</div></li>
+<li class="step" data-kind="INTAKE"><span class="kind">INTAKE</span> GARDEN +4 from (9.0, 10.6, -90 deg) <span class="time">t = 7.7 to 10.2 s</span><div class="note">The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> back to the shot linear to 57.9, 9.8 <span class="time">t = 10.2 to 12.4 s</span><div class="note">Back to the pose of the first volley, turning evenly while it slides away from the wall.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at AUDIENCE cell from (57.9, 9.8, -90 deg) <span class="time">t = 12.4 to 17.9 s</span><div class="note">THE TOP-UP. The plan says the first volley tipped the HIVE, so on paper the audience cell is already DOWN: that is the WARN on this step. On the field the robot fires only if its camera still shows the audience cell UP (tags in view, steady), which means the first volley did not tip it; the cell then still holds the 3 NECTAR and whatever landed, so 1 to 3 more POLLEN tip it. If the camera shows the cell DOWN (the HIVE tipped), or sees nothing, the volley is skipped and the robot goes on. The plan counts the volley&apos;s time (5.5 s) as if it fired, so the finish time is the worst case.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> off the wall constant to 30.0, 14.8 <span class="time">t = 17.9 to 19.6 s</span><div class="note">Slides along the audience wall to 5 in off it and stops: LEAVE (the whole robot is more than 1.5 in off every wall).</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+<li class="tipline volley" data-step="6">Step 6: fires 4 POLLEN at the AUDIENCE cell, which faces down when they leave, so they count for nothing.</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+<li class="issue warn" data-severity="WARN" data-step="6"><strong>WARN</strong> step 6 <code>G417</code> shoot at an UP cell: step 6 (SHOOT): fires at the AUDIENCE cell, but at this point the REAR cell is the UP one; launching into a cell that faces down is a G417 violation</li>
+</ul>
+</section>
+<section class="route" id="self_garden_topup_park" data-route="self_garden_topup_park">
+<h2>Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, then park</h2>
+<p class="muted"><code>self_garden_topup_park</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile B1 is E6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>THE SECOND CHANCE, WITH THE PARK. Real teams land only about 6 shots in 10, so the first volley tips the HIVE less than half of the time (3 of 4 must land). This route plans the insurance and still parks: from the turned start it fires the 4 pre-loads, slides to the GARDEN, takes its 4 POLLEN, comes back to the same pose and fires AGAIN at the audience cell, but only if the camera still shows that cell UP (the HIVE did not tip). Then it goes up the corridor and parks in the lower half of the LOADING ZONE. With both volleys the chance of the tip goes from about 47 in 100 to about 95 in 100 (if 6 shots in 10 land). If the first volley DID tip, the robot sees the cell DOWN, skips the second volley and finishes about 5 s early. POINTS: LEAVE 3 + PARK 5 + the tip 20 = 28 (the second volley can only replace the first volley&apos;s tip, never add one). SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: it ends at about 22.5 s on the plan, the least time to spare of the routes with a park: a slow robot may not make it, and then the PARK is lost; no camera means no second volley. THE PARTNER: it must NOT shoot into our audience cell in AUTO; the upper half of the zone is free for it.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED B1, BLUE E6</td></tr>
+<tr><th>Start pose, RED</th><td>(44.5, 12.2) in, heading -110 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(96.8, 129.1) in, heading 70 deg</td></tr>
+<tr><th>Steps</th><td>10</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>22.6 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>28 = LEAVE 3 + PARK 5 + our HIVE TIP 20</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +4 taken, -8 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK yes, 6.50 in inside the LOADING ZONE, at (12.0, 92.2) in, heading 0 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">2 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_garden_topup_park_red.svg"><img class="diagram" src="self_garden_topup_park_red.svg" alt="Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, then park, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_garden_topup_park_blue.svg"><img class="diagram" src="self_garden_topup_park_blue.svg" alt="Aggressive: shoot 4, refill at the GARDEN, shoot again only if the HIVE did not tip, then park, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (44.5, 12.2, -110 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">A front corner ON the audience wall, turned 20 degrees clockwise, back toward the audience cell. Chosen because the robot comes back to it for the second volley: it is a shooting pose AND 13 in closer to the GARDEN than the anchor start, which saves about 1.0 s on the two trips to it, against the anchor start. The same pose is used twice, so the aim only has to be checked once. (On a route with only one trip the same start saves just 0.4 s, which is not worth the harder placement.)</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (44.5, 12.2, -110 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> into the GARDEN constant to 9.0, 10.6 <span class="time">t = 5.5 to 7.4 s</span><div class="note">Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</div></li>
+<li class="step" data-kind="INTAKE"><span class="kind">INTAKE</span> GARDEN +4 from (9.0, 10.6, -90 deg) <span class="time">t = 7.4 to 9.9 s</span><div class="note">The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> back to the shot linear to 44.5, 12.2 <span class="time">t = 9.9 to 11.7 s</span><div class="note">Back to the pose of the first volley, turning evenly while it slides away from the wall.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at AUDIENCE cell from (44.5, 12.2, -110 deg) <span class="time">t = 11.7 to 17.2 s</span><div class="note">THE TOP-UP. The plan says the first volley tipped the HIVE, so on paper the audience cell is already DOWN: that is the WARN on this step. On the field the robot fires only if its camera still shows the audience cell UP (tags in view, steady), which means the first volley did not tip it; the cell then still holds the 3 NECTAR and whatever landed, so 1 to 3 more POLLEN tip it. If the camera shows the cell DOWN (the HIVE tipped), or sees nothing, the volley is skipped and the robot goes on. The plan counts the volley&apos;s time (5.5 s) as if it fired, so the finish time is the worst case.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> along the wall constant to 30.0, 14.8 <span class="time">t = 17.2 to 18.5 s</span><div class="note">Slides sideways along the audience wall with the front still toward it, 5 in off the wall, until it is beside the left corridor.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> corridor reverse tangent to 30.0, 84.0 <span class="time">t = 18.5 to 21.2 s</span><div class="note">Backwards (the shooter end first) up the left corridor, 13 in clear of the HIVE keep-out and of the spill zone of the cell that tipped.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to the zone linear to 12.0, 92.2 <span class="time">t = 21.2 to 22.6 s</span><div class="note">Turns to face +x while it slides into the LOADING ZONE.</div></li>
+<li class="step" data-kind="PARK"><span class="kind">PARK</span> at (12.0, 92.2, 0 deg) <span class="time">t = 22.6 to 22.6 s</span><div class="note">Parks in the LOWER half of the LOADING ZONE, overlapping it by 6.5 in (PARK needs 3), the whole robot 4 in off the red wall so the LEAVE is kept too (touching ANY wall at the end of AUTO loses it, QA21). The upper half of the zone stays free for the partner.</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+<li class="tipline volley" data-step="6">Step 6: fires 4 POLLEN at the AUDIENCE cell, which faces down when they leave, so they count for nothing.</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
+<li class="issue warn" data-severity="WARN" data-step="6"><strong>WARN</strong> step 6 <code>G417</code> shoot at an UP cell: step 6 (SHOOT): fires at the AUDIENCE cell, but at this point the REAR cell is the UP one; launching into a cell that faces down is a G417 violation</li>
+</ul>
+</section>
+<section class="route" id="self_rear_bank" data-route="self_rear_bank">
+<h2>Advanced: shoot 4, take the GARDEN, drive round the HIVE and shoot 4 into the cell that came up</h2>
+<p class="muted"><code>self_rear_bank</code></p>
+<p class="readingkey muted">How to read this for BLUE: the title, description and step notes are written for the RED alliance (the left picture). For BLUE turn them half a turn about the field center: the audience wall and the rear wall swap, left and right of the field swap, red and blue swap, and tile names turn too (this route&apos;s start tile C1 is D6 for BLUE; A and F, B and E, C and D swap, and so do rows 1 and 6, 2 and 5, 3 and 4). The robot&apos;s own left and right do not swap. The x and y numbers in the text are RED numbers: the BLUE number is 141.35 minus the RED one. The start tile and start pose rows are worked out for each alliance.</p>
+<p>BANK FOR THE SECOND TIP. After our own tip the OTHER (rear) cell comes up and holds no NECTAR, so it needs 8 POLLEN (two volleys of 4); there is no time for both in AUTO, but the first 4 can be put in, so TELEOP needs only 4 more (POLLEN left in a cell are worth 2 each at the end of the match if nothing tips them). The robot fires the 4 pre-loads from the anchor start (the tip), takes the GARDEN&apos;s 4 POLLEN, drives up the left corridor and across above the HIVE to the REAR cell&apos;s shooting pose (33 in from it, straight at it) and fires there ONLY after its camera has seen that cell UP and steady. It stops there, 3.6 in off the rear wall, next to the rear FLOWER: TELEOP can fetch the other 4 from it. POINTS: LEAVE 3 + the tip 20 if 3 of the 4 first shots land = 23; the 4 banked POLLEN score nothing in AUTO. SPARE POLLEN: 1 in the first volley (probably spent). WHAT CAN GO WRONG: it works only if the first volley tipped the HIVE (about half of the time): otherwise the rear cell never comes up, the camera never sees it, and the robot just stands there with 4 POLLEN (use a top-up route if the tip matters more); it ends at about 22 s on the plan, with several seconds to spare; the PARK (5) does not fit: with it the route needs about 26 s. THE PARTNER: if the partner ALSO shoots into the rear cell, our 4 only help; keep out of its way in the corridor.</p>
+<table class="meta">
+<tr><th>Start tile</th><td>RED C1, BLUE D6</td></tr>
+<tr><th>Start pose, RED</th><td>(57.9, 9.8) in, heading -90 deg</td></tr>
+<tr><th>Start pose, BLUE</th><td>(83.4, 131.6) in, heading 90 deg</td></tr>
+<tr><th>Steps</th><td>8</td></tr>
+<tr><th>First tip</th><td>we shoot the first tip</td></tr>
+<tr><th>Estimated time</th><td>22.3 s of the 30.0 s AUTO (placeholder timing)</td></tr>
+<tr><th>Our AUTO points</th><td>23 = LEAVE 3 + PARK 0 + our HIVE TIP 20</td></tr>
+<tr><th>If the tip is never confirmed</th><td>the robot does not wait, leaves 1 volley out (no camera, no shot) and carries on: it ends at (61.5, 128.0) in, heading 90 deg after 16.8 s with LEAVE yes, PARK no: 23 points</td></tr>
+<tr><th>POLLEN</th><td>hold 4 at the start, +4 taken, -8 fired, 0 at the end (balance -4)</td></tr>
+<tr><th>Our HIVE TIPs</th><td>1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)</td></tr>
+<tr><th>Ends</th><td>LEAVE yes, PARK no, at (61.5, 128.0) in, heading 90 deg</td></tr>
+<tr><th>Validator</th><td><span class="status-warn">1 WARN</span></td></tr>
+</table>
+<div class="pair">
+<figure class="red">
+<figcaption>RED alliance</figcaption>
+<a href="self_rear_bank_red.svg"><img class="diagram" src="self_rear_bank_red.svg" alt="Advanced: shoot 4, take the GARDEN, drive round the HIVE and shoot 4 into the cell that came up, RED alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+<figure class="blue">
+<figcaption>BLUE alliance</figcaption>
+<a href="self_rear_bank_blue.svg"><img class="diagram" src="self_rear_bank_blue.svg" alt="Advanced: shoot 4, take the GARDEN, drive round the HIVE and shoot 4 into the cell that came up, BLUE alliance: top view of the field with the route drawn on it" width="900" height="900" loading="lazy" /></a>
+</figure>
+</div>
+<h3>Steps</h3>
+<ol class="steps">
+<li class="step" data-kind="START"><span class="kind">START</span> at (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 0.0 s</span><div class="note">Front edge ON the audience wall (the center of rotation is 9.77 in out), facing the wall, in line with the HIVE: the same start as the basic route, a shooting pose. A start nearer the GARDEN saves only 0.3 s on this route, so the easy start is used.</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (57.9, 9.8, -90 deg) <span class="time">t = 0.0 to 5.5 s</span><div class="note">The first tip. The UP cell holds 3 NECTAR, so the 3rd POLLEN tips the HIVE (+20) and the 4th is the spare for a field that needs one more. The camera stops the feeder only about 0.85 s after the tip, so the 4th is probably launched too and spent: that is the WARN on this step, and it is fine, it is only the spare. The robot fires from where it was put, with no drive first. Real teams land only about 6 shots in 10, so plan on this volley tipping the HIVE less than half of the time (the top-up routes are for that).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> into the GARDEN constant to 9.0, 10.6 <span class="time">t = 5.5 to 7.7 s</span><div class="note">Slides along the audience wall to the GARDEN with the intake toward it and stops with the front edge 0.8 in off the wall, in front of the row of POLLEN.</div></li>
+<li class="step" data-kind="INTAKE"><span class="kind">INTAKE</span> GARDEN +4 from (9.0, 10.6, -90 deg) <span class="time">t = 7.7 to 10.2 s</span><div class="note">The 4 GARDEN POLLEN lie in a row along the wall. After the first volley the robot holds 0 (the spare was probably spent), so it can take all 4 (G407: never more than 4). If the feeder did stop in time the robot holds 1 and the intake must stop at 3: the runner stops at 4.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> along the wall constant to 30.0, 22.0 <span class="time">t = 10.2 to 11.8 s</span><div class="note">Slides along the audience wall and out of the GARDEN to the left corridor.</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> up the left corridor reverse tangent to 30.0, 112.0 <span class="time">t = 11.8 to 15.0 s</span><div class="note">Backwards up the left corridor, past the HIVE (13 in clear of its keep-out) and above it, out of the spill zone of the cell that tipped (it has been clear for a long time).</div></li>
+<li class="step" data-kind="DRIVE"><span class="kind">DRIVE</span> to the rear shot linear to 61.5, 128.0 <span class="time">t = 15.0 to 16.8 s</span><div class="note">Across above the HIVE to the rear cell&apos;s shooting pose, turning to face the rear wall with the back toward the HIVE; the robot&apos;s left edge is 2.3 in clear of the rear-wall FLOWER&apos;s plate (x 44 to 50.3).</div></li>
+<li class="step" data-kind="SHOOT"><span class="kind">SHOOT</span> 4 at UP cell from (61.5, 128.0, 90 deg) <span class="time">t = 16.8 to 22.3 s</span><div class="note">THE BANK. After our own tip the REAR cell is the one that is UP, and it is empty, so these 4 POLLEN do not tip it (it needs 8): they wait in it for TELEOP. The robot fires ONLY after its camera has seen the rear cell UP and steady (0.5 s). With no camera, or if our first volley did not tip the HIVE (then the audience cell is still the UP one), the volley is skipped and the robot just stays here with the 4 POLLEN. From this pose the ball leaves 32.8 in from the cell&apos;s aim point, in line with it, and the robot ends 3.6 in off the rear wall, so the LEAVE is kept.</div></li>
+</ol>
+<h3>HIVE tips</h3>
+<ul class="tips">
+<li class="tipline volley" data-step="2">Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on).</li>
+<li class="tipline volley" data-step="8">Step 8: the UP cell holds 0 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 0 NECTAR x 5/3 + 4 POLLEN = 4 POLLEN-equivalents, short of the 8 that tip a cell, so no tip yet (4 more POLLEN into this cell would tip it).</li>
+</ul>
+<h3>Validator findings</h3>
+<p class="muted">Same for RED and BLUE.</p>
+<ul class="issues">
+<li class="issue warn" data-severity="WARN" data-step="2"><strong>WARN</strong> step 2 <code>G417</code> shoot at an UP cell: step 2 (SHOOT): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</li>
 </ul>
 </section>
 <section class="route" id="partner_rear_shoot_park" data-route="partner_rear_shoot_park">
