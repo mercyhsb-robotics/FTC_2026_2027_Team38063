@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.autoshoot.hardware;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.pedropathing.api.Paths;
@@ -10,6 +9,7 @@ import com.pedropathing.paths.Path;
 
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.AutoShootController;
+import org.firstinspires.ftc.teamcode.autoshoot.core.HeadingProfile;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 
 /**
@@ -44,8 +44,6 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  * to feed the controller, then calls {@link #apply}.
  */
 public final class PedroDrive {
-    /** Legs shorter than this are dropped when building a path (a zero-length line is not followable). */
-    private static final double MIN_LEG_IN = 0.5;
     /**
      * A hold command is re-issued only if the target moved by more than this (inches / radians). Re-issuing
      * resets Pedro's internal state, so doing it every loop for a target that barely changes would make the
@@ -200,39 +198,22 @@ public final class PedroDrive {
     /**
      * Builds one Pedro path that starts at {@code start}, passes through the waypoints in order and ends
      * pointing along {@code endHeading}. Returns null if the waypoints add no distance (nothing to follow).
+     *
+     * <p>Which way the robot faces along the route is NOT decided here: {@link HeadingProfile} decides it, and the
+     * route checker ({@code RouteSweep}) asks the same class, so what is checked is exactly what is driven. This
+     * method only turns the profile's corners into Pedro lines.
      */
     private static Path buildPath(Pose2 start, List<double[]> waypoints, double endHeading) {
-        // The points to visit: the start, then each waypoint that is at least MIN_LEG_IN past the previous one.
-        List<double[]> pts = new ArrayList<double[]>();
-        pts.add(new double[]{start.x, start.y});
-        for (double[] w : waypoints) {
-            double[] last = pts.get(pts.size() - 1);
-            if (Math.hypot(w[0] - last[0], w[1] - last[1]) >= MIN_LEG_IN) {
-                pts.add(new double[]{w[0], w[1]});
-            }
-        }
-        if (pts.size() < 2) {
+        HeadingProfile profile = HeadingProfile.build(start, waypoints, endHeading);
+        if (profile.isEmpty()) {
             return null;
         }
-        // How far along the whole route each point is (cumulative inches), so the turn can be spread out
-        // in proportion to distance travelled.
-        double total = 0.0;
-        double[] cumulative = new double[pts.size()];
-        for (int i = 1; i < pts.size(); i++) {
-            total += Math.hypot(pts.get(i)[0] - pts.get(i - 1)[0], pts.get(i)[1] - pts.get(i - 1)[1]);
-            cumulative[i] = total;
-        }
-        // The shortest signed turn (radians) from the start heading to the end heading. Using this instead of
-        // (end - start) means the robot never takes the long way round across the +/-PI wrap-around.
-        double turn = Angles.error(start.heading, endHeading);
-        // One straight leg per pair of points; each leg's start and end headings are the share of the turn
-        // done by that point, and Pedro blends between them ("linear" heading interpolation) along the leg.
-        Path[] legs = new Path[pts.size() - 1];
+        // One straight leg per pair of corners; each leg's start and end headings come from the profile, and
+        // Pedro blends between them ("linear" heading interpolation) along the leg.
+        Path[] legs = new Path[profile.vertexCount() - 1];
         for (int i = 0; i < legs.length; i++) {
-            double h0 = start.heading + turn * (cumulative[i] / total);
-            double h1 = start.heading + turn * (cumulative[i + 1] / total);
-            Pose a = new Pose(pts.get(i)[0], pts.get(i)[1], h0);
-            Pose b = new Pose(pts.get(i + 1)[0], pts.get(i + 1)[1], h1);
+            Pose a = new Pose(profile.x(i), profile.y(i), profile.headingAtVertex(i));
+            Pose b = new Pose(profile.x(i + 1), profile.y(i + 1), profile.headingAtVertex(i + 1));
             legs[i] = Paths.line(a, b).linear(a.heading(), b.heading());
         }
         return legs.length == 1 ? legs[0] : Paths.path(legs);

@@ -453,6 +453,12 @@ public final class BioBuzzConstants {
         public static final double APPROACH_STALL_GRACE_SEC = 0.8;
         /** TUNE: stall detection only applies while farther than this from the pose (inches). */
         public static final double APPROACH_STALL_MIN_DIST_IN = 4.0;
+        /**
+         * TUNE: when the drive turns a route into a Pedro path, a waypoint closer than this to the previous point is
+         * dropped (inches), because Pedro cannot follow a zero-length line. The route checker drops the same points,
+         * so it checks exactly the path that is driven.
+         */
+        public static final double PATH_MIN_LEG_IN = 0.5;
 
         // ---- fine alignment ---------------------------------------------------------------
         /** TUNE: alignment is settled when the position error is below this (inches). Mecanum drives rarely settle below about 1 in. */
