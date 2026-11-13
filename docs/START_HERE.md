@@ -304,6 +304,19 @@ Run them in this order: each one needs the one before it to be right.
   numbers from step 20: they should agree within about 0.5 in. Copy `xPodOffset`, `yPodOffset`, `xPodDirection` and `yPodDirection` into `localizerConfig` in the Pedro file.
   **You should see:** offsets close to the tape numbers of step 20 (the file has -0.42 and -2.8425 in).
   **If not:** if the three runs differ by more than about 0.5 in, the spin was uneven. Spin slower and exactly to 3.14.
+  If the tuner average and the tape numbers disagree by more than 0.5 in, do step 25b: the tuner turns the robot by hand, but the robot turns itself with its wheels, so step 25b decides which numbers are right.
+
+- [ ] **25b. Spin test: does the robot really turn about the center-of-rotation mark?** Use the floor with 3 ft (1 m) clear all around and a fresh battery.
+  The pod offsets say where the pods are compared with the center of rotation. If the wheels really turn the robot about some other point, the position slides while the robot turns.
+  On the tuner page (step 22) choose Tests, then "Localization Test". Press INIT and PLAY. The screen shows the **Pose**: x and y in inches, heading in radians. All three start at zero.
+  Use the right stick to turn the robot slowly **counter-clockwise** (push the stick left) until the heading reads about **3.14** (half a turn). Let go and write down x and y.
+  Do this three times (press STOP and then PLAY to set the Pose back to zero) and use the average of x and of y.
+  **You should see:** x and y both within about 1 in of zero. Then the robot turns about the mark and the numbers in the Pedro file are right.
+  **If not:** the robot turns about a point x/2 in **forward** and y/2 in to the **left** of the mark (a negative number means backward or right). Change the Pedro file: new `yPodOffset` = old `yPodOffset` minus x/2, and new `xPodOffset` = old `xPodOffset` minus y/2. Run this step again: the Pose should now stay within 1 in.
+  Then the true center of rotation is not where step 12 put it. Tell a mentor, and move every distance that is measured from it by the same amount. Let s = x/2 and t = y/2.
+  Forward and back: `Robot.FRONT_EXTENT_IN` minus s, `Robot.REAR_EXTENT_IN` plus s, `Robot.LAUNCH_POINT_FORWARD_IN` minus s, `Vision.CAMERA_FORWARD_IN` minus s.
+  Left and right: `Robot.LEFT_EXTENT_IN` minus t, `Robot.RIGHT_EXTENT_IN` plus t, `Robot.LAUNCH_POINT_LEFT_IN` minus t, `Vision.CAMERA_LEFT_IN` minus t.
+  Front plus rear must still be 17.80 in and left plus right 17.62 in. Example: x = -5.8 in means the robot turns 2.9 in behind the mark, so `FRONT_EXTENT_IN` becomes 9.77 + 2.9 = 12.67 and `REAR_EXTENT_IN` becomes 8.03 - 2.9 = 5.13.
 
 - [ ] **26. Foresight Tuner** (6 ft / 180 cm of clear floor in front of and beside the robot, fresh battery). It runs a long list of short tests:
   top speed forward and sideways, braking, turning and position correction. The robot will drive, brake and **coast past its target**
@@ -332,7 +345,7 @@ Run them in this order: each one needs the one before it to be right.
 
 - [ ] **31. Run the Robot Check again** (step 8) and check that "Drive wheels" and "Pinpoint odometry" pass.
   **You should see:** PASS for both. In the Pinpoint check, turning the robot on the spot should not slide its position more than about 3 in.
-  **If not:** a position that slides while turning means the pod offsets are wrong: repeat steps 20 and 25.
+  **If not:** a position that slides while turning means the pod offsets are wrong: repeat steps 20, 25 and 25b.
 
 ## Set up the Limelight camera
 
