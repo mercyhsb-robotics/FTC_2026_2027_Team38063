@@ -102,6 +102,8 @@ public final class RouteSweep {
     private final Rect field;
     private final double wallClearanceIn;
     private final List<Rect> obstacles;
+    // Obstacles that are not boxes (the exact HIVE solid: foot bars and leg stubs), judged by their true shape.
+    private final List<ConvexPolygon> solids;
     private final double obstacleMarginIn;
     private final RobotShape robot;
     private final Settings settings;
@@ -123,9 +125,20 @@ public final class RouteSweep {
      */
     public RouteSweep(Rect field, double wallClearanceIn, List<Rect> obstacles, double obstacleMarginIn,
                       RobotShape robot, Settings settings) {
+        this(field, wallClearanceIn, obstacles, new ArrayList<ConvexPolygon>(), obstacleMarginIn, robot, settings);
+    }
+
+    /**
+     * As the constructor above, with extra obstacles that are convex POLYGONS instead of boxes: the foot bars and leg stubs of the HIVE when
+     * the planner may drive under it ({@link HiveSolid}). Each is judged by its true shape, so the open lane between them stays open. A route
+     * must keep {@code obstacleMarginIn} from them like from a box.
+     */
+    public RouteSweep(Rect field, double wallClearanceIn, List<Rect> obstacles, List<ConvexPolygon> solids, double obstacleMarginIn,
+                      RobotShape robot, Settings settings) {
         this.field = field;
         this.wallClearanceIn = wallClearanceIn;
         this.obstacles = new ArrayList<Rect>(obstacles);
+        this.solids = new ArrayList<ConvexPolygon>(solids);
         this.obstacleMarginIn = obstacleMarginIn;
         this.robot = robot;
         this.settings = settings;
@@ -139,7 +152,7 @@ public final class RouteSweep {
         }
         this.reachIn = reach;
 
-        count = 4 + this.obstacles.size();
+        count = 4 + this.obstacles.size() + this.solids.size();
         names = new String[count];
         clearance = new double[count];
         names[0] = String.format(Locale.ROOT, "wall x = %.1f", field.minX);
@@ -152,6 +165,11 @@ public final class RouteSweep {
         for (int k = 0; k < this.obstacles.size(); k++) {
             names[4 + k] = "obstacle " + k + " " + this.obstacles.get(k);
             clearance[4 + k] = obstacleMarginIn;
+        }
+        for (int k = 0; k < this.solids.size(); k++) {
+            int at = 4 + this.obstacles.size() + k;
+            names[at] = "solid " + k + " " + this.solids.get(k);
+            clearance[at] = obstacleMarginIn;
         }
     }
 
@@ -176,6 +194,12 @@ public final class RouteSweep {
             // A box grown by the robot's reach plus the margin is where the center may not be. (It grows corners
             // square rather than round, which is a little stricter than needed, never looser.)
             if (o.inflate(reachIn + obstacleMarginIn - 1e-9).containsStrictly(x, y)) {
+                return false;
+            }
+        }
+        for (ConvexPolygon s : solids) {
+            // the same, with the box around the polygon (a little bigger than the polygon: stricter than needed, never looser)
+            if (s.bounds().inflate(reachIn + obstacleMarginIn - 1e-9).containsStrictly(x, y)) {
                 return false;
             }
         }
@@ -292,6 +316,9 @@ public final class RouteSweep {
         g[3] = field.maxY - b.maxY;
         for (int k = 0; k < obstacles.size(); k++) {
             g[4 + k] = gapToRect(f, obstacles.get(k));
+        }
+        for (int k = 0; k < solids.size(); k++) {
+            g[4 + obstacles.size() + k] = f.signedGap(solids.get(k));
         }
         return g;
     }

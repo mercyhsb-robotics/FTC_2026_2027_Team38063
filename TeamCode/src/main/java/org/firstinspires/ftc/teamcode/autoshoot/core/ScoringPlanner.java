@@ -108,6 +108,12 @@ public final class ScoringPlanner {
         public double sweepStepIn;
         /** ... and at least every this many degrees of turning. */
         public double sweepStepDeg;
+        /**
+         * True if the planner may drive UNDER the HIVE, along the lane between its foot bars (default {@code AutoShoot.ALLOW_UNDER_HIVE}, false).
+         * Only the exact solid (foot bars and leg stubs) is then an obstacle, and a trip whose lane route cannot be driven safely falls back to
+         * the way around the whole frame.
+         */
+        public boolean allowUnderHive;
         /** The route check forgives this many inches of squeeze, for rounding. */
         public double sweepToleranceIn;
         /** The route check never looks finer than this many inches. */
@@ -132,6 +138,7 @@ public final class ScoringPlanner {
             c.launchLeftIn = BioBuzzConstants.Robot.LAUNCH_POINT_LEFT_IN;
             c.robot = RobotShape.fromConstants();
             c.keepOutMarginIn = BioBuzzConstants.AutoShoot.KEEPOUT_MARGIN_IN;
+            c.allowUnderHive = BioBuzzConstants.AutoShoot.ALLOW_UNDER_HIVE;
             c.wallClearanceIn = BioBuzzConstants.AutoShoot.WALL_CLEARANCE_IN;
             c.rangeMinIn = table.minRange() + BioBuzzConstants.Shooter.RANGE_MARGIN_IN;
             c.rangeMaxIn = table.maxRange() - BioBuzzConstants.Shooter.RANGE_MARGIN_IN;
@@ -221,6 +228,9 @@ public final class ScoringPlanner {
     private final Config cfg;
     // Route finder for DRIVING (robot treated as a point, so its keep-outs are grown by the robot's size).
     private final PathPlanner travel;
+    // The same with the whole HIVE footprint as one obstacle, used when the lane under the HIVE is allowed but a trip through it cannot be
+    // driven safely; null when the lane is not allowed (then `travel` already goes around).
+    private final PathPlanner travelAround;
     // Keep-outs for STANDING (the real footprint box is tested, so they are only grown by the margin).
     private final List<Rect> standingObstacles = new ArrayList<Rect>();
     // Where the robot's footprint may be when standing: the field shrunk by the wall clearance only.
@@ -247,8 +257,13 @@ public final class ScoringPlanner {
         settings.stepDeg = cfg.sweepStepDeg;
         settings.toleranceIn = cfg.sweepToleranceIn;
         settings.minStepIn = cfg.sweepMinStepIn;
-        sweep = new RouteSweep(field.fieldRect(), cfg.wallClearanceIn, field.hardObstacles(), cfg.keepOutMarginIn,
-                cfg.robot, settings);
+        // With the lane allowed the HIVE is the exact solid (foot bars and leg stubs, as polygons) and the check keeps the margin from those; the
+        // planners below can only use boxes, so they get the boxes around the pieces (a little bigger than the pieces: safe, never looser).
+        List<Rect> hardBoxes = field.hardObstacles(cfg.allowUnderHive);
+        sweep = cfg.allowUnderHive
+                ? new RouteSweep(field.fieldRect(), cfg.wallClearanceIn, field.flowerKeepOuts(), field.hardPolygons(), cfg.keepOutMarginIn,
+                        cfg.robot, settings)
+                : new RouteSweep(field.fieldRect(), cfg.wallClearanceIn, field.hardObstacles(), cfg.keepOutMarginIn, cfg.robot, settings);
         double halfDiag = sweep.reachIn();
         double nearestEdge = cfg.robot.smallestExtentIn();
 
@@ -260,14 +275,23 @@ public final class ScoringPlanner {
         // edge, or a TURNING robot, against a wall; that is what the route check and the repairs below are for. The
         // standing poses are checked with the real rectangle, which knows which edge faces the wall.)
         List<Rect> inflated = new ArrayList<Rect>();
-        for (Rect o : field.hardObstacles()) {
+        for (Rect o : hardBoxes) {
             inflated.add(o.inflate(halfDiag + cfg.keepOutMarginIn));
         }
         Rect driveBounds = field.fieldRect().inflate(-(nearestEdge + cfg.wallClearanceIn));
         travel = new PathPlanner(driveBounds, inflated);
+        if (cfg.allowUnderHive) {
+            List<Rect> aroundBoxes = new ArrayList<Rect>();
+            for (Rect o : field.hardObstacles()) {
+                aroundBoxes.add(o.inflate(halfDiag + cfg.keepOutMarginIn));
+            }
+            travelAround = new PathPlanner(driveBounds, aroundBoxes);
+        } else {
+            travelAround = null;
+        }
 
         // Standing: the exact footprint box is tested, so obstacles only grow by the margin.
-        for (Rect o : field.hardObstacles()) {
+        for (Rect o : hardBoxes) {
             standingObstacles.add(o.inflate(cfg.keepOutMarginIn));
         }
         standingBounds = field.fieldRect().inflate(-cfg.wallClearanceIn);
@@ -275,7 +299,7 @@ public final class ScoringPlanner {
         // The detour planner only uses places where the robot may face any way.
         turnSafeBounds = field.fieldRect().inflate(-(sweep.reachIn() + cfg.wallClearanceIn));
         List<Rect> turnSafeObstacles = new ArrayList<Rect>();
-        for (Rect o : field.hardObstacles()) {
+        for (Rect o : hardBoxes) {
             turnSafeObstacles.add(o.inflate(sweep.reachIn() + cfg.keepOutMarginIn));
         }
         safeTravel = new PathPlanner(turnSafeBounds, turnSafeObstacles);
@@ -358,8 +382,19 @@ public final class ScoringPlanner {
         if (!standingPoseFree(pose)) {
             return null;
         }
-        // ... or that it cannot drive to.
-        List<double[]> waypoints = travel.plan(robot.x, robot.y, pose.x, pose.y);
+        // ... or that it cannot drive to. With the lane under the HIVE allowed the shortest way may go through it; if that way cannot be
+        // driven safely (the robot cannot turn in the lane) the way around the whole frame is tried next.
+        Solution viaLane = evaluateRoute(travel, robot, cell, pose, rangeIn, azimuthRad, best);
+        if (viaLane != null || travelAround == null) {
+            return viaLane;
+        }
+        return evaluateRoute(travelAround, robot, cell, pose, rangeIn, azimuthRad, best);
+    }
+
+    /** Plans and scores the way to one candidate pose with the given route finder; null if there is none or it is not safe. */
+    private Solution evaluateRoute(PathPlanner planner, Pose2 robot, CellSpec cell, Pose2 pose, double rangeIn, double azimuthRad,
+                                   Solution best) {
+        List<double[]> waypoints = planner.plan(robot.x, robot.y, pose.x, pose.y);
         if (waypoints == null) {
             return null;
         }
