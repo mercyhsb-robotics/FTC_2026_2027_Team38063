@@ -85,6 +85,20 @@ public final class RouteAnalysis {
         /** SHOOT: POLLEN of this route that are already in the targeted cell when the volley starts (0 for a cell that is DOWN). */
         public final int pollenInCellBefore;
         /**
+         * SHOOT: seconds the robot stands at its pose before the first POLLEN leaves, waiting for its camera to confirm that OUR OWN
+         * earlier tip is complete (the camera must see the cell that came up steady for the settle time, {@code RouteAnalysis.tipSettleSec()});
+         * 0 if the robot was busy long enough anyway, or if the cell did not come up with a tip of ours.
+         */
+        public final double confirmWaitSec;
+        /**
+         * SHOOT: true if this volley goes into a cell that is UP only because the HIVE has tipped (ours or the partner's), or that
+         * will come up with the partner's assumed tip. On the robot such a volley needs the CAMERA to confirm the tip first and is
+         * skipped when the camera cannot ({@link #giveUpPlan()}); a volley at the cell that is UP at the start is not tip-dependent.
+         */
+        public final boolean tipDependent;
+        /** True in a {@link #giveUpPlan()} for a volley that the robot skips because the tip it depends on is never confirmed. */
+        public final boolean skipped;
+        /**
          * WAIT_FOR_TIP: the route time in seconds at which the partner's tip is ASSUMED to happen (it is only a planning
          * guess: the robot goes on when its camera sees the tip); NaN when there is no tip to wait for (a route that
          * assumes SELF, or the HIVE has tipped already). Else NaN.
@@ -103,7 +117,7 @@ public final class RouteAnalysis {
                  Side targetSide, boolean targetWasUp, Pose2 shootPose, boolean shootPoseIsNominal, boolean tipped,
                  int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits,
                  double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore, double tipWaitSec,
-                 int pollenInCellBefore, int tipNeeded, int tipSpare) {
+                 int pollenInCellBefore, int tipNeeded, int tipSpare, double confirmWaitSec, boolean tipDependent, boolean skipped) {
             this.index = index;
             this.step = step;
             this.from = from;
@@ -130,6 +144,9 @@ public final class RouteAnalysis {
             this.firedAfterTip = firedAfterTip;
             this.tipNeeded = tipNeeded;
             this.tipSpare = tipSpare;
+            this.confirmWaitSec = confirmWaitSec;
+            this.tipDependent = tipDependent;
+            this.skipped = skipped;
             this.nectarInCellBefore = nectarInCellBefore;
             this.tipWaitSec = tipWaitSec;
             this.pollenInCellBefore = pollenInCellBefore;
@@ -174,6 +191,8 @@ public final class RouteAnalysis {
         final double partnerSec;
         boolean partnerPending;
         boolean partnerVoided;
+        /** Route time at which the camera has confirmed OUR latest tip (its time plus the settle time); NaN if we have not tipped it. */
+        double ownConfirmedSec = Double.NaN;
         final List<TipEvent> events = new ArrayList<TipEvent>();
 
         Hive(Side up, double partnerSec) {
@@ -188,6 +207,7 @@ public final class RouteAnalysis {
                 events.add(new TipEvent(partnerSec, up, up.opposite(), true, -1));
                 flip();
                 partnerPending = false;
+                ownConfirmedSec = Double.NaN;      // the partner's tip is confirmed by a WAIT_FOR_TIP, not by us
             }
         }
 
@@ -215,6 +235,9 @@ public final class RouteAnalysis {
     private final double parkOverlapIn;
     private final double endWallGapIn;
     private final String endNearestWall;
+    /** The plan for "the tip is never confirmed", built the first time it is asked for (see {@link #giveUpPlan()}). */
+    private RouteAnalysis giveUp;
+    private boolean giveUpBuilt;
 
     private RouteAnalysis(AutoRoute route, AllianceField field, TimingModel timing, List<StepInfo> infos, double totalSeconds,
                           int pollenGained, int pollenShot, int tips, Hive hive, double partnerTipSec) {
@@ -270,6 +293,16 @@ public final class RouteAnalysis {
     }
 
     private static RouteAnalysis of(AutoRoute route, FieldModel model, TimingModel timing, double partnerTipSec) {
+        return play(route, model, timing, partnerTipSec, null, null);
+    }
+
+    /**
+     * Plays the route through. With {@code skip == null} that is the plan. With {@code skip} (and {@code waitUntil}) it is the
+     * plan for "the tip is never confirmed": a step with {@code skip[i]} is a volley the robot leaves out, a WAIT_FOR_TIP lasts until
+     * {@code waitUntil[i]} on the route clock (its give-up time), and an INTAKE takes only what fits in the robot (it stops at 4, G407).
+     */
+    private static RouteAnalysis play(AutoRoute route, FieldModel model, TimingModel timing, double partnerTipSec, boolean[] skip,
+                                      double[] waitUntil) {
         Alliance alliance = route.alliance();
         AllianceField field = new AllianceField(model, alliance);
         List<StepInfo> out = new ArrayList<StepInfo>();
@@ -294,6 +327,12 @@ public final class RouteAnalysis {
         for (int i = 0; i < route.size(); i++) {
             hive.advanceTo(t);      // the partner's tip happens when its time comes, whatever this robot is doing
             Step step = route.step(i);
+            if (skip != null && skip[i]) {
+                // a volley that needs a tip the robot never confirms: it stays where it is and goes on with the next step
+                out.add(new StepInfo(i, step, pose, pose, null, null, t, 0.0, held, held, hive.up, hive.up, null, false, null, false,
+                        false, hive.pollen, null, -1, false, Double.NaN, Double.NaN, 0, 0, Double.NaN, 0, 0, 0, 0.0, true, true));
+                continue;
+            }
             Pose2 from = pose;
             Pose2 to = pose;
             DrivePath path = null;
@@ -314,6 +353,8 @@ public final class RouteAnalysis {
             int firedAfterTip = 0;
             int tipNeeded = 0;
             int tipSpare = 0;
+            double confirmWait = 0.0;
+            boolean tipDependent = false;
             int nectarBefore = 0;
             int pollenBeforeInCell = 0;
             double tipWaitSec = Double.NaN;
@@ -338,8 +379,10 @@ public final class RouteAnalysis {
                     duration = (approach == null ? 0.0 : timing.moveSeconds(from, in.robotPose()))
                             + (press == null ? timing.intakeSeconds(in) : timing.flowerSeconds(in, press));
                     to = press == null ? in.robotPose() : press.retreat;
-                    held += in.expectedCount();
-                    gained += in.expectedCount();
+                    // in the give-up plan a volley was left out, so the robot may hold more than planned: it stops taking at 4 (G407)
+                    int taken = skip == null ? in.expectedCount() : Math.min(in.expectedCount(), Math.max(0, BioBuzzConstants.Auto.POLLEN_CAPACITY - held));
+                    held += taken;
+                    gained += taken;
                     switch (in.source()) {
                         case FLOWER: {
                             int f = field.nearestFlower(in.target());
@@ -387,7 +430,17 @@ public final class RouteAnalysis {
                     // Whether that cell is still UP when the first POLLEN leaves decides if the launch is legal (G417):
                     // the partner's tip may happen while the robot is still driving to the pose.
                     hive.advanceTo(launchSec);
+                    // A cell that came up with OUR own tip is shot at only after the camera has seen it steady for the settle time,
+                    // never because a time has passed: the robot stands at its pose until then.
+                    if (targetSide == hive.up && !Double.isNaN(hive.ownConfirmedSec) && launchSec < hive.ownConfirmedSec) {
+                        confirmWait = hive.ownConfirmedSec - launchSec;
+                        launchSec = hive.ownConfirmedSec;
+                        hive.advanceTo(launchSec);
+                    }
                     targetWasUp = targetSide == hive.up;
+                    // The volley needs the camera to confirm a tip when its cell is up only because the HIVE has tipped, or is the
+                    // one that comes up with the partner's tip that is still to come.
+                    tipDependent = (targetWasUp && !hive.events.isEmpty()) || (hive.partnerPending && targetSide == hive.up.opposite());
                     nectarBefore = targetWasUp ? hive.nectar : 0;
                     pollenBeforeInCell = targetWasUp ? hive.pollen : 0;
                     int fired = sh.count();
@@ -415,6 +468,7 @@ public final class RouteAnalysis {
                                 shootSec = timing.shootSeconds(sh, needed);
                             }
                             hive.events.add(new TipEvent(tipSec, hive.up, hive.up.opposite(), false, i));
+                            hive.ownConfirmedSec = tipSec + timing.tipSettleSec();
                             if (hive.partnerPending) {
                                 // we tipped the HIVE before the partner did: the partner's tip is no longer coming
                                 hive.partnerPending = false;
@@ -425,7 +479,7 @@ public final class RouteAnalysis {
                             hive.pollen += sh.count();
                         }
                     }
-                    duration = approachSec + shootSec;
+                    duration = approachSec + confirmWait + shootSec;
                     held -= fired;
                     shot += fired;
                     break;
@@ -438,6 +492,10 @@ public final class RouteAnalysis {
                     // already and the wait takes no time.
                     tipWaitSec = hive.partnerPending ? hive.partnerSec : Double.NaN;
                     duration = timing.waitForTipSeconds(t, tipWaitSec, ((Step.WaitForTip) step).giveUpSec());
+                    if (waitUntil != null && !Double.isNaN(waitUntil[i])) {
+                        // the tip never comes: the robot waits until its deadline and then goes on
+                        duration = Math.max(0.0, waitUntil[i] - t);
+                    }
                     break;
                 }
                 case PARK: {
@@ -453,7 +511,8 @@ public final class RouteAnalysis {
             hive.advanceTo(t + duration);
             out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, hive.up,
                     targetSide, targetWasUp, shootPose, nominal, tipped, hive.pollen, sourceName, sourceLeft, offLimits,
-                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell, tipNeeded, tipSpare));
+                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell, tipNeeded, tipSpare, confirmWait,
+                    tipDependent, false));
             t += duration;
             pose = to;
         }
@@ -639,6 +698,61 @@ public final class RouteAnalysis {
     }
 
     /**
+     * The steps (0-based indexes) that are volleys which need the camera to confirm a tip first: a SHOOT at the cell that is UP only
+     * because the HIVE has tipped (the partner's assumed tip or one of ours), or at the cell that comes up with the partner's tip.
+     * On the robot each of them waits for the camera to see the cell UP and steady, and is skipped when the camera cannot.
+     */
+    public List<Integer> tipDependentSteps() {
+        List<Integer> out = new ArrayList<Integer>();
+        for (StepInfo info : infos) {
+            if (info.step instanceof Step.Shoot && info.tipDependent) {
+                out.add(info.index);
+            }
+        }
+        return out;
+    }
+
+    /** True if some volley of the route needs the camera to confirm a tip first ({@link #tipDependentSteps()} is not empty). */
+    public boolean dependsOnTipConfirmation() {
+        return !tipDependentSteps().isEmpty();
+    }
+
+    /**
+     * WAIT_FOR_TIP: the moment on the route clock at which the robot really stops waiting if the tip has not been confirmed: the
+     * give-up time of the step, or the latest time the rest of the route allows ({@link #latestGiveUpSec}) if that is earlier. The
+     * robot skips the tip-dependent volleys then and goes on with the safe steps (LEAVE, PARK). NaN for any other step.
+     */
+    public double effectiveGiveUpSec(StepInfo wait) {
+        if (!(wait.step instanceof Step.WaitForTip)) {
+            return Double.NaN;
+        }
+        return Math.min(((Step.WaitForTip) wait.step).giveUpSec(), latestGiveUpSec(wait));
+    }
+
+    /**
+     * What the route does when the tip it depends on is NEVER confirmed (the partner is too late or never tips, or the camera is dead,
+     * missing or on the wrong pipeline): every WAIT_FOR_TIP waits until {@link #effectiveGiveUpSec}, every tip-dependent volley is left
+     * out ("no camera, no shot"), and the robot carries on with the other steps (an INTAKE takes only what fits in the robot, G407),
+     * which should end with the safe steps (LEAVE, PARK). It is a worst case in time: a robot that knows its camera is dead at the
+     * start would not wait. {@code null} if no volley needs a confirmed tip.
+     */
+    public RouteAnalysis giveUpPlan() {
+        if (!giveUpBuilt) {
+            giveUpBuilt = true;
+            boolean[] skip = new boolean[infos.size()];
+            double[] waitUntil = new double[infos.size()];
+            boolean any = false;
+            for (StepInfo info : infos) {
+                skip[info.index] = info.step instanceof Step.Shoot && info.tipDependent;
+                any |= skip[info.index];
+                waitUntil[info.index] = partnerTipAssumed() ? effectiveGiveUpSec(info) : Double.NaN;
+            }
+            giveUp = any ? play(route, field.model(), timing, Double.NaN, skip, waitUntil) : null;
+        }
+        return giveUp;
+    }
+
+    /**
      * WAIT_FOR_TIP: the latest route time, in seconds, at which the robot may stop waiting and still do the rest of
      * the route inside {@link #timeBudgetSec()}: the budget minus what the steps after the wait take. A give-up time
      * later than this could make the route overrun the AUTO limit. NaN for any other step.
@@ -656,7 +770,7 @@ public final class RouteAnalysis {
      * volleys included) still ends inside {@link #timeBudgetSec()}. It is how much a slow partner can be tolerated.
      *
      * <p>Why a formula and not a search: the steps after a WAIT_FOR_TIP take the same time whenever the tip comes, and
-     * the wait ends when the camera has seen the tip steadily for the settle time ({@link #tipSettleSec()}) or at its
+     * the wait ends when the camera has seen the tip steadily for the settle time ({@code RouteAnalysis.tipSettleSec()}) or at its
      * give-up time, so a tip at T ends the route at {@code max(wait start, T + settle) + the time of the rest}. That is
      * within the budget until T + settle = budget - rest, and the robot gives up at the deadline of the wait. The
      * smaller of the two, minus the settle time, is the answer.

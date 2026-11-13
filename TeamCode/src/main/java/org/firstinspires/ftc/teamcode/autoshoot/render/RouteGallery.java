@@ -305,6 +305,9 @@ public final class RouteGallery {
         if (a.partnerTipAssumed()) {
             row(h, "Latest partner tip that works", esc(slackText(a)));
         }
+        if (a.giveUpPlan() != null) {
+            row(h, "If the tip is never confirmed", esc(giveUpText(a)));
+        }
         row(h, "POLLEN", "hold " + BioBuzzConstants.Auto.PRELOAD_POLLEN + " at the start, +" + a.pollenGained() + " taken, -"
                 + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")");
         row(h, "Our HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (the first needs " + TipModel.firstTipPollen()
@@ -467,6 +470,26 @@ public final class RouteGallery {
         }
         return spare == 0 ? "NO spare: exactly the minimum, a field that needs one more POLLEN would not tip"
                 : spare + " POLLEN to spare, so a field that needs " + spare + " more still tips";
+    }
+
+    /**
+     * What the robot does when the camera never confirms the tip a volley depends on (the partner is late or never tips, or the
+     * camera is dead, missing or on the wrong pipeline): it waits until its give-up time, leaves the tip-dependent volleys out ("no
+     * camera, no shot") and carries on, which should still earn the safe points (LEAVE, PARK).
+     */
+    private static String giveUpText(RouteAnalysis a) {
+        RouteAnalysis g = a.giveUpPlan();
+        int volleys = a.tipDependentSteps().size();
+        String wait = "does not wait";
+        for (RouteAnalysis.StepInfo info : a.steps()) {
+            if (info.step instanceof Step.WaitForTip && a.partnerTipAssumed()) {
+                wait = "waits until " + seconds(a.effectiveGiveUpSec(info));
+                break;
+            }
+        }
+        return "the robot " + wait + ", leaves " + volleys + " volley" + (volleys == 1 ? "" : "s") + " out (no camera, no shot) and carries on: it ends at "
+                + pose(g.endPose()) + " after " + seconds(g.totalSeconds()) + " with LEAVE " + (g.leave() ? "yes" : "no") + ", PARK "
+                + (g.park() ? "yes" : "no") + ": " + g.points() + " points";
     }
 
     /** Short: the latest partner tip that still works, for the summary table. */

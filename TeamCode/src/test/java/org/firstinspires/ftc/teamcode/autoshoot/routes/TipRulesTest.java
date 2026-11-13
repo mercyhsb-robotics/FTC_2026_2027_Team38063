@@ -73,6 +73,16 @@ public class TipRulesTest {
 
     private static final double REAR_X = 61.5;
     private static final double REAR_Y = 130.0;
+    /**
+     * Where the partner routes drive to after their volley: off the rear wall. Every real route ends with such a safe step (LEAVE),
+     * so that it is done whether or not the tip comes; without it the route that never gets its tip ends touching the wall.
+     */
+    private static final double OFF_WALL_Y = 112.0;
+
+    /** The volley at the rear cell followed by the safe drive off the wall. */
+    private static AutoRoute.Builder thenLeave(AutoRoute.Builder b) {
+        return b.driveConstant(REAR_X, OFF_WALL_Y, 90);
+    }
 
     // ---- the volley that tips: stops at the tip, spare, and the timed volley that cannot stop ---------------------
 
@@ -179,10 +189,10 @@ public class TipRulesTest {
     public void waitingForTheTipAndThenShootingTheRearCellIsClean() {
         // give up at 20 s: the tip is assumed at 12 s (8 s of slack) and the volley after it needs about 6 s, so the
         // route is over by about 18 s, well inside the 28 s budget
-        List<Issue> l = validate(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4));
+        List<Issue> l = validate(thenLeave(partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)));
         assertTrue("no findings expected, got " + l, l.isEmpty());
         // the same with the cell named instead of "the UP cell"
-        assertTrue(validate(partnerRear().waitForTip(20).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4)).isEmpty());
+        assertTrue(validate(thenLeave(partnerRear().waitForTip(20).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4))).isEmpty());
     }
 
     @Test
@@ -319,7 +329,7 @@ public class TipRulesTest {
     @Test
     public void aGiveUpTimeLaterThanTheRestOfTheRouteCanAffordIsAWarningThatNamesTheLatestOne() {
         // the volley after the wait takes about 6 s, the route must be over by 28 s: waiting until 25 s could overrun
-        List<Issue> l = validate(partnerRear().waitForTip(25).shootUp(REAR_X, REAR_Y, 90, 4));
+        List<Issue> l = validate(thenLeave(partnerRear().waitForTip(25).shootUp(REAR_X, REAR_Y, 90, 4)));
         List<Issue> late = new ArrayList<Issue>();
         for (Issue i : l) {
             if (i.rule == Rule.TIP_ASSUMPTION && i.message.contains("run past the AUTO limit")) {
@@ -331,19 +341,19 @@ public class TipRulesTest {
         assertEquals(1, late.get(0).stepIndex);
         assertTrue(late.get(0).message, late.get(0).message.contains("gives up at 25.0 s"));
         // and the message says which time would be fine: the same number the analysis reports
-        RouteAnalysis a = partnerRear().waitForTip(25).shootUp(REAR_X, REAR_Y, 90, 4).build().analyze();
+        RouteAnalysis a = thenLeave(partnerRear().waitForTip(25).shootUp(REAR_X, REAR_Y, 90, 4)).build().analyze();
         double latest = a.latestGiveUpSec(a.step(1));
         assertTrue(late.get(0).message, late.get(0).message.contains(String.format(java.util.Locale.ROOT, "%.1f s", latest)));
         assertEquals("only a warning: the robot cuts the wait there by itself", 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         // giving up at exactly the latest time is fine
-        List<Issue> ok = validate(partnerRear().waitForTip(Math.floor(latest * 10) / 10).shootUp(REAR_X, REAR_Y, 90, 4));
+        List<Issue> ok = validate(thenLeave(partnerRear().waitForTip(Math.floor(latest * 10) / 10).shootUp(REAR_X, REAR_Y, 90, 4)));
         assertEquals(ok.toString(), 0, count(ok, Rule.TIP_ASSUMPTION, Severity.WARN));
     }
 
     @Test
     public void aPartnerRouteWithLittleSlackIsAWarning() {
         // gives up at 13 s: the tip is assumed at 12 s, so a partner that is 1 s slower already breaks the route
-        List<Issue> l = validate(partnerRear().waitForTip(13).shootUp(REAR_X, REAR_Y, 90, 4));
+        List<Issue> l = validate(thenLeave(partnerRear().waitForTip(13).shootUp(REAR_X, REAR_Y, 90, 4)));
         assertEquals(l.toString(), 1, count(l, Rule.TIP_ASSUMPTION, Severity.WARN));
         Issue issue = first(l, Rule.TIP_ASSUMPTION, Severity.WARN);
         assertEquals("on the WAIT_FOR_TIP", 1, issue.stepIndex);
@@ -352,7 +362,7 @@ public class TipRulesTest {
         assertTrue(issue.message, issue.message.contains("the WAIT_FOR_TIP gives up at 13.0 s"));
         assertEquals("a warning, not an error: it works with the assumed tip", 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         // zero slack: the wait gives up at the very moment the assumed tip is confirmed
-        List<Issue> zero = validate(partnerRear().waitForTip(TIP_SEC + SETTLE).shootUp(REAR_X, REAR_Y, 90, 4));
+        List<Issue> zero = validate(thenLeave(partnerRear().waitForTip(TIP_SEC + SETTLE).shootUp(REAR_X, REAR_Y, 90, 4)));
         assertEquals(zero.toString(), 1, count(zero, Rule.TIP_ASSUMPTION, Severity.WARN));
         assertTrue(first(zero, Rule.TIP_ASSUMPTION, Severity.WARN).message.contains("0.0 s of slack"));
     }
@@ -361,10 +371,10 @@ public class TipRulesTest {
     public void theSlackWarningStartsExactlyBelowTheMinimum() {
         double min = BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC;
         // enough slack: the latest tip is exactly `min` seconds after the assumed one, so the wait may give up the settle time later
-        assertEquals(0, count(validate(partnerRear().waitForTip(TIP_SEC + SETTLE + min).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
+        assertEquals(0, count(validate(thenLeave(partnerRear().waitForTip(TIP_SEC + SETTLE + min).shootUp(REAR_X, REAR_Y, 90, 4))), Rule.TIP_ASSUMPTION,
                 Severity.WARN));
         // a quarter of a second less is too little
-        assertEquals(1, count(validate(partnerRear().waitForTip(TIP_SEC + SETTLE + min - 0.25).shootUp(REAR_X, REAR_Y, 90, 4)), Rule.TIP_ASSUMPTION,
+        assertEquals(1, count(validate(thenLeave(partnerRear().waitForTip(TIP_SEC + SETTLE + min - 0.25).shootUp(REAR_X, REAR_Y, 90, 4))), Rule.TIP_ASSUMPTION,
                 Severity.WARN));
     }
 
@@ -380,7 +390,7 @@ public class TipRulesTest {
         assertTrue("the budget, not the give-up time, is the limit: " + a.latestPartnerTipSec(), a.latestPartnerTipSec() < 20.0);
         boolean sawSlack = false;
         for (Issue i : l) {
-            if (i.rule == Rule.TIP_ASSUMPTION && i.message.contains("of slack")) {
+            if (i.rule == Rule.TIP_ASSUMPTION && i.message.contains("slack")) {
                 sawSlack = true;
                 assertTrue(i.message, i.message.contains("the steps after the wait take"));
             }

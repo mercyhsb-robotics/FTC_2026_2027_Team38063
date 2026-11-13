@@ -44,7 +44,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       {@code TIP_SPILL_CLEAR_SEC} after every tip, ours and the partner's, the robot footprint must stay out of
  *       the spill zone: that cell's plan footprint grown by {@code TIP_SPILL_MARGIN_IN}. The other cell's side of the
  *       HIVE is not in the zone; it is where a robot waiting for the partner's tip stands. ERROR. (This is the
- *       planning version, with times. On the robot the same rule is "stay out until the camera has confirmed the tip,
+ *       planning version, with times: from the tip until the camera has confirmed it (the settle time) plus
+ *       {@code TIP_SPILL_CLEAR_SEC}. On the robot the same rule is "stay out until the camera has confirmed the tip,
  *       plus {@code TIP_SPILL_CLEAR_SEC}", because the real time of the partner's tip is not known.)</li>
  *   <li><b>G409 / G417, under the HIVE.</b> A DRIVE that is allowed under the HIVE (the lane between the foot bars, see
  *       {@code HiveSolid}) gets a WARN when the robot is over the HIVE frame while the HIVE could still tip: that is, unless the
@@ -54,6 +55,10 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  *       route can afford; our own volley tipping the HIVE before the partner's assumed tip (the route then does not
  *       need the partner); and a route with less than {@code PARTNER_TIP_MIN_SLACK_SEC} of slack, which only works if
  *       the partner is about as fast as assumed ({@link RouteAnalysis#partnerTipSlackSec()}).</li>
+ *   <li><b>If the tip is never confirmed.</b> A route with a volley that needs the camera to confirm a tip is also played through
+ *       as the robot will do it when the tip never comes or the camera is dead ({@link RouteAnalysis#giveUpPlan()}): it waits
+ *       until its give-up time, leaves the tip-dependent volleys out ("no camera, no shot") and carries on. WARN if that plan
+ *       ends without a LEAVE or PARK that the normal plan has: put the safe steps after the volley.</li>
  * </ul>
  */
 final class TipRules {
@@ -70,6 +75,7 @@ final class TipRules {
             checkWaitForTip(a, info, out);
         }
         checkPartnerAssumption(a, out);
+        checkGiveUpPlan(a, out);
         checkSpill(a, out);
         checkUnderTheHive(a, out);
     }
@@ -275,12 +281,44 @@ final class TipRules {
         String why = giveUp <= a.latestGiveUpSec(wait) ? "the WAIT_FOR_TIP gives up at " + RouteValidator.sec(giveUp)
                 : "the steps after the wait take " + RouteValidator.sec(a.totalSeconds() - wait.endSec()) + " and the route must be over by "
                 + RouteValidator.sec(RouteAnalysis.timeBudgetSec());
+        String verdict = slack < 0.0
+                ? "no slack at all: the route does not work even if the partner tips at the assumed time"
+                : String.format(Locale.ROOT, "%.1f", slack) + " s of slack, less than the " + RouteValidator.sec(BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC)
+                + " a slower partner needs. The route only works with a partner that is about as fast as assumed";
         out.add(warn(waitIndex, Rule.TIP_ASSUMPTION, RouteValidator.describe(wait) + ": the partner's tip is assumed at "
                 + RouteValidator.sec(a.partnerTipSec()) + ", but the latest tip this route can still use is "
-                + RouteValidator.sec(a.latestPartnerTipSec()) + " (" + why + "): " + String.format(Locale.ROOT, "%.1f", slack)
-                + " s of slack, less than the " + RouteValidator.sec(BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC)
-                + " a slower partner needs. The route only works with a partner that is about as fast as assumed; give up later,"
+                + RouteValidator.sec(a.latestPartnerTipSec()) + " (" + why + "): " + verdict + "; give up later,"
                 + " or make the steps after the wait shorter"));
+    }
+
+    // ---- no camera, no shot: the route when the tip is never confirmed ----------------------------------------------
+
+    /**
+     * Plays the route as the robot does it when the tip it depends on is never confirmed (the partner never tips or is too late, or
+     * the camera is dead): the WAIT_FOR_TIP ends at its give-up time, the tip-dependent volleys are left out and the rest goes on.
+     * It should still earn the LEAVE and PARK the normal plan earns: those are the safe points that do not depend on anybody's tip.
+     */
+    private static void checkGiveUpPlan(RouteAnalysis a, List<Issue> out) {
+        RouteAnalysis g = a.giveUpPlan();
+        if (g == null) {
+            return;
+        }
+        int last = a.steps().size() - 1;
+        int left = a.tipDependentSteps().size();
+        String when = "if the tip these " + left + " volley" + (left == 1 ? "" : "s") + " depend" + (left == 1 ? "s" : "") + " on is never confirmed"
+                + " (the partner is late or never tips, or the camera is dead) the robot gives up waiting, leaves " + (left == 1 ? "it" : "them")
+                + " out (no camera, no shot) and carries on: the route then ";
+        // (Time cannot run out here: the give-up time is at most the latest moment the whole rest of the route allows, and leaving
+        // volleys out only shortens that rest, so the give-up plan ends inside the budget whenever the normal plan does.)
+        boolean losesLeave = a.leave() && !g.leave();
+        boolean losesPark = a.park() && !g.park();
+        if (losesLeave || losesPark) {
+            String lost = losesLeave && losesPark ? "LEAVE and PARK" : losesLeave ? "LEAVE" : "PARK";
+            int points = (losesLeave ? BioBuzzConstants.Auto.LEAVE_POINTS : 0) + (losesPark ? BioBuzzConstants.Auto.PARK_POINTS : 0);
+            out.add(warn(last, Rule.TIP_ASSUMPTION, RouteValidator.describe(a.step(last)) + ": " + when + "ends at " + RouteValidator.pose(g.endPose())
+                    + " without " + lost + " (" + points + " points) that the normal plan earns. Put the safe steps (the drive off the wall and the"
+                    + " PARK) after the volley, so they are done whether or not the tip comes"));
+        }
     }
 
     // ---- G409 / G417: do not be under a HIVE that can still tip ----------------------------------------------------
@@ -341,13 +379,15 @@ final class TipRules {
         for (RouteAnalysis.TipEvent tip : a.tipEvents()) {
             Rect zone = a.field().cellPlan(a.field().alliance(), tip.releasingSide, true).inflate(margin);
             double from = tip.timeSec;
-            double to = tip.timeSec + clear;
+            // The robot's own rule counts from the moment its camera has CONFIRMED the tip (the tip plus the settle time), so the
+            // plan keeps the robot out for that long too.
+            double to = tip.timeSec + a.tipSettleSec() + clear;
             int last = a.steps().size() - 1;
             boolean lastStepReported = false;
             for (RouteAnalysis.StepInfo info : a.steps()) {
                 for (Pose2 p : a.posesDuring(info, from, to)) {
                     if (Footprint.of(p).overlaps(zone)) {
-                        out.add(error(info.index, Rule.SPILL_G409, spillMessage(info, tip, zone, p)));
+                        out.add(error(info.index, Rule.SPILL_G409, spillMessage(a, info, tip, zone, p)));
                         lastStepReported |= info.index == last;
                         break;
                     }
@@ -355,17 +395,19 @@ final class TipRules {
             }
             // after the last step the robot stands where the route ended
             if (!lastStepReported && to > a.totalSeconds() + EPS && Footprint.of(a.endPose()).overlaps(zone)) {
-                out.add(error(last, Rule.SPILL_G409, spillMessage(a.step(last), tip, zone, a.endPose())));
+                out.add(error(last, Rule.SPILL_G409, spillMessage(a, a.step(last), tip, zone, a.endPose())));
             }
         }
     }
 
-    private static String spillMessage(RouteAnalysis.StepInfo info, RouteAnalysis.TipEvent tip, Rect zone, Pose2 at) {
+    private static String spillMessage(RouteAnalysis a, RouteAnalysis.StepInfo info, RouteAnalysis.TipEvent tip, Rect zone, Pose2 at) {
+        double settle = a.tipSettleSec();
         String who = tip.byPartner ? "the partner's assumed tip" : "the HIVE tip of step " + (tip.stepIndex + 1);
         return RouteValidator.describe(info) + ": the robot footprint at " + RouteValidator.pose(at) + " is inside the spill zone of the "
-                + tip.releasingSide + " cell " + zone + " within " + RouteValidator.sec(BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC)
+                + tip.releasingSide + " cell " + zone + " within " + RouteValidator.sec(settle + BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC)
                 + " of " + who + " at " + RouteValidator.sec(tip.timeSec) + "; the cell that tips releases its NECTAR and POLLEN"
-                + " there and a robot may not catch or deflect them (G409). Stay out of the zone until "
-                + String.format(Locale.ROOT, "%.1f s", tip.timeSec + BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
+                + " there and a robot may not catch or deflect them (G409). The robot stays out until its camera has confirmed the tip ("
+                + RouteValidator.sec(tip.timeSec + settle) + ") and then " + RouteValidator.sec(BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC)
+                + " more: stay out of the zone until " + String.format(Locale.ROOT, "%.1f s", tip.timeSec + settle + BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
     }
 }

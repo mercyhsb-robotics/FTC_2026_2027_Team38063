@@ -414,6 +414,24 @@ public class RouteGalleryTest {
     }
 
     @Test
+    public void aRouteThatDependsOnATipSaysWhatItDoesWhenTheTipIsNeverConfirmed() throws Exception {
+        Document page = parse(RouteGallery.indexHtml(catalogAndPartner()));
+        String text = rowValue(section(page, "partner_rear"), "If the tip is never confirmed");
+        // the wait gives up at its 20 s deadline, the one volley is left out, the robot stays where it waited: no LEAVE, no PARK
+        assertTrue(text, text.startsWith("the robot waits until 20.0 s, leaves 1 volley out (no camera, no shot) and carries on: it ends at "));
+        assertTrue(text, text.contains("after 20.0 s with LEAVE no, PARK no: 0 points"));
+        // routes that depend on no tip have no such row
+        assertFalse(section(page, "garden_cycle").getTextContent().contains("If the tip is never confirmed"));
+        assertFalse(section(page, "red_leave_park").getTextContent().contains("If the tip is never confirmed"));
+        // a route that follows its volley with the safe drive off the wall keeps its LEAVE and says so
+        AutoRoute safe = AutoRoute.builder("safe").title("Safe").description("d").startTile("C6")
+                .start(61.5, BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst().waitForTip(20)
+                .shootUp(61.5, 130.0, 90, 4).driveConstant(61.5, 112.0, 90).build();
+        String kept = rowValue(section(parse(RouteGallery.indexHtml(Collections.singletonList(safe))), "safe"), "If the tip is never confirmed");
+        assertTrue(kept, kept.contains("with LEAVE yes, PARK no: 3 points"));
+    }
+
+    @Test
     public void everyStepIsListedWithItsNote() throws Exception {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         for (AutoRoute r : RouteCatalog.all()) {
