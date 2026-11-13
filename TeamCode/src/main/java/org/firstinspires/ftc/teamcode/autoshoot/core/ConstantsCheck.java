@@ -157,6 +157,25 @@ public final class ConstantsCheck {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
 
+        // ---- route wall-safety check (RouteSweep): how finely the whole robot is checked along a drive
+        // A step of zero or less would make the check never finish; the finest step cannot be coarser than the
+        // ordinary step it refines.
+        if (BioBuzzConstants.AutoShoot.PATH_SWEEP_STEP_IN <= 0 || BioBuzzConstants.AutoShoot.PATH_SWEEP_STEP_DEG <= 0
+                || BioBuzzConstants.AutoShoot.PATH_SWEEP_MIN_STEP_IN <= 0 || BioBuzzConstants.AutoShoot.PATH_MIN_LEG_IN <= 0) {
+            r.errors.add("AutoShoot.PATH_SWEEP_STEP_IN, PATH_SWEEP_STEP_DEG, PATH_SWEEP_MIN_STEP_IN and PATH_MIN_LEG_IN"
+                    + " must be positive.");
+        } else if (BioBuzzConstants.AutoShoot.PATH_SWEEP_MIN_STEP_IN > BioBuzzConstants.AutoShoot.PATH_SWEEP_STEP_IN) {
+            r.errors.add("AutoShoot.PATH_SWEEP_MIN_STEP_IN must not be larger than PATH_SWEEP_STEP_IN.");
+        }
+        if (BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN < 0) {
+            r.errors.add("AutoShoot.PATH_SWEEP_TOLERANCE_IN cannot be negative.");
+        } else if (BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN >= BioBuzzConstants.AutoShoot.WALL_CLEARANCE_IN) {
+            // The forgiven amount is taken off the wall clearance, so it must be smaller than it, or a route could be
+            // allowed to touch (or enter) the wall.
+            r.warnings.add("AutoShoot.PATH_SWEEP_TOLERANCE_IN is not smaller than WALL_CLEARANCE_IN: a route that passes"
+                    + " the check may touch the wall.");
+        }
+
         // ---- vision
         if (BioBuzzConstants.Vision.TAG_MIN_RANGE_IN >= BioBuzzConstants.Vision.TAG_MAX_RANGE_IN) {
             r.errors.add("Vision.TAG_MIN_RANGE_IN must be smaller than TAG_MAX_RANGE_IN.");

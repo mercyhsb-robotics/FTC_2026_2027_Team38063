@@ -460,6 +460,24 @@ public final class BioBuzzConstants {
          */
         public static final double PATH_MIN_LEG_IN = 0.5;
 
+        // ---- keeping the whole robot (not just its center) off the walls while it drives ------
+        // The route checker (core/RouteSweep) slides the robot's real 17.8 in square along the route and tests it
+        // against the walls, the HIVE frame and the FLOWER plates. It looks at least this often, and more often
+        // wherever the robot is close to something.
+
+        /** TUNE: the route checker looks at the robot at least every this many inches of driving (smaller = slower but finer). */
+        public static final double PATH_SWEEP_STEP_IN = 1.0;
+        /** TUNE: ... and at least every this many degrees of turning (a turning square sweeps its corners through a wide arc). */
+        public static final double PATH_SWEEP_STEP_DEG = 3.0;
+        /**
+         * VERIFY: the checker forgives the robot coming this much closer than the wall clearance or keep-out margin
+         * (inches). It absorbs rounding and the tiny amount the robot can start inside a margin (it starts touching a
+         * wall). Keep it well below {@code WALL_CLEARANCE_IN}, or the robot could be allowed to touch the wall.
+         */
+        public static final double PATH_SWEEP_TOLERANCE_IN = 0.05;
+        /** TUNE: the finest spacing the checker refines to when the robot is very close to something (inches). */
+        public static final double PATH_SWEEP_MIN_STEP_IN = 0.02;
+
         // ---- fine alignment ---------------------------------------------------------------
         /** TUNE: alignment is settled when the position error is below this (inches). Mecanum drives rarely settle below about 1 in. */
         public static final double ALIGN_POS_TOL_IN = 1.5;
