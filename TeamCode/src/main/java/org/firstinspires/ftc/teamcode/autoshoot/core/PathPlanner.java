@@ -12,14 +12,32 @@ import java.util.List;
  *
  * <p>Pure Java; no allocation beyond what a single plan needs, and fast enough to run on a
  * Control Hub when the driver presses the button.
+ *
+ * <p>The idea in plain words: the shortest way around a box is a straight line that bends only at the box's
+ * corners (like a string pulled tight around nails). So the planner makes a "visibility graph": the dots are the
+ * start, the goal and every obstacle corner, and two dots are joined if the straight line between them does not
+ * cut through an obstacle. The shortest route through that web is then found with Dijkstra's algorithm (always
+ * extend the closest unfinished dot). With only a handful of obstacles this is tiny and instant.
+ *
+ * <p>Example: with the HIVE frame (inflated) between the robot and a goal on the far side, the answer is
+ * typically one or two corner points followed by the goal: drive to a corner that clears the frame, then straight on.
+ *
+ * <p>Frame: Pedro field frame, inches. Caller: {@link ScoringPlanner}, which builds one planner for driving and
+ * asks it for a route to every candidate shooting pose. The route is later handed to {@link AutoShootController}
+ * and followed by the drive.
  */
 public final class PathPlanner {
-    /** Pushes corner waypoints this far outside an obstacle so a path never grazes it exactly. */
+    /** Pushes corner waypoints this far outside an obstacle so a path never grazes it exactly (inches). */
     private static final double CORNER_PUSH_IN = 0.05;
 
+    // The area the robot's center may use (the field shrunk by the robot's size), and the keep-out boxes inside it.
     private final Rect bounds;
     private final List<Rect> obstacles;
 
+    /**
+     * @param bounds    where the robot's center may be (already shrunk for the robot's size and wall clearance)
+     * @param obstacles keep-out boxes the robot's center must not enter (already grown by the robot's size and margin)
+     */
     public PathPlanner(Rect bounds, List<Rect> obstacles) {
         this.bounds = bounds;
         this.obstacles = new ArrayList<Rect>(obstacles);
@@ -48,15 +66,20 @@ public final class PathPlanner {
         return null;
     }
 
-    /** Moves a point that is inside an obstacle to the nearest point just outside it. */
+    /**
+     * Moves a point that is inside an obstacle to the nearest point just outside it. Used when the robot already
+     * starts inside a keep-out (for example it was pushed against the HIVE frame): the route first steps out.
+     */
     private double[] projectOut(double x, double y) {
         double px = x;
         double py = y;
+        // The guard stops after four pushes: leaving one box can land inside a neighbouring box.
         for (int guard = 0; guard < 4; guard++) {
             Rect o = containing(px, py);
             if (o == null) {
                 break;
             }
+            // Distance to each of the four sides; leave through the nearest one.
             double dLeft = px - o.minX;
             double dRight = o.maxX - px;
             double dBottom = py - o.minY;
@@ -82,11 +105,15 @@ public final class PathPlanner {
      *         the start (a straight shot is just {@code [goal]}); {@code null} if there is no route
      *         (the goal is inside an obstacle or outside the bounds, or it is walled off). If the
      *         start is itself inside an obstacle, the first waypoint is the nearest point just outside it.
+     *         Each waypoint is {x, y} in field inches.
      */
     public List<double[]> plan(double startX, double startY, double goalX, double goalY) {
+        // 1. An unreachable goal (outside the field area or inside a keep-out) means there is no route at all.
         if (!bounds.contains(goalX, goalY) || containing(goalX, goalY) != null) {
             return null;
         }
+        // 2. A start that is not legal (inside a keep-out, or a hair outside the bounds such as a robot touching a
+        //    wall) cannot be used for straight-line tests, so first step it to the nearest legal point.
         double sx = startX;
         double sy = startY;
         List<double[]> prefix = new ArrayList<double[]>();
@@ -102,13 +129,15 @@ public final class PathPlanner {
             sx = out[0];
             sy = out[1];
         }
+        // 3. The common case: nothing in the way, drive straight there.
         if (segmentClear(sx, sy, goalX, goalY)) {
             List<double[]> direct = new ArrayList<double[]>(prefix);
             direct.add(new double[]{goalX, goalY});
             return direct;
         }
 
-        // Nodes: start, goal, and the four pushed-out corners of every obstacle that are usable.
+        // 4. Otherwise build the visibility graph. Nodes: start (index 0), goal (index 1), and the four
+        //    pushed-out corners of every obstacle that are usable (inside the bounds, not inside another obstacle).
         List<double[]> nodes = new ArrayList<double[]>();
         nodes.add(new double[]{sx, sy});
         nodes.add(new double[]{goalX, goalY});
@@ -125,6 +154,8 @@ public final class PathPlanner {
             }
         }
 
+        // 5. Dijkstra's shortest-path search. dist[i] = shortest known driving distance from the start to node i
+        //    (inches), prev[i] = the node before i on that route, done[i] = distance is final.
         int n = nodes.size();
         double[] dist = new double[n];
         int[] prev = new int[n];
@@ -135,6 +166,7 @@ public final class PathPlanner {
         }
         dist[0] = 0.0;
         for (int iter = 0; iter < n; iter++) {
+            // Pick the closest node whose distance is not final yet.
             int u = -1;
             for (int i = 0; i < n; i++) {
                 if (!done[i] && (u < 0 || dist[i] < dist[u])) {
@@ -146,8 +178,9 @@ public final class PathPlanner {
             }
             done[u] = true;
             if (u == 1) {
-                break;
+                break;      // the goal is final: no need to look further
             }
+            // Relax: can going through u shorten the way to any node v that u can see?
             for (int v = 0; v < n; v++) {
                 if (done[v]) {
                     continue;
@@ -165,8 +198,9 @@ public final class PathPlanner {
             }
         }
         if (Double.isInfinite(dist[1])) {
-            return null;
+            return null;        // the goal is walled off from the start
         }
+        // 6. Walk back from the goal to the start through prev[], then reverse into driving order.
         List<double[]> reversed = new ArrayList<double[]>();
         for (int at = 1; at != 0; at = prev[at]) {
             reversed.add(nodes.get(at));
