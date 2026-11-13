@@ -10,12 +10,94 @@ without a robot:
 * a **check** against the game rules (start placement, field walls, the HIVE, FLOWERS, the center line, the
   4 POLLEN limit, the LOADING ZONE) that lists every problem with the step it belongs to.
 
-> **What it does not do (yet):** drive the robot. The OpModes (`RedAlliance_B1`, `RedAlliance_C1`,
+> **What it does not do (yet):** drive the robot. There is **no route runner** and no **Auto Route Picker** yet (see "The
+> runner and the picker: not built yet" below). The OpModes (`RedAlliance_B1`, `RedAlliance_C1`,
 > `RedAlliance_LeavePark`) still hold the Pedro code that moves the robot. The catalog *describes* those autos
 > faithfully, so the picture and the rule check show what the OpMode really does, including its mistakes.
+>
+> **Not sure which route to use?** Read "The routes, the two families and how to choose one" below.
 
 The pictures are in [`docs/autos/index.html`](autos/index.html) (open the file in any browser; it follows your light
 or dark setting). They are generated, so never edit them by hand.
+
+## The routes, the two families and how to choose one
+
+A **family** of routes answers one question: **who shoots the first tip of the HIVE?** The HIVE belongs to the whole alliance, so our
+partner robot can tip it too. A HIVE cell *tips* when it has taken 8 POLLEN-equivalents, and the first tip brings the other cell up
+(the details are in "Who shoots the first tip" and "How a HIVE tips" further down). Every route belongs to exactly one family, and says so
+in its data and on its picture (`first tip: SELF` or `PARTNER`).
+
+| Family | What the route assumes | Where it is written | Needs the camera? |
+|---|---|---|---|
+| **We tip first** (`FirstTip.SELF`) | Our own 4 pre-loads, together with the 3 NECTAR already in the UP cell, tip the HIVE. The route works whatever the partner's auto does, as long as the partner does not shoot into our HIVE first. | The five routes below are written in `RouteCatalog.java` itself. `SelfTipRoutes.java` is the file where new routes of this family go; it is empty today. | Not for a volley at the cell that is UP from the start (all five routes today). |
+| **The partner tips first** (`FirstTip.PARTNER`) | The partner's volley tips the HIVE (we agree a time with the partner team; today's guess is 12 s) and the OTHER cell comes up. Our robot waits until its camera has SEEN that cell up and steady, then shoots. | `PartnerTipRoutes.java` | **Yes.** Without a working Limelight the route is useless, so the Auto Route Picker is to refuse it at INIT. |
+
+The six routes today. The numbers are the gallery's at the time of writing, made with the **placeholder timing** of "About the numbers"; open
+[`docs/autos/index.html`](autos/index.html) for the current ones.
+
+| Route (`id`) | Family | Starts in | What it does | Time | Our points | Validator |
+|---|---|---|---|---|---|---|
+| `red_b1` | we tip first | B1 | A copy of the OpMode `RedAlliance_B1`: turns, shoots the 4 pre-loads, drives up the left side to the LOADING ZONE. | 14.5 s | 28 | 5 ERROR, 2 WARN |
+| `red_c1` | we tip first | C1 | A copy of `RedAlliance_C1`: shoots, then drives past the HIVE to the LOADING ZONE. | 16.1 s | 28 | 3 ERROR, 1 WARN |
+| `red_leave_park` | we tip first (it shoots nothing, so it does not care) | A3 | A copy of `RedAlliance_LeavePark`: leaves the wall and parks. | 2.7 s | 8 | 2 ERROR |
+| `wall_shoot_park` | we tip first | C1 | Shoots the 4 pre-loads (this tips the HIVE), leaves through the left corridor and parks deep in the LOADING ZONE. | 12.4 s | 28 | 0 ERROR, 1 WARN |
+| `garden_cycle` | we tip first | B1 | Shoots the 4 pre-loads, sweeps up 3 GARDEN POLLEN and steps off the wall. It does not park. | 14.1 s | 23 | 0 ERROR, 1 WARN |
+| `partner_rear_shoot_park` | partner tips first | C6 | Starts on the rear wall, waits for the camera to see the REAR cell come up, shoots 4 into it and parks in the LOADING ZONE. | 22.2 s | 8 | no findings |
+
+**Our points** counts only what our robot earns: LEAVE 3, PARK 5, and 20 for a tip that **our** volley makes. A tip the partner makes belongs to
+the alliance and is never counted here. **ERROR** and **WARN** are explained in "What the validator checks". The first three routes are faithful
+copies of the old OpModes and keep their old mistakes on purpose (see "What the validator says about today's autos").
+
+### The runner and the picker: not built yet
+
+A **route runner** is the program on the robot that reads a checked route and drives it step by step with Pedro. An **Auto Route Picker** is the
+screen at INIT where the drivers choose a route and an alliance and are told, before the match, what is wrong (for example "the camera is not
+working"). **Neither exists yet.** No OpMode and no robot code uses the catalog, so nothing can drive a catalog route today. The only autos that
+move the robot are the three hand-written OpModes, and the first three catalog routes are copies of them. So for now "choosing a route" means
+choosing what to **plan, check and then write as an OpMode**. When the runner is built, the picker will list this same catalog.
+
+What is already built, and tested without a robot, so that a runner can use it instead of inventing it again:
+
+* the **checks and the time estimate** (`RouteValidator`, `RouteAnalysis`, `TimingModel`);
+* the **FLOWER pick-up script** (`FlowerWiggleSequence`, tested in a closed loop against a simulated heading controller);
+* the robot's **camera-only decision** that a tip is real (`TipConfirmation` and `TipWait` in `autoshoot/core`), and the give-up time of every
+  wait (`RouteAnalysis.effectiveGiveUpSec`);
+* what the picker must **say at INIT** when the camera is not working (`TipCameraPolicy`: a partner route is refused, a route with later volleys
+  that depend on its own tip gets a warning, a route that needs no tip is fine).
+
+What is **not** built: the runner itself, the picker, and the code that turns a route step into Pedro paths on the robot. Until they exist, a
+change to a route changes the picture, the estimate and the check, **not** what the robot does.
+
+### How to choose a route
+
+Go through these questions in order. Each one removes some routes from the list.
+
+1. **What does our partner's auto do?** Ask the partner team before the match.
+   * It shoots into our HIVE and can tell you when it will be done: choose from the **partner family**. The picture of a partner route prints the
+     *latest* partner tip it still works with, and the **slack** over the time you agreed; a small slack means "only works with a partner that is
+     as fast as agreed".
+   * It does not touch our HIVE, or you are not sure: choose from the **we-tip-first family**. Those routes do not wait for anybody.
+2. **Is the Limelight camera working?** A partner route needs it: with no camera the robot can never see the tip, so it would skip the volley
+   and only leave and park. Pick a we-tip-first route instead. None of the five we-tip-first routes of today needs the camera.
+3. **Can you set the robot up where the route starts?** Each route starts in one tile (see the table) and rule G304 decides which poses are
+   legal. "Where to set the robot up (rule G304)" below tells you, with a tape measure, how to place the robot.
+4. **Does the validator say 0 ERROR?** An ERROR means the route breaks a rule or cannot work: do not choose it as it stands. A WARN means
+   "probably fine, check it on the field". Today `red_b1`, `red_c1` and `red_leave_park` have ERRORs (their start is 0.57 in through the wall,
+   for example): fix the numbers in the OpMode first, or take `wall_shoot_park`.
+5. **Is the time safely under 30 s?** AUTO lasts 30 s. The times are estimates from numbers nobody has measured yet ("About the numbers"), so do
+   not trust a route that finishes within a few seconds of the limit.
+6. **Which of the routes that are left earns the most of OUR points?** Compare "Our points" in the table or in the footer of the picture. LEAVE and
+   PARK are 8 points for any route that gets there; a route that tips the HIVE with our own volley earns 20 more. Never add the partner's tip.
+7. **Look at both pictures.** The blue route is the red one turned half a turn about the field center, not a mirror image ("Red and blue"), so
+   give the blue picture one look before the match.
+
+With today's catalog that gives, as a suggestion from the data (the team decides):
+
+* the partner does not touch our HIVE, and we want the most points with no ERROR: **`wall_shoot_park`** (28 points in about 12 s; its one WARN says
+  the 4th POLLEN is probably launched before the feeder can stop, and it is only the spare);
+* the same, but we also want 3 GARDEN POLLEN picked up for TELEOP and can give up the PARK: **`garden_cycle`** (23 points);
+* the partner tips first, at about the agreed time, and the camera works: **`partner_rear_shoot_park`** (8 points of ours; it also puts 4 of the
+  8 POLLEN the second tip needs into the HIVE for TELEOP).
 
 ## Add an auto in five steps
 
@@ -729,6 +811,9 @@ catalog deliberately does not "improve" them.
 | `autoshoot.render` | `RouteSvgRenderer` (one route to one SVG), `RouteGallery` (the page), `RenderRoutesMain` (the command line), `SvgWriter` (escaping and number formatting). |
 | `tools/` | `render-autos.sh` and `render-autos.bat`; `start-shortcuts.sh` and `start-shortcuts.bat` (the table of start-pose shortcuts). |
 | `docs/autos/` | The generated page and the SVG files. |
+
+Missing from the table because it does not exist yet: the **route runner** (drives a checked route with Pedro) and the **Auto Route Picker** (the INIT screen
+where the drivers choose a route). See "The runner and the picker: not built yet" near the top.
 
 `BioBuzzConstants` and the packages `autoshoot.core`, `autoshoot.routes` and `autoshoot.render` are **plain Java**: they
 must not import the FTC SDK, Android or Pedro, and must use only the Java 8 library. That is what lets the scripts
