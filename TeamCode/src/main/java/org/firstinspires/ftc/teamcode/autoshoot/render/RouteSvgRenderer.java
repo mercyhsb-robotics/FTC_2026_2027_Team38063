@@ -94,6 +94,8 @@ public final class RouteSvgRenderer {
     private static final String WHEEL_FILL = "#37474f";
     private static final String CHASSIS_OPACITY = "0.2";
     private static final double BROKEN_FILL_OPACITY = 0.3;
+    /** Space kept free at the left and the right edge of the image for the title, subtitle and footer lines. */
+    private static final double LEFT_MARGIN_PX = 24.0;
     private static final double LEGEND_ROW_SPACING_PX = 17.0;
     private static final double FOOTER_GAP_PX = 22.0;
     private static final double ISSUE_LINE_SPACING_PX = 11.2;
@@ -174,6 +176,19 @@ public final class RouteSvgRenderer {
             return text.length() * size * BioBuzzConstants.Auto.RENDER_LABEL_CHAR_WIDTH_EM;
         }
 
+        /**
+         * The font size for a line that starts at the left margin: {@code basePx}, or smaller if the line would run off the
+         * right edge of the image at that size (a long route id plus the first-tip words can). Text in an SVG is never
+         * wrapped, so a line that is too long would simply be cut off.
+         */
+        private double fitFontPx(String text, double basePx) {
+            double room = canvas - 2.0 * LEFT_MARGIN_PX;
+            double fitting = room / (text.length() * BioBuzzConstants.Auto.RENDER_LABEL_CHAR_WIDTH_EM);
+            // rounded DOWN to a tenth of a pixel: the number is written into the SVG with few digits, and rounding it up
+            // could push the line a hair past the margin
+            return Math.min(basePx, Math.floor(fitting * 10.0) / 10.0);
+        }
+
         // ---- the whole drawing ------------------------------------------------------------------
 
         String draw() {
@@ -202,8 +217,9 @@ public final class RouteSvgRenderer {
             for (int i = 0; i < route.size(); i++) {
                 d.append(i == 0 ? "" : "; ").append(i + 1).append(' ').append(route.step(i).describe());
             }
-            d.append(". Estimated ").append(sec(a.totalSeconds())).append(", POLLEN balance ").append(signed(a.pollenBalance()))
-                    .append(", up to ").append(a.points()).append(" points; ").append(countOf(Issue.Severity.ERROR))
+            d.append(". First tip: ").append(firstTipText()).append(". Estimated ").append(sec(a.totalSeconds()))
+                    .append(", POLLEN balance ").append(signed(a.pollenBalance()))
+                    .append(", up to ").append(a.points()).append(" points for our robot; ").append(countOf(Issue.Severity.ERROR))
                     .append(" errors and ").append(countOf(Issue.Severity.WARN)).append(" warnings.");
             w.element("desc", d.toString(), "id", "svg-desc");
             w.open("defs");
@@ -235,14 +251,27 @@ public final class RouteSvgRenderer {
             return c;
         }
 
+        /**
+         * Who shoots the first tip, and for a partner route also the latest partner tip that still works (so the drive team
+         * sees how slow a partner the route can stand).
+         */
+        private String firstTipText() {
+            if (!a.partnerTipAssumed()) {
+                return route.firstTipSummary();
+            }
+            double latest = a.latestPartnerTipSec();
+            return route.firstTipSummary() + "; " + (Double.isInfinite(latest) ? "any tip time works" : "latest that works " + sec(latest));
+        }
+
         private void title() {
             String text = route.title() + " - " + alliance + " alliance";
             double size = Math.min(20.0, 852.0 / (text.length() * 0.56));
             w.element("text", text, "id", "title", "x", "24", "y", "27", "font-size", n(size), "font-weight", "bold",
                     "fill", BioBuzzConstants.Auto.RENDER_TEXT_COLOR);
+            // The first-tip assumption is part of what the route IS: the drive team picks the auto that matches the partner's.
             String sub = "id " + route.id() + "  |  start tile " + route.startTile() + "  |  " + route.size() + " steps  |  "
-                    + (alliance == Alliance.RED ? "red" : "blue") + " ink";
-            w.element("text", sub, "id", "subtitle", "x", "24", "y", "45", "font-size", "12", "fill", MUTED_TEXT);
+                    + (alliance == Alliance.RED ? "red" : "blue") + " ink  |  first tip: " + firstTipText();
+            w.element("text", sub, "id", "subtitle", "x", "24", "y", "45", "font-size", n(fitFontPx(sub, 12.0)), "fill", MUTED_TEXT);
             // ink swatch so the colour is explained once
             w.empty("rect", "x", "24", "y", "52", "width", "40", "height", "4", "fill", ink);
         }
@@ -900,8 +929,11 @@ public final class RouteSvgRenderer {
                     }
                     break;
                 }
-                case WAIT: {
-                    String text = "WAIT " + n(((Step.Wait) step).seconds()) + " s";
+                case WAIT:
+                case WAIT_FOR_TIP: {
+                    String text = step.kind() == StepKind.WAIT_FOR_TIP
+                            ? "WAIT FOR TIP (give up at " + n(((Step.WaitForTip) step).giveUpSec()) + " s)"
+                            : "WAIT " + n(((Step.Wait) step).seconds()) + " s";
                     double[] pos = placeLabel(text, fontPx, p[0], p[1]);
                     // a small clock in front of the text
                     double cx = pos[2] == 2 ? pos[0] - textWidth(text, fontPx) - 9 : pos[2] == 1 ? pos[0] - textWidth(text, fontPx) / 2 - 9 : pos[0] - 9;
@@ -1054,16 +1086,18 @@ public final class RouteSvgRenderer {
             w.open("g", "id", "footer");
             double y = legendTop + LEGEND_ROW_SPACING_PX + FOOTER_GAP_PX;
             String line1 = "Estimated time " + sec(a.totalSeconds()) + " of the " + sec(BioBuzzConstants.Auto.AUTO_DURATION_SEC)
-                    + " AUTO (placeholder timing)   |   Claimable AUTO points: " + a.points() + "  (LEAVE " + a.leavePoints() + ", PARK "
+                    + " AUTO (placeholder timing)   |   Our AUTO points: " + a.points() + "  (LEAVE " + a.leavePoints() + ", PARK "
                     + a.parkPoints() + ", HIVE TIP " + a.tipPoints() + ")";
-            w.element("text", line1, "id", "footer-metrics", "x", "24", "y", n(y), "font-size", "12", "font-weight", "bold", "fill",
-                    BioBuzzConstants.Auto.RENDER_TEXT_COLOR);
+            w.element("text", line1, "id", "footer-metrics", "x", "24", "y", n(y), "font-size", n(fitFontPx(line1, 12.0)),
+                    "font-weight", "bold", "fill", BioBuzzConstants.Auto.RENDER_TEXT_COLOR);
             int errors = countOf(Issue.Severity.ERROR);
             int warns = countOf(Issue.Severity.WARN);
             String line2 = "POLLEN: hold " + BioBuzzConstants.Auto.PRELOAD_POLLEN + " at start, +" + a.pollenGained() + " taken, -"
                     + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")   |   Validator: "
-                    + (errors + warns == 0 ? "no findings" : errors + " ERROR, " + warns + " WARN");
-            w.element("text", line2, "id", "footer-pollen", "x", "24", "y", n(y + 16), "font-size", "12", "fill",
+                    + (errors + warns == 0 ? "no findings" : errors + " ERROR, " + warns + " WARN")
+                    // the partner's assumed tip is shown, but it is never part of our points
+                    + (a.partnerTips() > 0 ? "   |   Partner tip +" + a.partnerTipPoints() + " (not ours)" : "");
+            w.element("text", line2, "id", "footer-pollen", "x", "24", "y", n(y + 16), "font-size", n(fitFontPx(line2, 12.0)), "fill",
                     errors > 0 ? ERROR_COLOR : BioBuzzConstants.Auto.RENDER_TEXT_COLOR);
             int cap = BioBuzzConstants.Auto.RENDER_MAX_ISSUE_LINES;
             int shown = Math.min(issues.size(), issues.size() > cap ? cap - 1 : cap);

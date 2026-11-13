@@ -19,9 +19,12 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.FirstTip;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TipModel;
 
 /**
  * Builds the route gallery: one {@code <id>_red.svg} and one {@code <id>_blue.svg} per route and an
@@ -186,8 +189,8 @@ public final class RouteGallery {
             + "figure.red figcaption { color: var(--red); }\n"
             + "figure.blue figcaption { color: var(--blue); }\n"
             + "img.diagram { display: block; width: 100%; height: auto; background: #ffffff; border: 1px solid var(--border); border-radius: 6px; }\n"
-            + "ol.steps { margin: 6px 0; padding-left: 1.6rem; }\n"
-            + "ol.steps li { margin: 3px 0; }\n"
+            + "ol.steps, ul.tips { margin: 6px 0; padding-left: 1.6rem; }\n"
+            + "ol.steps li, ul.tips li { margin: 3px 0; }\n"
             + ".kind { display: inline-block; min-width: 4.2rem; font-weight: 700; font-size: 0.85rem; }\n"
             + ".time { color: var(--muted); font-size: 0.85rem; }\n"
             + ".note { color: var(--muted); font-size: 0.9rem; }\n"
@@ -225,11 +228,16 @@ public final class RouteGallery {
         h.append("its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. ");
         h.append("A FLOWER is emptied by pressing ONE flat wheel into its bottom POLLEN: the arrow shows that straight press-in and the dotted arrow the straight retreat. ");
         h.append("Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>\n");
+        h.append("<p id=\"tip-rule\" class=\"muted\">How a HIVE tips: ").append(esc(TipModel.explainRule())).append(" Every route says who shoots the first tip: ")
+                .append("<code>").append(esc(FirstTip.SELF.summary(0.0))).append("</code> (our 4 pre-loads are the first tip) or <code>")
+                .append(esc(FirstTip.PARTNER.summary(BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC)))
+                .append("</code> (the alliance partner's volley is the first tip and our robot goes to the other side). The partner's ")
+                .append(BioBuzzConstants.Auto.TIP_POINTS).append(" points are shown but never counted in the points of our robot.</p>\n");
         h.append("</header>\n<main>\n");
 
         // ---- summary table
         h.append("<section id=\"summary\">\n<h2>All routes</h2>\n<div class=\"tablewrap\">\n<table class=\"summary\">\n<thead><tr>");
-        for (String col : new String[] {"Route", "Start tile", "Steps", "Estimated time", "AUTO points", "POLLEN balance", "Validator"}) {
+        for (String col : new String[] {"Route", "Start tile", "First tip", "Steps", "Estimated time", "Our AUTO points", "POLLEN balance", "Validator"}) {
             h.append("<th>").append(esc(col)).append("</th>");
         }
         h.append("</tr></thead>\n<tbody>\n");
@@ -239,6 +247,11 @@ public final class RouteGallery {
             h.append("<td><a href=\"#").append(esc(e.route.id())).append("\">").append(esc(e.route.title())).append("</a><br /><code>")
                     .append(esc(e.route.id())).append("</code></td>");
             h.append("<td>").append(esc(e.route.startTile())).append("</td>");
+            h.append("<td>").append(esc(e.route.firstTipSummary()));
+            if (a.partnerTipAssumed()) {
+                h.append("<br /><span class=\"note\">").append(esc(latestTipText(a))).append("</span>");
+            }
+            h.append("</td>");
             h.append("<td>").append(e.route.size()).append("</td>");
             h.append("<td>").append(seconds(a.totalSeconds())).append("</td>");
             h.append("<td>").append(a.points()).append("</td>");
@@ -273,14 +286,24 @@ public final class RouteGallery {
         row(h, "Start pose, RED", esc(pose(e.red.startPose())));
         row(h, "Start pose, BLUE", esc(pose(e.blue.startPose())));
         row(h, "Steps", Integer.toString(route.size()));
+        row(h, "First tip", esc(route.firstTipSummary()));
         row(h, "Estimated time", seconds(a.totalSeconds()) + " of the " + seconds(BioBuzzConstants.Auto.AUTO_DURATION_SEC)
                 + " AUTO (placeholder timing)");
-        row(h, "Claimable AUTO points", a.points() + " = LEAVE " + a.leavePoints() + " + PARK " + a.parkPoints() + " + HIVE TIP "
+        row(h, "Our AUTO points", a.points() + " = LEAVE " + a.leavePoints() + " + PARK " + a.parkPoints() + " + our HIVE TIP "
                 + a.tipPoints());
+        if (a.partnerTipAssumed()) {
+            row(h, "Assumed partner tip", a.partnerTips() == 1
+                    ? "+" + a.partnerTipPoints() + " for the alliance at " + seconds(a.partnerTipSec())
+                            + ": an assumption, shown here and NOT counted in our points"
+                    : "none: this route tips the HIVE itself before " + seconds(a.partnerTipSec()) + ", so the partner's tip is not needed");
+        }
+        if (a.partnerTipAssumed()) {
+            row(h, "Latest partner tip that works", esc(slackText(a)));
+        }
         row(h, "POLLEN", "hold " + BioBuzzConstants.Auto.PRELOAD_POLLEN + " at the start, +" + a.pollenGained() + " taken, -"
                 + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")");
-        row(h, "HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (" + BioBuzzConstants.Auto.TIP_POLLEN_THRESHOLD
-                + " POLLEN into the UP cell each)"));
+        row(h, "Our HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (the first needs " + TipModel.firstTipPollen()
+                + " POLLEN into the UP cell, each later one " + TipModel.laterTipPollen() + ")"));
         row(h, "Ends", "LEAVE " + (a.leave() ? "yes" : "no") + ", PARK " + (a.park() ? "yes, " + inches(a.parkOverlapIn()) + " inside the LOADING ZONE" : "no")
                 + ", at " + esc(pose(a.endPose())));
         row(h, "Validator", statusHtml(e));
@@ -296,12 +319,17 @@ public final class RouteGallery {
             h.append("<li class=\"step\" data-kind=\"").append(info.step.kind().name()).append("\"><span class=\"kind\">")
                     .append(info.step.kind().name()).append("</span> ").append(esc(describeRest(info))).append(" <span class=\"time\">t = ")
                     .append(oneDecimal(info.startSec)).append(" to ").append(oneDecimal(info.endSec())).append(" s</span>");
+            if (info.step instanceof Step.WaitForTip) {
+                h.append("<div class=\"note waitnote\">").append(esc(waitText(a, info))).append("</div>");
+            }
             if (!info.step.note().isEmpty()) {
                 h.append("<div class=\"note\">").append(esc(info.step.note())).append("</div>");
             }
             h.append("</li>\n");
         }
         h.append("</ol>\n");
+
+        tipArithmetic(h, a);
 
         h.append("<h3>Validator findings</h3>\n");
         if (e.sameFindings()) {
@@ -311,6 +339,53 @@ public final class RouteGallery {
             issues(h, e.blueIssues, "BLUE:");
         }
         h.append("</section>\n");
+    }
+
+    /**
+     * The tip arithmetic of THIS route in plain words: the partner's assumed tip (if the route assumes one) and every
+     * volley with what the UP cell held and whether the HIVE tipped. The rule itself is at the top of the page.
+     */
+    private static void tipArithmetic(StringBuilder h, RouteAnalysis a) {
+        h.append("<h3>HIVE tips</h3>\n<ul class=\"tips\">\n");
+        boolean any = false;
+        for (RouteAnalysis.TipEvent tip : a.tipEvents()) {
+            if (tip.byPartner) {
+                any = true;
+                h.append("<li class=\"tipline partner\">The partner's assumed tip at ").append(seconds(tip.timeSec)).append(": the ")
+                        .append(tip.releasingSide).append(" cell tips down and spills, the ").append(tip.newUpSide)
+                        .append(" cell comes up with no NECTAR in it, so our robot needs ").append(TipModel.laterTipPollen())
+                        .append(" POLLEN there for the next tip. These ").append(BioBuzzConstants.Auto.TIP_POINTS)
+                        .append(" points are the alliance's, not ours.</li>\n");
+            }
+        }
+        if (a.partnerTipVoided()) {
+            any = true;
+            h.append("<li class=\"tipline partner\">The partner's tip would be at ").append(seconds(a.partnerTipSec()))
+                    .append(", but this route tips the HIVE itself before that, so the partner is not needed.</li>\n");
+        }
+        for (RouteAnalysis.StepInfo info : a.steps()) {
+            if (!(info.step instanceof Step.Shoot)) {
+                continue;
+            }
+            any = true;
+            int count = ((Step.Shoot) info.step).count();
+            h.append("<li class=\"tipline volley\" data-step=\"").append(info.index + 1).append("\">Step ").append(info.index + 1)
+                    .append(": ");
+            if (info.targetWasUp) {
+                h.append(esc(TipModel.explainVolley(info.nectarInCellBefore, info.pollenInCellBefore, count)));
+                if (info.firedAfterTip > 0) {
+                    h.append("; the last ").append(info.firedAfterTip).append(" POLLEN would go into a cell that is already tipping down");
+                }
+            } else {
+                h.append("fires ").append(count).append(" POLLEN at the ").append(info.targetSide)
+                        .append(" cell, which faces down when they leave, so they count for nothing");
+            }
+            h.append(".</li>\n");
+        }
+        if (!any) {
+            h.append("<li class=\"tipline none\">This route launches no POLLEN, so it does not tip the HIVE.</li>\n");
+        }
+        h.append("</ul>\n");
     }
 
     private static void figure(StringBuilder h, Entry e, Alliance alliance) {
@@ -361,6 +436,44 @@ public final class RouteGallery {
         String d = info.step.describe();
         String kind = info.step.kind().name();
         return d.startsWith(kind + " ") ? d.substring(kind.length() + 1) : d;
+    }
+
+    /** Short: the latest partner tip that still works, for the summary table. */
+    private static String latestTipText(RouteAnalysis a) {
+        double latest = a.latestPartnerTipSec();
+        return Double.isInfinite(latest) ? "works with any partner tip time" : "latest tip that works: " + seconds(latest);
+    }
+
+    /**
+     * The slack of a partner route in plain words: how late the partner may tip and the route still does everything it
+     * plans, and why that is the limit. The robot never shoots because of a time; the numbers only tell the drive team
+     * which partner routes are safe to pick.
+     */
+    private static String slackText(RouteAnalysis a) {
+        double latest = a.latestPartnerTipSec();
+        if (Double.isInfinite(latest)) {
+            return "any time: this route does not depend on when the partner tips (it never shoots at the cell that comes up)";
+        }
+        double slack = a.partnerTipSlackSec();
+        String text = seconds(latest) + " is the latest partner tip the route can still use, " + seconds(Math.abs(slack))
+                + (slack >= 0 ? " of slack after" : " BEFORE") + " the assumed " + seconds(a.partnerTipSec()) + ".";
+        if (slack < 0) {
+            return text + " The route does not work with the assumed tip time.";
+        }
+        if (slack < BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC) {
+            return text + " That is less than " + seconds(BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC)
+                    + ": pick this route only if the partner is as fast as agreed.";
+        }
+        return text + " If the partner tips later than that, the robot gives up waiting, skips the volleys that need the tip"
+                + " and still does LEAVE and PARK.";
+    }
+
+    /** The give-up time of a WAIT_FOR_TIP and the latest one the rest of the route allows. */
+    private static String waitText(RouteAnalysis a, RouteAnalysis.StepInfo info) {
+        double giveUp = ((Step.WaitForTip) info.step).giveUpSec();
+        return "The robot shoots after the camera has SEEN the HIVE tipped, never at a time. It stops waiting at " + seconds(giveUp)
+                + " on the route clock; the steps after this one take " + seconds(a.totalSeconds() - info.endSec())
+                + ", so it may wait until " + seconds(a.latestGiveUpSec(info)) + " at the latest.";
     }
 
     private static String pose(Pose2 p) {

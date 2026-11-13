@@ -8,6 +8,10 @@
   up cell, so the **first** tip needs only one volley of 4 POLLEN (3 NECTAR + 4 POLLEN is enough, 3 NECTAR + 3 POLLEN
   is not). The cell that comes up after a tip has no NECTAR in it, so each later tip needs about 8 POLLEN, two
   volleys (our assumption: confirm it on the real HIVE).
+* In autonomous the first tip may come from the **alliance partner** instead of from us. Every route in the autonomous
+  catalog states which one it assumes (`FirstTip.SELF` or `FirstTip.PARTNER`, see `docs/AUTOS.md`). A route that
+  assumes the partner waits for the camera to see the other cell tipped UP (the AprilTags on the bottom of the cell in
+  view) before it shoots: a time never lets the robot shoot, and without a camera it skips the volley.
 * The robot's shooter fires out the **back**, so the robot stands on the side its up cell faces, with its back
   toward the HIVE. Standing too far back is limited by the wall: the farthest in-line shot from the audience wall is
   37.7 in.

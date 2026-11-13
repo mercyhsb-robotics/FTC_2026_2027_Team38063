@@ -12,6 +12,11 @@ public enum StepKind {
     SHOOT,
     /** Do nothing for a while. */
     WAIT,
+    /**
+     * Stand still until the HIVE cell the next volley is aimed at has tipped UP (the alliance partner's tip), but for
+     * no longer than a timeout. Only meaningful in a route that assumes the partner shoots the first tip.
+     */
+    WAIT_FOR_TIP,
     /** Finish partly inside the own LOADING ZONE (AUTO PARK, manual 10.5.4). */
     PARK
 }

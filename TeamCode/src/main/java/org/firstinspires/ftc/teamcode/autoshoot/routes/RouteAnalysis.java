@@ -48,7 +48,7 @@ public final class RouteAnalysis {
 
         /** SHOOT: the cell side fired at (the UP side for an UP-cell target). Else null. */
         public final Side targetSide;
-        /** SHOOT: true if the targeted cell was UP at that moment. */
+        /** SHOOT: true if the targeted cell was UP at the moment the first POLLEN left ({@link #launchSec}). */
         public final boolean targetWasUp;
         /** SHOOT: the shooting pose used (explicit, or the nominal standoff pose for an AUTO pose). Else null. */
         public final Pose2 shootPose;
@@ -58,6 +58,25 @@ public final class RouteAnalysis {
         public final boolean tipped;
         /** SHOOT: POLLEN in the targeted cell after this volley (0 right after a tip). */
         public final int pollenInCellAfter;
+        /** SHOOT: route time in seconds at which the first POLLEN leaves the shooter (after the move to the pose); NaN otherwise. */
+        public final double launchSec;
+        /** SHOOT that tipped the HIVE: route time in seconds of the POLLEN that tipped it; NaN otherwise. */
+        public final double tipSec;
+        /**
+         * SHOOT that tipped the HIVE: POLLEN of the same volley that are still fired AFTER the tip, i.e. into a
+         * cell that is already tipping down (0 when the last POLLEN of the volley is the one that tips).
+         */
+        public final int firedAfterTip;
+        /** SHOOT: NECTAR sitting in the targeted cell when the volley starts (3 in the starting UP cell, else 0). */
+        public final int nectarInCellBefore;
+        /** SHOOT: POLLEN of this route that are already in the targeted cell when the volley starts (0 for a cell that is DOWN). */
+        public final int pollenInCellBefore;
+        /**
+         * WAIT_FOR_TIP: the route time in seconds at which the partner's tip is ASSUMED to happen (it is only a planning
+         * guess: the robot goes on when its camera sees the tip); NaN when there is no tip to wait for (a route that
+         * assumes SELF, or the HIVE has tipped already). Else NaN.
+         */
+        public final double tipWaitSec;
 
         /** INTAKE: what the robot takes from: "FLOWER n", "own GARDEN", "other GARDEN" or "FLOOR"; null if nothing matched. */
         public final String sourceName;
@@ -69,7 +88,9 @@ public final class RouteAnalysis {
         StepInfo(int index, Step step, Pose2 from, Pose2 to, DrivePath path, DrivePath approach, double startSec,
                  double durationSec, int pollenBefore, int pollenAfter, Side upSideBefore, Side upSideAfter,
                  Side targetSide, boolean targetWasUp, Pose2 shootPose, boolean shootPoseIsNominal, boolean tipped,
-                 int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits) {
+                 int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits,
+                 double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore, double tipWaitSec,
+                 int pollenInCellBefore) {
             this.index = index;
             this.step = step;
             this.from = from;
@@ -91,6 +112,12 @@ public final class RouteAnalysis {
             this.sourceName = sourceName;
             this.sourceRemainingBefore = sourceRemainingBefore;
             this.sourceOffLimits = sourceOffLimits;
+            this.launchSec = launchSec;
+            this.tipSec = tipSec;
+            this.firedAfterTip = firedAfterTip;
+            this.nectarInCellBefore = nectarInCellBefore;
+            this.tipWaitSec = tipWaitSec;
+            this.pollenInCellBefore = pollenInCellBefore;
         }
 
         public double endSec() {
@@ -98,26 +125,93 @@ public final class RouteAnalysis {
         }
     }
 
+    /** One HIVE tip during the route: when, which cell tipped down, and who caused it. */
+    public static final class TipEvent {
+        /** Route time in seconds at which the tip happens. */
+        public final double timeSec;
+        /** The cell that WAS up and tips down now: what it holds spills out on its side of the HIVE (rule G409). */
+        public final Side releasingSide;
+        /** The cell that is UP from now on. */
+        public final Side newUpSide;
+        /** True for the alliance partner's assumed tip, false for a tip caused by a volley of this route. */
+        public final boolean byPartner;
+        /** The SHOOT step that tipped the HIVE; -1 for the partner's tip. */
+        public final int stepIndex;
+
+        TipEvent(double timeSec, Side releasingSide, Side newUpSide, boolean byPartner, int stepIndex) {
+            this.timeSec = timeSec;
+            this.releasingSide = releasingSide;
+            this.newUpSide = newUpSide;
+            this.byPartner = byPartner;
+            this.stepIndex = stepIndex;
+        }
+    }
+
+    /**
+     * The HIVE while a route is played: which cell is UP, how many NECTAR it holds (only the cell that is UP at the
+     * start holds the staged ones), how many of OUR POLLEN went into it since it came up, and the partner's tip if
+     * the route assumes one ({@link FirstTip#PARTNER}) that has not happened yet.
+     */
+    private static final class Hive {
+        Side up;
+        int nectar = BioBuzzConstants.Auto.NECTAR_STAGED_IN_UP_CELL;
+        int pollen;
+        final double partnerSec;
+        boolean partnerPending;
+        boolean partnerVoided;
+        final List<TipEvent> events = new ArrayList<TipEvent>();
+
+        Hive(Side up, double partnerSec) {
+            this.up = up;
+            this.partnerSec = partnerSec;
+            this.partnerPending = !Double.isNaN(partnerSec);
+        }
+
+        /** Lets time pass: the partner's tip happens once the clock reaches it (a hair of tolerance for rounding). */
+        void advanceTo(double sec) {
+            if (partnerPending && sec >= partnerSec - 1e-9) {
+                events.add(new TipEvent(partnerSec, up, up.opposite(), true, -1));
+                flip();
+                partnerPending = false;
+            }
+        }
+
+        /** A tip: the other cell comes up empty (Fig 10-2 shows NECTAR only in the cell that is UP at the start). */
+        void flip() {
+            up = up.opposite();
+            nectar = 0;
+            pollen = 0;
+        }
+    }
+
     private final AutoRoute route;
     private final AllianceField field;
+    private final TimingModel timing;
     private final List<StepInfo> infos;
     private final double totalSeconds;
     private final int pollenGained;
     private final int pollenShot;
     private final int tips;
+    private final List<TipEvent> tipEvents;
+    private final boolean partnerTipVoided;
+    private final double partnerTipSec;
     private final boolean leave;
     private final boolean park;
     private final double parkOverlapIn;
 
-    private RouteAnalysis(AutoRoute route, AllianceField field, List<StepInfo> infos, double totalSeconds,
-                          int pollenGained, int pollenShot, int tips) {
+    private RouteAnalysis(AutoRoute route, AllianceField field, TimingModel timing, List<StepInfo> infos, double totalSeconds,
+                          int pollenGained, int pollenShot, int tips, Hive hive, double partnerTipSec) {
         this.route = route;
+        this.partnerTipSec = partnerTipSec;
         this.field = field;
+        this.timing = timing;
         this.infos = Collections.unmodifiableList(infos);
         this.totalSeconds = totalSeconds;
         this.pollenGained = pollenGained;
         this.pollenShot = pollenShot;
         this.tips = tips;
+        this.tipEvents = Collections.unmodifiableList(new ArrayList<TipEvent>(hive.events));
+        this.partnerTipVoided = hive.partnerVoided;
 
         Pose2 end = infos.get(infos.size() - 1).to;
         Footprint fp = Footprint.of(end);
@@ -136,6 +230,19 @@ public final class RouteAnalysis {
     }
 
     public static RouteAnalysis of(AutoRoute route, FieldModel model, TimingModel timing) {
+        return of(route, model, timing, route.partnerTipSec());
+    }
+
+    /**
+     * A "what if": the route played through with the partner's tip at {@code partnerTipSec} instead of the assumed
+     * {@code Auto.PARTNER_FIRST_TIP_DONE_SEC} (NaN: nobody tips the HIVE by itself). The numbers for "how late may the
+     * partner be?" ({@link #latestPartnerTipSec()}) are checked against this in the tests.
+     */
+    public static RouteAnalysis ofWithPartnerTipAt(AutoRoute route, double partnerTipSec) {
+        return of(route, new FieldModel(), new TimingModel(), partnerTipSec);
+    }
+
+    private static RouteAnalysis of(AutoRoute route, FieldModel model, TimingModel timing, double partnerTipSec) {
         Alliance alliance = route.alliance();
         AllianceField field = new AllianceField(model, alliance);
         List<StepInfo> out = new ArrayList<StepInfo>();
@@ -143,8 +250,8 @@ public final class RouteAnalysis {
         Pose2 pose = route.startPose();
         double t = 0.0;
         int held = BioBuzzConstants.Auto.PRELOAD_POLLEN;
-        Side up = field.initialUpSide();
-        int inCell = 0;
+        // The HIVE: which cell is UP, what it holds, and the partner's tip if the route assumes one.
+        Hive hive = new Hive(field.initialUpSide(), partnerTipSec);
         int gained = 0;
         int shot = 0;
         int tips = 0;
@@ -158,6 +265,7 @@ public final class RouteAnalysis {
         }
 
         for (int i = 0; i < route.size(); i++) {
+            hive.advanceTo(t);      // the partner's tip happens when its time comes, whatever this robot is doing
             Step step = route.step(i);
             Pose2 from = pose;
             Pose2 to = pose;
@@ -165,7 +273,7 @@ public final class RouteAnalysis {
             DrivePath approach = null;
             double duration = 0.0;
             int heldBefore = held;
-            Side upBefore = up;
+            Side upBefore = hive.up;
             Side targetSide = null;
             boolean targetWasUp = false;
             Pose2 shootPose = null;
@@ -174,6 +282,12 @@ public final class RouteAnalysis {
             String sourceName = null;
             int sourceLeft = -1;
             boolean offLimits = false;
+            double launchSec = Double.NaN;
+            double tipSec = Double.NaN;
+            int firedAfterTip = 0;
+            int nectarBefore = 0;
+            int pollenBeforeInCell = 0;
+            double tipWaitSec = Double.NaN;
 
             switch (step.kind()) {
                 case START:
@@ -227,8 +341,9 @@ public final class RouteAnalysis {
                 }
                 case SHOOT: {
                     Step.Shoot sh = (Step.Shoot) step;
-                    targetSide = sh.target().isUpCell() ? up : sh.target().fixedSideOrNull();
-                    targetWasUp = targetSide == up;
+                    // "The UP cell" is the one that is UP when the step starts (that is what the solver sees and drives
+                    // to); a fixed side is the cell the route names.
+                    targetSide = sh.target().isUpCell() ? hive.up : sh.target().fixedSideOrNull();
                     if (sh.isAutoPose()) {
                         shootPose = field.nominalShootPose(targetSide);
                         nominal = true;
@@ -237,16 +352,39 @@ public final class RouteAnalysis {
                     }
                     to = shootPose;
                     approach = approachOrNull(from, to);
-                    duration = (approach == null ? 0.0 : timing.moveSeconds(from, to)) + timing.shootSeconds(sh);
+                    double approachSec = approach == null ? 0.0 : timing.moveSeconds(from, to);
+                    double shootSec = timing.shootSeconds(sh);
+                    duration = approachSec + shootSec;
+                    launchSec = t + approachSec;
+                    // Whether that cell is still UP when the first POLLEN leaves decides if the launch is legal (G417):
+                    // the partner's tip may happen while the robot is still driving to the pose.
+                    hive.advanceTo(launchSec);
+                    targetWasUp = targetSide == hive.up;
+                    nectarBefore = targetWasUp ? hive.nectar : 0;
+                    pollenBeforeInCell = targetWasUp ? hive.pollen : 0;
                     held -= sh.count();
                     shot += sh.count();
                     if (targetWasUp) {
-                        inCell += sh.count();
-                        if (inCell >= BioBuzzConstants.Auto.TIP_POLLEN_THRESHOLD) {
+                        // How many POLLEN of THIS volley does the cell need? (see TipModel for the arithmetic.) At
+                        // least 1: a cell cannot tip before something is launched into it.
+                        int needed = Math.max(1, TipModel.pollenStillNeeded(hive.nectar, hive.pollen));
+                        // The POLLEN leave one every timePerShot; the tip happens when the needed one lands.
+                        double wouldTipAt = launchSec + shootSec * needed / sh.count();
+                        boolean partnerFirst = hive.partnerPending && hive.partnerSec <= wouldTipAt;
+                        if (sh.count() >= needed && !partnerFirst) {
                             tipped = true;
                             tips++;
-                            up = up.opposite();
-                            inCell = 0;
+                            tipSec = wouldTipAt;
+                            firedAfterTip = sh.count() - needed;
+                            hive.events.add(new TipEvent(tipSec, hive.up, hive.up.opposite(), false, i));
+                            if (hive.partnerPending) {
+                                // we tipped the HIVE before the partner did: the partner's tip is no longer coming
+                                hive.partnerPending = false;
+                                hive.partnerVoided = true;
+                            }
+                            hive.flip();
+                        } else {
+                            hive.pollen += sh.count();
                         }
                     }
                     break;
@@ -254,6 +392,13 @@ public final class RouteAnalysis {
                 case WAIT:
                     duration = timing.waitSeconds((Step.Wait) step);
                     break;
+                case WAIT_FOR_TIP: {
+                    // Wait for the partner's tip if one is still to come; with nothing to wait for the cell is UP
+                    // already and the wait takes no time.
+                    tipWaitSec = hive.partnerPending ? hive.partnerSec : Double.NaN;
+                    duration = timing.waitForTipSeconds(t, tipWaitSec, ((Step.WaitForTip) step).giveUpSec());
+                    break;
+                }
                 case PARK: {
                     to = ((Step.Park) step).pose();
                     approach = approachOrNull(from, to);
@@ -264,18 +409,78 @@ public final class RouteAnalysis {
                     throw new IllegalStateException("unhandled step kind " + step.kind());
             }
 
-            out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, up,
-                    targetSide, targetWasUp, shootPose, nominal, tipped, inCell, sourceName, sourceLeft, offLimits));
+            hive.advanceTo(t + duration);
+            out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, hive.up,
+                    targetSide, targetWasUp, shootPose, nominal, tipped, hive.pollen, sourceName, sourceLeft, offLimits,
+                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell));
             t += duration;
             pose = to;
         }
-        return new RouteAnalysis(route, field, out, t, gained, shot, tips);
+        // A partner tip that is assumed after the route has ended still happens (the robot stands where it ended).
+        hive.advanceTo(Double.POSITIVE_INFINITY);
+        return new RouteAnalysis(route, field, timing, out, t, gained, shot, tips, hive, partnerTipSec);
     }
 
     private static DrivePath approachOrNull(Pose2 from, Pose2 to) {
         boolean sameSpot = from.distanceTo(to) < 1e-6;
         boolean sameHeading = Math.abs(Angles.error(from.heading, to.heading)) < 1e-9;
         return sameSpot && sameHeading ? null : DrivePath.straight(from, to);
+    }
+
+    // ---- where is the robot at a given time? -------------------------------------------------------------
+
+    private static final double TINY = 1e-9;
+
+    /**
+     * The poses the robot has during one step between two route times (both inclusive), for checks that ask "where is
+     * the robot in the 3 seconds after the HIVE tips?". Empty if the step is not running in that window.
+     *
+     * <p>While the robot drives, its place follows the speed profile of the {@link TimingModel} (speed up, cruise,
+     * brake), sampled every {@code PATH_SAMPLE_STEP_IN}; the turn on the spot at the start of a leg is sampled too;
+     * after the move the robot stands at the end pose of the step (settling, taking POLLEN, shooting, waiting).
+     */
+    public List<Pose2> posesDuring(StepInfo info, double fromSec, double toSec) {
+        List<Pose2> out = new ArrayList<Pose2>();
+        double a = Math.max(fromSec, info.startSec);
+        double b = Math.min(toSec, info.endSec());
+        if (a > b + TINY) {
+            return out;
+        }
+        DrivePath leg = info.path != null ? info.path : info.approach;
+        if (leg == null) {
+            out.add(info.to);
+            return out;
+        }
+        double speed = info.step instanceof Step.Drive ? ((Step.Drive) info.step).speedFraction() : 1.0;
+        double travel = timing.legTravelSeconds(leg, speed);
+        double tauA = a - info.startSec;
+        double tauB = b - info.startSec;
+        if (tauA <= TINY) {
+            out.add(info.from);
+            out.addAll(leg.turnInPlaceSamples(Math.toRadians(BioBuzzConstants.Auto.TURN_SAMPLE_STEP_DEG)));
+        }
+        if (tauA < travel) {
+            double arcA = arcAfter(leg, speed, travel, tauA);
+            double arcB = arcAfter(leg, speed, travel, Math.min(tauB, travel));
+            for (double s = arcA; s < arcB; s += BioBuzzConstants.Auto.PATH_SAMPLE_STEP_IN) {
+                out.add(leg.poseAt(s));
+            }
+            out.add(leg.poseAt(arcB));
+        }
+        if (tauB >= travel - TINY) {
+            out.add(info.to);
+        }
+        return out;
+    }
+
+    /** Arc length reached {@code tau} seconds into a leg whose movement takes {@code travelSec}, turning included. */
+    private double arcAfter(DrivePath leg, double speed, double travelSec, double tau) {
+        double driveSec = timing.translationSeconds(leg.length(), speed);
+        if (travelSec <= TINY || driveSec <= TINY) {
+            return tau <= TINY ? 0.0 : leg.length();
+        }
+        // when turning takes longer than driving, the driving is spread over the whole travel time
+        return timing.distanceAfter(leg.length(), speed, tau * driveSec / travelSec);
     }
 
     // ---- results ---------------------------------------------------------------------------------------
@@ -326,9 +531,122 @@ public final class RouteAnalysis {
         return pollenGained - pollenShot;
     }
 
-    /** Number of HIVE TIPs the shots reach (each needs {@code TIP_POLLEN_THRESHOLD} POLLEN into the UP cell). */
+    /**
+     * Number of HIVE TIPs the route's own volleys cause (the alliance partner's assumed tip is NOT among them, see
+     * {@link #partnerTips()}). A cell tips by the weighted rule of {@link TipModel}: the first tip needs one volley of
+     * 4 POLLEN (the 3 staged NECTAR help), every later tip needs 8 POLLEN into the cell that came up.
+     */
     public int tips() {
         return tips;
+    }
+
+    /**
+     * Every HIVE tip of the route in time order: the ones this route's volleys cause and the partner's assumed tip
+     * (if the route assumes one and our own volleys did not tip the HIVE before it).
+     */
+    public List<TipEvent> tipEvents() {
+        return tipEvents;
+    }
+
+    /** True if the route assumes the alliance partner shoots the first tip ({@link FirstTip#PARTNER}). */
+    public boolean partnerTipAssumed() {
+        return !Double.isNaN(partnerTipSec);
+    }
+
+    /** Route time in seconds at which the partner's tip is assumed to be done; NaN if the route assumes SELF. */
+    public double partnerTipSec() {
+        return partnerTipSec;
+    }
+
+    /** The last moment, on the route clock, by which the route must be over: the AUTO limit minus the safety margin. */
+    public static double timeBudgetSec() {
+        return BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC;
+    }
+
+    /**
+     * WAIT_FOR_TIP: the latest route time, in seconds, at which the robot may stop waiting and still do the rest of
+     * the route inside {@link #timeBudgetSec()}: the budget minus what the steps after the wait take. A give-up time
+     * later than this could make the route overrun the AUTO limit. NaN for any other step.
+     */
+    public double latestGiveUpSec(StepInfo wait) {
+        if (!(wait.step instanceof Step.WaitForTip)) {
+            return Double.NaN;
+        }
+        return timeBudgetSec() - (totalSeconds - wait.endSec());
+    }
+
+    /**
+     * The latest time, in seconds on the route clock, at which the partner's tip may happen so that this route still
+     * does everything it plans: the robot has not given up waiting yet, and the whole route (LEAVE and PARK after the
+     * volleys included) still ends inside {@link #timeBudgetSec()}. It is how much a slow partner can be tolerated.
+     *
+     * <p>Why a formula and not a search: the steps after a WAIT_FOR_TIP take the same time whenever the tip comes, and
+     * the wait ends at the tip (or at its give-up time), so a tip at T ends the route at {@code max(wait start, T) +
+     * the time of the rest}. That is within the budget until T = budget - rest, and the robot gives up at the
+     * deadline of the wait. The smaller of the two is the answer.
+     *
+     * <p>{@code +infinity}: the route does not depend on the partner's tip at all (no volley at the cell that comes up,
+     * no wait for it), or our own volley tipped the HIVE first. NaN: the route does not assume a partner tip. A route
+     * with a volley at the cell that comes up but no WAIT_FOR_TIP before it (that is an ERROR in the checker) can only
+     * cope with a tip before the volley starts, so the answer is that start time.
+     */
+    public double latestPartnerTipSec() {
+        if (!partnerTipAssumed()) {
+            return Double.NaN;
+        }
+        TipEvent partner = null;
+        for (TipEvent e : tipEvents) {
+            if (e.byPartner) {
+                partner = e;
+            }
+        }
+        if (partner == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+        StepInfo wait = null;
+        StepInfo dependent = null;
+        for (StepInfo info : infos) {
+            if (wait == null && info.step instanceof Step.WaitForTip) {
+                wait = info;
+            }
+            if (dependent == null && info.step instanceof Step.Shoot && info.targetSide == partner.newUpSide) {
+                dependent = info;
+            }
+        }
+        if (wait == null) {
+            return dependent == null ? Double.POSITIVE_INFINITY : dependent.launchSec;
+        }
+        double giveUp = ((Step.WaitForTip) wait.step).giveUpSec();
+        return Math.min(giveUp, latestGiveUpSec(wait));
+    }
+
+    /**
+     * Seconds of slack the route has: the latest partner tip that still works minus the assumed one. Large is robust
+     * (a slow partner is fine), small means the route only works with a quick partner, below zero means it does not
+     * even work with the assumed time. {@code +infinity} if the route does not depend on the partner's tip; NaN for a
+     * route that does not assume one.
+     */
+    public double partnerTipSlackSec() {
+        return latestPartnerTipSec() - partnerTipSec;
+    }
+
+    /**
+     * True if the partner's tip is assumed but never happens in the simulation because this route tipped the HIVE
+     * first: the assumption no longer holds for this route.
+     */
+    public boolean partnerTipVoided() {
+        return partnerTipVoided;
+    }
+
+    /** 1 if the partner's tip happens in the simulation (assumed, and not pre-empted by this route's own tip), else 0. */
+    public int partnerTips() {
+        int n = 0;
+        for (TipEvent e : tipEvents) {
+            if (e.byPartner) {
+                n++;
+            }
+        }
+        return n;
     }
 
     /** LEAVE: the whole robot ends off every wall by the margin. */
@@ -354,14 +672,23 @@ public final class RouteAnalysis {
         return park ? BioBuzzConstants.Auto.PARK_POINTS : 0;
     }
 
+    /** Points of the HIVE tips OUR volleys cause. */
     public int tipPoints() {
         return tips * BioBuzzConstants.Auto.TIP_POINTS;
     }
 
     /**
-     * The AUTO points the route can claim if everything goes to plan: LEAVE and PARK from the end pose,
-     * 20 per HIVE TIP its shots reach. It assumes every POLLEN lands and the robot is not late, so it is a
-     * ceiling, not a forecast.
+     * Points the alliance gets from the partner's assumed tip. They are shown next to the route's own points but are
+     * NOT part of {@link #points()}: the partner's volley is an assumption, not something this robot does.
+     */
+    public int partnerTipPoints() {
+        return partnerTips() * BioBuzzConstants.Auto.TIP_POINTS;
+    }
+
+    /**
+     * The AUTO points OUR robot can claim if everything goes to plan: LEAVE and PARK from the end pose, 20 per HIVE
+     * TIP its own volleys cause. It assumes every POLLEN lands and the robot is not late, so it is a ceiling, not a
+     * forecast. The partner's assumed tip is reported separately by {@link #partnerTipPoints()}.
      */
     public int points() {
         return leavePoints() + parkPoints() + tipPoints();

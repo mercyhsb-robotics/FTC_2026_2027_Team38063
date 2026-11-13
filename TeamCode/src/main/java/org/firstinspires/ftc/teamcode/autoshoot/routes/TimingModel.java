@@ -61,14 +61,46 @@ public final class TimingModel {
         return Math.abs(radians) / Math.toRadians(p.turnRateDegPerSec);
     }
 
+    /** Time the robot spends moving along a DRIVE leg: the longer of driving and turning (no settle time). */
+    public double legTravelSeconds(DrivePath path, double speedFraction) {
+        return Math.max(translationSeconds(path.length(), speedFraction), turnSeconds(path.totalTurnRadians()));
+    }
+
     /** Duration of a DRIVE leg: the longer of driving and turning, plus the settle if the robot moved at all. */
     public double legSeconds(DrivePath path, double speedFraction) {
-        double drive = translationSeconds(path.length(), speedFraction);
-        double turn = turnSeconds(path.totalTurnRadians());
-        if (drive <= TINY && turn <= TINY) {
+        double travel = legTravelSeconds(path, speedFraction);
+        if (travel <= TINY) {
             return 0.0;
         }
-        return Math.max(drive, turn) + p.settleSec;
+        return travel + p.settleSec;
+    }
+
+    /**
+     * How far along a path of {@code distanceIn} inches the robot is {@code seconds} after it starts moving, with the
+     * same speed profile as {@link #translationSeconds}: it speeds up at the acceleration, cruises, and brakes so it
+     * arrives at rest (or it speeds up and brakes straight away on a short path). 0 at the start, the whole distance
+     * once {@code seconds} reaches the travel time. It lets a check ask "where is the robot at second 14?".
+     */
+    public double distanceAfter(double distanceIn, double speedFraction, double seconds) {
+        if (seconds <= 0.0 || distanceIn <= TINY) {
+            return 0.0;
+        }
+        double total = translationSeconds(distanceIn, speedFraction);
+        if (seconds >= total) {
+            return distanceIn;
+        }
+        double v = p.cruiseInPerSec * speedFraction;
+        double a = p.accelInPerSec2;
+        boolean reachesCruise = distanceIn >= v * v / a;
+        double rampSec = reachesCruise ? v / a : total / 2.0;
+        if (seconds <= rampSec) {
+            return 0.5 * a * seconds * seconds;                  // speeding up
+        }
+        double left = total - seconds;
+        if (!reachesCruise || left <= rampSec) {
+            return distanceIn - 0.5 * a * left * left;           // braking: mirror image of the speed-up
+        }
+        return 0.5 * a * rampSec * rampSec + v * (seconds - rampSec);     // cruising
     }
 
     /** Duration of the implicit straight move to an INTAKE, SHOOT or PARK pose (0 if the robot is already there). */
@@ -105,5 +137,19 @@ public final class TimingModel {
 
     public double waitSeconds(Step.Wait step) {
         return step.seconds();
+    }
+
+    /**
+     * How long a WAIT_FOR_TIP lasts when it starts at {@code nowSec}, the tip it waits for happens at {@code tipSec}
+     * and the robot gives up at {@code giveUpSec} (all three on the route clock): until the tip (0 if it has happened
+     * already), but never past the give-up time. If there is no tip to wait for ({@code tipSec} is NaN) the cell is UP
+     * already and the robot does not wait at all.
+     */
+    public double waitForTipSeconds(double nowSec, double tipSec, double giveUpSec) {
+        if (Double.isNaN(tipSec)) {
+            return 0.0;
+        }
+        double endSec = Math.min(giveUpSec, Math.max(nowSec, tipSec));
+        return Math.max(0.0, endSec - nowSec);
     }
 }

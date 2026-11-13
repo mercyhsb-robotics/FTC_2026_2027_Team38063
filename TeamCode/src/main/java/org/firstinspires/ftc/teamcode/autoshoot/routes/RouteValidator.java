@@ -63,6 +63,13 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       it by less than {@code PARK_MIN_OVERLAP_IN} is a WARN.</li>
  *   <li><b>Unplanned moves.</b> An explicit INTAKE/SHOOT/PARK pose farther than {@code IMPLICIT_MOVE_WARN_IN}
  *       from where the robot is gets a WARN: add a DRIVE so the path is planned and checked.</li>
+ *   <li><b>HIVE tips, G417 and G409.</b> A SHOOT must aim at a cell that faces UP when the POLLEN leave (a WARN for
+ *       a cell that is DOWN; in a route that assumes the partner shoots the first tip, a SHOOT at the cell that comes
+ *       up with the partner's tip is an ERROR unless a WAIT_FOR_TIP before it lasts until that tip, because the robot
+ *       shoots only after its camera has SEEN the cell UP), a volley must not go on firing after the tip, and for
+ *       {@code TIP_SPILL_CLEAR_SEC} after every tip the robot stays out of the spill zone of the cell that tipped. A
+ *       partner route with little slack (the latest partner tip that still works is close to the assumed one) gets a
+ *       WARN. These live in {@link TipRules}.</li>
  * </ol>
  */
 public final class RouteValidator {
@@ -103,6 +110,7 @@ public final class RouteValidator {
             checkPark(a, info, out);
             checkUnplannedMove(info, out);
         }
+        TipRules.check(a, out);
         checkTime(a, out);
         checkEnd(a, out);
         Collections.sort(out, new Comparator<Issue>() {
@@ -413,12 +421,7 @@ public final class RouteValidator {
             return;
         }
         Step.Shoot sh = (Step.Shoot) info.step;
-        if (!info.targetWasUp) {
-            Side upNow = info.upSideBefore;
-            out.add(warn(info.index, Rule.SHOOT_TARGET, describe(info) + ": fires at the " + info.targetSide
-                    + " cell, but at this point the " + upNow + " cell is the UP one; launching into a cell that faces"
-                    + " down is a G417 violation"));
-        }
+        // (Whether the target cell faces UP when the POLLEN leave is checked with the other tip rules, in TipRules.)
         if (sh.isAutoPose()) {
             return;     // the solver picks a pose on the standoff band by construction
         }
@@ -520,22 +523,22 @@ public final class RouteValidator {
 
     // ---- helpers ---------------------------------------------------------------------------------------------
 
-    private static String describe(RouteAnalysis.StepInfo info) {
+    static String describe(RouteAnalysis.StepInfo info) {
         String label = info.step instanceof Step.Drive && !((Step.Drive) info.step).label().isEmpty()
                 ? " '" + ((Step.Drive) info.step).label() + "'" : "";
         String suffix = info.path == null && info.approach != null ? ", the move to its pose" : "";
         return "step " + (info.index + 1) + " (" + info.step.kind() + label + suffix + ")";
     }
 
-    private static String pose(Pose2 p) {
+    static String pose(Pose2 p) {
         return String.format(Locale.ROOT, "(%.1f, %.1f, %.0f deg)", p.x, p.y, p.headingDegrees());
     }
 
-    private static String in(double v) {
+    static String in(double v) {
         return String.format(Locale.ROOT, "%.1f in", v);
     }
 
-    private static String sec(double v) {
+    static String sec(double v) {
         return String.format(Locale.ROOT, "%.1f s", v);
     }
 

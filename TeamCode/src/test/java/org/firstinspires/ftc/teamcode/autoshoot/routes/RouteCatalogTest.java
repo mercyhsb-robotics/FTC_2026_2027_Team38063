@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
@@ -51,7 +52,102 @@ public class RouteCatalogTest {
         assertTrue(seen.contains("red_leave_park"));
         assertTrue(seen.contains("wall_shoot_park"));
         assertTrue(seen.contains("garden_cycle"));
-        assertEquals(5, RouteCatalog.all().size());
+        assertEquals("the five routes of the catalog itself plus whatever the two family files hold",
+                5 + SelfTipRoutes.routes().size() + PartnerTipRoutes.routes().size(), RouteCatalog.all().size());
+    }
+
+    @Test
+    public void theCatalogIsItsOwnRoutesThenTheSelfFamilyThenThePartnerFamily() {
+        List<String> expected = new java.util.ArrayList<String>(java.util.Arrays.asList(RouteCatalog.RED_B1, RouteCatalog.RED_C1,
+                RouteCatalog.RED_LEAVE_PARK, RouteCatalog.WALL_SHOOT_PARK, RouteCatalog.GARDEN_CYCLE));
+        for (AutoRoute r : SelfTipRoutes.routes()) {
+            expected.add(r.id());
+        }
+        for (AutoRoute r : PartnerTipRoutes.routes()) {
+            expected.add(r.id());
+        }
+        List<String> actual = new java.util.ArrayList<String>();
+        for (AutoRoute r : RouteCatalog.all()) {
+            actual.add(r.id());
+        }
+        assertEquals(expected, actual);
+        // and all of them have different ids, across the three places
+        assertEquals(actual.size(), new HashSet<String>(actual).size());
+    }
+
+    @Test
+    public void everyRouteSaysWhoShootsTheFirstTipAndEachFamilyFileKeepsItsOwnAssumption() {
+        for (AutoRoute r : RouteCatalog.all()) {
+            assertNotNull(r.id(), r.firstTip());
+            assertFalse(r.id(), r.firstTipSummary().isEmpty());
+        }
+        // the routes written in the catalog itself shoot the first tip themselves
+        for (String id : new String[] {RouteCatalog.RED_B1, RouteCatalog.RED_C1, RouteCatalog.RED_LEAVE_PARK,
+                RouteCatalog.WALL_SHOOT_PARK, RouteCatalog.GARDEN_CYCLE}) {
+            assertEquals(id, FirstTip.SELF, RouteCatalog.byId(id).firstTip());
+        }
+        assertEquals(java.util.Collections.<String>emptyList(),
+                RouteCatalog.familyProblems("SelfTipRoutes", SelfTipRoutes.routes(), FirstTip.SELF));
+        assertEquals(java.util.Collections.<String>emptyList(),
+                RouteCatalog.familyProblems("PartnerTipRoutes", PartnerTipRoutes.routes(), FirstTip.PARTNER));
+    }
+
+    @Test
+    public void noRouteOfTheCatalogBreaksTheTipRulesForEitherAlliance() {
+        // G417 (a shot at a cell that is not UP, a volley that goes on after the tip, a shot at the partner's cell without
+        // waiting for the camera to see it up) and G409 (standing where the tipped cell spills): an ERROR of these rules is
+        // a route that cannot be run as written. The routes of the two family files are checked the day they are added.
+        for (AutoRoute r : RouteCatalog.all()) {
+            for (Alliance a : Alliance.values()) {
+                List<Issue> l = RouteValidator.check(r.forAlliance(a));
+                assertEquals(r.id() + " " + a + ": " + l, 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
+                assertEquals(r.id() + " " + a + ": " + l, 0, count(l, Rule.SPILL_G409, Severity.ERROR));
+            }
+        }
+    }
+
+    @Test
+    public void everyPartnerRouteOfTheCatalogHasAMeasurableSlackAndWaitsForTheTipBeforeShootingAtIt() {
+        for (AutoRoute r : RouteCatalog.all()) {
+            RouteAnalysis a = r.analyze();
+            if (r.firstTip() != FirstTip.PARTNER) {
+                assertTrue(r.id(), Double.isNaN(a.latestPartnerTipSec()));
+                continue;
+            }
+            assertFalse(r.id() + " has a latest partner tip", Double.isNaN(a.latestPartnerTipSec()));
+            // a partner route that fires at the cell that comes up must hold a WAIT_FOR_TIP (the validator says so too)
+            boolean waits = false;
+            for (int i = 0; i < r.size(); i++) {
+                waits |= r.step(i).kind() == StepKind.WAIT_FOR_TIP;
+            }
+            boolean dependsOnTip = !Double.isInfinite(a.latestPartnerTipSec());
+            assertTrue(r.id() + ": a route that depends on the partner's tip waits for it", !dependsOnTip || waits);
+        }
+    }
+
+    @Test
+    public void aRouteInTheWrongFamilyFileIsReportedByName() {
+        AutoRoute self = AutoRoute.builder("shoots_itself").start(58, 9.2, -90).waitSeconds(1).build();
+        AutoRoute partner = AutoRoute.builder("waits_for_partner").start(61.5, 135.1, 90).partnerTipsFirst().waitSeconds(1).build();
+        List<String> inPartnerFile = RouteCatalog.familyProblems("PartnerTipRoutes", java.util.Arrays.asList(self, partner), FirstTip.PARTNER);
+        assertEquals(inPartnerFile.toString(), 1, inPartnerFile.size());
+        assertTrue(inPartnerFile.get(0), inPartnerFile.get(0).contains("shoots_itself"));
+        assertTrue(inPartnerFile.get(0), inPartnerFile.get(0).contains("PartnerTipRoutes"));
+        assertTrue(inPartnerFile.get(0), inPartnerFile.get(0).contains("partnerTipsFirst()"));
+        List<String> inSelfFile = RouteCatalog.familyProblems("SelfTipRoutes", java.util.Arrays.asList(self, partner), FirstTip.SELF);
+        assertEquals(inSelfFile.toString(), 1, inSelfFile.size());
+        assertTrue(inSelfFile.get(0), inSelfFile.get(0).contains("waits_for_partner"));
+    }
+
+    @Test
+    public void theFamilyFilesHandOutAFreshListEveryTime() {
+        // a route list that somebody changes must not change the catalog
+        List<AutoRoute> a = SelfTipRoutes.routes();
+        a.add(AutoRoute.builder("stray").start(58, 9.2, -90).waitSeconds(1).build());
+        assertEquals(a.size() - 1, SelfTipRoutes.routes().size());
+        List<AutoRoute> b = PartnerTipRoutes.routes();
+        b.add(AutoRoute.builder("stray2").start(58, 9.2, -90).waitSeconds(1).build());
+        assertEquals(b.size() - 1, PartnerTipRoutes.routes().size());
     }
 
     @Test
@@ -284,15 +380,16 @@ public class RouteCatalogTest {
     }
 
     @Test
-    public void wallShootParkShootsThePreloadsThenParksInTheCornerOfTheZone() {
+    public void wallShootParkTipsTheHiveWithThePreloadsThenParksInTheCornerOfTheZone() {
         AutoRoute r = RouteCatalog.byId("wall_shoot_park");
         assertEquals("C1", r.startTile());
         RouteAnalysis a = r.analyze();
         assertEquals(4, a.pollenShot());
-        assertEquals(0, a.tips());
+        assertEquals("3 staged NECTAR + the 4 pre-loads: one volley is the first tip", 1, a.tips());
         assertTrue(a.park());
         assertTrue(a.leave());
-        assertEquals(8, r.claimablePoints());
+        assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
+                r.claimablePoints());
         assertTrue(a.parkOverlapIn() > 7.0);
         // it uses the curved leg and the left corridor
         Step.Drive curve = (Step.Drive) r.step(2);
@@ -303,17 +400,20 @@ public class RouteCatalogTest {
     }
 
     @Test
-    public void gardenCycleReachesTheTipThresholdWithTheGardenPollen() {
+    public void gardenCycleTipsWithThePreloadsThenCarriesTheGardenPollenAndStepsOffTheWall() {
         AutoRoute r = RouteCatalog.byId("garden_cycle");
         assertEquals("B1", r.startTile());
         RouteAnalysis a = r.analyze();
-        assertEquals(8, a.pollenShot());
+        // one volley only: after the tip the UP cell is on the far side of the HIVE and holds no NECTAR, so a second
+        // volley of 4 there would not tip it (it needs 8)
+        assertEquals(4, a.pollenShot());
         assertEquals(4, a.pollenGained());
-        assertEquals(BioBuzzConstants.Auto.TIP_POLLEN_THRESHOLD, a.pollenShot());
         assertEquals(1, a.tips());
+        assertEquals(Side.REAR, a.step(1).upSideAfter);
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.TIP_POINTS, r.claimablePoints());
-        assertEquals(0, a.pollenEnd());
+        assertEquals("the GARDEN POLLEN are carried into TELEOP", BioBuzzConstants.Auto.GARDEN_POLLEN, a.pollenEnd());
         assertEquals("own GARDEN", a.step(4).sourceName);
+        assertTrue(a.leave());
         assertTrue(a.totalSeconds() < BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC);
     }
 

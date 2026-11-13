@@ -22,9 +22,12 @@ or dark setting). They are generated, so never edit them by hand.
 1. **Pick a start.** The robot must start touching a field wall, completely inside its own half, not in the LOADING
    ZONE, not touching a FLOWER or the HIVE frame (rule G304). The robot is a 17.80 x 17.80 in square, so a robot
    facing the audience wall at tile B1 or C1 has its *center* 9.2 in from the wall: `start(35.0, 9.2, -90)`.
-2. **Add one entry** to `build()` in
-   `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/autoshoot/routes/RouteCatalog.java`. Write it for the
-   **RED** alliance only (see "Red and blue" below). Copy this and change it:
+2. **Add one entry** to the file of its family (see "Who shoots the first tip" below):
+   `SelfTipRoutes.java` if your own 4 pre-loads tip the HIVE, `PartnerTipRoutes.java` if the alliance partner tips it.
+   Both are in `TeamCode/src/main/java/org/firstinspires/ftc/teamcode/autoshoot/routes/`, and each has a `routes()`
+   method with a list to add to. (`RouteCatalog.java` only gathers the lists; the three conversions of the old
+   OpModes and the two demonstration routes are written in it.) Write the route for the **RED** alliance only (see
+   "Red and blue" below). Copy this and change it:
 
    ```java
    routes.add(AutoRoute.builder("my_route")                 // id: letters, digits, _ and - only; never changes
@@ -44,9 +47,11 @@ or dark setting). They are generated, so never edit them by hand.
    needs only a JDK (8 or newer), takes a few seconds, and prints one line per route:
 
    ```
-   route                 time  points  POLLEN  validator
-   my_route             12.3s       8      -4  no findings
+   route                 time  points  POLLEN  1st tip  validator
+   my_route             12.3s       8      -4  SELF     no findings
    ```
+
+   The `1st tip` column is who the route assumes shoots the first tip (`SELF` or `PARTNER`).
 4. **Read the page.** Open `docs/autos/index.html`, find your route, look at both diagrams and read the findings.
    An **ERROR** means the route breaks a rule or cannot work (fix it). A **WARN** means "probably fine, check it on
    the field". Change the entry, run the script again, repeat.
@@ -96,6 +101,7 @@ Every step is a method of the builder. The first step must be `start(...)`, and 
 | | `shootUp(x, y, headingDeg, count)` | Same, from an explicit pose. |
 | | `shootSide(Side.AUDIENCE, count)` | Fire at a fixed cell (a promise that it is UP at that moment). |
 | **WAIT** | `waitSeconds(s)` | Do nothing for a while. |
+| **WAIT_FOR_TIP** | `waitForTip(giveUpSec)` | Stand still until the camera has SEEN the HIVE tip; give up at the route time `giveUpSec`. For partner routes only (see "Who shoots the first tip"). |
 | **PARK** | `park(x, y, headingDeg)` | The final pose, partly inside the own LOADING ZONE (5 points). |
 
 Modifiers apply to the step added **just before** them:
@@ -110,13 +116,21 @@ Modifiers apply to the step added **just before** them:
 | `.launchSeconds(5.0)` | SHOOT | The step takes exactly this long (instead of the estimate). |
 | `.note("why")` | any | Free text for people; shown on the page. |
 
+One more call sets the **assumption of the whole route** and goes right after `AutoRoute.builder("id")`:
+`.partnerTipsFirst()` says "the alliance partner shoots the first tip". Without it the route assumes our own 4
+pre-loads are the first tip.
+
 Two rules of thumb that the validator enforces:
 
 * **A move is a DRIVE.** If an INTAKE, SHOOT or PARK has a pose far from where the previous step left the robot,
   the validator warns: add a `drive...` before it so the path is planned and checked.
 * **Scoring.** A route claims LEAVE (3 points) when it ends with the whole robot off every wall, PARK (5) when it ends
-  partly in the own LOADING ZONE, and a HIVE TIP (20) for every 8 POLLEN it launches into the UP cell. The HIVE
-  flips after a tip, so the next volley counts from zero at the other cell.
+  partly in the own LOADING ZONE, and a HIVE TIP (20) for every tip its OWN volleys cause. The 3 NECTAR that sit in the
+  UP cell at the start help: ONE volley of 4 POLLEN tips the first HIVE (3 NECTAR + 4 POLLEN is enough, 3 NECTAR +
+  3 POLLEN is not). The HIVE flips after a tip and the cell that comes up holds no NECTAR, so the next tip at the
+  other cell needs 8 POLLEN (two volleys of 4). See "How a HIVE tips" below. The partner's assumed tip (20 points
+  for the alliance) is shown next to the route's points but is **never counted** in them: it is an assumption, not
+  something our robot does.
 
 ## What the validator checks
 
@@ -132,6 +146,9 @@ Two rules of thumb that the validator enforces:
 | Time | G401 | the estimate is over 30 s | within 2 s of the limit |
 | End pose | 10.5.4 | the route ends inside the HIVE frame | |
 | SHOOT | G417 | | pose off the 30-38 in standoff band, back more than 15 degrees off the cell, wrong side of the HIVE, or the target cell is DOWN at that moment |
+| HIVE tips | G417 | a volley that goes on firing after the tip; in a partner route, a SHOOT at the cell that comes up with the partner's tip that has no WAIT_FOR_TIP before it, or whose wait gives up before the assumed tip | a volley still firing when the partner tips that cell |
+| Spill | G409 | the robot footprint is inside the spill zone of the cell that tipped, within 3 s of the tip | |
+| First-tip assumption | design rule | | a WAIT_FOR_TIP in a route that shoots the first tip itself; a wait that gives up before the assumed tip, or later than the rest of the route can afford; our own volley tipping before the partner's assumed time; less than 3 s of slack (see below) |
 | PARK | 10.5.4 | the pose is not even partly in the LOADING ZONE | it overlaps by less than 3 in |
 
 Every finding names its step number (the same number as in the picture) and quotes the numbers: how far through the
@@ -195,6 +212,75 @@ and the retreat pose. The step ends at the retreat pose, where the next step con
 drawn **pressed in**, the pressing wheel has a green ring, a short solid arrow runs along the wheel's path into the
 POLLEN and a dotted arrow shows the retreat.
 
+## How a HIVE tips
+
+The manual does not say how much it takes to tip a HIVE, so the planner uses the team's figures: **5 NECTAR, or 8
+POLLEN, or a mix**. A mix works like a recipe: each NECTAR is worth 1/5 of a tip, each POLLEN 1/8 of a tip, and the
+cell tips when the shares add up to 1. The code multiplies this by 5 x 8 so that it needs only whole numbers: a cell
+tips when
+
+```
+NECTAR x 8  +  POLLEN x 5  >=  40
+```
+
+* **The first tip.** The UP cell holds 3 NECTAR when the match starts (Fig 10-2). 3 NECTAR + 4 POLLEN is
+  3 x 8 + 4 x 5 = 44, so **one volley of 4 POLLEN is the first tip**; 3 NECTAR + 3 POLLEN is 24 + 15 = 39, which is
+  not. Two volleys are NOT needed for the first tip.
+* **Every later tip.** After a tip the OTHER cell is the UP one, and Fig 10-2 shows NECTAR only in the cell that is
+  UP at the start, so the new UP cell is empty: it needs 8 POLLEN (0 x 8 + 8 x 5 = 40), two volleys of 4, and the
+  robot can hold only 4 POLLEN at a time (G407), so it has to fetch more in between. A second volley of 4 at the SAME
+  side as the first does not tip anything: that cell has just tipped DOWN.
+* **A volley that is too big.** If a tip happens in the middle of a volley, the POLLEN still to be fired would go
+  into a cell that is already tipping down (a G417 violation). The validator reports that as an ERROR.
+* **Our tips and the partner's tip.** `RouteAnalysis.tips()` and the points count only the tips OUR volleys cause.
+  Our volleys and the partner's assumed tip are tracked separately, so a plan can never claim the partner's 20
+  points as its own. The planner does not model the partner also launching into the HIVE in some other way.
+* **Where the spill falls (G409).** When a HIVE tips, the cell that was UP turns down and everything in it (the 3
+  NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE. For the
+  red HIVE the audience cell covers x 49.25 to 69.25 in and y 52.3 to 69.9 in and opens toward the audience wall. G409
+  says a robot may not catch or deflect what a tipped HIVE releases, so for `Auto.TIP_SPILL_CLEAR_SEC` (3 s) after
+  every tip the robot footprint must stay out of that cell's spill zone: the cell footprint grown by
+  `Auto.TIP_SPILL_MARGIN_IN` (6 in). The other side of the HIVE is clear: that is where a robot waiting for the
+  partner stands. On the real robot the rule is "stay out until the camera has confirmed the tip, plus those 3 s";
+  the checker's time-based version is for planning only.
+
+## Who shoots the first tip
+
+The HIVE belongs to the alliance, so our partner robot can tip it too. A route is written under one of two
+assumptions, and the picture and the gallery print it for every route (`first tip: ...`) so the drive team can pick
+the auto that matches what the partner's auto does.
+
+| Assumption | Builder | What it means |
+|---|---|---|
+| **We shoot the first tip** (`FirstTip.SELF`, the default) | nothing | Our 4 pre-loads, with the 3 staged NECTAR, are the first tip: ONE volley. Written in `SelfTipRoutes.java`. |
+| **Partner tips first** (`FirstTip.PARTNER`) | `.partnerTipsFirst()` | The partner's volley is the first tip. The HIVE tips by itself at `Auto.PARTNER_FIRST_TIP_DONE_SEC` (12 s, VERIFY: agree the real time with the partner team) and the OTHER cell comes up, with no NECTAR in it. Our robot goes to that side. Written in `PartnerTipRoutes.java`. |
+
+For the red alliance the UP cell at the start is on the audience side, so a partner tip brings the REAR cell up (for
+blue it is the other way round). A partner route is therefore best started in the rear half of the field, close to
+that cell. Our own volleys into the new cell need 8 POLLEN for the next tip (two volleys of 4, with a trip to a
+FLOWER in between, because the robot holds only 4).
+
+**The camera decides, never the clock.** Partner teams tip at different times, so the robot never shoots because
+"12 seconds have passed". The step that makes it wait is `waitForTip(giveUpSec)`:
+
+* The robot stands still until its camera has **seen** the cell UP and steady (the AprilTags on the bottom of the
+  HIVE in view). Only then does it go on to the volley after the wait.
+* `giveUpSec` is a **time on the route clock** (seconds since AUTO started), not a length of time and not a guess of
+  the tip time. When the clock reaches it and the tip has not been seen, the robot skips the volleys that need the
+  tip and carries on with the safe steps (LEAVE, PARK). So `waitForTip(22.0)` means "stop waiting at 22 s".
+* No camera, no shot: if the camera does not work, the robot does not shoot any volley that depends on a tip.
+* The checker insists on it: a SHOOT at the cell that comes up with the partner's tip **must** have a
+  `waitForTip` before it, even if the SHOOT would start after the assumed 12 s.
+
+**How late may the partner be? (slack).** The route estimate still has to guess when the partner tips (12 s), to
+count time and points. For every partner route the analysis also computes the **latest partner tip that still
+works**: the latest time T so that the robot has not given up waiting yet and the whole route, LEAVE and PARK after
+the volleys included, is still over by the AUTO limit minus the 2 s safety margin (28 s). The gallery shows it next
+to the assumption, and the **slack** is T minus the assumed time. A big slack means a slow partner is fine. Below
+`Auto.PARTNER_TIP_MIN_SLACK_SEC` (3 s, TUNE) the checker warns: "this route only works with a partner that is about
+as fast as agreed". The same page shows, on the WAIT_FOR_TIP step, the latest give-up time that the rest of the route
+allows: write that number, or a little less, into `waitForTip(...)`.
+
 ## Reading a diagram
 
 * **Top view**, the audience wall at the **bottom**, the red alliance on the **left**. Tiles are labelled A-F and 1-6.
@@ -211,12 +297,17 @@ POLLEN and a dotted arrow shows the retreat.
 * **SHOOT** is the robot at the shooting pose and a dashed arrow from the **ball exit** to the **aim point** in the
   cell opening, labelled `SHOOT 4`. A dashed footprint means the pose is the solver's *nominal* pose. `HIVE TIP +20`
   marks the volley that tips the HIVE.
-* **WAIT** is a small clock with its seconds. **PARK** is a bold dashed outline of the final footprint. A route that
+* **WAIT** is a small clock with its seconds; **WAIT FOR TIP** is the same clock with "give up at ..." (the route time
+  at which the robot stops waiting). **PARK** is a bold dashed outline of the final footprint. A route that
   ends on a DRIVE gets an `END` outline instead.
+* The line under the title names the route, its start tile and **who shoots the first tip**; for a partner route it
+  also gives the latest partner tip that still works.
 * The **UP cell** of each HIVE at the start of the match is solid and filled, the **DOWN cell** dashed; both show their
   AprilTag IDs. The hatched half is the opponent's: the robot center must not go there in AUTO (G402).
-* The footer shows the estimated time, the POLLEN balance, the claimable points and the first findings. The
-  gallery page has all of them with their full text.
+* The footer shows the estimated time, the POLLEN balance, **our** AUTO points (LEAVE, PARK and our own tips), the
+  partner's assumed tip "(not ours)" when the route has one, and the first findings. The gallery page has all of
+  them with their full text, and works out the tip arithmetic of every volley (for example `3 x 8 + 4 x 5 = 44, at least
+  40, so the HIVE tips`).
 
 ## About the numbers
 
@@ -231,7 +322,11 @@ POLLEN and a dotted arrow shows the retreat.
   (`Robot.INTAKE_WHEEL_OFFSET_IN`, 6.1 in), how deep the wheel presses (`Auto.FLOWER_PRESS_DEPTH_IN`) and how far
   the chassis stays off the plate (`Auto.FLOWER_CHASSIS_CLEARANCE_IN`). They are on the day-one checklist
   (section C); measure them with the real robot at a real FLOWER.
-* **The HIVE needs 8 POLLEN** to tip (`Auto.TIP_POLLEN_THRESHOLD`, VERIFY): the team's figure is 5 NECTAR or 8 POLLEN.
+* **The tip figures** (`Auto.NECTAR_TIP_THRESHOLD` = 5 and `Auto.POLLEN_TIP_THRESHOLD` = 8, VERIFY) are the team's:
+  5 NECTAR, or 8 POLLEN, or a mix. The manual does not give them. `Auto.NECTAR_STAGED_IN_UP_CELL` = 3 is FIXED (Fig 10-2).
+* **The partner numbers** are guesses to be replaced: `Auto.PARTNER_FIRST_TIP_DONE_SEC` = 12 s (VERIFY: agree it with
+  the partner team), `Auto.TIP_SPILL_CLEAR_SEC` = 3 s and `Auto.TIP_SPILL_MARGIN_IN` = 6 in (VERIFY: watch a real tip),
+  `Auto.PARTNER_TIP_MIN_SLACK_SEC` = 3 s (TUNE).
 * **Rule limits** (30 s, 4 POLLEN, the 3/5/20 points) are FIXED from the manual. The safety margins (3 in around the
   HIVE, 2 s before the end, the standoff band) are TUNE or VERIFY.
 * The look of the diagrams (scale, inks, tile colours, label sizes) is in `BioBuzzConstants.Auto` with the
@@ -247,9 +342,10 @@ POLLEN and a dotted arrow shows the retreat.
 * **`red_b1`** turns to -115 degrees right against the audience wall (a corner pokes **2.6 in through the wall**), shoots
   from 43 in (the good band is 30-38 in), drives so close to the HIVE that the robot is **0.4 in inside the 3 in
   keep-out** (the numbers were written for a narrower robot), and parks only **2.9 in** into the LOADING ZONE.
-* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: the first leaves through the
-  left corridor and parks deep in the zone (8 points); the second shoots the pre-loads, sweeps up the 4 GARDEN POLLEN and
-  shoots them too, so 8 POLLEN reach one cell and the HIVE tips (23 points).
+* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: the first shoots the pre-loads
+  (the first tip), leaves through the left corridor and parks deep in the zone (28 points); the second shoots the
+  pre-loads (the first tip), sweeps up the 4 GARDEN POLLEN and steps off the wall (23 points). It does not shoot the
+  GARDEN POLLEN: the UP cell is on the far side of the HIVE after the tip and needs 8 POLLEN.
 
 These are findings about the **route data**. Whether the old OpModes should be corrected is the team's call; the
 catalog deliberately does not "improve" them.
@@ -258,7 +354,7 @@ catalog deliberately does not "improve" them.
 
 | Package | What is in it |
 |---|---|
-| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`), the simulation (`RouteAnalysis`, `TimingModel`), the checks (`RouteValidator`, `Sweep`, `Issue`), the field geometry (`AllianceField`, `ShotGeometry`, `FlowerPress`) and **`RouteCatalog`**, the list you edit. The robot's own shape (`Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`. |
+| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`, `FirstTip`), the simulation (`RouteAnalysis`, `TimingModel`, and `TipModel` for the tip arithmetic), the checks (`RouteValidator`, `TipRules`, `Sweep`, `Issue`), the field geometry (`AllianceField`, `ShotGeometry`, `FlowerPress`) and the lists of routes: **`SelfTipRoutes`** (we shoot the first tip) and **`PartnerTipRoutes`** (the partner does), gathered by `RouteCatalog`. The robot's own shape (`Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`. |
 | `autoshoot.render` | `RouteSvgRenderer` (one route to one SVG), `RouteGallery` (the page), `RenderRoutesMain` (the command line), `SvgWriter` (escaping and number formatting). |
 | `tools/` | `render-autos.sh` and `render-autos.bat`. |
 | `docs/autos/` | The generated page and the SVG files. |

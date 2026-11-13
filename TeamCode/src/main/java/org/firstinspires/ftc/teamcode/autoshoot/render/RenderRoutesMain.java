@@ -35,7 +35,8 @@ public final class RenderRoutesMain {
         System.out.println("Wrote " + written.size() + " files to " + dir.getAbsolutePath() + " (" + RouteGallery.INDEX_FILE + " and "
                 + (written.size() - 1) + " SVG diagrams).");
         System.out.println();
-        System.out.println(String.format(Locale.ROOT, "%-18s %7s %7s %7s  %s", "route", "time", "points", "POLLEN", "validator"));
+        System.out.println(String.format(Locale.ROOT, "%-18s %7s %7s %7s  %-8s %s", "route", "time", "points", "POLLEN", "1st tip",
+                "validator"));
         for (AutoRoute route : routes) {
             RouteAnalysis a = route.analyze();
             List<Issue> issues = RouteValidator.check(route);
@@ -46,8 +47,8 @@ public final class RenderRoutesMain {
                 }
             }
             String status = issues.isEmpty() ? "no findings" : errors + " ERROR, " + (issues.size() - errors) + " WARN";
-            System.out.println(String.format(Locale.ROOT, "%-18s %6.1fs %7d %7d  %s", route.id(), a.totalSeconds(), a.points(),
-                    a.pollenBalance(), status));
+            System.out.println(String.format(Locale.ROOT, "%-18s %6.1fs %7d %7d  %-8s %s", route.id(), a.totalSeconds(), a.points(),
+                    a.pollenBalance(), route.firstTip(), status));
         }
         // routes that were removed from the catalog leave their old diagrams behind; say so instead of deleting files
         File[] existing = dir.listFiles();

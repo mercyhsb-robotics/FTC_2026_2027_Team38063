@@ -37,15 +37,17 @@ public final class AutoRoute {
     private final String description;
     private final String startTile;
     private final Alliance alliance;
+    private final FirstTip firstTip;
     private final List<Step> steps;
 
     private AutoRoute(String id, String title, String description, String startTile, Alliance alliance,
-                      List<Step> steps) {
+                      FirstTip firstTip, List<Step> steps) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.startTile = startTile;
         this.alliance = alliance;
+        this.firstTip = firstTip;
         this.steps = Collections.unmodifiableList(new ArrayList<Step>(steps));
     }
 
@@ -70,6 +72,27 @@ public final class AutoRoute {
     /** The alliance whose frame the poses are in: RED for authored routes, BLUE for the derived ones. */
     public Alliance alliance() {
         return alliance;
+    }
+
+    /**
+     * Who the route assumes shoots the first tip of the HIVE: this robot ({@link FirstTip#SELF}, the default) or the
+     * alliance partner ({@link FirstTip#PARTNER}).
+     */
+    public FirstTip firstTip() {
+        return firstTip;
+    }
+
+    /**
+     * Route time in seconds at which the partner's tip is assumed to be done
+     * ({@code Auto.PARTNER_FIRST_TIP_DONE_SEC}) when the route assumes {@link FirstTip#PARTNER}; NaN for SELF.
+     */
+    public double partnerTipSec() {
+        return firstTip == FirstTip.PARTNER ? BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC : Double.NaN;
+    }
+
+    /** One line for people: "we shoot the first tip" or "partner tips first, assumed at 12.0 s". */
+    public String firstTipSummary() {
+        return firstTip.summary(partnerTipSec());
     }
 
     public List<Step> steps() {
@@ -102,7 +125,7 @@ public final class AutoRoute {
         for (Step s : steps) {
             turned.add(s.halfTurn(BioBuzzConstants.Field.SIZE_IN));
         }
-        return new AutoRoute(id, title, description, startTile, target, turned);
+        return new AutoRoute(id, title, description, startTile, target, firstTip, turned);
     }
 
     // ---- derived values ------------------------------------------------------------------------
@@ -118,8 +141,10 @@ public final class AutoRoute {
     }
 
     /**
-     * AUTO points the route can claim if everything goes to plan: LEAVE 3 if it ends off every wall,
-     * PARK 5 if it ends overlapping the own LOADING ZONE, 20 per HIVE TIP its shots reach.
+     * AUTO points OUR robot can claim if everything goes to plan: LEAVE 3 if it ends off every wall,
+     * PARK 5 if it ends overlapping the own LOADING ZONE, 20 per HIVE TIP its own volleys cause. A tip that the
+     * alliance partner is assumed to shoot ({@link FirstTip#PARTNER}) is not counted here, see
+     * {@link RouteAnalysis#partnerTipPoints()}.
      */
     public int claimablePoints() {
         return analyze().points();
@@ -161,6 +186,7 @@ public final class AutoRoute {
         private String title;
         private String description = "";
         private String startTile = "";
+        private FirstTip firstTip = FirstTip.SELF;
         private final List<Step> steps = new ArrayList<Step>();
 
         private Builder(String id) {
@@ -184,6 +210,28 @@ public final class AutoRoute {
         public Builder startTile(String startTile) {
             this.startTile = startTile;
             return this;
+        }
+
+        /**
+         * Says who shoots the first tip of the HIVE. The default is {@link FirstTip#SELF}: this robot's pre-loads tip
+         * it. See {@link #partnerTipsFirst()} for the other family.
+         */
+        public Builder firstTip(FirstTip firstTip) {
+            if (firstTip == null) {
+                throw new IllegalArgumentException("firstTip must not be null");
+            }
+            this.firstTip = firstTip;
+            return this;
+        }
+
+        /**
+         * This route assumes the alliance PARTNER shoots the first tip: the HIVE tips by itself at
+         * {@code Auto.PARTNER_FIRST_TIP_DONE_SEC} and the OTHER cell comes up then. Our robot goes to that side
+         * and must not launch into it before (use {@link #waitForTip}). The drive team must agree the time with
+         * the partner team before the match.
+         */
+        public Builder partnerTipsFirst() {
+            return firstTip(FirstTip.PARTNER);
         }
 
         // ---- START -----------------------------------------------------------------------------
@@ -395,6 +443,21 @@ public final class AutoRoute {
             return this;
         }
 
+        /**
+         * Stand still until the camera has seen the HIVE tip, and give up at {@code giveUpSec} on the route clock (seconds
+         * since the start of AUTO: {@code waitForTip(22.0)} means "stop waiting at 22 s"). Put it before the first volley at
+         * the cell that comes up with the partner's tip, in a route that assumes {@link #partnerTipsFirst()}: that cell only
+         * comes up after the tip, launching into a cell that faces down is a G417 violation, and a SHOOT at that cell
+         * without a WAIT_FOR_TIP before it is an ERROR in the checker, whatever the clock says (partner teams tip at
+         * different times, so the robot shoots after it SEES the tip, never at a time). If the deadline passes first, the
+         * robot skips the volleys that need the tip and goes on with LEAVE and PARK. Pick the latest time that still lets
+         * the rest of the route finish: the checker tells you ({@link RouteAnalysis#latestGiveUpSec}).
+         */
+        public Builder waitForTip(double giveUpSec) {
+            steps.add(new Step.WaitForTip(giveUpSec, ""));
+            return this;
+        }
+
         /** Finish partly inside the own LOADING ZONE at this pose. */
         public Builder park(double x, double y, double headingDeg) {
             steps.add(new Step.Park(Pose2.ofDegrees(x, y, headingDeg), ""));
@@ -423,7 +486,7 @@ public final class AutoRoute {
                 }
             }
             return new AutoRoute(id, title == null ? id : title, description == null ? "" : description,
-                    startTile == null ? "" : startTile, Alliance.RED, steps);
+                    startTile == null ? "" : startTile, Alliance.RED, firstTip, steps);
         }
 
         private Step last(String what) {

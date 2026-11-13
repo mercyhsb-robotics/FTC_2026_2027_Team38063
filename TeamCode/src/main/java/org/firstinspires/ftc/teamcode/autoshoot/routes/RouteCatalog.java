@@ -8,6 +8,10 @@ import java.util.List;
  * Every autonomous route the team has, as data. Each route is written ONCE, for the RED alliance;
  * the BLUE version is {@link AutoRoute#forAlliance} (a half turn about the field center).
  *
+ * <p>The catalog is the routes written here (the three conversions and the two demonstrations), then the routes of
+ * {@link SelfTipRoutes} (we shoot the first tip) and {@link PartnerTipRoutes} (the partner shoots it), in that order.
+ * Every route says in its data which of the two it assumes ({@link AutoRoute#firstTip()}).
+ *
  * <p><b>To add an auto, add one entry to {@link #build()}</b> and re-run {@code tools/render-autos.sh}
  * (or {@code .bat}): the validator checks it, the timing model estimates it and the diagram of
  * it appears in {@code docs/autos/}. See {@code docs/AUTOS.md}.
@@ -16,7 +20,8 @@ import java.util.List;
  * ({@code RedAlliance_B1}, {@code RedAlliance_C1}, {@code RedAlliance_LeavePark}); the numbers
  * are copied from their source, including the headings that Pedro ignores for reverse-tangent legs.
  * They are NOT improved here, so the validator reports their real problems honestly. The last two are
- * small demonstration routes that pass the validator.
+ * small demonstration routes that pass the validator. Every route here assumes that OUR robot shoots the first
+ * tip of the HIVE (the 3 NECTAR staged in the UP cell make one volley of 4 POLLEN enough).
  */
 public final class RouteCatalog {
     public static final String RED_B1 = "red_b1";
@@ -123,14 +128,16 @@ public final class RouteCatalog {
         // new demonstration routes (both pass the validator)
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(WALL_SHOOT_PARK)
-                .title("Wall shoot and park: C1, shoot 4, left corridor to the LOADING ZONE")
+                .title("Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE")
                 .description("Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver "
                         + "picks, then drives out through the left corridor (x < 47, clear of the HIVE frame) and "
-                        + "parks deep inside the red LOADING ZONE. LEAVE 3 + PARK 5; 4 POLLEN cannot tip the HIVE.")
+                        + "parks deep inside the red LOADING ZONE. The 4 POLLEN land on top of the NECTAR that already "
+                        + "sit in the UP cell and tip the HIVE, so the route claims LEAVE 3 + PARK 5 + our TIP 20.")
                 .startTile("C1")
                 .start(58.0, 9.2, -90)
                 .shootUp(4)
-                    .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose.")
+                    .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose. "
+                            + "The staged NECTAR in the cell plus these 4 POLLEN tip the HIVE: one volley is enough for the first tip.")
                 .driveReverseTangent(30.0, 45.0).label("to corridor").via(30.0, 12.6)
                     .note("A curve: leaves the shooting pose sideways along the wall, then bends up into the corridor.")
                 .driveReverseTangent(30.0, 100.0).label("corridor")
@@ -141,24 +148,50 @@ public final class RouteCatalog {
                 .build());
 
         routes.add(AutoRoute.builder(GARDEN_CYCLE)
-                .title("Garden cycle: shoot 4, take the 4 GARDEN POLLEN, shoot 4 again")
-                .description("Starts in tile B1, fires the 4 pre-loads, sweeps up the 4 POLLEN of the red GARDEN along "
-                        + "the audience wall and fires them too. 8 POLLEN into the same UP cell is the HIVE TIP threshold, "
-                        + "so the route claims LEAVE 3 + TIP 20.")
+                .title("Garden cycle: shoot 4 to tip the HIVE, take the 4 GARDEN POLLEN, step off the wall")
+                .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the NECTAR already in that "
+                        + "cell they tip the HIVE (+20). After a tip the UP cell is on the OTHER side of the HIVE, about "
+                        + "111 in away around it, and it holds no NECTAR, so a second volley of 4 there would not tip it "
+                        + "(that needs 8 POLLEN). So the route does not shoot again: it sweeps up the 4 POLLEN of the red "
+                        + "GARDEN along the audience wall to carry into TELEOP and steps off the wall. LEAVE 3 + our TIP 20.")
                 .startTile("B1")
                 .start(35.0, 9.2, -90)
                 .shootUp(4)
-                    .note("AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell.")
+                    .note("AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The staged "
+                            + "NECTAR plus these 4 POLLEN tip the HIVE, and the REAR cell is the UP one from now on.")
                 .driveConstant(9.0, 18.0, -90).label("to GARDEN")
                     .note("Slides along the audience wall with the intake still facing it.")
                 .driveConstant(9.0, 9.7, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
                 .intakeGarden(5.9, 1.4, 9.0, 9.7, -90, 4)
-                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3.")
-                .shootUp(4)
-                    .note("The same UP cell now holds 8 POLLEN: the HIVE tips.")
+                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3. The robot now holds 4 for TELEOP.")
+                .driveConstant(20.0, 24.0, -90).label("off the wall")
+                    .note("Ends with the whole footprint more than 1.5 in off every wall: LEAVE.")
                 .build());
 
+        // -----------------------------------------------------------------------------------------
+        // the two families of routes, each in its own file (see their documentation)
+        // -----------------------------------------------------------------------------------------
+        routes.addAll(SelfTipRoutes.routes());
+        routes.addAll(PartnerTipRoutes.routes());
+
         return routes;
+    }
+
+    /**
+     * Describes every route of a family file that does not assume {@code expected} (the files are
+     * {@link SelfTipRoutes}, which must be SELF, and {@link PartnerTipRoutes}, which must be PARTNER), so that a route
+     * cannot sit in the wrong file and print the wrong assumption. Empty when the family is fine.
+     */
+    static List<String> familyProblems(String fileName, List<AutoRoute> routes, FirstTip expected) {
+        List<String> problems = new ArrayList<String>();
+        for (AutoRoute r : routes) {
+            if (r.firstTip() != expected) {
+                problems.add("route '" + r.id() + "' is in " + fileName + " but assumes " + r.firstTip() + "; every route in that file"
+                        + " must assume " + expected + (expected == FirstTip.PARTNER ? " (start its entry with partnerTipsFirst())"
+                        : " (remove partnerTipsFirst() or move the route to PartnerTipRoutes)"));
+            }
+        }
+        return problems;
     }
 }

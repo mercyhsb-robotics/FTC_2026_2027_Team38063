@@ -120,11 +120,54 @@ public final class BioBuzzConstants {
         /** FIXED (manual 9.8): POLLEN diameter, drawn to scale by the diagrams. */
         public static final double POLLEN_DIAMETER_IN = 2.8;
         /**
-         * VERIFY: POLLEN that must be LAUNCHED into the UP cell to tip the HIVE. Team statement:
-         * 5 NECTAR, 8 POLLEN or a mix. Not in the manual; whether the 3 NECTAR staged in the cell
-         * count is unknown. Measure on the real HIVE.
+         * FIXED (manual Fig 10-2): NECTAR that sit in the HIVE cell that is UP when the match starts (3 of the
+         * alliance's own colour). Only that cell holds them: after the HIVE has tipped, the cell that comes up
+         * is empty, so it has no NECTAR to help the next tip.
          */
-        public static final int TIP_POLLEN_THRESHOLD = 8;
+        public static final int NECTAR_STAGED_IN_UP_CELL = 3;
+        /**
+         * VERIFY: the team's figure for tipping a HIVE cell with NECTAR alone: 5 NECTAR. The manual gives no
+         * tip threshold at all, so this and {@link #POLLEN_TIP_THRESHOLD} are the team's figures. A cell tips
+         * when {@code nectar / NECTAR_TIP_THRESHOLD + pollen / POLLEN_TIP_THRESHOLD >= 1}: every NECTAR is worth
+         * 1/5 of a tip and every POLLEN 1/8 of a tip, so 5 NECTAR, or 8 POLLEN, or a mix tips it. The code
+         * multiplies the whole inequality out so it uses whole numbers only (see TipModel).
+         */
+        public static final int NECTAR_TIP_THRESHOLD = 5;
+        /** VERIFY: the team's figure for tipping a cell with POLLEN alone: 8 POLLEN (two volleys of 4). See {@link #NECTAR_TIP_THRESHOLD}. */
+        public static final int POLLEN_TIP_THRESHOLD = 8;
+        /**
+         * VERIFY: for a route that assumes the alliance PARTNER shoots the first tip (FirstTip.PARTNER): the route
+         * time, in seconds from the start of AUTO, at which that tip is assumed to be DONE, so the other HIVE cell is
+         * UP from then on. 12 s is a first guess (a partner that shoots its 4 pre-loads from a nearby pose). The drive
+         * team must agree the real time with the partner team before the match; until then a route that depends on
+         * it is a plan, not a promise.
+         */
+        public static final double PARTNER_FIRST_TIP_DONE_SEC = 12.0;
+        /**
+         * TUNE: the least number of seconds of SLACK a route that waits for the partner's tip should have. Slack is the
+         * time between the tip that the route ASSUMES (PARTNER_FIRST_TIP_DONE_SEC) and the latest partner tip for which
+         * the route still finishes inside the AUTO limit minus TIME_SAFETY_MARGIN_SEC. Partner teams tip at different
+         * times, so a route with little slack only works with a fast partner: the checker WARNs below this value and
+         * the gallery shows the real number for every partner route. The robot never shoots because of a TIME: it shoots
+         * after its camera has seen the cell UP, and gives the volley up when the wait runs out.
+         */
+        public static final double PARTNER_TIP_MIN_SLACK_SEC = 3.0;
+        /**
+         * VERIFY (rule G409): when a HIVE tips, the cell that was UP tips down and everything in it (the staged
+         * NECTAR and the POLLEN launched into it) falls out of its opening onto the floor on that side of the HIVE.
+         * G409 says a robot may not catch or deflect what a tipped HIVE releases, so for this many seconds after a
+         * tip the robot footprint must stay out of that cell's spill zone (see TIP_SPILL_MARGIN_IN). 3 s is a first
+         * guess for the balls to land and stop rolling: watch a real tip and replace it. The route checker counts it from
+         * the planned tip time; the robot itself counts it from the moment its camera has confirmed the tip.
+         */
+        public static final double TIP_SPILL_CLEAR_SEC = 3.0;
+        /**
+         * VERIFY (rule G409): the spill zone is the plan footprint of the cell that tips (a 20 in wide box; for the red
+         * audience cell x [49.25, 69.25], y [52.3, 69.9], from field_layout 2.1) grown by this much on every side,
+         * because the balls bounce and roll a little after they land. The other cell's side of the HIVE is not part of
+         * it: a robot standing on the far side of the HIVE is clear. 6 in is a guess: POLLEN are 2.8 in balls.
+         */
+        public static final double TIP_SPILL_MARGIN_IN = 6.0;
         /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */
         public static final int LEAVE_POINTS = 3;
         /** FIXED (manual Table 10-2): PARK is worth 5 points in AUTO. */
