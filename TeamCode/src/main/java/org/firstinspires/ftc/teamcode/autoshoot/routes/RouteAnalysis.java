@@ -213,6 +213,8 @@ public final class RouteAnalysis {
     private final boolean leave;
     private final boolean park;
     private final double parkOverlapIn;
+    private final double endWallGapIn;
+    private final String endNearestWall;
 
     private RouteAnalysis(AutoRoute route, AllianceField field, TimingModel timing, List<StepInfo> infos, double totalSeconds,
                           int pollenGained, int pollenShot, int tips, Hive hive, double partnerTipSec) {
@@ -234,6 +236,16 @@ public final class RouteAnalysis {
         double m = BioBuzzConstants.Auto.LEAVE_WALL_MARGIN_IN;
         double s = field.fieldRect().maxX;
         this.leave = b.minX >= m && b.minY >= m && b.maxX <= s - m && b.maxY <= s - m;
+        // how far the robot's edge is from each wall: the red (left) wall, the blue (right) wall, the audience wall, the rear wall
+        double[] gaps = {b.minX, s - b.maxX, b.minY, s - b.maxY};
+        String[] walls = {"red wall (x = 0)", "blue wall (x = " + String.format(java.util.Locale.ROOT, "%.1f", s) + ")", "audience wall (y = 0)",
+                "rear wall (y = " + String.format(java.util.Locale.ROOT, "%.1f", s) + ")"};
+        int nearest = 0;
+        for (int i = 1; i < gaps.length; i++) {
+            nearest = gaps[i] < gaps[nearest] ? i : nearest;
+        }
+        this.endWallGapIn = gaps[nearest];
+        this.endNearestWall = walls[nearest];
         Rect clipped = fp.clippedBounds(field.ownLoadingZone());
         this.park = clipped != null;
         this.parkOverlapIn = clipped == null ? 0.0 : Math.min(clipped.maxX - clipped.minX, clipped.maxY - clipped.minY);
@@ -713,9 +725,29 @@ public final class RouteAnalysis {
         return n;
     }
 
-    /** LEAVE: the whole robot ends off every wall by the margin. */
+    /**
+     * LEAVE: the whole robot ends off every wall by {@code Auto.LEAVE_WALL_MARGIN_IN}. The manual (10.5.4) and FIRST's Q&amp;A QA21
+     * judge LEAVE at the END of AUTO: a robot that touches ANY perimeter wall then loses it, also the wall inside the LOADING
+     * ZONE. A robot that parks in the LOADING ZONE touching its wall keeps its PARK ({@link #park()}) but not its LEAVE. Only the
+     * robot counts: a POLLEN squeezed between the robot and the wall does not make the robot "touch" it (QA47), so no POLLEN is
+     * looked at here. (The manual does not say whether touching a FLOWER or the HIVE frame counts as touching "the wall"; they are
+     * not the perimeter wall, so they do not.)
+     */
     public boolean leave() {
         return leave;
+    }
+
+    /**
+     * How far, in inches, the robot's footprint is from the NEAREST perimeter wall when the route ends: 0 means touching, a negative
+     * number means through the wall. LEAVE needs at least {@code Auto.LEAVE_WALL_MARGIN_IN}.
+     */
+    public double endWallGapIn() {
+        return endWallGapIn;
+    }
+
+    /** Which wall {@link #endWallGapIn()} is measured to, in words: "red wall (x = 0)", "audience wall (y = 0)" and so on. */
+    public String endNearestWall() {
+        return endNearestWall;
     }
 
     /** PARK: the robot ends overlapping the own LOADING ZONE. */

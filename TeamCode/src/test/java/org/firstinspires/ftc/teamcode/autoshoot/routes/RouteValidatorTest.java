@@ -162,8 +162,11 @@ public class RouteValidatorTest {
     @Test
     public void aStartInTheOwnLoadingZoneIsAnError() {
         List<Issue> l = validate(AutoRoute.builder("x").start(FRONT, 108, 180).waitSeconds(1));
-        assertOnly(l, Rule.START_G304, Severity.ERROR);
+        assertEquals(l.toString(), 1, count(l, Rule.START_G304, Severity.ERROR));
         assertTrue(first(l, Rule.START_G304).message.contains("LOADING ZONE"));
+        // the robot also stays in the zone touching the wall at the end: it keeps PARK but loses LEAVE (QA21), a WARN of its own
+        assertEquals(l.toString(), 1, count(l, Rule.LEAVE_QA21, Severity.WARN));
+        assertEquals(l.toString(), 2, l.size());
     }
 
     @Test

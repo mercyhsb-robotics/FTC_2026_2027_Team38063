@@ -59,7 +59,9 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *   <li><b>Time, G401.</b> The estimated total must fit in 30 s minus {@code TIME_SAFETY_MARGIN_SEC}: an ERROR
  *       beyond 30 s, a WARN inside the margin.</li>
  *   <li><b>End pose, 10.5.4/G402.</b> The robot ends outside the HIVE frame footprint (ERROR) and wholly on
- *       the own side (WARN if the footprint reaches over the center line).</li>
+ *       the own side (WARN if the footprint reaches over the center line). A robot that ends in the LOADING ZONE touching a wall
+ *       (or within {@code LEAVE_WALL_MARGIN_IN} of it) keeps its PARK but loses its LEAVE (FIRST's Q&amp;A QA21: any touch of
+ *       any perimeter wall at the end of AUTO, the one inside the zone too): WARN.</li>
  *   <li><b>SHOOT pose, G417.</b> An explicit shooting pose is a WARN unless the launch point is on the open
  *       side of the target cell, {@code SHOOT_STANDOFF_MIN_IN}..{@code SHOOT_STANDOFF_MAX_IN} from its aim
  *       point, with the back within {@code SHOOT_AIM_TOLERANCE_DEG} of it. A fixed-side SHOOT at a cell that is
@@ -574,6 +576,16 @@ public final class RouteValidator {
         if (fp.overlaps(f.hiveFrame())) {
             out.add(error(last, Rule.END_POSE, "the route ends at " + pose(end) + " inside the HIVE frame footprint "
                     + f.hiveFrame() + "; TELEOP would start with the robot caught under the HIVE (G409/G417)"));
+        }
+        if (a.park() && !a.leave()) {
+            // QA21: LEAVE is judged at the end of AUTO and any touch of the perimeter wall loses it, also the wall in the LOADING ZONE
+            double margin = BioBuzzConstants.Auto.LEAVE_WALL_MARGIN_IN;
+            out.add(warn(last, Rule.LEAVE_QA21, "the robot ends at " + pose(end) + " in the LOADING ZONE but only " + in(Math.max(0.0, a.endWallGapIn()))
+                    + " from the " + a.endNearestWall() + ": PARK (" + BioBuzzConstants.Auto.PARK_POINTS + ") still counts, but a robot that touches ANY wall at the end of AUTO,"
+                    + " the one inside the LOADING ZONE too, loses its LEAVE (" + BioBuzzConstants.Auto.LEAVE_POINTS + ", FIRST's Q&A QA21). To claim both, end"
+                    + " " + in(margin) + " or more off every wall: the zone is " + in(BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MAX_IN - BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MIN_IN)
+                    + " deep, so a robot standing " + in(margin) + " off its wall still reaches " + in(BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MAX_IN - margin)
+                    + " into it"));
         }
         double reach = 0.0;
         for (int i = 0; i < 4; i++) {

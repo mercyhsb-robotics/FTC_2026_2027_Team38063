@@ -309,7 +309,7 @@ public final class RouteGallery {
                 + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")");
         row(h, "Our HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (the first needs " + TipModel.firstTipPollen()
                 + " POLLEN into the UP cell, each later one " + TipModel.laterTipPollen() + "; " + esc(spareText(a)) + ")"));
-        row(h, "Ends", "LEAVE " + (a.leave() ? "yes" : "no") + ", PARK " + (a.park() ? "yes, " + inches(a.parkOverlapIn()) + " inside the LOADING ZONE" : "no")
+        row(h, "Ends", "LEAVE " + (a.leave() ? "yes" : "no" + esc(leaveLostText(a))) + ", PARK " + (a.park() ? "yes, " + inches(a.parkOverlapIn()) + " inside the LOADING ZONE" : "no")
                 + ", at " + esc(pose(a.endPose())));
         row(h, "Validator", statusHtml(e));
         h.append("</table>\n");
@@ -444,6 +444,16 @@ public final class RouteGallery {
         String d = info.step.describe();
         String kind = info.step.kind().name();
         return d.startsWith(kind + " ") ? d.substring(kind.length() + 1) : d;
+    }
+
+    /**
+     * Why LEAVE is lost, in words: the robot ends too close to a wall. LEAVE is judged at the END of AUTO and any touch of any
+     * perimeter wall loses it, also the wall inside the LOADING ZONE (FIRST's Q&A QA21); a robot that parks there touching the wall
+     * keeps its PARK.
+     */
+    private static String leaveLostText(RouteAnalysis a) {
+        return " (the robot ends " + inches(Math.max(0.0, a.endWallGapIn())) + " from the " + a.endNearestWall() + "; LEAVE needs "
+                + inches(BioBuzzConstants.Auto.LEAVE_WALL_MARGIN_IN) + " off every wall at the end of AUTO, and touching any wall loses it, the one in the LOADING ZONE too: QA21)";
     }
 
     /**

@@ -391,6 +391,29 @@ public class RouteGalleryTest {
     }
 
     @Test
+    public void theEndsRowSaysWhyLeaveIsLostWhenTheRobotParksTouchingTheWall() throws Exception {
+        // QA21: a robot that parks in the LOADING ZONE touching the wall keeps its PARK but loses its LEAVE
+        double rear = BioBuzzConstants.Robot.REAR_EXTENT_IN;
+        AutoRoute touching = AutoRoute.builder("touching").title("T").description("d").startTile("A3").start(BioBuzzConstants.Robot.FRONT_EXTENT_IN, 70.2702, 180)
+                .driveLinear(rear, 106.0, 0).park(rear, 106.0, 0).build();
+        AutoRoute off = AutoRoute.builder("off").title("O").description("d").startTile("A3").start(BioBuzzConstants.Robot.FRONT_EXTENT_IN, 70.2702, 180)
+                .driveLinear(rear + 2.0, 106.0, 0).park(rear + 2.0, 106.0, 0).build();
+        Document page = parse(RouteGallery.indexHtml(java.util.Arrays.asList(touching, off)));
+        String lost = rowValue(section(page, "touching"), "Ends");
+        assertTrue(lost, lost.startsWith("LEAVE no (the robot ends 0.00 in from the red wall (x = 0)"));
+        assertTrue(lost, lost.contains("touching any wall loses it, the one in the LOADING ZONE too: QA21"));
+        assertTrue(lost, lost.contains("PARK yes"));
+        assertEquals("5 = LEAVE 0 + PARK 5 + our HIVE TIP 0", rowValue(section(page, "touching"), "Our AUTO points"));
+        // the same park 2 in off the wall keeps both, and says nothing about QA21
+        String kept = rowValue(section(page, "off"), "Ends");
+        assertTrue(kept, kept.startsWith("LEAVE yes, PARK yes"));
+        assertFalse(kept, kept.contains("QA21"));
+        assertEquals("8 = LEAVE 3 + PARK 5 + our HIVE TIP 0", rowValue(section(page, "off"), "Our AUTO points"));
+        // the validator's finding is listed too
+        assertTrue(section(page, "touching").getTextContent().contains("LEAVE needs the robot off every wall at the end"));
+    }
+
+    @Test
     public void everyStepIsListedWithItsNote() throws Exception {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         for (AutoRoute r : RouteCatalog.all()) {
