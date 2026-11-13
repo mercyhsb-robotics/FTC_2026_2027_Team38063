@@ -98,13 +98,26 @@ public final class HiveTracker {
         return robot.y < field.center() ? Side.AUDIENCE : Side.REAR;
     }
 
-    /** The driver says which side is up; this wins over everything. */
+    /**
+     * The driver says which side is up; this wins over everything and counts as confirmed (the
+     * driver can see the HIVE, and it is the way to proceed when the camera is not working).
+     */
     public Event forceUp(Side side) {
         if (side != upSide) {
             changes++;
         }
-        reset(side, false);
+        reset(side, true);
         return Event.CHANGED_BY_DRIVER;
+    }
+
+    /**
+     * The controller stood at the scoring pose and never saw this side's tags, so the other cell is
+     * probably the UP one. Flips the belief, unconfirmed.
+     */
+    public Event flipBecauseUnseen() {
+        changes++;
+        reset(upSide.opposite(), false);
+        return Event.SUSPECTED_TIP;
     }
 
     public Event toggle() {

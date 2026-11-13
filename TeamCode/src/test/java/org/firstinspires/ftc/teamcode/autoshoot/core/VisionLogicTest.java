@@ -377,6 +377,9 @@ public class VisionLogicTest {
         HiveTracker t = tracker();
         assertEquals(HiveTracker.Event.CHANGED_BY_DRIVER, t.toggle());
         assertEquals(Side.REAR, t.upSide());
+        assertTrue("the driver's word counts as confirmed", t.confirmed());
+        t.flipBecauseUnseen();
+        assertEquals(Side.AUDIENCE, t.upSide());
         assertFalse(t.confirmed());
         t.forceUp(Side.AUDIENCE);
         assertEquals(Side.AUDIENCE, t.upSide());

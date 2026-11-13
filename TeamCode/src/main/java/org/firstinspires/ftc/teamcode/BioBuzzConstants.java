@@ -185,6 +185,92 @@ public final class BioBuzzConstants {
         public static final double PLAN_RANGE_COST_IN_PER_IN = 0.40;
         /** TUNE: planning cost of standing off the opening's centre line, in inches of travel per degree. */
         public static final double PLAN_AZIMUTH_COST_IN_PER_DEG = 0.20;
+
+        // ---- driving to the scoring pose -------------------------------------------------
+        /** TUNE: the drive hands over to fine alignment when the robot is this close to the scoring pose (inches). */
+        public static final double APPROACH_HANDOFF_IN = 6.0;
+        /** TUNE: ... and its heading is within this of the scoring heading (degrees). */
+        public static final double APPROACH_HANDOFF_DEG = 25.0;
+        /** TUNE: ... and it is moving slower than this (inches per second). */
+        public static final double APPROACH_HANDOFF_SPEED_IN_S = 14.0;
+        /** TUNE: the approach gives up after distance / this speed plus a fixed allowance (inches per second). */
+        public static final double APPROACH_TIMEOUT_SPEED_IN_S = 25.0;
+        /** TUNE: fixed allowance added to the approach timeout (seconds). */
+        public static final double APPROACH_TIMEOUT_EXTRA_SEC = 2.0;
+        /** TUNE: slower than this for the stall time while still far from the pose means the robot is stuck (inches per second). */
+        public static final double APPROACH_STALL_SPEED_IN_S = 1.6;
+        /** TUNE: how long the robot must be stalled before the approach is abandoned (seconds). */
+        public static final double APPROACH_STALL_SEC = 0.7;
+        /** TUNE: stall detection is ignored for this long after the approach starts, while the robot accelerates (seconds). */
+        public static final double APPROACH_STALL_GRACE_SEC = 0.8;
+        /** TUNE: stall detection only applies while farther than this from the pose (inches). */
+        public static final double APPROACH_STALL_MIN_DIST_IN = 4.0;
+
+        // ---- fine alignment ---------------------------------------------------------------
+        /** TUNE: alignment is settled when the position error is below this (inches). Mecanum drives rarely settle below about 1 in. */
+        public static final double ALIGN_POS_TOL_IN = 1.5;
+        /** TUNE: ... the heading error is below this (degrees). */
+        public static final double ALIGN_HEADING_TOL_DEG = 2.0;
+        /** TUNE: ... the speed is below this (inches per second). */
+        public static final double ALIGN_SPEED_TOL_IN_S = 1.5;
+        /** TUNE: ... the turn rate is below this (degrees per second). */
+        public static final double ALIGN_OMEGA_TOL_DEG_S = 8.0;
+        /** TUNE: ... and all of that has held for this long (seconds). */
+        public static final double ALIGN_SETTLE_SEC = 0.20;
+        /** TUNE: alignment gives up after this long (seconds); it still shoots if the relaxed shot tolerances are met. */
+        public static final double ALIGN_TIMEOUT_SEC = 3.0;
+        /** TUNE: if pushed this far from the scoring pose after alignment, drive back to it (inches). */
+        public static final double REAPPROACH_IN = 8.0;
+
+        /** TUNE: let the camera nudge the hold pose (heading toward the aim point, range toward the planned range). */
+        public static final boolean VISION_TRIM_ENABLED = true;
+        /** TUNE: fraction of the camera's heading error applied per update. */
+        public static final double VISION_HEADING_GAIN = 0.6;
+        /** TUNE: largest heading change per update (degrees). */
+        public static final double VISION_HEADING_STEP_DEG = 3.0;
+        /** TUNE: largest total heading trim (degrees). */
+        public static final double VISION_HEADING_TRIM_MAX_DEG = 8.0;
+        /** TUNE: fraction of the camera's range error applied per update. */
+        public static final double VISION_RANGE_GAIN = 0.5;
+        /** TUNE: largest range change per update (inches). */
+        public static final double VISION_RANGE_STEP_IN = 1.5;
+        /** TUNE: largest total range trim (inches). */
+        public static final double VISION_RANGE_TRIM_MAX_IN = 4.0;
+        /** TUNE: minimum seconds between two camera trims. */
+        public static final double VISION_TRIM_PERIOD_SEC = 0.10;
+        /** TUNE: the camera only trims once the robot is within this many alignment tolerances of the hold position. */
+        public static final double VISION_TRIM_ENTER_POS_FACTOR = 2.0;
+        /** TUNE: ... and within this heading error of the hold heading (degrees). */
+        public static final double VISION_TRIM_ENTER_HEADING_DEG = 6.0;
+        /** TUNE: the logic clock never advances more than this per loop, so one long loop cannot trip a timer (seconds). */
+        public static final double MAX_LOOP_DT_SEC = 0.2;
+
+        // ---- the shot gate -----------------------------------------------------------------
+        /** TUNE: the robot must be slower than this to feed a ball (inches per second). */
+        public static final double SHOT_MAX_SPEED_IN_S = 3.0;
+        /** TUNE: ... and turning slower than this (degrees per second). */
+        public static final double SHOT_MAX_OMEGA_DEG_S = 15.0;
+        /** TUNE: ... and the shooter must point at the aim point within this (degrees). */
+        public static final double SHOT_HEADING_TOL_DEG = 4.0;
+        /** TUNE: if alignment times out, shooting is still allowed when the robot is within this of the scoring pose (inches). */
+        public static final double SHOT_RELAXED_POS_TOL_IN = 3.0;
+        /** TUNE: seconds the flywheel may take to reach speed once the robot is in place before the volley is abandoned. */
+        public static final double SPINUP_TIMEOUT_SEC = 3.5;
+
+        /** TUNE: a feeder paused for this long because the up cell's tags vanished (it may be tipping) (seconds). */
+        public static final double VISION_LOSS_PAUSE_SEC = 0.15;
+        /** VERIFY: refuse to feed until the camera (or the driver) has confirmed which cell is up, when a camera is working. */
+        public static final boolean REQUIRE_HIVE_CONFIRMATION = true;
+        /** TUNE: if standing at the scoring pose this long without ever seeing the HIVE's tags, assume the other cell is up (seconds). */
+        public static final double HIVE_UNSEEN_FLIP_SEC = 1.0;
+        /** TUNE: how many times one button press may flip to the other side because the tags were not seen. */
+        public static final int MAX_UNSEEN_FLIPS = 1;
+
+        // ---- driver ------------------------------------------------------------------------
+        /** TUNE: moving the translation stick beyond this (0-1) cancels the automatic drive. */
+        public static final double DRIVER_OVERRIDE_STICK = 0.6;
+        /** TUNE: ... if held beyond it for this long (seconds). */
+        public static final double DRIVER_OVERRIDE_SEC = 0.15;
     }
 
     // =========================================================================================
