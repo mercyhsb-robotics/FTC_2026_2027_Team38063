@@ -195,8 +195,8 @@ public class HiveLaneTest {
      */
     @Test
     public void aTipDuringTheMoveIsNamedInTheWarning() {
-        // the robot waits 5 s, then drives; the lane leg runs from about 8 to 12 s, which includes the assumed partner tip at 12 s
-        AutoRoute.Builder b = AutoRoute.builder("x").start(58.0, FRONT, -90).partnerTipsFirst().waitSeconds(5.0)
+        // the robot waits 6 s, then drives; the lane leg runs from about 7 to 13 s, which includes the assumed partner tip at 12 s
+        AutoRoute.Builder b = AutoRoute.builder("x").start(58.0, FRONT, -90).partnerTipsFirst().waitSeconds(6.0)
                 .driveConstant(64.0, 38.0, -90).driveConstant(64.0, 105.0, -90).allowUnderHive().speed(0.3);
         List<Issue> l = validate(b);
         boolean named = false;

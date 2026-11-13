@@ -107,7 +107,7 @@ public class RouteAnalysisTest {
                 + BioBuzzConstants.Auto.AIM_SPINUP_SEC + 3 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC + BioBuzzConstants.Auto.BALL_FLIGHT_SEC, shoot.tipSec, 1e-9);
         assertEquals("3 POLLEN tip the cell that holds the staged NECTAR", 3, shoot.tipNeeded);
         assertEquals("one pre-load is planned as the spare", 1, shoot.tipSpare);
-        // the 4th leaves 0.9 s after the 3rd, the camera stops the feeder 0.85 s after the 3rd LANDS (0.5 s after it left): 1.35 s after it left
+        // the 4th leaves 1.0 s after the 3rd, the camera stops the feeder 0.85 s after the 3rd LANDS (0.5 s after it left): 1.35 s after it left
         assertEquals("the 4th POLLEN is launched into the cell that is swinging down", 1, shoot.firedAfterTip);
         assertEquals("all 4 left the robot", 4, shoot.pollenBefore - shoot.pollenAfter);
         assertEquals("nothing is left as a spare", 0, shoot.pollenAfter);
@@ -210,8 +210,8 @@ public class RouteAnalysisTest {
         assertTrue(volley.tipped);
         assertEquals(1, volley.tipNeeded);
         assertEquals("3 of the 4 are the spare", 3, volley.tipSpare);
-        // the 1st POLLEN lands 0.5 s after it left; the feeder stops 0.85 s after that, 1.35 s after the 1st left: the 2nd (0.9 s after the 1st) is launched,
-        // the 3rd (1.8 s) is not
+        // the 1st POLLEN lands 0.5 s after it left; the feeder stops 0.85 s after that, 1.35 s after the 1st left: the 2nd (1.0 s after the 1st) is launched,
+        // the 3rd (2.0 s) is not
         assertEquals("the 2nd POLLEN is launched into the tipping cell, the 3rd and 4th are not", 1, volley.firedAfterTip);
         assertEquals("two POLLEN left the robot, two stayed", 2, volley.pollenBefore - volley.pollenAfter);
         assertEquals(volley.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC + BioBuzzConstants.Auto.TIME_PER_SHOT_SEC
@@ -601,14 +601,18 @@ public class RouteAnalysisTest {
 
     @Test
     public void posesDuringADriveFollowTheSpeedProfileAndEndAtTheTargetOnceTheMoveIsOver() {
-        // a straight 100 in leg along +y with the heading held at -90: speeds up at 60 in/s2 from rest
+        // a straight 100 in leg along +y with the heading held at -90: speeds up at the acceleration of the constants from rest
         RouteAnalysis a = AutoRoute.builder("drive").start(58, 9.2, -90).driveConstant(58, 109.2, -90).waitSeconds(5).build()
                 .analyze();
         RouteAnalysis.StepInfo drive = a.step(1);
-        // the first half second: the robot has gone 0.5 x 60 x 0.5^2 = 7.5 in
-        List<Pose2> early = a.posesDuring(drive, 0.0, 0.5);
+        // half way through the speed-up (half of v / a seconds): the robot has gone 0.5 x a x t^2 inches
+        double v = BioBuzzConstants.Auto.CRUISE_SPEED_IN_PER_SEC;
+        double accel = BioBuzzConstants.Auto.ACCEL_IN_PER_SEC2;
+        double halfRamp = 0.5 * v / accel;
+        double gone = 0.5 * accel * halfRamp * halfRamp;
+        List<Pose2> early = a.posesDuring(drive, 0.0, halfRamp);
         assertEquals("starts where the leg starts", 9.2, early.get(0).y, 1e-9);
-        assertEquals("has gone 7.5 in after 0.5 s", 9.2 + 7.5, early.get(early.size() - 1).y, 1e-6);
+        assertEquals("has gone " + gone + " in after " + halfRamp + " s", 9.2 + gone, early.get(early.size() - 1).y, 1e-6);
         double previous = 0;
         for (Pose2 p : early) {
             assertTrue("moves along +y only", p.y >= previous - 1e-9);

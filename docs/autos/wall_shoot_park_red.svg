@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Shoot 4 from the start wall (tips the HIVE), side corridor to the LOADING ZONE, park - RED alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route wall_shoot_park for the RED alliance, starting in tile C1, with 6 steps: 1 START at (58.0, 9.8, -90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE along the wall constant to 30.0, 14.8; 4 DRIVE corridor reverse tangent to 30.0, 100.0; 5 DRIVE to zone linear to 12.0, 108.0; 6 PARK at (12.0, 108.0, 0 deg). First tip: we shoot the first tip. Estimated 12.4 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 1 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route wall_shoot_park for the RED alliance, starting in tile C1, with 6 steps: 1 START at (58.0, 9.8, -90 deg); 2 SHOOT 4 at UP cell from the solver&apos;s pose; 3 DRIVE along the wall constant to 30.0, 14.8; 4 DRIVE corridor reverse tangent to 30.0, 100.0; 5 DRIVE to zone linear to 12.0, 108.0; 6 PARK at (12.0, 108.0, 0 deg). First tip: we shoot the first tip. Estimated 11.5 s, POLLEN balance -4, up to 28 points for our robot; 0 errors and 1 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -178,19 +178,19 @@
 <polygon class="arrowhead" points="391.35,658.42 395.61,666.29 387.61,666.55" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="3" data-mode="CONSTANT">
-<title>step 3: DRIVE along the wall constant to 30.0, 14.8 (t = 6.2 to 7.9 s) - Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). Staying low matters for the tip: what falls out of the tipped cell lands up to 40 in out from the HIVE&apos;s middle line, and the robot&apos;s rear edge (14.8 + 8.03 = 22.8 in from the wall) is 47.8 in out, so it is clear of the spill (G409) until it is beside the cell, where it turns up the corridor.</title>
+<title>step 3: DRIVE along the wall constant to 30.0, 14.8 (t = 6.2 to 7.6 s) - Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). Staying low matters for the tip: what falls out of the tipped cell lands up to 40 in out from the HIVE&apos;s middle line, and the robot&apos;s rear edge (14.8 + 8.03 = 22.8 in from the wall) is 47.8 in out, so it is clear of the spill (G409) until it is beside the cell, where it turns up the corridor.</title>
 <path class="leg" d="M 391.35 658.42 L 262.9 646.12" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="327.12,652.27 337.56,648.25 336.6,658.2" fill="#c62828"/>
 <polygon class="arrowhead" points="262.9,646.12 273.33,642.1 272.38,652.05" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="4" data-mode="REVERSE_TANGENT">
-<title>step 4: DRIVE corridor reverse tangent to 30.0, 100.0 (t = 7.9 to 11.0 s) - Straight up the left corridor, backwards (the shooter end first), 12.9 in (center to keep-out) clear of the HIVE frame keep-out at x 42.94 and clear of the spill zone (x 41.39 and more) beside it.</title>
+<title>step 4: DRIVE corridor reverse tangent to 30.0, 100.0 (t = 7.6 to 10.2 s) - Straight up the left corridor, backwards (the shooter end first), 12.9 in (center to keep-out) clear of the HIVE frame keep-out at x 42.94 and clear of the spill zone (x 41.39 and more) beside it.</title>
 <path class="leg" d="M 262.9 646.12 L 262.9 254.2" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="262.9,450.16 267.9,460.16 257.9,460.16" fill="#c62828"/>
 <polygon class="arrowhead" points="262.9,254.2 267.9,264.2 257.9,264.2" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="LINEAR">
-<title>step 5: DRIVE to zone linear to 12.0, 108.0 (t = 11.0 to 12.4 s) - Turns to face +x while sliding into the zone.</title>
+<title>step 5: DRIVE to zone linear to 12.0, 108.0 (t = 10.2 to 11.5 s) - Turns to face +x while sliding into the zone.</title>
 <path class="leg" d="M 262.9 254.2 L 180.1 217.4" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="180.1,217.4 191.27,216.89 187.21,226.03" fill="#c62828"/>
 </g>
@@ -227,7 +227,7 @@
 <polygon class="arrowhead" points="391.35,465.08 396.35,475.08 386.35,475.08" fill="#c62828"/>
 </g>
 <g class="park-outline" data-step="6">
-<title>step 6: PARK at (12.0, 108.0, 0 deg) (t = 12.4 to 12.4 s)</title>
+<title>step 6: PARK at (12.0, 108.0, 0 deg) (t = 11.5 to 11.5 s)</title>
 <polygon class="outline" points="225.04,176.46 143.16,176.46 143.16,258.34 225.04,258.34" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="212.62,176.46 143.16,176.46 143.16,258.34 212.62,258.34" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="225.04" y1="176.46" x2="225.04" y2="258.34" stroke="#2e7d32" stroke-width="4.5"/>
@@ -252,22 +252,22 @@
 <text x="404.79" y="648.79" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="DRIVE">
-<title>step 3: DRIVE along the wall constant to 30.0, 14.8 (t = 6.2 to 7.9 s) - Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). Staying low matters for the tip: what falls out of the tipped cell lands up to 40 in out from the HIVE&apos;s middle line, and the robot&apos;s rear edge (14.8 + 8.03 = 22.8 in from the wall) is 47.8 in out, so it is clear of the spill (G409) until it is beside the cell, where it turns up the corridor.</title>
+<title>step 3: DRIVE along the wall constant to 30.0, 14.8 (t = 6.2 to 7.6 s) - Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). Staying low matters for the tip: what falls out of the tipped cell lands up to 40 in out from the HIVE&apos;s middle line, and the robot&apos;s rear edge (14.8 + 8.03 = 22.8 in from the wall) is 47.8 in out, so it is clear of the spill (G409) until it is beside the cell, where it turns up the corridor.</title>
 <circle cx="327.12" cy="652.27" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="327.12" y="656.07" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
-<title>step 4: DRIVE corridor reverse tangent to 30.0, 100.0 (t = 7.9 to 11.0 s) - Straight up the left corridor, backwards (the shooter end first), 12.9 in (center to keep-out) clear of the HIVE frame keep-out at x 42.94 and clear of the spill zone (x 41.39 and more) beside it.</title>
+<title>step 4: DRIVE corridor reverse tangent to 30.0, 100.0 (t = 7.6 to 10.2 s) - Straight up the left corridor, backwards (the shooter end first), 12.9 in (center to keep-out) clear of the HIVE frame keep-out at x 42.94 and clear of the spill zone (x 41.39 and more) beside it.</title>
 <circle cx="262.9" cy="450.16" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="262.9" y="453.96" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
-<title>step 5: DRIVE to zone linear to 12.0, 108.0 (t = 11.0 to 12.4 s) - Turns to face +x while sliding into the zone.</title>
+<title>step 5: DRIVE to zone linear to 12.0, 108.0 (t = 10.2 to 11.5 s) - Turns to face +x while sliding into the zone.</title>
 <circle cx="221.5" cy="235.8" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="221.5" y="239.6" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="PARK">
-<title>step 6: PARK at (12.0, 108.0, 0 deg) (t = 12.4 to 12.4 s)</title>
+<title>step 6: PARK at (12.0, 108.0, 0 deg) (t = 11.5 to 11.5 s)</title>
 <circle cx="180.1" cy="217.4" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="180.1" y="221.2" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
@@ -354,10 +354,10 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 12.4 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 11.5 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#222222">POLLEN: hold 4 at start, +0 taken, -4 fired, 0 at the end (balance -4)   |   Validator: 0 ERROR, 1 WARN</text>
 <g class="issue-line" data-severity="WARN">
-<title>WARN step 2 [G417] step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 0.90 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.40 s the spare stays in the robot</title>
+<title>WARN step 2 [G417] step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN counts 1, each NECTAR 5/3)), but the camera cannot stop the feeder at once: the POLLEN that tips it is in the air for 0.50 s and the feeder stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves 1.00 s after the last. So the next 1 POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip; QA12 lets you add elements to a HIVE that is moving) and is spent: the plan counts 4 fired and 0 of the spare kept. The spare is for a field that needs one more POLLEN, not a POLLEN to carry on. Fire only 3 to keep it for sure (no spare then), or measure the real stop time on day one: with a latency under 0.50 s the spare stays in the robot</title>
 <text x="24" y="838.2" font-size="10" fill="#7a5a00">WARN step 2 (SHOOT, the move to its pose): the HIVE tips with POLLEN 3 of the 4 (3 NECTAR in the cell; a cell tips at 8 POLLEN-equivalents (each POLLEN cou...</text>
 </g>
 </g>

@@ -934,8 +934,8 @@ public class AutoShootSequenceTest {
     /**
      * Runs the standard first volley (4 balls, the 3rd tips the HIVE) with a REAL ball flight and a REAL swing: a ball takes 0.5 s to reach the cell, the
      * tip starts when the 3rd ball LANDS, and the cluster stays readable by the camera for the first half of the swing, then its tags vanish.
-     * The feed pace is 0.7 s of feeding per ball, which with the flywheel recovering after each ball is about 0.9 s between balls (the
-     * route planner's {@code Auto.TIME_PER_SHOT_SEC}).
+     * The feed pace is 0.7 s of feeding per ball, which with the flywheel recovering after each ball is about 0.9 s between balls (close to
+     * the route planner's {@code Auto.TIME_PER_SHOT_SEC}, 1.0 s at the feeder power of 0.3).
      *
      * <p>The run ends when the volley is over: DONE, or the moment the controller has seen the tip and leaves FEED to plan the drive to the OTHER cell (a
      * button that is still held would take the spare there, which is what TeleOp wants; the route plan counts the volley as over at the tip).

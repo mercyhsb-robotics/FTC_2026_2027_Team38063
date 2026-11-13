@@ -141,8 +141,9 @@ public class TimingModelTest {
         // the cruise phase moves at the cruise speed: 1 s in the middle of a long path is cruise-speed inches
         double mid = model.translationSeconds(200, 1.0) / 2.0;
         assertEquals(v, model.distanceAfter(200, 1.0, mid + 0.5) - model.distanceAfter(200, 1.0, mid - 0.5), 1e-6);
-        // and speeding up at the acceleration: after 0.5 s from rest the robot has gone a/2 x 0.25 in
-        assertEquals(0.5 * BioBuzzConstants.Auto.ACCEL_IN_PER_SEC2 * 0.25, model.distanceAfter(200, 1.0, 0.5), 1e-9);
+        // and speeding up at the acceleration: half way through the ramp (v / a / 2 s from rest) the robot has gone a/2 x t^2 in
+        double halfRamp = 0.5 * v / a;
+        assertEquals(0.5 * a * halfRamp * halfRamp, model.distanceAfter(200, 1.0, halfRamp), 1e-9);
         // a slower leg takes longer and is behind the faster one at the same moment
         assertTrue(model.distanceAfter(100, 0.5, 2.0) < model.distanceAfter(100, 1.0, 2.0));
     }

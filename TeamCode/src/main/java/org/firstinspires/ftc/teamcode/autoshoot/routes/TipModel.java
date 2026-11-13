@@ -137,9 +137,9 @@ public final class TipModel {
      * {@code stopLatencySec} after that landing. So the j-th POLLEN after the tipping one (it leaves j x secondsPerShot later) is launched if
      * {@code j x secondsPerShot < flightSec + stopLatencySec}. At most {@code spare}, the POLLEN the volley plans beyond what the cell needed.
      *
-     * <p>Example with the shipped numbers (0.9 s between POLLEN, 0.5 s flight, 0.85 s to stop): the next POLLEN leaves 0.9 s after the tipping
-     * one, the feeder stops 1.35 s after it, so one POLLEN is launched into the cell that is swinging down; the one after that (1.8 s) is not. With a
-     * feeder that stops within 0.4 s of the landing, none is.
+     * <p>Example with the shipped numbers (1.0 s between POLLEN, 0.5 s flight, 0.85 s to stop): the next POLLEN leaves 1.0 s after the tipping
+     * one, the feeder stops 1.35 s after it, so one POLLEN is launched into the cell that is swinging down; the one after that (2.0 s) is not. With a
+     * feeder that stops within 0.5 s of the landing, none is.
      */
     public static int launchedBeforeTheFeederStops(int spare, double secondsPerShot, double flightSec, double stopLatencySec) {
         if (spare <= 0 || !(secondsPerShot > 0.0)) {
@@ -149,6 +149,30 @@ public final class TipModel {
         // (the 1e-9 keeps a window that is exactly j x secondsPerShot from counting the j-th POLLEN)
         int fed = (int) Math.ceil((flightSec + stopLatencySec) / secondsPerShot - 1e-9) - 1;
         return Math.max(0, Math.min(spare, fed));
+    }
+
+    /**
+     * The exact chance that at least {@code needed} of {@code shots} POLLEN land in the cell when each one lands with the chance
+     * {@code chanceEach} (0 to 1) and the shots do not depend on each other: the binomial sum
+     * {@code C(shots, i) x p^i x (1 - p)^(shots - i)} over every {@code i} from {@code needed} to {@code shots}. For example 3 of 4 at 0.6 is
+     * 4 x 0.216 x 0.4 + 0.1296 = 0.4752, and 8 of 8 is 0.6^8 = 0.0168. Needing nothing is certain; needing more than are fired is impossible.
+     */
+    public static double chanceAtLeast(int shots, int needed, double chanceEach) {
+        if (needed <= 0) {
+            return 1.0;
+        }
+        if (needed > shots) {
+            return 0.0;
+        }
+        double total = 0.0;
+        double ways = 1.0;                                   // C(shots, i), starting at i = 0
+        for (int i = 0; i <= shots; i++) {
+            if (i >= needed) {
+                total += ways * Math.pow(chanceEach, i) * Math.pow(1.0 - chanceEach, shots - i);
+            }
+            ways = ways * (shots - i) / (i + 1);
+        }
+        return Math.min(1.0, total);
     }
 
     /**

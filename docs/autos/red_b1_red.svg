@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
 <title id="svg-title">Copy of RedAlliance_B1: shoot 4, then drive along the side wall to the LOADING ZONE - RED alliance</title>
-<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_b1 for the RED alliance, starting in tile B1, with 6 steps: 1 START at (35.0, 9.2, -90 deg); 2 SHOOT 4 at UP cell from (35.0, 9.2, -115 deg); 3 WAIT 4.5 s; 4 DRIVE path1 reverse tangent to 35.8, 90.0; 5 DRIVE path2 reverse tangent to 12.0, 90.0; 6 PARK at (12.0, 90.0, 0 deg). First tip: we shoot the first tip. Estimated 14.5 s, POLLEN balance -4, up to 28 points for our robot; 5 errors and 2 warnings.</desc>
+<desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route red_b1 for the RED alliance, starting in tile B1, with 6 steps: 1 START at (35.0, 9.2, -90 deg); 2 SHOOT 4 at UP cell from (35.0, 9.2, -115 deg); 3 WAIT 4.5 s; 4 DRIVE path1 reverse tangent to 35.8, 90.0; 5 DRIVE path2 reverse tangent to 12.0, 90.0; 6 PARK at (12.0, 90.0, 0 deg). First tip: we shoot the first tip. Estimated 13.9 s, POLLEN balance -4, up to 28 points for our robot; 5 errors and 2 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
 <stop offset="0" stop-color="#c62828" stop-opacity="0.30"/>
@@ -161,25 +161,15 @@
 <polygon class="compass-arrow" points="526,742.2 538,742.2 532,754.2" fill="#222222"/>
 <text x="876" y="58" font-size="9" fill="#555555" text-anchor="end">REAR WALL</text>
 </g>
-<g id="start-bands" data-heading="-90">
-<title>Where a robot facing -90 degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE, the corners and the center line.</title>
-<rect class="start-band" data-wall="RED" data-from="9.77" data-to="35.92" x="124.9" y="548.99" width="11.5" height="120.27" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="RED" data-from="60.39" data-to="86.55" x="124.9" y="316.05" width="11.5" height="120.37" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="RED" data-from="127.04" data-to="133.32" x="124.9" y="100.94" width="11.5" height="28.86" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="AUDIENCE" data-from="8.9" data-to="61.87" x="165.84" y="702.7" width="243.68" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="8.9" data-to="35.05" x="165.84" y="64" width="120.27" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<rect class="start-band" data-wall="REAR" data-from="59.52" data-to="61.87" x="398.67" y="64" width="10.85" height="11.5" fill="#c62828" fill-opacity="0.35"/>
-<text class="start-band-label" x="124.9" y="58" font-size="9" fill="#555555">tinted: where this start may stand (G304)</text>
-</g>
 <g id="route" data-ink="#c62828" data-alliance="RED" data-route="red_b1">
 <g class="drive-leg" data-step="4" data-mode="REVERSE_TANGENT">
-<title>step 4: DRIVE path1 reverse tangent to 35.8, 90.0 (t = 9.9 to 12.9 s) - line(start, point1).reverseTangent(): shooter-first up the left corridor.</title>
+<title>step 4: DRIVE path1 reverse tangent to 35.8, 90.0 (t = 10.1 to 12.6 s) - line(start, point1).reverseTangent(): shooter-first up the left corridor.</title>
 <path class="leg" d="M 285.9 671.88 L 289.58 300.2" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="287.74,486.04 292.64,496.09 282.64,495.99" fill="#c62828"/>
 <polygon class="arrowhead" points="289.58,300.2 294.48,310.25 284.48,310.15" fill="#c62828"/>
 </g>
 <g class="drive-leg" data-step="5" data-mode="REVERSE_TANGENT">
-<title>step 5: DRIVE path2 reverse tangent to 12.0, 90.0 (t = 12.9 to 14.5 s) - line(point1, point2).reverseTangent(): the 0 deg heading in the source is ignored; the robot turns to face +x by itself because it drives toward -x backwards.</title>
+<title>step 5: DRIVE path2 reverse tangent to 12.0, 90.0 (t = 12.6 to 13.9 s) - line(point1, point2).reverseTangent(): the 0 deg heading in the source is ignored; the robot turns to face +x by itself because it drives toward -x backwards.</title>
 <path class="leg" d="M 289.58 300.2 L 180.1 300.2" fill="none" stroke="#c62828" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <polygon class="arrowhead" points="180.1,300.2 190.1,295.2 190.1,305.2" fill="#c62828"/>
 </g>
@@ -200,7 +190,7 @@
 <polygon class="arrowhead" points="285.9,711.82 280.9,701.82 290.9,701.82" fill="#c62828"/>
 </g>
 <g class="shoot-pose" data-step="2" data-nominal="false">
-<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.4 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn. The model charges the flat 5 s only: the OpMode first waits for the flywheel to reach speed (waitUntil isAtTargetRpm, about 1.9 s in the model&apos;s own numbers), so the real tip and finish times are about that much later than shown.</title>
+<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.6 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn.</title>
 <polygon class="outline error" points="304.01,729.91 338.61,655.71 264.41,621.1 229.8,695.31" fill="#f9a825" fill-opacity="0.3" stroke="#f9a825" stroke-width="3.4" stroke-linejoin="round"/>
 <polygon class="chassis" points="309.26,718.66 338.61,655.71 264.41,621.1 235.05,684.05" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="304.01" y1="729.91" x2="229.8" y2="695.31" stroke="#2e7d32" stroke-width="4.5"/>
@@ -216,7 +206,7 @@
 <polygon class="arrowhead" points="391.35,465.08 391.19,476.26 382.31,471.66" fill="#c62828"/>
 </g>
 <g class="park-outline" data-step="6">
-<title>step 6: PARK at (12.0, 90.0, 0 deg) (t = 14.5 to 14.5 s) - The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone by 4.3 in (the robot reaches 8.9 in to its left, y 98.9; the zone, taken from the CAD tape, starts at y 94.58), deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.</title>
+<title>step 6: PARK at (12.0, 90.0, 0 deg) (t = 13.9 to 13.9 s) - The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone by 4.3 in (the robot reaches 8.9 in to its left, y 98.9; the zone, taken from the CAD tape, starts at y 94.58), deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.</title>
 <polygon class="outline" points="225.04,259.26 143.16,259.26 143.16,341.14 225.04,341.14" fill="#c62828" fill-opacity="0.12" stroke="#c62828" stroke-width="3" stroke-dasharray="9 4" stroke-linejoin="round"/>
 <polygon class="chassis" points="212.62,259.26 143.16,259.26 143.16,341.14 212.62,341.14" fill="#c62828" fill-opacity="0.2" stroke="#c62828" stroke-width="0.8" stroke-linejoin="round"/>
 <line class="front-edge" x1="225.04" y1="259.26" x2="225.04" y2="341.14" stroke="#2e7d32" stroke-width="4.5"/>
@@ -236,27 +226,27 @@
 <text x="285.9" y="675.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">1</text>
 </g>
 <g class="badge" data-step="2" data-kind="SHOOT">
-<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.4 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn. The model charges the flat 5 s only: the OpMode first waits for the flywheel to reach speed (waitUntil isAtTargetRpm, about 1.9 s in the model&apos;s own numbers), so the real tip and finish times are about that much later than shown.</title>
+<title>step 2: SHOOT 4 at UP cell from (35.0, 9.2, -115 deg) (t = 0.0 to 5.6 s) - hold(follower, (35.0, 9.2, -115)) then aimAndLaunch(): spin up, feed, waitMs(5000). hold() is an instant command, so the shot really starts without waiting for the turn.</title>
 <circle cx="299.33" cy="658.45" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="299.33" y="662.25" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">2</text>
 </g>
 <g class="badge" data-step="3" data-kind="WAIT">
-<title>step 3: WAIT 4.5 s (t = 5.4 to 9.9 s) - waitMs(4500) before launcher.stop(): the volley holds the launcher on for 9.5 s in total.</title>
+<title>step 3: WAIT 4.5 s (t = 5.6 to 10.1 s) - waitMs(4500) before launcher.stop(): the volley holds the launcher on for 9.5 s in total.</title>
 <circle cx="299.33" cy="685.32" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="299.33" y="689.12" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">3</text>
 </g>
 <g class="badge" data-step="4" data-kind="DRIVE">
-<title>step 4: DRIVE path1 reverse tangent to 35.8, 90.0 (t = 9.9 to 12.9 s) - line(start, point1).reverseTangent(): shooter-first up the left corridor.</title>
+<title>step 4: DRIVE path1 reverse tangent to 35.8, 90.0 (t = 10.1 to 12.6 s) - line(start, point1).reverseTangent(): shooter-first up the left corridor.</title>
 <circle cx="287.74" cy="486.04" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="287.74" y="489.84" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">4</text>
 </g>
 <g class="badge" data-step="5" data-kind="DRIVE">
-<title>step 5: DRIVE path2 reverse tangent to 12.0, 90.0 (t = 12.9 to 14.5 s) - line(point1, point2).reverseTangent(): the 0 deg heading in the source is ignored; the robot turns to face +x by itself because it drives toward -x backwards.</title>
+<title>step 5: DRIVE path2 reverse tangent to 12.0, 90.0 (t = 12.6 to 13.9 s) - line(point1, point2).reverseTangent(): the 0 deg heading in the source is ignored; the robot turns to face +x by itself because it drives toward -x backwards.</title>
 <circle cx="234.84" cy="300.2" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="234.84" y="304" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">5</text>
 </g>
 <g class="badge" data-step="6" data-kind="PARK">
-<title>step 6: PARK at (12.0, 90.0, 0 deg) (t = 14.5 to 14.5 s) - The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone by 4.3 in (the robot reaches 8.9 in to its left, y 98.9; the zone, taken from the CAD tape, starts at y 94.58), deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.</title>
+<title>step 6: PARK at (12.0, 90.0, 0 deg) (t = 13.9 to 13.9 s) - The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone by 4.3 in (the robot reaches 8.9 in to its left, y 98.9; the zone, taken from the CAD tape, starts at y 94.58), deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.</title>
 <circle cx="180.1" cy="300.2" r="8.5" fill="#ffffff" stroke="#c62828" stroke-width="2.5"/>
 <text x="180.1" y="304" font-size="11" font-weight="bold" text-anchor="middle" fill="#222222">6</text>
 </g>
@@ -358,7 +348,7 @@
 </g>
 </g>
 <g id="footer">
-<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 14.5 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
+<text id="footer-metrics" x="24" y="809.2" font-size="12" font-weight="bold" fill="#222222">Estimated time 13.9 s of the 30.0 s AUTO (placeholder timing)   |   Our AUTO points: 28  (LEAVE 3, PARK 5, HIVE TIP 20)</text>
 <text id="footer-pollen" x="24" y="825.2" font-size="12" fill="#b71c1c">POLLEN: hold 4 at start, +0 taken, -4 fired, 0 at the end (balance -4)   |   Validator: 5 ERROR, 2 WARN</text>
 <g class="issue-line" data-severity="ERROR">
 <title>ERROR step 1 [G304] start footprint at (35.0, 9.2, -90 deg) sticks out of the field by 0.6 in (G304.A): its center of rotation is 9.2 in from the wall at y = 0.0 but the robot&apos;s edge that faces that wall reaches 9.8 in from the center (front 9.8 in, rear 8.0 in, sides 8.9 in); place the real robot with that edge ON the wall, its center 9.8 in out</title>

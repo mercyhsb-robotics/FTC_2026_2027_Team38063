@@ -23,8 +23,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  *
  * <p><b>What fits, and what does not.</b> The route the family was asked for is: partner tips, we shoot 4 into the empty cell that comes up, fetch 4 more
  * from the rear FLOWER and shoot 4 again for the SECOND tip (+20). With the shipped numbers it cannot fit in the 30 s of AUTO, even with no driving at
- * all: the partner's tip at 12 s plus the camera's 0.5 s settle, a volley of 4 (1.9 s aim and spin-up + 4 x 0.9 s), a FLOWER pick-up of 4 (about 7.4 s) and a
- * second volley of 4 add up to about 30.9 s, and 12 s is already twice what our own first volley takes. It needs a partner that tips by about 6 s AND
+ * all: the partner's tip at 12 s plus the camera's 0.5 s settle, a volley of 4 (1.5 s aim and spin-up + 4 x 1.0 s), a FLOWER pick-up of 4 (about 7.3 s) and a
+ * second volley of 4 add up to about 30.8 s, and 12 s is already twice what our own first volley takes. It needs a partner that tips by about 6 s AND
  * wheels that really reach the POLLEN (the validator says the shipped robot's wheels fall 0.8 in short, see {@code FlowerWiggleTest}), neither of which is known
  * yet; the assumed 12 s is the team's own guess ({@code Auto.PARTNER_FIRST_TIP_DONE_SEC}, VERIFY with the partner team) and is not changed here. So the
  * route below is the part that does fit: wait for the tip, put 4 POLLEN toward the second tip, LEAVE and PARK. The second tip (8 POLLEN in all) is then
@@ -60,7 +60,7 @@ public final class PartnerTipRoutes {
      * tenth ({@code RouteAnalysis.latestGiveUpSec}; a test keeps the two together): a partner that tips later than this gets no volley from us, and the
      * robot still leaves and parks.
      */
-    static final double GIVE_UP_SEC = 19.0;
+    static final double GIVE_UP_SEC = 19.4;
 
     private PartnerTipRoutes() {
     }

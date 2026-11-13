@@ -35,16 +35,16 @@ in its data and on its picture (`first tip: SELF` or `PARTNER`).
 The six routes today. The numbers are the gallery's at the time of writing, made with the **placeholder timing** of "About the numbers"; open
 [`docs/autos/index.html`](autos/index.html) for the current ones.
 
-| Route (`id`) | Family | Starts in | What it does | Time | Our points | Validator |
-|---|---|---|---|---|---|---|
-| `red_b1` | we tip first | B1 | A copy of the OpMode `RedAlliance_B1`: turns, shoots the 4 pre-loads, drives up the left side to the LOADING ZONE. | 14.5 s | 28 | 5 ERROR, 2 WARN |
-| `red_c1` | we tip first | C1 | A copy of `RedAlliance_C1`: shoots, then drives past the HIVE to the LOADING ZONE. | 16.1 s | 28 | 3 ERROR, 1 WARN |
-| `red_leave_park` | we tip first (it shoots nothing, so it does not care) | A3 | A copy of `RedAlliance_LeavePark`: leaves the wall and parks. | 2.7 s | 8 | 2 ERROR |
-| `wall_shoot_park` | we tip first | C1 | Shoots the 4 pre-loads (this tips the HIVE), leaves through the left corridor and parks deep in the LOADING ZONE. | 12.4 s | 28 | 0 ERROR, 1 WARN |
-| `garden_cycle` | we tip first | B1 | Shoots the 4 pre-loads, sweeps up 3 GARDEN POLLEN and steps off the wall. It does not park. | 14.1 s | 23 | 0 ERROR, 1 WARN |
-| `partner_rear_shoot_park` | partner tips first | B6 | Starts turned in the rear corner next to the rear-wall FLOWER, waits for the camera to see the REAR cell come up, shoots 4 into it and parks in the LOADING ZONE. | 21.5 s | 8 | no findings |
+| Route (`id`) | Family | Starts in | What it does | Time | Our points (ceiling) | Expected points (estimate) | Validator |
+|---|---|---|---|---|---|---|---|
+| `red_b1` | we tip first | B1 | A copy of the OpMode `RedAlliance_B1`: turns, shoots the 4 pre-loads, drives up the left side to the LOADING ZONE. | 13.9 s | 28 | 17.5 | 5 ERROR, 2 WARN |
+| `red_c1` | we tip first | C1 | A copy of `RedAlliance_C1`: shoots, then drives past the HIVE to the LOADING ZONE. | 15.4 s | 28 | 17.5 | 3 ERROR, 1 WARN |
+| `red_leave_park` | we tip first (it shoots nothing, so it does not care) | A3 | A copy of `RedAlliance_LeavePark`: leaves the wall and parks. | 2.3 s | 8 | 8.0 | 2 ERROR |
+| `wall_shoot_park` | we tip first | C1 | Shoots the 4 pre-loads (this tips the HIVE), leaves through the left corridor and parks deep in the LOADING ZONE. | 11.5 s | 28 | 17.5 | 0 ERROR, 1 WARN |
+| `garden_cycle` | we tip first | B1 | Shoots the 4 pre-loads, sweeps up 3 GARDEN POLLEN and steps off the wall. It does not park. | 13.8 s | 23 | 12.5 | 0 ERROR, 1 WARN |
+| `partner_rear_shoot_park` | partner tips first | B6 | Starts turned in the rear corner next to the rear-wall FLOWER, waits for the camera to see the REAR cell come up, shoots 4 into it and parks in the LOADING ZONE. | 21.1 s | 8 | 8.0 | no findings |
 
-**Our points** counts only what our robot earns: LEAVE 3, PARK 5, and 20 for a tip that **our** volley makes. A tip the partner makes belongs to
+**Our points** counts only what our robot earns: LEAVE 3, PARK 5, and 20 for a tip that **our** volley makes. It is a ceiling: every POLLEN lands. **Expected points** weigh each tip by the chance that enough POLLEN land (0.6 per shot, see "About the numbers"): 8 + 20 x 0.4752 = 17.5 for a route with LEAVE, PARK and the first tip. A tip the partner makes belongs to
 the alliance and is never counted here. **ERROR** and **WARN** are explained in "What the validator checks". The first three routes are faithful
 copies of the old OpModes and keep their old mistakes on purpose (see "What the validator says about today's autos").
 
@@ -321,31 +321,31 @@ and shooter numbers, so read the order and the sizes, not the decimals):
 
 | Route | Standard start | Best start (with the 1 in + 3 degree margin) | Saves |
 |---|---|---|---|
-| Shoot 4, left corridor, park | C1 front on the wall: 11.7 s (B1: 13.2 s) | **turned 40 degrees, a front corner on the audience wall 35.8 in from the red wall**: 10.9 s | 0.8 s |
-| Shoot 4, take 3 GARDEN POLLEN, step off | C1: 12.6 s (B1: 14.1 s) | the same start: 12.0 s | 0.6 s |
-| Shoot 4, take 3 from the red-wall FLOWER, park (a robot whose wheels reach) | C1: 18.5 s (B1: 20.0 s) | the same start: 17.7 s | 0.8 s |
-| Partner tips first: wait, shoot 4 at the rear cell, park | a straight start on the rear wall (x = 61.5): 21.7 s, **fails the margin** | **turned 35 degrees, a corner on the rear wall 37.9 in from the red wall**: 20.9 s (the catalog's `partner_rear_shoot_park` starts here and steps 1 in toward the cell to be inside the 30-38 in band: 21.5 s) | 0.7 s |
-| Partner tips first, then take 3 from the rear FLOWER and leave (wheels that reach) | 28.4 s, fails the margin | the same kind of start: 28.1 s | 0.3 s |
-| Leave and park only | B1: 3.5 s (C1's straight line crosses the HIVE) | **a back corner on the red wall above the LOADING ZONE, turned 25 degrees**, 123.7 in from the audience wall: 1.4 s | 2.0 s |
+| Shoot 4, left corridor, park | C1 front on the wall: 10.8 s (B1: 12.1 s) | **turned 40 degrees, a front corner on the audience wall 35.8 in from the red wall**: 10.2 s | 0.6 s |
+| Shoot 4, take 3 GARDEN POLLEN, step off | C1: 12.5 s (B1: 13.8 s) | a start turned 35 degrees, 36.9 in from the red wall: 12.0 s | 0.5 s |
+| Shoot 4, take 3 from the red-wall FLOWER, park (a robot whose wheels reach) | C1: 17.6 s (B1: 18.8 s) | the first start above: 17.0 s | 0.6 s |
+| Partner tips first: wait, shoot 4 at the rear cell, park | a straight start on the rear wall (x = 61.5): 21.1 s, **fails the margin** | **turned 35 degrees, a corner on the rear wall 37.9 in from the red wall**: 20.5 s (the catalog's `partner_rear_shoot_park` starts here and steps 1 in toward the cell to be inside the 30-38 in band: 21.1 s) | 0.6 s |
+| Partner tips first, then take 3 from the rear FLOWER and leave (wheels that reach) | 27.9 s, fails the margin | the same kind of start: 27.7 s | 0.2 s |
+| Leave and park only | B1: 2.9 s (C1's straight line crosses the HIVE) | **a back corner on the red wall above the LOADING ZONE, turned 25 degrees**, 123.7 in from the audience wall: 1.2 s | 1.7 s |
 
 What this says about the shortcuts one might expect:
 
 * **Start in a shooting pose** (front on the audience wall, in line with the HIVE): confirmed, and it is what C1 already is. At x = 58 the ball leaves 36.4 in
   from the aim point (the measured shot is 37.7 in, see docs/START_HERE.md, step 19), inside the 30 to 38 in band, so the 4 pre-loads are fired with no drive: no move
   to a pose is in the plan. The search finds something slightly better: **start turned about 40 degrees with the back toward the cell** and a front corner on the
-  wall, standing about 23 in nearer the corridor to the LOADING ZONE. It saves about 0.8 s over C1 for every family that goes down the left side, and the robot is still a
+  wall, standing about 23 in nearer the corridor to the LOADING ZONE. It saves about 0.6 s over C1 for every family that goes down the left side, and the robot is still a
   shooting pose (the back points within about 15 degrees of the aim point). This is the "start rotated" shortcut of Figure 11-1.
 * **The rear-wall equivalent** (front on the rear wall, in line with the rear cell, for a route where the partner tips first): the in-line start does exist, but
   **the gap between the rear-wall FLOWER (its plate ends at x = 50.26, its bracket at 50.6) and the center line (x = 70.67) is only 20.4 in wide (20.1 in counting the bracket),
   and a 17.80 in robot needs 3 in of margin on top (1 in either way, plus 0.5 in either way for a 3 degree turn)**. No place there keeps the full margin. With 70% of it (0.7 in and 2.1 degrees) the
-  robot can stand at x = 60.75, front on the rear wall: 36.4 in from the aim point, 21.6 s (a straight start at x = 61.5 is only 0.27 in from the center line and fails). The best
-  start with the full margin is again the turned one, left of the FLOWER (turned 35 degrees, 37.9 in from the red wall), 0.7 s faster than the straight one, and it is the
+  robot can stand at x = 60.75, front on the rear wall: 36.4 in from the aim point, 21.1 s (a straight start at x = 61.5 is only 0.27 in from the center line and fails). The best
+  start with the full margin is again the turned one, left of the FLOWER (turned 35 degrees, 37.9 in from the red wall), 0.6 s faster than the straight one, and it is the
   start the catalog's `partner_rear_shoot_park` uses.
 * **Start beside the first pick-up**: the first action cannot be a pick-up, because the robot holds 4 pre-loads and may control at most 4 (G407), so a start beside
   the red-wall FLOWER only wins if it is also a shooting pose, and it is not (it is about 60 in from the nearest one). In the search it never beats the audience-wall
-  start. On the rear wall the turned start left of the rear FLOWER is both a shooting pose for the rear cell and close to that FLOWER: it saves 0.3 s for the route
+  start. On the rear wall the turned start left of the rear FLOWER is both a shooting pose for the rear cell and close to that FLOWER: it saves 0.2 s for the route
   that takes 3 POLLEN there.
-* **Start next to the LOADING ZONE**: for a route that only leaves and parks it saves about 2 s: the robot starts above the zone and drives 20 in. (The zone itself is
+* **Start next to the LOADING ZONE**: for a route that only leaves and parks it saves about 1.7 s: the robot starts above the zone and drives 20 in. (The zone itself is
   forbidden for a start, G304.E, and the robot must end 1.5 in off every wall to keep its LEAVE, QA21.)
 
 Only the partner route uses one of these starts so far (the turned one on the rear wall); the others are not authored into the catalog yet: the table is the evidence, and a route author picks the start. Each is a plain `start(x, y, heading)` call.
@@ -424,11 +424,11 @@ every route goes **around** it.
 
 | Trip | Through the lane | Around the frame | Saved |
 |---|---|---|---|
-| A route author's legs, from the audience start (58, 9.77) to a pose beyond the HIVE (58, 125) (`HiveLaneTest`) | 116.7 in, 5.8 s | 139.4 in (the left corridor at x = 30), 6.4 s | 22.7 in, 0.6 s |
+| A route author's legs, from the audience start (58, 9.77) to a pose beyond the HIVE (58, 125) (`HiveLaneTest`) | 116.7 in, 4.9 s | 139.4 in (the left corridor at x = 30), 5.4 s | 22.7 in, 0.5 s |
 | The TeleOp planner, from the C1 start to the shooting pose in front of the red REAR cell (`PlannerLaneTest`) | 115.8 in | 148.5 in | 32.7 in |
 
 That is the loop of a partner route (the robot must get from the audience side to the cell that comes up on the rear side
-after the partner's tip): about 0.6 s at the placeholder cruise speed of 40 in/s, which is a tenth of the 6 s a 3-POLLEN
+after the partner's tip): about 0.5 s at the placeholder cruise speed of 48 in/s, which is less than a tenth of the 6 s a 3-POLLEN
 FLOWER pick-up is estimated to take. Worth having if the HIVE is known to be at rest; not worth a foul. Day one: measure the real
 lane with a tape before the first run (`docs/START_HERE.md`, "Measure later").
 
@@ -577,7 +577,7 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
 * **The first tip needs 3 POLLEN.** The UP cell holds 3 NECTAR when the match starts (Fig 10-2), so the 3rd POLLEN tips it. The
   robot starts with 4 pre-loads, so **a route that fires its 4 pre-loads at the UP cell tips it with 1 spare**. The spare covers a field that
   needs one more POLLEN. It is **probably not a POLLEN you keep**: the volley stops only when the camera has seen the cell's tags change and the
-  feeder has paused (G417), which takes about 0.85 s after the tipping POLLEN lands, and the 4th POLLEN is fed 0.9 s after the 3rd (see "The camera
+  feeder has paused (G417), which takes about 0.85 s after the tipping POLLEN lands, and the 4th POLLEN is fed 1.0 s after the 3rd (see "The camera
   stops a volley late" below). A volley written for exactly 3 POLLEN has no spare and gets a WARN (below).
 * **Every later tip needs 8 POLLEN.** After a tip the OTHER cell is the UP one, and Fig 10-2 shows NECTAR only in the cell that is
   UP at the start, so the new UP cell is **empty**: it needs 8 POLLEN, two volleys of 4, and the robot can hold only 4 POLLEN at a
@@ -597,11 +597,11 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
   shot); the tip begins when it LANDS. The camera still reads the cell as UP until the cell has swung about half way down (0.6 s of the 1.2 s
   swing the team's own simulation assumes; nobody has measured it), the feeder pauses only after the tags have been gone for
   `AutoShoot.VISION_LOSS_PAUSE_SEC` (0.15 s), and the camera frame adds about 0.1 s: **`Auto.TIP_STOP_LATENCY_SEC` = 0.85 s (ADD: measure it)**.
-  The next POLLEN of a volley leaves `Auto.TIME_PER_SHOT_SEC` = 0.9 s after the last. So the j-th POLLEN after the tipping one is launched into the
-  cell, while it swings down, if `j x 0.9 < 0.5 + 0.85`: **the spare is spent** (`TipModel.launchedBeforeTheFeederStops`, `StepInfo.firedAfterTip`
+  The next POLLEN of a volley leaves `Auto.TIME_PER_SHOT_SEC` = 1.0 s after the last (0.30 s divided by the feeder power 0.3). So the j-th POLLEN after the tipping one is launched into the
+  cell, while it swings down, if `j x 1.0 < 0.5 + 0.85`: **the spare is spent** (`TipModel.launchedBeforeTheFeederStops`, `StepInfo.firedAfterTip`
   = 1). The plan counts it as fired (the robot holds 0 after the standard first volley, not 1), the volley lasts one more feed, and the validator WARNs
   (rule G417, QA12: elements added to a moving HIVE still count, but a launch at a rocking HIVE can spoil the tip). The feeder stops in time only if the
-  latency is under 0.9 - 0.5 = 0.4 s. Two ways out: fire exactly the POLLEN that tip (no spare), or measure the real swing on day one and set the
+  latency is under 1.0 - 0.5 = 0.5 s. Two ways out: fire exactly the POLLEN that tip (no spare), or measure the real swing on day one and set the
   constant. The tip itself is timed from the LANDING, so the spill window and the wait for the camera's confirmation start 0.5 s later than they used to.
   The closed-loop test `AutoShootSequenceTest.theSpareBallIsLaunchedIntoTheSwingingCellUnlessTheHiveSwingsFast` runs the real controller against a
   ball flight and a swing: with the 1.2 s swing the 4th ball goes into the swinging cell, with a swing of 0.2 s it stays.
@@ -725,12 +725,37 @@ PARK) after the volley**, so they are done whether or not the tip comes.
 
 ## About the numbers
 
-* **Times are placeholders.** Nobody has measured the robot's cruise speed, acceleration, turn rate or shooting
+* **Times are placeholders, but researched ones.** Nobody has measured the robot's cruise speed, acceleration, turn rate or shooting
   times yet. They live in `BioBuzzConstants.Auto` marked **ADD** (and are listed among the placeholders the TeleOp
-  prints at INIT): `CRUISE_SPEED_IN_PER_SEC`, `ACCEL_IN_PER_SEC2`, `TURN_RATE_DEG_PER_SEC`, `SETTLE_SEC`,
-  `INTAKE_DWELL_*_SEC`, `AIM_SPINUP_SEC`, `TIME_PER_SHOT_SEC`. Compare routes with them, but do not trust a route
-  that is within a few seconds of the limit. When you measure one, replace it, change its marker to VERIFY or TUNE
-  and delete its name from `BioBuzzConstants.PLACEHOLDERS`, then regenerate the pictures.
+  prints at INIT). The starting values come from the benchmark research (what real teams and the goBILDA drive specifications say); each
+  comment in `BioBuzzConstants` gives its range, in plain words:
+
+  | Constant | Starting value | Range | Replace it by |
+  |---|---|---|---|
+  | `CRUISE_SPEED_IN_PER_SEC` | 48 in/s | 40 to 56 | 0.8 x the number the Pedro velocity tuner measures |
+  | `ACCEL_IN_PER_SEC2` | 110 in/s per s | 70 to 160 | 0.8 x what the Pedro tuner measures, or time a 100 in path five times |
+  | `TURN_RATE_DEG_PER_SEC` | 150 deg/s | 100 to 200 | the time of a 90 degree turn |
+  | `SETTLE_SEC` | 0.4 s | 0.2 to 0.6 | the time from "path over" to "robot still" |
+  | `INTAKE_DWELL_GARDEN_SEC` | 3.0 s | 2.0 to 5.0 | a timed GARDEN sweep (the floor dwell stays 2.0 s) |
+  | `AIM_SPINUP_SEC` | 1.5 s | 0.9 to 2.2 | 20 timed spin-ups plus the aiming |
+  | `TIME_PER_SHOT_SEC` | **worked out**: 0.30 s / feeder power, never under 0.35 s: 1.0 s at power 0.3 | 0.35 to 1.0 | ten timed volleys at your feeder power, divided by 4 |
+
+  `TIME_PER_SHOT_SEC` is not a separate guess any more: change `Shooter.FEEDER_FORWARD_POWER` and it follows (0.5 s at 0.6, 0.35 s at 1.0).
+  Compare routes with these numbers, but do not trust a route that is within a few seconds of the limit. When you measure one, replace it,
+  change its marker to VERIFY or TUNE and delete its name from `BioBuzzConstants.PLACEHOLDERS`, then regenerate the pictures.
+* **Expected points are an estimate.** "Our points" is the ceiling: every POLLEN lands. Real teams land about 6 of 10 shots (2 of 5 and 4 of 6 in
+  real matches, none from a StarterBot), so every route also shows **expected points**, built from `Auto.PLAN_SHOT_SUCCESS` = 0.6 (TUNE): LEAVE and PARK
+  are counted in full if the route reaches them, and each HIVE TIP counts 20 x the exact binomial chance that enough POLLEN land. The first tip needs
+  3 of the 4 pre-loads: 3 of 4 at 0.6 is 0.4752, so the tip is worth 20 x 0.4752 = 9.5 expected points (a route with LEAVE, PARK and that tip expects
+  17.5 of its 28). A later tip needs 8 POLLEN into an empty cell: 8 of 8 at 0.6 is 0.0168, and it cannot happen unless the first tip did, so a second
+  tip from one volley is worth well under half a point. Real teams show the same picture: only 1 alliance-match in 4 has even one tip in AUTO. The
+  gallery prints the sum for every route (`RouteAnalysis.expectedPointsText()`); change `Auto.PLAN_SHOT_SUCCESS` after shooting 20 POLLEN from the
+  anchor spot and counting how many land.
+* **When a tip is complete.** A tip counts as AUTO if it is complete before TELEOP starts, 8 s after the buzzer (manual 10.5, Table 9-1). Filmed
+  tips settle a median 3.9 s after their POLLEN leaves the shooter (3.4 to 6.5 s), so `Auto.TIP_SETTLE_PLAN_SEC` = 5.5 (TUNE) is the planning time. The
+  gallery shows "When the tip is complete (plan)": a volley whose last tipping POLLEN leaves at 27 s settles at about 32.5 s, after the 30 s buzzer and inside the 8 s
+  transition, so it still counts as AUTO; FIRST does not write down how a scorer treats a tip that is still swinging at the buzzer, so keep the tip earlier
+  if you can. (`Auto.TRANSITION_SEC` = 8 is FIXED.)
 * **The FLOWER wiggle numbers are placeholders too** (marked **ADD**): how far the wheel tips stick out in front
   of the chassis (`Robot.INTAKE_REACH_IN`, 2.7 in from the drawing), how far each wheel is from the center line
   (`Robot.INTAKE_WHEEL_OFFSET_IN`, 6.1 in), how far beside the ball the wheel starts (`Auto.FLOWER_WHEEL_START_OFFSET_IN`) and how
@@ -786,14 +811,14 @@ shoot the GARDEN POLLEN: the UP cell is on the far side of the HIVE after the ti
 * **`partner_rear_shoot_park`** is the one route of the **partner family** (`PartnerTipRoutes`): it assumes the alliance partner shoots the first
   tip (assumed at 12 s). It starts turned in the rear corner in tile B6 (front-right corner on the wall, back toward the REAR cell: no drive before the volley), WAITS until its camera has seen the REAR cell come up
   and stay steady, steps 1 in toward the cell and shoots 4 into it (4 of the 8 the second tip needs, for TELEOP), drives off the wall and parks in the red LOADING ZONE
-  (LEAVE 3 + PARK 5 are ours; the partner's 20 is shown separately, never counted). If the tip never comes it gives up at 19 s (the latest the rest of the route allows) and still leaves and parks.
-  **Why it does not also make the second tip.** Partner tips (12 s) + the camera's settle (0.5 s) + a volley of 4 (1.9 + 4 x 0.9 = 5.5 s) + a
-  FLOWER pick-up of 4 (about 7.4 s) + a second volley of 4 (5.5 s) = 30.9 s with NO driving at all, over the 30 s of AUTO: the route as the team
+  (LEAVE 3 + PARK 5 are ours; the partner's 20 is shown separately, never counted). If the tip never comes it gives up at 19.4 s (the latest the rest of the route allows) and still leaves and parks.
+  **Why it does not also make the second tip.** Partner tips (12 s) + the camera's settle (0.5 s) + a volley of 4 (1.5 + 4 x 1.0 = 5.5 s) + a
+  FLOWER pick-up of 4 (about 7.3 s) + a second volley of 4 (5.5 s) = 30.8 s with NO driving at all, over the 30 s of AUTO: the route as the team
   asked for it cannot fit with the shipped numbers (written out as a test in `RouteCatalogTest`). It needs a partner that tips by about 6 s, and
   wheels that really reach the POLLEN (the validator says the shipped wheels fall 0.8 in short). 12 s is the team's own "about 12 s" guess and
   is NOT changed here: agree the real time with the partner team ("Measure later" in docs/START_HERE.md) and measure the wheels first. Two things the timing model does
-  not know yet could win a few seconds: it charges the aim and spin-up (1.9 s) after every WAIT_FOR_TIP and after every volley, never in parallel with
-  the wait or a drive, and it does not know the partner could be faster. Even with both spin-ups free the total is about 27 s with no driving at all,
+  not know yet could win a few seconds: it charges the aim and spin-up (1.5 s) after every WAIT_FOR_TIP and after every volley, never in parallel with
+  the wait or a drive, and it does not know the partner could be faster. Even with both spin-ups free the total is about 28 s with no driving at all,
   which leaves no room for the drives.
 
 One thing to know about a start with the front exactly on the wall: the robot cannot turn toward that wall at all, not even

@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  * tips the cell, the 4th is the spare) stayed in the robot. Nothing in the project supports zero delay: the tipping POLLEN is still in the air for
  * about 0.5 s ({@code Auto.BALL_FLIGHT_SEC}), the camera sees the tip only when the cell has swung far enough for its tags to look different, and the
  * feeder pauses only after they have been gone a moment ({@code Auto.TIP_STOP_LATENCY_SEC}, about 0.85 s in all, to be measured), while the
- * next POLLEN is fed 0.9 s after the last ({@code Auto.TIME_PER_SHOT_SEC}). So the spare is probably launched into a cell that is already swinging.
+ * next POLLEN is fed 1.0 s after the last ({@code Auto.TIME_PER_SHOT_SEC}: 0.30 s divided by the feeder power 0.3). So the spare is probably launched into a cell that is already swinging.
  * The plan counts it as fired ({@code StepInfo.firedAfterTip}) and the validator warns.
  *
  * <p>How it works: no robot. {@link TipModel#launchedBeforeTheFeederStops} is the arithmetic and is tested on its own (with its boundaries), then the
@@ -40,10 +40,10 @@ public class TipStopLatencyTest {
     // ---- the arithmetic ------------------------------------------------------------------------------------
 
     /**
-     * Situation: POLLEN 0.9 s apart, a flight of 0.5 s and several stop latencies, with spares of 0 to 3.
-     * Expected: the j-th POLLEN after the tipping one (it leaves j x 0.9 s later) is launched if j x 0.9 < 0.5 + latency: latency 0.85 launches
-     *     one (0.9 < 1.35, 1.8 is not), 0.3 launches none, 1.5 launches two (0.9 and 1.8 < 2.0); never more than the spare, none for no spare.
-     * Boundary: a latency of exactly 0.4 s (= 0.9 - 0.5) launches none, and 0.41 s launches one.
+     * Situation: POLLEN 1.0 s apart, a flight of 0.5 s and several stop latencies, with spares of 0 to 3.
+     * Expected: the j-th POLLEN after the tipping one (it leaves j x 1.0 s later) is launched if j x 1.0 < 0.5 + latency: latency 0.85 launches
+     *     one (1.0 < 1.35, 2.0 is not), 0.3 launches none, 2.5 launches two (1.0 and 2.0 < 3.0); never more than the spare, none for no spare.
+     * Boundary: a latency of exactly 0.5 s (= 1.0 - 0.5) launches none, and 0.51 s launches one.
      */
     @Test
     public void thePollenLaunchedBeforeTheFeederStopsFollowTheTimes() {
@@ -51,7 +51,7 @@ public class TipStopLatencyTest {
         assertEquals(1, TipModel.launchedBeforeTheFeederStops(3, SHOT, FLIGHT, 0.85));
         assertEquals(0, TipModel.launchedBeforeTheFeederStops(3, SHOT, FLIGHT, 0.3));
         assertEquals(0, TipModel.launchedBeforeTheFeederStops(3, SHOT, FLIGHT, 0.0));
-        assertEquals(2, TipModel.launchedBeforeTheFeederStops(3, SHOT, FLIGHT, 1.5));
+        assertEquals(2, TipModel.launchedBeforeTheFeederStops(3, SHOT, FLIGHT, 2.5));
         assertEquals("never more than the spare", 1, TipModel.launchedBeforeTheFeederStops(1, SHOT, FLIGHT, 1.5));
         assertEquals("no spare, nothing to launch", 0, TipModel.launchedBeforeTheFeederStops(0, SHOT, FLIGHT, 5.0));
         assertEquals("exactly the time between POLLEN minus the flight: the feeder is just in time", 0,
@@ -84,7 +84,7 @@ public class TipStopLatencyTest {
     }
 
     /**
-     * Situation: the plan for a feeder whose stop latency is varied around the break-even (the time between POLLEN minus the flight, 0.4 s).
+     * Situation: the plan for a feeder whose stop latency is varied around the break-even (the time between POLLEN minus the flight, 0.5 s).
      * Expected: at or below it the spare is kept, above it the spare is spent. The tip itself always lands a flight time after the tipping POLLEN left.
      * Why: this is the number the team measures on day one; the plan must flip exactly there.
      */
@@ -140,11 +140,11 @@ public class TipStopLatencyTest {
         assertTrue(w.message, w.message.contains("the camera cannot stop the feeder at once"));
         assertTrue(w.message, w.message.contains("in the air for 0.50 s"));
         assertTrue(w.message, w.message.contains("stops about 0.85 s after it lands (Auto.TIP_STOP_LATENCY_SEC)"));
-        assertTrue(w.message, w.message.contains("the next POLLEN leaves 0.90 s after the last"));
+        assertTrue(w.message, w.message.contains("the next POLLEN leaves 1.00 s after the last"));
         assertTrue(w.message, w.message.contains("the next 1 POLLEN will probably be launched into the cell while it swings down"));
         assertTrue(w.message, w.message.contains("the plan counts 4 fired and 0 of the spare kept"));
         assertTrue(w.message, w.message.contains("Fire only 3 to keep it for sure"));
-        assertTrue(w.message, w.message.contains("with a latency under 0.40 s the spare stays in the robot"));
+        assertTrue(w.message, w.message.contains("with a latency under 0.50 s the spare stays in the robot"));
         assertTrue(w.message, w.message.contains("G417"));
         assertTrue(w.message, w.message.contains("QA12"));
         assertTrue(FastFeederRobot.check(standardVolley()).isEmpty());
