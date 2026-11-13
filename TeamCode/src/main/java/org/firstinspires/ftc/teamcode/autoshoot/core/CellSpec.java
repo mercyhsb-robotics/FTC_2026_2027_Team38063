@@ -17,7 +17,7 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
  * to stand, {@link ClusterAnalyzer} reads the tag layout to turn camera readings into a range and a bearing,
  * and {@link AutoShootController} aims at the origin.
  *
- * <p>Frame: Pedro field frame, inches (origin at the corner where the audience wall meets the red wall, +x toward
+ * <p>Frame: Pedro field frame, inches (origin at the inner corner where the audience wall meets the red wall, +x toward
  * blue, +y away from the audience). "z" is height above the floor.
  */
 public final class CellSpec {
@@ -40,7 +40,11 @@ public final class CellSpec {
     public final double tagRowY;
     public final double tagRowZ;
 
-    /** Height of the AprilTag row when this cell is DOWN (the sticker is the same plane, 14 in lower). */
+    /**
+     * Field y and height of the AprilTag row when this cell is DOWN. A tip turns the cell by 60 degrees about the pivot axle, so the
+     * DOWN row is the UP row turned about it: 14.3 in lower, and 1.5 in nearer the pivot plane (the sticker plane is the same plane).
+     */
+    public final double downTagRowY;
     public final double downTagRowZ;
 
     /**
@@ -61,7 +65,7 @@ public final class CellSpec {
      */
     public CellSpec(Alliance alliance, Side side, int baseTagId, double axisX,
                     double originX, double originY, double originZ,
-                    double tagRowY, double tagRowZ, double downTagRowZ, double[] tagXOffsets) {
+                    double tagRowY, double tagRowZ, double downTagRowY, double downTagRowZ, double[] tagXOffsets) {
         this.alliance = alliance;
         this.side = side;
         this.baseTagId = baseTagId;
@@ -71,6 +75,7 @@ public final class CellSpec {
         this.originZ = originZ;
         this.tagRowY = tagRowY;
         this.tagRowZ = tagRowZ;
+        this.downTagRowY = downTagRowY;
         this.downTagRowZ = downTagRowZ;
         this.tagXSign = side == Side.AUDIENCE ? 1 : -1;
         this.facingHeading = side.openingFacingHeading();

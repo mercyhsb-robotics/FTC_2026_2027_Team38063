@@ -10,6 +10,7 @@ import java.util.List;
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.junit.Test;
@@ -24,7 +25,8 @@ public class RouteAnalysisTest {
     static AutoRoute.Builder corridorPark() {
         return AutoRoute.builder("corridor_park").start(58, FRONT, -90)
                 .shootUp(4)
-                .driveReverseTangent(30, 30)
+                .driveConstant(30, 30, -90)      // slides sideways with the front toward the wall: at the nominal shooting pose the
+                                                 // center is only 12.1 in from the wall, too close to turn on the spot there
                 .driveReverseTangent(30, 100)
                 .driveLinear(12, 108, 0)
                 .park(12, 108, 0);
@@ -55,7 +57,7 @@ public class RouteAnalysisTest {
         // the shoot step has no pose of its own: the robot is at the nominal standoff pose
         RouteAnalysis.StepInfo shoot = a.step(1);
         assertTrue(shoot.shootPoseIsNominal);
-        assertEquals(59.25, shoot.to.x, 1e-6);
+        assertEquals(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, shoot.to.x, 1e-6);
         assertEquals(-90.0, shoot.to.headingDegrees(), 1e-6);
         // reverse tangent up +y leaves the robot facing -y
         assertEquals(0.0, Math.abs(Angles.error(Math.toRadians(-90), a.step(3).to.heading)), 1e-6);
@@ -204,7 +206,7 @@ public class RouteAnalysisTest {
 
     /** A rear-wall start that only waits, so the HIVE state can be read off the clock. */
     private static AutoRoute.Builder partnerClock() {
-        return AutoRoute.builder("partner_clock").start(61.5, 144 - FRONT, 90).partnerTipsFirst()
+        return AutoRoute.builder("partner_clock").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst()
                 .waitSeconds(5.0).waitSeconds(5.0).waitSeconds(5.0);
     }
 
@@ -231,7 +233,7 @@ public class RouteAnalysisTest {
     @Test
     public void aRouteThatDoesNotAssumeThePartnerNeverFlipsTheHiveByItself() {
         // the very same waits, but the route says SELF: nobody tips the HIVE, whatever the clock says
-        RouteAnalysis a = AutoRoute.builder("self_clock").start(61.5, 144 - FRONT, 90)
+        RouteAnalysis a = AutoRoute.builder("self_clock").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90)
                 .waitSeconds(5.0).waitSeconds(5.0).waitSeconds(5.0).build().analyze();
         for (int i = 1; i < a.steps().size(); i++) {
             assertEquals(Side.AUDIENCE, a.step(i).upSideAfter);
@@ -256,7 +258,7 @@ public class RouteAnalysisTest {
     @Test
     public void aPartnerTipThatComesAfterTheRouteHasEndedStillHappens() {
         // the route is over at 5 s, the tip is assumed at 12 s: it is recorded all the same (the robot stands where it ended)
-        RouteAnalysis a = AutoRoute.builder("short").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitSeconds(5.0).build().analyze();
+        RouteAnalysis a = AutoRoute.builder("short").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitSeconds(5.0).build().analyze();
         assertEquals(1, a.tipEvents().size());
         assertEquals(PARTNER_SEC, a.tipEvents().get(0).timeSec, EPS);
         assertEquals("the last step ended before the tip", Side.AUDIENCE, a.step(1).upSideAfter);
@@ -264,7 +266,7 @@ public class RouteAnalysisTest {
 
     @Test
     public void waitForTipAdvancesTheClockToTheTipAndNoFurther() {
-        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, 144 - FRONT, 90).partnerTipsFirst()
+        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst()
                 .waitSeconds(3.0).waitForTip(30.0).build().analyze();
         RouteAnalysis.StepInfo wait = a.step(2);
         assertEquals(3.0, wait.startSec, EPS);
@@ -278,19 +280,19 @@ public class RouteAnalysisTest {
 
     @Test
     public void waitForTipGivesUpAtItsDeadlineOnTheRouteClock() {
-        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitForTip(2.0).build().analyze();
+        RouteAnalysis a = AutoRoute.builder("wft").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitForTip(2.0).build().analyze();
         RouteAnalysis.StepInfo wait = a.step(1);
         assertEquals(2.0, wait.durationSec, EPS);
         assertEquals("the tip is still to come when the wait gives up", Side.AUDIENCE, wait.upSideAfter);
         assertEquals("it still knows when the tip is due", PARTNER_SEC, wait.tipWaitSec, EPS);
         // the number is a time ON THE CLOCK, not a length: after 3 s of other waiting, "give up at 5" is only 2 s more
-        RouteAnalysis later = AutoRoute.builder("wft2").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitSeconds(3.0).waitForTip(5.0)
+        RouteAnalysis later = AutoRoute.builder("wft2").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitSeconds(3.0).waitForTip(5.0)
                 .build().analyze();
         assertEquals(3.0, later.step(2).startSec, EPS);
         assertEquals(2.0, later.step(2).durationSec, EPS);
         assertEquals(5.0, later.step(2).endSec(), EPS);
         // a deadline that has passed already means no waiting at all
-        RouteAnalysis passed = AutoRoute.builder("wft3").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitSeconds(8.0).waitForTip(5.0)
+        RouteAnalysis passed = AutoRoute.builder("wft3").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitSeconds(8.0).waitForTip(5.0)
                 .build().analyze();
         assertEquals(0.0, passed.step(2).durationSec, EPS);
     }
@@ -301,7 +303,7 @@ public class RouteAnalysisTest {
 
     /** Wait for the tip (give up at the given time) and fire 4 POLLEN from a pose beside the start: about 6 s of work. */
     private static AutoRoute.Builder waitThenFire(double giveUpSec) {
-        return AutoRoute.builder("wf").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitForTip(giveUpSec).shootUp(62.0, 132.5, 90, 4);
+        return AutoRoute.builder("wf").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitForTip(giveUpSec).shootUp(61.5, 130.0, 90, 4);
     }
 
     @Test
@@ -375,7 +377,7 @@ public class RouteAnalysisTest {
     @Test
     public void aRouteThatDoesNotDependOnThePartnersTipHasNoLatestTime() {
         // it never shoots at the cell that comes up and never waits for it: any partner time is fine
-        RouteAnalysis walk = AutoRoute.builder("walk").start(61.5, 144 - FRONT, 90).partnerTipsFirst().driveConstant(61.5, 120, 90).build()
+        RouteAnalysis walk = AutoRoute.builder("walk").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().driveConstant(61.5, 120, 90).build()
                 .analyze();
         assertEquals(Double.POSITIVE_INFINITY, walk.latestPartnerTipSec(), 0.0);
         assertEquals(Double.POSITIVE_INFINITY, walk.partnerTipSlackSec(), 0.0);
@@ -392,15 +394,15 @@ public class RouteAnalysisTest {
     @Test
     public void withoutAWaitTheLatestTipIsTheMomentTheVolleyStarts() {
         // (the checker calls such a route an ERROR; the number is still defined: the tip must be done when the volley starts)
-        RouteAnalysis a = AutoRoute.builder("nowait").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitSeconds(13.0)
-                .shootUp(62.0, 132.5, 90, 4).build().analyze();
+        RouteAnalysis a = AutoRoute.builder("nowait").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitSeconds(13.0)
+                .shootUp(61.5, 130.0, 90, 4).build().analyze();
         assertEquals(a.step(2).launchSec, a.latestPartnerTipSec(), EPS);
     }
 
     @Test
     public void theLatestTipOfARouteWithALongTailIsBelowTheAssumedTimeAndTheSlackIsNegative() {
         // 4, fetch 4 from the rear FLOWER, 4 again: about 18 s of work after the wait, the assumed tip at 12 s is too late
-        RouteAnalysis a = waitThenFire(20.0).intakeFlower(48, 141.6, 48, 133, 90, 4).shootUp(62.0, 132.5, 90, 4).build().analyze();
+        RouteAnalysis a = waitThenFire(20.0).intakeFlower(BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][1], IntakeWheel.LEFT, 4).shootUp(61.5, 130.0, 90, 4).build().analyze();
         assertTrue(a.latestPartnerTipSec() < PARTNER_SEC);
         assertTrue(a.partnerTipSlackSec() < 0.0);
     }
@@ -413,7 +415,7 @@ public class RouteAnalysisTest {
         assertEquals(0.0, done.durationSec, EPS);
         assertTrue(Double.isNaN(done.tipWaitSec));
         // a SELF route has no partner tip at all
-        RouteAnalysis self = AutoRoute.builder("self").start(61.5, 144 - FRONT, 90).waitForTip(20.0).build().analyze();
+        RouteAnalysis self = AutoRoute.builder("self").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).waitForTip(20.0).build().analyze();
         assertEquals(0.0, self.step(1).durationSec, EPS);
         assertTrue(Double.isNaN(self.step(1).tipWaitSec));
     }
@@ -464,9 +466,9 @@ public class RouteAnalysisTest {
     @Test
     public void aShootThatStartsBeforeThePartnerTipTargetsTheCellThatIsUpThen() {
         // shootUp at 0 s: the UP cell is still the audience one; after a wait for the tip it is the rear one
-        RouteAnalysis before = AutoRoute.builder("b").start(61.5, 144 - FRONT, 90).partnerTipsFirst().shootUp(2).build().analyze();
+        RouteAnalysis before = AutoRoute.builder("b").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().shootUp(2).build().analyze();
         assertEquals(Side.AUDIENCE, before.step(1).targetSide);
-        RouteAnalysis after = AutoRoute.builder("a").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitForTip(30).shootUp(2).build()
+        RouteAnalysis after = AutoRoute.builder("a").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitForTip(30).shootUp(2).build()
                 .analyze();
         assertEquals(Side.REAR, after.step(2).targetSide);
         assertTrue(after.step(2).targetWasUp);
@@ -476,9 +478,9 @@ public class RouteAnalysisTest {
     @Test
     public void afterThePartnersTipOurVolleysNeedEightPollenBecauseTheRearCellHoldsNoNectar() {
         // wait for the tip, then 4 + 4 POLLEN into the rear cell: only the second volley tips it
-        AutoRoute r = AutoRoute.builder("two").start(61.5, 144 - FRONT, 90).partnerTipsFirst()
+        AutoRoute r = AutoRoute.builder("two").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst()
                 .waitForTip(30).shootUp(4)
-                .intakeFlower(48, 141.6, 48, 133, 90, 4)
+                .intakeFlower(BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][1], IntakeWheel.LEFT, 4)
                 .shootUp(4).build();
         RouteAnalysis a = r.analyze();
         assertFalse("4 POLLEN into the empty rear cell are not enough", a.step(2).tipped);
@@ -549,7 +551,7 @@ public class RouteAnalysisTest {
         assertEquals(Side.REAR, a.step(1).upSideBefore);
         assertEquals(Side.REAR, a.step(1).targetSide);
         // the blue robot starts in the half-turn of C1 and shoots from the half-turn of the red nominal pose
-        assertEquals(144 - 59.25, a.step(1).to.x, 1e-6);
+        assertEquals(BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, a.step(1).to.x, 1e-6);
         assertEquals(90.0, a.step(1).to.headingDegrees(), 1e-6);
     }
 
@@ -629,8 +631,8 @@ public class RouteAnalysisTest {
         assertEquals(a.park(), b.park());
         Pose2 ea = a.endPose();
         Pose2 eb = b.endPose();
-        assertEquals(144 - ea.x, eb.x, 1e-6);
-        assertEquals(144 - ea.y, eb.y, 1e-6);
+        assertEquals(BioBuzzConstants.Field.SIZE_IN - ea.x, eb.x, 1e-6);
+        assertEquals(BioBuzzConstants.Field.SIZE_IN - ea.y, eb.y, 1e-6);
         assertEquals(Math.PI, Math.abs(Angles.error(ea.heading, eb.heading)), 1e-6);
     }
 

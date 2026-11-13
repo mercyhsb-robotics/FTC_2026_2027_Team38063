@@ -2,9 +2,10 @@ package org.firstinspires.ftc.teamcode.autoshoot.core;
 
 /**
  * The two alliances. The BIOBUZZ field is 180-degree ROTATIONALLY symmetric about its center (it is
- * NOT mirror symmetric): rotating any red feature half a turn about (72, 72) lands exactly on the
- * matching blue feature (red GARDEN corner (0,0) -> blue GARDEN corner (144,144), red HIVE axis
- * x=59.25 -> blue x=84.75, red start tile B1 -> blue tile E6, ...).
+ * NOT mirror symmetric): rotating any red feature half a turn about the field center (70.674, 70.674) lands exactly on
+ * the matching blue feature (red GARDEN corner (0,0) -> blue GARDEN corner (141.348, 141.348), red HIVE axis
+ * x = 57.924 -> blue x = 83.424, red start tile B1 -> blue tile E6, ...). The official CAD confirms the symmetry to 0.000 in
+ * for the walls, tiles, FLOWERS and POLLEN and to 0.017 in for the HIVE parts.
  *
  * <p>All field data is therefore written ONCE, for RED, and converted for BLUE here:
  * {@code blue = (size - x, size - y, heading + 180 deg)}.
@@ -26,12 +27,12 @@ public enum Alliance {
         return this == RED ? BLUE : RED;
     }
 
-    /** Converts a RED-frame x to this alliance's equivalent x. {@code fieldSize} is the field width in inches (144). */
+    /** Converts a RED-frame x to this alliance's equivalent x. {@code fieldSize} is the field width in inches ({@code Field.SIZE_IN}, 141.348). */
     public double fromRedX(double redX, double fieldSize) {
         return this == RED ? redX : fieldSize - redX;
     }
 
-    /** Converts a RED-frame y to this alliance's equivalent y. {@code fieldSize} is the field depth in inches (144). */
+    /** Converts a RED-frame y to this alliance's equivalent y. {@code fieldSize} is the field depth in inches ({@code Field.SIZE_IN}, 141.348). */
     public double fromRedY(double redY, double fieldSize) {
         return this == RED ? redY : fieldSize - redY;
     }

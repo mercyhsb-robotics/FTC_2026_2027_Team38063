@@ -12,6 +12,8 @@ import org.junit.Test;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+
 /**
  * Checks {@link FieldModel}, the robot's map of the BIOBUZZ field: the four HIVE cells with their aim points and
  * AprilTag IDs and positions, the HIVE frame, the four FLOWER keep-out boxes, and the red-to-blue flip. It also checks
@@ -28,8 +30,8 @@ import com.pedropathing.math.Pose;
  * <p>Words used in this file:
  * <ul>
  *   <li><b>Field frame:</b> field coordinates in inches. The origin is the corner where the audience wall meets the
- *       red wall, +x points toward the blue side and +y points away from the audience. The field is 144 x 144 in, so
- *       the center is (72, 72).</li>
+ *       red wall, +x points toward the blue side and +y points away from the audience. The field is 141.348 x 141.348 in
+ *       (the official CAD), so the center is (70.674, 70.674).</li>
  *   <li><b>HIVE, CELL, aim point:</b> each alliance has one HIVE with two CELLs (an audience-side cell and a
  *       rear-side cell). Exactly one is tipped UP. The center of an UP cell's opening is the aim point (called the
  *       'origin' in the code).</li>
@@ -50,30 +52,30 @@ public class FieldModelTest {
 
     /**
      * Situation: the model's two RED cells.
-     * Expected: both aim points are on the red HIVE axis x = 59.25 in; the audience cell is at y = 55.52 and the rear
-     *     cell at y = 88.48 (16.48 in either side of the field center y = 72), both 58.31 in high; their base tag IDs
-     *     are 34 (audience) and 30 (rear).
-     * Why: these are the 'cluster origin' numbers the FTC SDK's AprilTag database implies. A typo here would mis-aim
-     *     every shot.
+     * Expected: both aim points are on the red HIVE axis x = 57.924 in (12.75 in left of the field center); the audience
+     *     cell is at y = 54.156 and the rear cell at y = 87.192 (16.518 in either side of the field center y = 70.674),
+     *     both 58.254 in high; their base tag IDs are 34 (audience) and 30 (rear).
+     * Why: these are the 'cluster origin' numbers the FTC SDK's AprilTag database implies, placed with the CAD (the
+     *     origin of the cluster is 16.518 in out from the pivot plane). A typo here would mis-aim every shot.
      */
     @Test
     public void redCellsSitOnTheRedHiveAxisAtTheSdkClusterOrigin() {
         CellSpec aud = field.cell(Alliance.RED, Side.AUDIENCE);
         CellSpec rear = field.cell(Alliance.RED, Side.REAR);
-        assertEquals(59.25, aud.originX, EPS);
-        assertEquals(55.52, aud.originY, EPS);
-        assertEquals(58.31, aud.originZ, EPS);
-        assertEquals(59.25, rear.originX, EPS);
-        assertEquals(88.48, rear.originY, EPS);
+        assertEquals(57.924, aud.originX, EPS);
+        assertEquals(54.156, aud.originY, EPS);
+        assertEquals(58.254, aud.originZ, EPS);
+        assertEquals(57.924, rear.originX, EPS);
+        assertEquals(87.192, rear.originY, EPS);
         assertEquals(34, aud.baseTagId);
         assertEquals(30, rear.baseTagId);
     }
 
     /**
      * Situation: the model's two BLUE cells.
-     * Expected: each is the half-turn image (about the field center (72, 72)) of the RED cell on the OPPOSITE side: x =
-     *     144 - 59.25 = 84.75; BLUE AUDIENCE comes from RED REAR (tags 38 and up) and BLUE REAR from RED AUDIENCE (tags
-     *     42 and up). Height is unchanged.
+     * Expected: each is the half-turn image (about the field center (70.674, 70.674)) of the RED cell on the OPPOSITE side:
+     *     x = 141.348 - 57.924 = 83.424; BLUE AUDIENCE comes from RED REAR (tags 38 and up) and BLUE REAR from RED
+     *     AUDIENCE (tags 42 and up). Height is unchanged.
      * Why: the field is rotationally symmetric, NOT mirror symmetric, so a mirror-image shortcut would put the blue
      *     cells in the wrong place.
      */
@@ -81,13 +83,13 @@ public class FieldModelTest {
     public void blueCellsAreTheHalfTurnImagesOfTheRedCellsOnTheOppositeSide() {
         CellSpec bAud = field.cell(Alliance.BLUE, Side.AUDIENCE);
         CellSpec bRear = field.cell(Alliance.BLUE, Side.REAR);
-        assertEquals(84.75, bAud.originX, EPS);
-        assertEquals(55.52, bAud.originY, EPS);
-        assertEquals(84.75, bRear.originX, EPS);
-        assertEquals(88.48, bRear.originY, EPS);
+        assertEquals(83.424, bAud.originX, EPS);
+        assertEquals(54.156, bAud.originY, EPS);
+        assertEquals(83.424, bRear.originX, EPS);
+        assertEquals(87.192, bRear.originY, EPS);
         assertEquals(38, bAud.baseTagId);
         assertEquals(42, bRear.baseTagId);
-        assertEquals(58.31, bAud.originZ, EPS);
+        assertEquals(58.254, bAud.originZ, EPS);
     }
 
     /**
@@ -110,9 +112,9 @@ public class FieldModelTest {
 
     /**
      * Situation: the field x of all four tags of all four cells.
-     * Expected: they match the verified table in the test (manual section 9.9 and the SDK). The audience-side tags run
-     *     left to right with increasing ID, toward +x; a rear cluster's sticker is turned half a turn, so its IDs run
-     *     toward -x.
+     * Expected: they match the table in the test (the HIVE axes 57.924 and 83.424 plus the SDK offsets -6.5, -2.75, 2.75, 6.5).
+     *     The audience-side tags run left to right with increasing ID, toward +x; a rear cluster's sticker is turned half a
+     *     turn, so its IDs run toward -x. (CadTagCentersTest pins them against the official CAD tag centers.)
      * Why: ClusterAnalyzer uses these positions to work out where the robot is, and the ID order to tell an UP cell
      *     from a DOWN one.
      */
@@ -120,10 +122,10 @@ public class FieldModelTest {
     public void tagFieldPositionsMatchTheVerifiedClusterTable() {
         // Field x of tags 0 to 3 of each cell: the cell's axis plus the offsets -6.5, -2.75, 2.75 and 6.5 in; the rear
         // cells run the other way.
-        double[] redAud = {52.75, 56.50, 62.00, 65.75};
-        double[] redRear = {65.75, 62.00, 56.50, 52.75};
-        double[] blueAud = {78.25, 82.00, 87.50, 91.25};
-        double[] blueRear = {91.25, 87.50, 82.00, 78.25};
+        double[] redAud = {51.424, 55.174, 60.674, 64.424};
+        double[] redRear = {64.424, 60.674, 55.174, 51.424};
+        double[] blueAud = {76.924, 80.674, 86.174, 89.924};
+        double[] blueRear = {89.924, 86.174, 80.674, 76.924};
         for (int i = 0; i < 4; i++) {
             assertEquals(redAud[i], field.cell(Alliance.RED, Side.AUDIENCE).tagFieldX(i), EPS);
             assertEquals(redRear[i], field.cell(Alliance.RED, Side.REAR).tagFieldX(i), EPS);
@@ -165,41 +167,44 @@ public class FieldModelTest {
 
     /**
      * Situation: the HIVE frame (its feet and base rails) as a rectangle.
-     * Expected: it is 49.46 in wide (x) and 38.95 in deep (y), centered on (72, 72): x from 47.27 to 96.73 and y from
-     *     52.525 to 91.475, and it contains the field center.
+     * Expected: it is 49.466 in wide (x) and 38.944 in deep (y) (the two foot bars of the CAD), centered on the field center
+     *     (70.674, 70.674): x from 45.941 to 95.407 and y from 51.202 to 90.146, and it contains the field center.
      * Why: the path planner drives around this rectangle, so its size and position must be right.
      */
     @Test
     public void hiveFrameFootprintIsCenteredOnTheField() {
         Rect f = field.hiveFrame();
-        assertEquals(47.27, f.minX, EPS);
-        assertEquals(96.73, f.maxX, EPS);
-        assertEquals(52.525, f.minY, EPS);
-        assertEquals(91.475, f.maxY, EPS);
-        assertTrue(f.contains(72, 72));
+        assertEquals(45.941, f.minX, EPS);
+        assertEquals(95.407, f.maxX, EPS);
+        assertEquals(51.202, f.minY, EPS);
+        assertEquals(90.146, f.maxY, EPS);
+        assertTrue(f.contains(BioBuzzConstants.Field.CENTER_IN, BioBuzzConstants.Field.CENTER_IN));
     }
 
     /**
      * Situation: the four FLOWER keep-out boxes.
-     * Expected: there are four, and each is 6 in long along its wall and 5 in deep out from it (the red-wall one is
-     *     6 in tall in y and 5 in wide in x; the rear-wall one is 6 in wide in x and 5 in deep in y).
+     * Expected: there are four, and each is Field.FLOWER_KEEPOUT_ALONG_WALL_IN long along its wall and
+     *     Field.FLOWER_KEEPOUT_DEPTH_IN deep out from it (the red-wall one is long in y and deep in x; the rear-wall one
+     *     is long in x and deep in y).
      * Why: the planner keeps the robot out of these boxes. A box turned the wrong way would block the wrong part of the
      *     field.
      */
     @Test
     public void flowerKeepOutsHugTheirWallsWithTheLongSideAlongTheWall() {
         assertEquals(4, field.flowerKeepOuts().size());
-        Rect left = field.flowerKeepOuts().get(0);     // (2.4, 48) on the red wall
-        assertEquals(6.0, left.maxY - left.minY, EPS); // long side along y
-        assertEquals(5.0, left.maxX - left.minX, EPS);
-        Rect rear = field.flowerKeepOuts().get(1);     // (48, 141.6) on the rear wall
-        assertEquals(6.0, rear.maxX - rear.minX, EPS); // long side along x
-        assertEquals(5.0, rear.maxY - rear.minY, EPS);
+        double along = BioBuzzConstants.Field.FLOWER_KEEPOUT_ALONG_WALL_IN;
+        double depth = BioBuzzConstants.Field.FLOWER_KEEPOUT_DEPTH_IN;
+        Rect left = field.flowerKeepOuts().get(0);     // on the red wall
+        assertEquals(along, left.maxY - left.minY, EPS); // long side along y
+        assertEquals(depth, left.maxX - left.minX, EPS);
+        Rect rear = field.flowerKeepOuts().get(1);     // on the rear wall
+        assertEquals(along, rear.maxX - rear.minX, EPS); // long side along x
+        assertEquals(depth, rear.maxY - rear.minY, EPS);
     }
 
     /**
      * Situation: a RED pose (35, 9.2) facing -90 degrees converted to BLUE.
-     * Expected: the result is (109, 134.8) facing +90 degrees, i.e. blue = (144 - x, 144 - y, heading + 180 degrees);
+     * Expected: the result is (106.348, 132.148) facing +90 degrees, i.e. blue = (141.348 - x, 141.348 - y, heading + 180 degrees);
      *     converting back gives the original; converting RED to RED returns the very same object.
      * Why: autonomous routines and the planner are written once for RED and flipped for BLUE.
      */
@@ -207,8 +212,8 @@ public class FieldModelTest {
     public void allianceFlipIsAHalfTurnAboutTheFieldCenter() {
         Pose2 red = Pose2.ofDegrees(35.0, 9.2, -90);
         Pose2 blue = Alliance.BLUE.fromRed(red, field.size());
-        assertEquals(109.0, blue.x, EPS);
-        assertEquals(134.8, blue.y, EPS);
+        assertEquals(106.348, blue.x, EPS);
+        assertEquals(132.148, blue.y, EPS);
         assertEquals(90.0, blue.headingDegrees(), EPS);
         Pose2 back = Alliance.BLUE.toRed(blue, field.size());
         assertEquals(red.x, back.x, EPS);
@@ -222,7 +227,7 @@ public class FieldModelTest {
      * Pins the team's alliance flip to Pedro's own half-turn operation so the two can never disagree.
      *
      * Situation: four sample poses flipped two ways: by our Alliance.fromRed and by Pedro Pathing's own
-     *     PoseFactory.mirrorAroundPoint(72, 72). (Pedro Pathing is the library that follows paths.)
+     *     PoseFactory.mirrorAroundPoint(center, center) about the field center. (Pedro Pathing is the library that follows paths.)
      * Expected: x, y and heading agree to within EPS. Headings are compared with Angles.distance, because +180 and
      *     -180 degrees are the same direction.
      * Why: autonomous paths may use Pedro's flip while the auto-shoot code uses ours. If they ever disagreed, the robot
@@ -230,11 +235,11 @@ public class FieldModelTest {
      */
     @Test
     public void allianceFlipAgreesWithPedroMirrorAroundPoint() {
-        PoseFactory half = PoseFactory.degrees().mirrorAroundPoint(72, 72);
+        PoseFactory half = PoseFactory.degrees().mirrorAroundPoint(BioBuzzConstants.Field.CENTER_IN, BioBuzzConstants.Field.CENTER_IN);
         double[][] samples = {{35.0, 9.2, -90}, {58.0, 9.2, -90}, {12.0, 90.0, 0}, {100.0, 20.0, 135}};
         for (double[] s : samples) {
             Pose pedro = half.of(s[0], s[1], s[2]);
-            Pose2 mine = Alliance.BLUE.fromRed(Pose2.ofDegrees(s[0], s[1], s[2]), 144.0);
+            Pose2 mine = Alliance.BLUE.fromRed(Pose2.ofDegrees(s[0], s[1], s[2]), BioBuzzConstants.Field.SIZE_IN);
             assertEquals(pedro.x(), mine.x, EPS);
             assertEquals(pedro.y(), mine.y, EPS);
             double diff = Angles.distance(pedro.heading(), mine.heading);

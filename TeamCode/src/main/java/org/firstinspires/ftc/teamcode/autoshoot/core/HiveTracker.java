@@ -128,7 +128,7 @@ public final class HiveTracker {
 
     /** Which side of the HIVE a robot at this pose is on. */
     public static Side sideOf(Pose2 robot, FieldModel field) {
-        // The HIVE sits on the field's center line y = 72 in; smaller y is the audience end, larger y the rear end.
+        // The HIVE sits on the field's center line (y = Field.CENTER_IN, 70.674 in); smaller y is the audience end, larger y the rear end.
         return robot.y < field.center() ? Side.AUDIENCE : Side.REAR;
     }
 

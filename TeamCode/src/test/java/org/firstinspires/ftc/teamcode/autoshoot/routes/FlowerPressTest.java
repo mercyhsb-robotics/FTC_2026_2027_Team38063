@@ -35,16 +35,18 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  * </ul>
  * Every validated route is also checked for the BLUE half turn, which must give identical findings.
  *
- * <p>Numbers (defaults): plate 4.75 x 5.87 in; POLLEN 2.8 in across, its center 2.4 in from the wall, so it spans
- * 1.0 to 3.8 in; the wheels reach 2.7 in in front of the chassis and are 12.2 in apart; the chassis stands 0.5 in off
- * the plate (5.25 in from the wall), so the wheel tip stops 5.25 - 2.7 = 2.55 in from the wall, 1.25 in into the POLLEN.
+ * <p>Numbers (defaults, official CAD): plate 4.871 x 5.95 in with its field-side edge 5.033 in from the wall; POLLEN 2.8 in
+ * across, its center 2.634 in from the wall, so it spans 1.234 to 4.034 in; the wheels reach 2.7 in in front of the chassis
+ * and are 12.2 in apart; the chassis stands 0.5 in off the plate (5.533 in from the wall), so the wheel tip stops
+ * 5.533 - 2.7 = 2.833 in from the wall, 1.201 in into the POLLEN.
  */
 public class FlowerPressTest {
     /** The robot's center of rotation is this far (9.77 in) from a wall its FRONT edge is touching; see RobotShape. */
     private static final double FRONT = BioBuzzConstants.Robot.FRONT_EXTENT_IN;
     private static final double EPS = 1e-6;
     private static final double REACH = BioBuzzConstants.Robot.INTAKE_REACH_IN;
-    private static final double PLATE_DEPTH = BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN;
+    /** How far the plate's field-side edge is from the wall (the plate itself is 4.871 in deep and stands 0.162 in off the wall). */
+    private static final double PLATE_DEPTH = BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN;
     private static final double CLEARANCE = BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN;
     private static final AllianceField RED = new AllianceField(new FieldModel(), Alliance.RED);
 
@@ -126,11 +128,11 @@ public class FlowerPressTest {
     @Test
     public void theDefaultNumbersAreConsistentWithEachOther() {
         double pollenEdge = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0;
-        assertEquals("the POLLEN's field-side edge", 3.8, pollenEdge, EPS);
-        assertEquals("the wheel tip stops 1.25 in inside the POLLEN's edge", 2.55, RED.flowerPressStopLineIn(), EPS);
+        assertEquals("the POLLEN's field-side edge", 4.034, pollenEdge, EPS);
+        assertEquals("the wheel tip stops 1.201 in inside the POLLEN's edge", 2.833, RED.flowerPressStopLineIn(), EPS);
         assertTrue("never closer than the POLLEN's center line",
                 RED.flowerPressStopLineIn() >= BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN - EPS);
-        assertEquals("the chassis front then stands 0.5 in off the 4.75 in plate", PLATE_DEPTH + CLEARANCE,
+        assertEquals("the chassis front then stands 0.5 in off the plate (its edge is 5.033 in from the wall)", PLATE_DEPTH + CLEARANCE,
                 RED.flowerPressStopLineIn() + REACH, EPS);
         assertTrue("so the real reach is just enough: the required reach is the default reach",
                 RED.flowerRequiredReachIn() <= REACH + EPS);
@@ -191,18 +193,19 @@ public class FlowerPressTest {
 
     @Test
     public void theRobotStandsOneWheelOffsetToTheSideAndTheOtherWheelIsTwelveInchesFromThePollen() {
-        int f = 0;                                         // left wall, center (2.4, 48): the wall direction is y
+        int f = 0;                                         // left wall, center (2.634, 47.281): the wall direction is y
+        double along = RED.flowerCenter(f).y;
         Pose2 left = FlowerPress.of(new Step.Intake(IntakeSource.FLOWER, RED.flowerCenter(f), ideal(f, IntakeWheel.LEFT), 3.0, 4,
                 6.0, IntakeWheel.LEFT, ""), RED).press;
         Pose2 right = FlowerPress.of(new Step.Intake(IntakeSource.FLOWER, RED.flowerCenter(f), ideal(f, IntakeWheel.RIGHT), 3.0, 4,
                 6.0, IntakeWheel.RIGHT, ""), RED).press;
         // facing -x (heading 180), the robot's left is -y: the LEFT wheel presses when the robot is 6.1 in toward +y
-        assertEquals(48.0 + BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, left.y, EPS);
-        assertEquals(48.0 - BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, right.y, EPS);
+        assertEquals(along + BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, left.y, EPS);
+        assertEquals(along - BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, right.y, EPS);
         assertEquals(left.x, right.x, EPS);
         // the wheel that is NOT pressing is 12.2 in along the wall from the POLLEN
         Point2 other = Footprint.wheelCenter(left, IntakeWheel.RIGHT);
-        assertEquals(2.0 * BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, Math.abs(other.y - 48.0), EPS);
+        assertEquals(2.0 * BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN, Math.abs(other.y - along), EPS);
     }
 
     @Test
@@ -332,7 +335,7 @@ public class FlowerPressTest {
         // side of the center line, so neither is on the POLLEN.
         Pose2 centered = FlowerPress.poseWithWheelOnCenterLine(RED, 0, IntakeWheel.LEFT, RED.flowerPressStopLineIn()
                 + BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN);
-        Pose2 middle = new Pose2(centered.x, 48.0, centered.heading);
+        Pose2 middle = new Pose2(centered.x, RED.flowerCenter(0).y, centered.heading);
         for (IntakeWheel w : IntakeWheel.values()) {
             List<Issue> l = intakeIssues(lineUpRoute(0, w, middle));
             assertTrue(w + ": " + l, count(l, Rule.FLOWER_PRESS, Severity.ERROR) >= 1);
@@ -382,7 +385,7 @@ public class FlowerPressTest {
 
     @Test
     public void aLineUpThatIsAlreadyInsideThePlateRunsTheChassisIntoIt() {
-        // line-up with the wheel tip only 1 in from the wall: the chassis front is 3.7 in from it, inside the 4.75 in plate
+        // line-up with the wheel tip only 1 in from the wall: the chassis front is 3.7 in from it, inside the 5.033 in plate
         Pose2 inside = FlowerPress.poseWithWheelOnCenterLine(RED, 0, IntakeWheel.LEFT, 1.0);
         AutoRoute r = AutoRoute.builder("x").start(35, FRONT, -90).shootUp(4)
                 .driveConstant(inside.x, inside.y, inside.headingDegrees())

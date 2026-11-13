@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
+import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AllianceField;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.DrivePath;
@@ -30,7 +31,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
 
 /**
- * Draws an {@link AutoRoute} as a standalone SVG: a top view of the whole 144 x 144 in field with the
+ * Draws an {@link AutoRoute} as a standalone SVG: a top view of the whole 141.348 x 141.348 in field with the
  * AUDIENCE at the BOTTOM and the red alliance on the LEFT (the same picture as the manual's figures
  * and the Pedro frame), the route in the alliance's ink colour, a legend, the estimated time, POLLEN
  * balance and points, and the validator's findings.
@@ -211,7 +212,8 @@ public final class RouteSvgRenderer {
                     "font-family", FONT);
             w.element("title", route.title() + " - " + alliance + " alliance", "id", "svg-title");
             StringBuilder d = new StringBuilder();
-            d.append("Top view of the 144 by 144 inch BIOBUZZ field, audience at the bottom, red alliance on the left. ");
+            d.append("Top view of the ").append(n(f.model().size())).append(" by ").append(n(f.model().size()))
+                    .append(" inch BIOBUZZ field, audience at the bottom, red alliance on the left. ");
             d.append("Route ").append(route.id()).append(" for the ").append(alliance).append(" alliance, starting in tile ")
                     .append(route.startTile()).append(", with ").append(route.size()).append(" steps: ");
             for (int i = 0; i < route.size(); i++) {
@@ -292,11 +294,14 @@ public final class RouteSvgRenderer {
             areaLabel("RED ALLIANCE AREA", sx(-shown / 2.0), sy((yMin + yMax) / 2.0), BioBuzzConstants.Auto.RENDER_INK_RED);
             areaLabel("BLUE ALLIANCE AREA", sx(size + shown / 2.0), sy((yMin + yMax) / 2.0), BioBuzzConstants.Auto.RENDER_INK_BLUE);
 
-            for (int col = 0; col < 6; col++) {
-                for (int row = 0; row < 6; row++) {
+            // The tiles are laid with a 23.5 in pitch and the two outer rows and columns run to the walls (see TileGrid), so every
+            // tile is drawn between its own two seams, not as a 24 in square.
+            for (int col = 0; col < TileGrid.count(); col++) {
+                for (int row = 0; row < TileGrid.count(); row++) {
                     boolean light = (col + row) % 2 == 0;
-                    w.empty("rect", "class", "tile", "data-tile", "" + (char) ('A' + col) + (row + 1), "x", n(sx(24.0 * col)),
-                            "y", n(sy(24.0 * (row + 1))), "width", n(len(24)), "height", n(len(24)), "fill",
+                    Rect tile = TileGrid.tile(col, row);
+                    w.empty("rect", "class", "tile", "data-tile", TileGrid.name(col, row), "x", n(sx(tile.minX)),
+                            "y", n(sy(tile.maxY)), "width", n(len(tile.maxX - tile.minX)), "height", n(len(tile.maxY - tile.minY)), "fill",
                             light ? BioBuzzConstants.Auto.RENDER_TILE_LIGHT : BioBuzzConstants.Auto.RENDER_TILE_DARK);
                 }
             }
@@ -317,12 +322,12 @@ public final class RouteSvgRenderer {
             double half = textWidth(opponent, 9.0) / 2.0;
             labelBoxes.add(new double[] {labelX - 10.0, labelY - half, labelX + 3.0, labelY + half});   // route labels keep clear of it
             // tile labels: columns A-F along the bottom, rows 1-6 along the left
-            for (int col = 0; col < 6; col++) {
-                w.element("text", String.valueOf((char) ('A' + col)), "class", "tile-label", "x", n(sx(24.0 * col + 12)), "y",
+            for (int col = 0; col < TileGrid.count(); col++) {
+                w.element("text", String.valueOf((char) ('A' + col)), "class", "tile-label", "x", n(sx(TileGrid.centerX(col))), "y",
                         n(yBottom + 16), "font-size", "13", "font-weight", "bold", "text-anchor", "middle", "fill", MUTED_TEXT);
             }
-            for (int row = 0; row < 6; row++) {
-                w.element("text", String.valueOf(row + 1), "class", "tile-label", "x", n(x0 - 7), "y", n(sy(24.0 * row + 12) + 4.5),
+            for (int row = 0; row < TileGrid.count(); row++) {
+                w.element("text", String.valueOf(row + 1), "class", "tile-label", "x", n(x0 - 7), "y", n(sy(TileGrid.centerY(row)) + 4.5),
                         "font-size", "13", "font-weight", "bold", "text-anchor", "end", "fill", MUTED_TEXT);
             }
             w.empty("rect", "id", "field-border", "x", n(x0), "y", n(yTop), "width", n(fieldPx), "height", n(fieldPx), "fill",

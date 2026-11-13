@@ -243,7 +243,7 @@ public class RouteSvgRendererTest {
             }
         }
         assertTrue(redLz < blueLz);
-        assertEquals("red LOADING ZONE starts at the red wall", X0, redLz, 1e-6);
+        assertEquals("red LOADING ZONE starts at the red wall", X0, redLz, 0.006);
         double redGardenY = Double.NaN;
         double blueGardenY = Double.NaN;
         for (Element g : withClass(d, "g", "garden")) {
@@ -255,7 +255,7 @@ public class RouteSvgRendererTest {
             }
         }
         assertTrue("red GARDEN is on the audience wall (larger pixel y)", redGardenY > blueGardenY);
-        assertEquals("red POLLEN row is one radius off the audience wall", Y_BOTTOM - 1.4 * S, redGardenY, 1e-6);
+        assertEquals("red POLLEN row is one radius off the audience wall", Y_BOTTOM - 1.4 * S, redGardenY, 0.006);
     }
 
     // ---- the route ---------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ public class RouteSvgRendererTest {
         Document d = parse(RouteSvgRenderer.render(r, Alliance.BLUE));
         Element polygon = withClass(byId(d, "start-footprint"), "polygon", "outline").get(0);
         double[] b = polygonBounds(polygon);
-        Pose2 blueStart = Alliance.BLUE.fromRed(r.startPose(), 144.0);
+        Pose2 blueStart = Alliance.BLUE.fromRed(r.startPose(), BioBuzzConstants.Field.SIZE_IN);
         Footprint fp = Footprint.of(blueStart);
         // the outline is the real Footprint of the blue pose (not centered on it), and the pose point is marked at the pose
         assertEquals(X0 + (fp.bounds().minX + fp.bounds().maxX) / 2.0 * S, (b[0] + b[1]) / 2.0, 0.05);
@@ -364,7 +364,7 @@ public class RouteSvgRendererTest {
         assertEquals(X0 + blueStart.x * S, Double.parseDouble(dot.getAttribute("cx")), 0.05);
         assertEquals(Y_BOTTOM - blueStart.y * S, Double.parseDouble(dot.getAttribute("cy")), 0.05);
         // the blue robot starts at the top (rear wall) of the image: smaller pixel y than the field middle
-        assertTrue((b[2] + b[3]) / 2.0 < Y_BOTTOM - 72 * S);
+        assertTrue((b[2] + b[3]) / 2.0 < Y_BOTTOM - BioBuzzConstants.Field.CENTER_IN * S);
     }
 
     @Test
@@ -388,7 +388,7 @@ public class RouteSvgRendererTest {
         Element shoot = withClass(byId(d, "route"), "g", "shoot-pose").get(0);
         Element shot = withClass(shoot, "line", "shot").get(0);
         assertFalse("dashed", shot.getAttribute("stroke-dasharray").isEmpty());
-        // C1 (58, 9.2, -90): launch point (58, 9.2 + 8.03 = 17.23), the rear edge; the aim point of the red audience cell is (59.25, 55.52)
+        // C1 (58, 9.2, -90): launch point (58, 9.2 + 8.03 = 17.23), the rear edge; the aim point of the red audience cell is on the HIVE axis, 54.156 in out
         assertEquals(X0 + 58.0 * S, Double.parseDouble(shot.getAttribute("x1")), 0.05);
         assertEquals(Y_BOTTOM - (9.2 - BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN) * S, Double.parseDouble(shot.getAttribute("y1")), 0.05);
         // it points up the page, toward the HIVE
@@ -402,7 +402,7 @@ public class RouteSvgRendererTest {
     public void intakeRingSurroundsTheTargetAndIsLabelled() throws Exception {
         Document d = parse(RouteSvgRenderer.render(RouteCatalog.byId("garden_cycle"), Alliance.RED));
         Element ring = withClass(byId(d, "route"), "circle", "intake-ring").get(0);
-        assertEquals(X0 + 5.9 * S, Double.parseDouble(ring.getAttribute("cx")), 0.05);
+        assertEquals(X0 + 5.7 * S, Double.parseDouble(ring.getAttribute("cx")), 0.05);
         assertEquals(Y_BOTTOM - 1.4 * S, Double.parseDouble(ring.getAttribute("cy")), 0.05);
         assertFalse(ring.getAttribute("stroke-dasharray").isEmpty());
         boolean label = false;
@@ -478,8 +478,8 @@ public class RouteSvgRendererTest {
     // ---- who shoots the first tip ----------------------------------------------------------------------
 
     private static AutoRoute partnerRoute() {
-        return AutoRoute.builder("partner_rear").title("Partner tips first").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
-                .partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
+        return AutoRoute.builder("partner_rear").title("Partner tips first").startTile("C6").start(61.5, BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
+                .partnerTipsFirst().waitForTip(20).shootUp(61.5, 130.0, 90, 4).build();
     }
 
     @Test
@@ -497,7 +497,7 @@ public class RouteSvgRendererTest {
         assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.BLUE)), "svg-desc").getTextContent()
                 .contains("First tip: partner tips first, assumed at 12.0 s; latest that works 20.0 s."));
         // a partner route that never shoots at the cell that comes up does not depend on the time at all
-        AutoRoute independent = AutoRoute.builder("partner_walk").title("t").startTile("C6").start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst()
+        AutoRoute independent = AutoRoute.builder("partner_walk").title("t").startTile("C6").start(61.5, BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst()
                 .driveConstant(61.5, 120, 90).build();
         String walkSub = byId(parse(RouteSvgRenderer.render(independent, Alliance.RED)), "subtitle").getTextContent();
         assertTrue(walkSub, walkSub.contains("assumed at 12.0 s; any tip time works"));

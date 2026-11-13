@@ -24,8 +24,9 @@ import org.junit.Test;
  * up, so only the frame (rails and legs, all inside its footprint) can be hit. Anything under or inside the frame is
  * treated as solid.
  *
- * <p>Numbers: the frame footprint is x 47.27 to 96.73 and y 52.53 to 91.47 (49.46 x 38.95 in around the field center).
- * With the 3.0 in margin the keep-out is x 44.27 to 99.73 and y 49.53 to 94.47. The robot is 17.80 x 17.80 in but its
+ * <p>Numbers (official CAD, wall-corner frame): the frame footprint is x 45.94 to 95.41 and y 51.20 to 90.15 (the two foot
+ * bars, 49.466 x 38.944 in around the field center). With the 3.0 in margin the keep-out is x 42.94 to 98.41 and y 48.20 to
+ * 93.15. The robot is 17.80 x 17.80 in but its
  * position (its center of rotation) is not in the middle of it: the front edge is 9.77 in from the position, the back edge
  * 8.03 in and each side 8.90 in, so how close the position may come to the keep-out depends on which way the robot faces.
  */
@@ -49,10 +50,11 @@ public class HiveKeepOutTest {
 
     @Test
     public void theFrameFootprintIsTheManualsSizeAroundTheFieldCenter() {
-        assertEquals(72.0 - 49.46 / 2.0, frame.minX, 1e-9);
-        assertEquals(72.0 + 49.46 / 2.0, frame.maxX, 1e-9);
-        assertEquals(72.0 - 38.95 / 2.0, frame.minY, 1e-9);
-        assertEquals(72.0 + 38.95 / 2.0, frame.maxY, 1e-9);
+        double mid = BioBuzzConstants.Field.CENTER_IN;
+        assertEquals(mid - 49.466 / 2.0, frame.minX, 1e-9);
+        assertEquals(mid + 49.466 / 2.0, frame.maxX, 1e-9);
+        assertEquals(mid - 38.944 / 2.0, frame.minY, 1e-9);
+        assertEquals(mid + 38.944 / 2.0, frame.maxY, 1e-9);
     }
 
     @Test
@@ -77,9 +79,11 @@ public class HiveKeepOutTest {
 
     @Test
     public void theKeepOutCoversTheFramesMeasuredEnvelopeWithRoomToSpare() {
-        // field report 2.1: the plan view of the real frame measured x 47.0 to 97.0 and y 51.9 to 91.8 (rail thickness and
-        // figure error): up to 0.63 in beyond the nominal footprint. The field itself is good to about +/- 1 in.
-        double[] measured = {47.0, 97.0, 51.9, 91.8};
+        // official CAD: everything of the frame that is lower than the robot (a plan "shadow" of the foot bars, the leg stubs and
+        // the bolts at floor level) spans x 47.26 to 96.76 and y 52.52 to 91.48 in the centre-72 numbering, which is x 45.934 to
+        // 95.434 and y 51.194 to 90.154 in the wall-corner frame: at most 0.027 in beyond the foot bars. The field itself is good
+        // to about +/- 1 in.
+        double[] measured = {45.934, 95.434, 51.194, 90.154};
         double fieldTolerance = 1.0;
         assertTrue(keepOut.minX <= measured[0] - fieldTolerance);
         assertTrue(keepOut.maxX >= measured[1] + fieldTolerance);
@@ -87,7 +91,7 @@ public class HiveKeepOutTest {
         assertTrue(keepOut.maxY >= measured[3] + fieldTolerance);
         double worstOverhang = Math.max(Math.max(frame.minX - measured[0], measured[1] - frame.maxX),
                 Math.max(frame.minY - measured[2], measured[3] - frame.maxY));
-        assertEquals("the audited worst overhang of the measured plan", 0.63, worstOverhang, 0.01);
+        assertEquals("the CAD's worst overhang of the low parts beyond the foot bars", 0.027, worstOverhang, 0.002);
         assertTrue(MARGIN >= worstOverhang + fieldTolerance);
     }
 
@@ -104,7 +108,7 @@ public class HiveKeepOutTest {
 
     @Test
     public void eachEdgeOfTheKeepOutStopsTheRobot() {
-        double mid = 72.0;
+        double mid = BioBuzzConstants.Field.CENTER_IN;
         // heading 0 faces +x, 90 faces +y. The robot is NOT the same distance from its center to every side: how close the center
         // may come to the keep-out edge is the reach of the side that faces it, 9.77 in for the front, 8.03 in for the back and
         // 8.90 in for a side
@@ -135,12 +139,13 @@ public class HiveKeepOutTest {
     public void eachEdgeIsAlsoCaughtByTheValidatorOnALeg() {
         // left edge (blue: the right edge): drive up the corridor 0.1 in past the limit, and exactly to it
         // (facing -90 the robot's +x side is a side edge, 8.90 in from the center)
-        double leftLimit = keepOut.minX - SIDE;     // 35.37
-        assertEquals(0, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(leftLimit, 90, -90)));
-        assertEquals(1, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(leftLimit + 0.1, 90, -90)));
+        double leftLimit = keepOut.minX - SIDE;     // 34.04
+        double startX = leftLimit - 1.0;
+        assertEquals(0, hiveErrors(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(leftLimit, 90, -90)));
+        assertEquals(1, hiveErrors(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(leftLimit + 0.1, 90, -90)));
         // audience edge (blue: the rear edge): drive along the front of the frame toward it from the audience side; facing -90
         // the BACK of the robot leads, 8.03 in from the center
-        double audienceLimit = keepOut.minY - REAR;     // 41.50
+        double audienceLimit = keepOut.minY - REAR;     // 40.17
         assertEquals(0, hiveErrors(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(58, audienceLimit, -90)));
         assertEquals(1, hiveErrors(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(58, audienceLimit + 0.1, -90)));
     }
@@ -181,12 +186,13 @@ public class HiveKeepOutTest {
     public void theCornersAreCaughtByTheValidatorToo() {
         // facing -90: the robot's +x side is a side edge (8.90 in), its +y side the BACK (8.03 in), its -y side the FRONT (9.77 in)
         double lx = keepOut.minX - SIDE;
+        double startX = lx - 1.0;                       // starts clear of the keep-out, one inch to the red-wall side of the limit
         double nearY = keepOut.minY - REAR;            // audience-side corner of the left edge
-        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx, nearY, -90)));
-        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx + 0.15, nearY + 0.15, -90)));
+        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(lx, nearY, -90)));
+        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(lx + 0.15, nearY + 0.15, -90)));
         double farY = keepOut.maxY + FRONT;            // rear-side corner of the left edge
-        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx, farY, -90)));
-        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(35, FRONT, -90).driveConstant(lx + 0.15, farY - 0.15, -90)));
+        assertEquals("corner to corner is touching", 0, hiveErrors(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(lx, farY, -90)));
+        assertEquals("0.15 in into the corner", 1, hiveErrors(AutoRoute.builder("x").start(startX, FRONT, -90).driveConstant(lx + 0.15, farY - 0.15, -90)));
     }
 
     // ---- 4. a gap under or inside the frame is solid -------------------------------------------------------------
@@ -204,9 +210,10 @@ public class HiveKeepOutTest {
 
     @Test
     public void theOpenWindowUnderTheCrossbarIsNotAPath() {
-        // x = 59.25 is the red HIVE axis: between the legs and under the crossbar a 12.13 in robot might physically fit;
-        // the validator still calls a leg through it an ERROR, and so a leg through the gap between the two HIVEs (x = 72)
-        for (double x : new double[] {59.25, 62.0, 66.0}) {
+        // x = 57.924 is the red HIVE axis: between the legs and under the crossbar a 12.13 in robot DOES physically fit (the CAD
+        // lane is 40 in wide); by default the validator still calls a leg through it an ERROR, and so a leg through the gap between
+        // the two HIVEs (x = 70.674). Only a step that says allowUnderHive may use the lane (see HiveLaneTest).
+        for (double x : new double[] {BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, 61.0, 66.0}) {
             List<Issue> l = RouteValidator.check(AutoRoute.builder("x").start(58, FRONT, -90).driveConstant(x, 100, -90).build());
             assertTrue("x = " + x + ": " + l, count(l, Rule.HIVE_KEEPOUT) >= 1);
         }
@@ -222,17 +229,17 @@ public class HiveKeepOutTest {
 
     @Test
     public void aDownCellHangsOverTheFrameButOnlyHighAboveTheRobot() {
-        double lowestCellPointIn = 30.6;           // field report 2.1: the rim of a DOWN cell, the lowest point of any cell
+        double lowestCellPointIn = 30.652;         // official CAD: the rim of a DOWN cell, the lowest point of any cell
         assertTrue("the tallest part of the robot is far below the lowest cell",
                 BioBuzzConstants.Robot.HEIGHT_IN + 10.0 < lowestCellPointIn);
         assertTrue("and so is the camera", BioBuzzConstants.Vision.CAMERA_HEIGHT_IN + 10.0 < lowestCellPointIn);
-        // the red rear DOWN cell reaches y 96.9, past the frame (91.47) and past the keep-out (94.47): the robot may stand
-        // under that overhang, which is why it is not solid
+        // the red rear DOWN cell reaches y 95.80, past the frame (90.15) and past the keep-out (93.15): the robot may stand
+        // under that overhang (it is at 35.5 in or more above the floor), which is why it is not solid
         Rect down = red.cellPlan(Alliance.RED, Side.REAR, false);
-        assertEquals(96.9, down.maxY, 1e-9);
+        assertEquals(95.804, down.maxY, 1e-9);
         assertTrue(down.maxY > keepOut.maxY);
-        assertEquals("the overhang past the frame is the 5.4 in of the audit", 5.43, down.maxY - frame.maxY, 0.01);
-        // the UP cell (lowest point about 46.6 in) also pokes out of the frame by a fraction of an inch: not solid either
+        assertEquals("the overhang past the frame is the 5.66 in of the CAD", 5.658, down.maxY - frame.maxY, 0.01);
+        // the UP cell (lowest point about 44 in) also pokes out of the frame by 0.59 in: not solid either
         Rect up = red.cellPlan(Alliance.RED, Side.AUDIENCE, true);
         assertTrue(up.minY < frame.minY);
         assertTrue(up.minY > keepOut.minY);

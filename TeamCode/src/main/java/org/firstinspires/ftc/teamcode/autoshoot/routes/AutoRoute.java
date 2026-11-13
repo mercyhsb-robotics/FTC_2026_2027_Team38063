@@ -114,7 +114,7 @@ public final class AutoRoute {
 
     /**
      * This route in the given alliance's frame. For the same alliance it returns this route; for the
-     * other one it returns a new route with every pose and point turned half a turn about (72, 72) and
+     * other one it returns a new route with every pose and point turned half a turn about the field center (Field.CENTER_IN, CENTER_IN) and
      * every fixed HIVE side flipped. Applying it twice gives back the original.
      */
     public AutoRoute forAlliance(Alliance target) {

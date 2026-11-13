@@ -511,13 +511,13 @@ public class AutoShootSequenceTest {
         Sim red = redAtC1();
         red.held = true;
         red.run(25, DONE, FAULT);
-        Sim blue = new Sim(Alliance.BLUE, Alliance.BLUE.fromRed(c1Start(), 144.0));
+        Sim blue = new Sim(Alliance.BLUE, Alliance.BLUE.fromRed(c1Start(), BioBuzzConstants.Field.SIZE_IN));
         blue.held = true;
         blue.run(25, DONE, FAULT);
         assertEquals(DONE, blue.controller.state());
         assertEquals(4, blue.shotsIntoUpCell);
         // Where the blue robot should end up: the red robot's final pose, rotated half a turn about the field center.
-        Pose2 expected = Alliance.BLUE.fromRed(red.pose(), 144.0);
+        Pose2 expected = Alliance.BLUE.fromRed(red.pose(), BioBuzzConstants.Field.SIZE_IN);
         assertEquals(expected.x, blue.x, 0.5);
         assertEquals(expected.y, blue.y, 0.5);
     }
@@ -534,7 +534,7 @@ public class AutoShootSequenceTest {
     public void everyAllianceSideAndStartingCornerWorks() {
         for (Alliance a : Alliance.values()) {
             for (Side up : Side.values()) {
-                Sim s = new Sim(a, a.fromRed(c1Start(), 144.0), false);
+                Sim s = new Sim(a, a.fromRed(c1Start(), BioBuzzConstants.Field.SIZE_IN), false);
                 // Make this cell really up, and make the robot believe the same (not yet confirmed by the camera).
                 s.trueUp = up;
                 s.tracker.reset(up, false);

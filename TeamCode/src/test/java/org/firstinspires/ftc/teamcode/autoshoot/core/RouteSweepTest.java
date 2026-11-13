@@ -220,7 +220,7 @@ public class RouteSweepTest {
 
     /**
      * Situation: the real field. A robot drives up the left wall from (9.15, 20) to (9.15, 80), straight through where
-     *     the left-wall FLOWER plate sits (its centre is (2.4, 48), 5 in deep and 6 in long), and a second robot does
+     *     the left-wall FLOWER plate sits (its centre is (2.63, 47.28), 5 in deep and 6 in long), and a second robot does
      *     the same 10 in further out.
      * Expected: the first is a violation naming an obstacle (the plate); the second, whose side edge stays beyond the
      *     plate's margin, is safe.
@@ -237,8 +237,8 @@ public class RouteSweepTest {
     }
 
     /**
-     * Situation: the real HIVE frame (47.3 to 96.7 in across, 52.5 to 91.5 in deep). A robot drives straight up beside
-     *     it with its center 36 in from the red wall, so its right side is 2.4 in from the frame: (a) facing +90 degrees
+     * Situation: the real HIVE frame (45.9 to 95.4 in across, 51.2 to 90.1 in deep). A robot drives straight up beside
+     *     it with its center 34.64 in from the red wall, so its right side is 2.4 in from the frame: (a) facing +90 degrees
      *     the whole way, (b) turning from 90 to 45 degrees on the way, which at the HIVE's middle is 67.5 degrees.
      * Expected: (a) safe (2.4 in is more than the 1.5 in margin); (b) a violation naming the obstacle, because a square
      *     turned 22.5 degrees off an axis is 11.6 in from center to side, not 8.9 in, which puts it inside the margin.
@@ -252,16 +252,18 @@ public class RouteSweepTest {
         double margin = BioBuzzConstants.AutoShoot.KEEPOUT_MARGIN_IN;
         List<Rect> hive = Collections.singletonList(field.hiveFrame());
         RouteSweep s = sweep(field.fieldRect(), CLEAR, hive, margin);
-        Pose2 start = Pose2.ofDegrees(36, 30, 90);
-        assertNull(s.check(route(start, 90, 36, 110)));
-        RouteSweep.Violation v = s.check(route(start, 45, 36, 110));
+        // the robot's right side (8.9 in from its center) is 2.4 in from the frame
+        double x = field.hiveFrame().minX - 2.4 - 8.9;
+        Pose2 start = Pose2.ofDegrees(x, 30, 90);
+        assertNull(s.check(route(start, 90, x, 110)));
+        RouteSweep.Violation v = s.check(route(start, 45, x, 110));
         assertNotNull(v);
         assertTrue(v.what, v.what.startsWith("obstacle 0"));
         // The referee, asked to keep the same margin (it shrinks the box by the tolerance it is given, so grow it).
         Rect grown = field.hiveFrame().inflate(margin);
-        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, 36, 110), SQUARE, field.fieldRect(),
+        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, x, 110), SQUARE, field.fieldRect(),
                 Collections.singletonList(grown), TOL));
-        assertNull(BruteForceFootprint.firstClip(route(start, 90, 36, 110), SQUARE, field.fieldRect(),
+        assertNull(BruteForceFootprint.firstClip(route(start, 90, x, 110), SQUARE, field.fieldRect(),
                 Collections.singletonList(grown), TOL));
     }
 

@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
@@ -64,11 +65,11 @@ public class TipRulesTest {
      * clears the rear-wall FLOWER: back toward the HIVE, 35 in from the aim point, 2.7 in from the start.
      */
     private static AutoRoute.Builder partnerRear() {
-        return AutoRoute.builder("partner_rear").start(61.5, 144 - FRONT, 90).partnerTipsFirst();
+        return AutoRoute.builder("partner_rear").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst();
     }
 
-    private static final double REAR_X = 62.0;
-    private static final double REAR_Y = 132.5;
+    private static final double REAR_X = 61.5;
+    private static final double REAR_Y = 130.0;
 
     // ---- G417: POLLEN fired after the tip ---------------------------------------------------------------
 
@@ -172,7 +173,7 @@ public class TipRulesTest {
     public void everyShootAtTheComingUpCellNeedsAWaitNotOnlyTheFirst() {
         // one WAIT_FOR_TIP before the first volley covers the later volleys too: the cell stays up after it
         List<Issue> l = validate(partnerRear().waitForTip(18).shootUp(REAR_X, REAR_Y, 90, 4)
-                .intakeFlower(48, 141.6, 48, 133, 90, 4).shootUp(REAR_X, REAR_Y, 90, 4));
+                .intakeFlower(BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][1], IntakeWheel.LEFT, 4).shootUp(REAR_X, REAR_Y, 90, 4));
         assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
     }
 
@@ -188,7 +189,7 @@ public class TipRulesTest {
     @Test
     public void aRouteThatShootsTheFirstTipItselfKeepsTheWarnForACellThatIsDown() {
         // SELF: the REAR cell is DOWN at the start and nobody tips it; the old WARN stays a WARN
-        List<Issue> l = validate(AutoRoute.builder("self").start(61.5, 144 - FRONT, 90).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4));
+        List<Issue> l = validate(AutoRoute.builder("self").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).shootSide(Side.REAR, REAR_X, REAR_Y, 90, 4));
         assertEquals(l.toString(), 1, count(l, Rule.SHOOT_TARGET, Severity.WARN));
         assertEquals(0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         assertTrue(first(l, Rule.SHOOT_TARGET, Severity.WARN).message.contains("AUDIENCE cell is the UP one"));
@@ -219,7 +220,7 @@ public class TipRulesTest {
         assertTrue(issue.message, issue.message.contains("WE shoot the first tip"));
         assertEquals("only a warning: the step does nothing", 0, count(self, Rule.TIP_ASSUMPTION, Severity.ERROR));
         // the same wait in a partner route is what it is for
-        List<Issue> partner = validate(AutoRoute.builder("partner").start(61.5, 144 - FRONT, 90).partnerTipsFirst().waitForTip(20));
+        List<Issue> partner = validate(AutoRoute.builder("partner").start(61.5, BioBuzzConstants.Field.SIZE_IN - FRONT, 90).partnerTipsFirst().waitForTip(20));
         assertEquals(partner.toString(), 0, count(partner, Rule.TIP_ASSUMPTION, Severity.WARN));
     }
 
@@ -283,7 +284,7 @@ public class TipRulesTest {
         // give up as late as 20 s, but the work after it only fits if the tip comes by about 8 s, which the assumed 12 s
         // misses: no slack at all, whatever the give-up time says.
         AutoRoute.Builder slow = partnerRear().waitForTip(20).shootUp(REAR_X, REAR_Y, 90, 4)
-                .intakeFlower(48, 141.6, 48, 133, 90, 4).shootUp(REAR_X, REAR_Y, 90, 4);
+                .intakeFlower(BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][0], BioBuzzConstants.Field.FLOWER_CENTERS_IN[1][1], IntakeWheel.LEFT, 4).shootUp(REAR_X, REAR_Y, 90, 4);
         List<Issue> l = validate(slow);
         RouteAnalysis a = slow.build().analyze();
         assertTrue("the budget, not the give-up time, is the limit: " + a.latestPartnerTipSec(), a.latestPartnerTipSec() < 20.0);

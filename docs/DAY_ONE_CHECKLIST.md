@@ -49,6 +49,16 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       ball leaves the shooter; the starting value, -8.03, is only the rear edge from the CAD drawing) and `LAUNCH_POINT_LEFT_IN`.
       Then redo the one measured shot (front on the audience wall, in line with the HIVE: 37.7 in from the aim point) and check
       that the ball exit is still about 17.8 in from the wall.
+      **The model and the measurement disagree by 1.34 in, so re-measure the distance from the ball exit to the cell opening center
+      with a tape.** With the official field CAD the center of the UP cell's opening is 54.16 in from the audience wall (the old
+      144 in field said 55.52), so the code computes 54.16 - 17.80 = **36.36 in** for the very place where the team measured
+      37.7 in. Stand the robot with its front on the wall and in line with the HIVE, hold a tape from the point where the ball
+      leaves the shooter (look from the side: the lip of the ramp) horizontally to the middle of the cell's opening, and compare:
+      - If the tape says about 36.4 in, the old measurement was a little long: keep the code, and move the table row
+        `{37.7, 1200}` to the range the tape says (its speed stays 1200: it is what scored).
+      - If the tape says about 37.7 in, the ball leaves the robot about 1.3 in farther forward than `LAUNCH_POINT_FORWARD_IN`
+        says (the robot CAD puts it 6.58 in behind the center of rotation, which gives 37.8 in): measure it and fix that constant.
+      The table row is **not** changed until you know which one it is (it is a measurement, and the ranges next to it come from it).
 - [ ] **How to place the robot at the start of AUTO.** The robot must touch a wall with its outline, not its center. Set it so
       that the edge that faces the wall is ON the wall (for the audience wall facing it: the wheel tips touching; with the back
       to the wall: the back lip touching), measure from the field wall to the robot's EDGES with a tape measure, never to its

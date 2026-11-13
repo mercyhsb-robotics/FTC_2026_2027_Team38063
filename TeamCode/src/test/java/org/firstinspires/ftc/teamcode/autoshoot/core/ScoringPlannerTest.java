@@ -74,12 +74,12 @@ public class ScoringPlannerTest {
     /**
      * Situation: the robot at the C1 autonomous start (58, 9.77) facing -90 degrees (front edge on the audience wall), with
      *     the RED audience cell as the target.
-     * Expected: the range from the ball exit to the aim point is about 37.74 in (the ball exit is 17.80 in from the wall,
-     *     so 55.52 - 17.80 = 37.72 in straight up, plus 1.25 in sideways), and the shooter is within 3.5 degrees of
-     *     pointing at it.
+     * Expected: the range from the ball exit to the aim point is about 36.36 in (the ball exit is 17.80 in from the wall,
+     *     so 54.156 - 17.80 = 36.356 in straight up, plus 0.076 in sideways: x = 58 against the HIVE axis 57.924), and the
+     *     shooter is within 3.5 degrees of pointing at it.
      * Why: the shooter is on the back, so aiming means heading = bearing + half a turn. Getting that wrong would aim
-     *     every shot 180 degrees away. Tolerances: 0.05 in on the range (the verified figure is quoted to a tenth of an
-     *     inch); 3.5 degrees allows the real error of about 2 degrees (C1 is 1.25 in off the HIVE axis).
+     *     every shot 180 degrees away. Tolerance: 0.05 in on the range; 3.5 degrees is a loose limit (C1 is almost on
+     *     the HIVE axis, so the real error is a fraction of a degree).
      */
     @Test
     public void shooterPointsAtTheAimPointWhenHeadingIsBearingPlusHalfATurn() {
@@ -87,7 +87,9 @@ public class ScoringPlannerTest {
         Pose2 c1 = c1Start();
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         double range = ShotGeometry.rangeTo(c1, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
-        assertEquals(37.74, range, 0.05);                      // 1.25 in off the axis, ball exit 17.80 in from the wall
+        double exitY = c1.y - cfg.launchForwardIn;             // the ball exit, a whole robot length from the wall
+        assertEquals(Math.hypot(c1.x - cell.originX, cell.originY - exitY), range, EPS);
+        assertEquals(36.36, range, 0.05);                      // 0.076 in off the axis, ball exit 17.80 in from the wall
         double err = Math.toDegrees(ShotGeometry.aimError(c1, cfg.launchForwardIn, cfg.launchLeftIn,
                 cell.originX, cell.originY));
         assertTrue("C1 is nearly in line: " + err, Math.abs(err) < 3.5);
@@ -246,8 +248,8 @@ public class ScoringPlannerTest {
     }
 
     /**
-     * Situation: the robot starts at the B1 autonomous start (35, 9.2, -90), about 24 in from the HIVE axis (x =
-     *     59.25), toward the red wall.
+     * Situation: the robot starts at the B1 autonomous start (35, 9.77, -90), about 23 in from the HIVE axis (x =
+     *     57.92), toward the red wall.
      * Expected: a good solution that ends further toward the HIVE axis (larger x) with less than 25 in of travel.
      * Why: it should step sideways into the shooting cone, but it need not go all the way to the axis because the cone
      *     allows some angle off the center line.
@@ -258,7 +260,7 @@ public class ScoringPlannerTest {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         ScoringPlanner.Solution s = planner.solve(b1, cell);
         assertGoodSolution(s, cell);
-        assertTrue(s.pose.x > b1.x);                            // moved toward the HIVE axis (x = 59.25)
+        assertTrue(s.pose.x > b1.x);                            // moved toward the HIVE axis (x = 57.92)
         assertTrue("travel " + s.travelIn, s.travelIn < 25.0);
     }
 
@@ -374,29 +376,31 @@ public class ScoringPlannerTest {
     }
 
     /**
-     * The team's one measured good shot: robot front against the audience wall, in line with the HIVE. The ball exit is
-     * then exactly the verified wall-limit range from the aim point, and the shot table is anchored there.
+     * The team's one measured good shot: robot front against the audience wall, in line with the HIVE. The shot table is
+     * anchored at its measured range, 37.7 in (see MeasuredAnchorShotTest for how the CAD field numbers make the MODEL
+     * say 36.36 in for the same place, 1.34 in short of the measurement, and what the checklist says about it).
      *
      * Situation: the robot with its front against the audience wall and exactly in line with the RED audience cell.
-     * Expected: the range is 37.7 in (within 0.05) and the shot table gives 1200 tps there; the shooter is exactly in
-     *     line (0 degrees off the opening's center line); from there the planner moves under 2.5 in and picks a range
-     *     within 1.1 in of 37.0.
+     * Expected: the model's range is 36.356 in (the CAD aim point 54.156 in from the wall minus the 17.80 in of the ball
+     *     exit) and the shot table still gives 1200 tps at its anchor row, 37.7 in; the shooter is exactly in line (0
+     *     degrees off the opening's center line); from there the planner moves under 2.5 in and picks a range within 1.1
+     *     in of the wall one.
      * Why: the planner tries ranges in 1 in steps and keeps the robot a small WALL_CLEARANCE_IN off the wall, so it
-     *     lands a little short of 37.7 in instead of exactly on it. That is why the range tolerance is 1.1 in.
+     *     lands a little short of the wall range instead of exactly on it. That is why the range tolerance is 1.1 in.
      */
     @Test
     public void theRobotFrontAgainstTheWallInLineIsTheMeasuredAnchorShot() {
         CellSpec cell = field.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 wallShot = new Pose2(cell.axisX, cfg.robot.frontIn(), -Math.PI / 2.0);
         double range = ShotGeometry.rangeTo(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell.originX, cell.originY);
-        assertEquals(37.7, range, 0.05);
+        assertEquals(36.356, range, 0.05);
         assertEquals(1200.0, table.velocityAt(37.7), EPS);
         assertEquals(0.0, Math.toDegrees(ShotGeometry.azimuthOffAxis(wallShot, cfg.launchForwardIn, cfg.launchLeftIn, cell)), 1e-6);
         // Starting there, the planner has nothing to do but a few inches of settling.
         ScoringPlanner.Solution s = planner.solve(wallShot, cell);
         assertTrue(s.ok());
         assertTrue("travel " + s.travelIn, s.travelIn < 2.5);   // a robot touching the wall is nudged off it by the wall clearance
-        assertEquals(37.0, s.rangeIn, 1.1);
+        assertEquals(range, s.rangeIn, 1.1);
     }
 
     /**

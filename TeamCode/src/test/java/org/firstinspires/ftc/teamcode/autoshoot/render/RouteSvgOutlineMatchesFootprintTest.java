@@ -127,7 +127,7 @@ public class RouteSvgOutlineMatchesFootprintTest {
             for (int deg = -180; deg < 180; deg += 30) {
                 AutoRoute red = AutoRoute.builder("p").startTile("B1").start(place[0], place[1], deg).waitSeconds(1).build();
                 for (Alliance alliance : Alliance.values()) {
-                    Pose2 pose = alliance == Alliance.RED ? red.startPose() : Alliance.BLUE.fromRed(red.startPose(), 144.0);
+                    Pose2 pose = alliance == Alliance.RED ? red.startPose() : Alliance.BLUE.fromRed(red.startPose(), BioBuzzConstants.Field.SIZE_IN);
                     Document d = parse(RouteSvgRenderer.render(red, alliance));
                     Element start = byId(d, "start-footprint");
                     String where = alliance + " " + pose;

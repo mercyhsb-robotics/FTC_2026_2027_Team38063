@@ -43,8 +43,8 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * <b>feeder</b> is the servo that pushes each POLLEN into it (both are in the {@code Launcher} class). Flywheel speed
  * is measured in encoder <b>ticks</b> per second (a tick is one count of the motor's encoder).
  *
- * <p><b>Field frame and units.</b> Pedro's field frame: inches, origin at the corner where the audience wall meets
- * the red wall, +x toward the blue side, +y away from the audience. Headings in this file are written in DEGREES
+ * <p><b>Field frame and units.</b> Pedro's field frame: inches, origin at the INNER corner where the audience wall meets
+ * the red wall (the face of the walls: the field is 141.348 in across, per the official CAD), +x toward the blue side, +y away from the audience. Headings in this file are written in DEGREES
  * ({@code PoseFactory.degrees()}), 0 = facing +x, counter-clockwise positive, so -90 means facing the audience wall
  * and +90 facing away from it. (Telemetry prints the heading in radians.)
  *
@@ -52,7 +52,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * <ol>
  *   <li>Start in tile C1 at (58.0, 9.2) with heading -90: robot FRONT against the audience wall, so the shooter at
  *       the BACK points straight up the field. This is almost the default TeleOp start pose and almost in line with
- *       the red HIVE (its center line is x = 59.25), close to the team's measured shot position.</li>
+ *       the red HIVE (its center line is x = 57.92 in the official CAD field), close to the team's measured shot position.</li>
  *   <li>Hold that position and heading (no turn).</li>
  *   <li>Spin the flywheel up to the manual speed ({@code BioBuzzConstants.Shooter.MANUAL_TARGET_TPS}), wait until it
  *       is up to speed, then run the feeder for 5 seconds.</li>

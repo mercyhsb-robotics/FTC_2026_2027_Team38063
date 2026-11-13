@@ -13,6 +13,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
@@ -33,6 +35,8 @@ public class RouteSvgLayoutTest {
     private static final double CANVAS = BioBuzzConstants.Auto.RENDER_CANVAS_PX;
     private static final double FIELD_PX = BioBuzzConstants.Field.SIZE_IN * S;
     private static final double X0 = (CANVAS - FIELD_PX) / 2.0;
+    /** The SVG writes every number rounded to 0.01, so a coordinate computed here may differ from the file by up to half of that. */
+    private static final double PX = 0.006;
     private static final double Y_TOP = BioBuzzConstants.Auto.RENDER_FIELD_TOP_PX;
     private static final double Y_BOTTOM = Y_TOP + FIELD_PX;
 
@@ -133,10 +137,12 @@ public class RouteSvgLayoutTest {
             String name = t.getAttribute("data-tile");
             int col = name.charAt(0) - 'A';
             int row = name.charAt(1) - '1';
-            assertEquals(name, X0 + 24.0 * col * S, num(t, "x"), 1e-6);
-            assertEquals(name, Y_BOTTOM - 24.0 * (row + 1) * S, num(t, "y"), 1e-6);
-            assertEquals(name, 24.0 * S, num(t, "width"), 1e-6);
-            assertEquals(name, 24.0 * S, num(t, "height"), 1e-6);
+            // each tile is drawn between its own two seams (23.5 in pitch, the outer tiles run to the walls)
+            Rect tile = TileGrid.tile(name);
+            assertEquals(name, X0 + tile.minX * S, num(t, "x"), PX);
+            assertEquals(name, Y_BOTTOM - tile.maxY * S, num(t, "y"), PX);
+            assertEquals(name, (tile.maxX - tile.minX) * S, num(t, "width"), PX);
+            assertEquals(name, (tile.maxY - tile.minY) * S, num(t, "height"), PX);
             boolean light = (col + row) % 2 == 0;
             assertEquals(name, light ? BioBuzzConstants.Auto.RENDER_TILE_LIGHT : BioBuzzConstants.Auto.RENDER_TILE_DARK, t.getAttribute("fill"));
         }
@@ -146,16 +152,16 @@ public class RouteSvgLayoutTest {
     public void theBorderIsTheWholeFieldAndTheAreasOutsideItAreFaint() throws Exception {
         Document d = render("red_b1", Alliance.RED);
         Element border = byId(d, "field-border");
-        assertEquals(X0, num(border, "x"), 1e-6);
-        assertEquals(Y_TOP, num(border, "y"), 1e-6);
-        assertEquals(FIELD_PX, num(border, "width"), 1e-6);
-        assertEquals(FIELD_PX, num(border, "height"), 1e-6);
+        assertEquals(X0, num(border, "x"), PX);
+        assertEquals(Y_TOP, num(border, "y"), PX);
+        assertEquals(FIELD_PX, num(border, "width"), PX);
+        assertEquals(FIELD_PX, num(border, "height"), PX);
         for (Element area : withClass(d, "rect", "alliance-area")) {
             boolean red = area.getAttribute("data-alliance").equals("RED");
             double shown = BioBuzzConstants.Auto.RENDER_ALLIANCE_AREA_SHOWN_IN * S;
-            assertEquals(shown, num(area, "width"), 1e-6);
-            assertEquals(red ? X0 - shown : X0 + FIELD_PX, num(area, "x"), 1e-6);
-            assertTrue("outside the border", red ? num(area, "x") + num(area, "width") <= X0 + 1e-6 : num(area, "x") >= X0 + FIELD_PX - 1e-6);
+            assertEquals(shown, num(area, "width"), PX);
+            assertEquals(red ? X0 - shown : X0 + FIELD_PX, num(area, "x"), PX);
+            assertTrue("outside the border", red ? num(area, "x") + num(area, "width") <= X0 + PX : num(area, "x") >= X0 + FIELD_PX - PX);
         }
     }
 
@@ -165,12 +171,13 @@ public class RouteSvgLayoutTest {
         for (Element cell : withClass(d, "g", "cell")) {
             Element rect = all(cell, "rect").get(0);
             double centerX = num(rect, "x") + num(rect, "width") / 2.0;
-            double axis = cell.getAttribute("data-alliance").equals("RED") ? 59.25 : 84.75;
-            assertEquals(cell.getAttribute("data-alliance") + " HIVE axis", X0 + axis * S, centerX, 1e-6);
-            assertEquals("a CELL opening is 20 in wide", 20.0 * S, num(rect, "width"), 1e-6);
+            double axis = cell.getAttribute("data-alliance").equals("RED") ? BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN
+                    : BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN;
+            assertEquals(cell.getAttribute("data-alliance") + " HIVE axis", X0 + axis * S, centerX, PX);
+            assertEquals("a CELL is drawn as wide as its plan outline", BioBuzzConstants.Field.CELL_PLAN_WIDTH_X_IN * S, num(rect, "width"), PX);
         }
         // the red UP cell is the audience one: below the HIVE center in the picture; the blue UP cell is above it
-        double centerY = Y_BOTTOM - 72.0 * S;
+        double centerY = Y_BOTTOM - BioBuzzConstants.Field.CENTER_IN * S;
         List<Element> up = withClass(d, "g", "cell-up");
         assertEquals(2, up.size());
         for (Element cell : up) {
@@ -191,10 +198,10 @@ public class RouteSvgLayoutTest {
         assertEquals(4, flowers.size());
         for (int i = 0; i < 4; i++) {
             Element dot = all(flowers.get(i), "circle").get(0);
-            assertEquals("FLOWER " + (i + 1), X0 + centers[i][0] * S, num(dot, "cx"), 1e-6);
-            assertEquals("FLOWER " + (i + 1), Y_BOTTOM - centers[i][1] * S, num(dot, "cy"), 1e-6);
+            assertEquals("FLOWER " + (i + 1), X0 + centers[i][0] * S, num(dot, "cx"), PX);
+            assertEquals("FLOWER " + (i + 1), Y_BOTTOM - centers[i][1] * S, num(dot, "cy"), PX);
         }
-        // the blue GARDEN POLLEN is the half turn of the red one: (144 - x, 144 - 1.4)
+        // the blue GARDEN POLLEN is the half turn of the red one: (size - x, size - 1.4)
         for (Element g : withClass(d, "g", "garden")) {
             List<Element> pollen = withClass(g, "circle", "pollen");
             assertEquals(4, pollen.size());
@@ -202,16 +209,16 @@ public class RouteSvgLayoutTest {
             for (int i = 0; i < 4; i++) {
                 double x = BioBuzzConstants.Auto.RED_GARDEN_POLLEN_X_IN[i];
                 double y = BioBuzzConstants.Auto.RED_GARDEN_POLLEN_Y_IN;
-                assertEquals(X0 + (red ? x : 144.0 - x) * S, num(pollen.get(i), "cx"), 1e-6);
-                assertEquals(Y_BOTTOM - (red ? y : 144.0 - y) * S, num(pollen.get(i), "cy"), 1e-6);
-                assertEquals(BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0 * S, num(pollen.get(i), "r"), 1e-6);
+                assertEquals(X0 + (red ? x : BioBuzzConstants.Field.SIZE_IN - x) * S, num(pollen.get(i), "cx"), PX);
+                assertEquals(Y_BOTTOM - (red ? y : BioBuzzConstants.Field.SIZE_IN - y) * S, num(pollen.get(i), "cy"), PX);
+                assertEquals(BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0 * S, num(pollen.get(i), "r"), PX);
             }
         }
     }
 
     @Test
     public void theOpponentSideLabelIsOnTheOpponentSideOfTheCenterLine() throws Exception {
-        double center = X0 + 72.0 * S;
+        double center = X0 + BioBuzzConstants.Field.CENTER_IN * S;
         Element red = byId(render("red_c1", Alliance.RED), "opponent-label");
         Element blue = byId(render("red_c1", Alliance.BLUE), "opponent-label");
         assertTrue("red's opponent is on the right", num(red, "x") > center);
@@ -226,12 +233,12 @@ public class RouteSvgLayoutTest {
     public void theHeadingArrowOfTheStartPointsTheWayTheRobotFaces() throws Exception {
         // B1 start (35, 9.2, -90): facing the audience wall, which is down the page
         Element down = withClass(byId(render("red_b1", Alliance.RED), "start-footprint"), "line", "heading-arrow").get(0);
-        assertEquals(num(down, "x1"), num(down, "x2"), 1e-6);
+        assertEquals(num(down, "x1"), num(down, "x2"), PX);
         assertTrue(num(down, "y2") > num(down, "y1"));
         // A3 start (9.2, 70.3, 180): facing the red wall, which is on the left
         Element left = withClass(byId(render("red_leave_park", Alliance.RED), "start-footprint"), "line", "heading-arrow").get(0);
         assertTrue(num(left, "x2") < num(left, "x1"));
-        assertEquals(num(left, "y1"), num(left, "y2"), 1e-6);
+        assertEquals(num(left, "y1"), num(left, "y2"), PX);
         // the blue half turn of B1 faces up the page
         Element up = withClass(byId(render("red_b1", Alliance.BLUE), "start-footprint"), "line", "heading-arrow").get(0);
         assertTrue(num(up, "y2") < num(up, "y1"));
@@ -313,7 +320,7 @@ public class RouteSvgLayoutTest {
     @Test
     public void theSubtitleAndFooterLinesWithTheFirstTipTextStillFitTheWidthOfTheImage() throws Exception {
         AutoRoute partner = AutoRoute.builder("partner_rear_wait_then_two_volleys").title("Partner tips first").startTile("C6")
-                .start(61.5, 144 - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
+                .start(61.5, BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90).partnerTipsFirst().waitForTip(20).shootUp(61.5, 130.0, 90, 4).build();
         List<AutoRoute> routes = new ArrayList<AutoRoute>(RouteCatalog.all());
         routes.add(partner);
         for (AutoRoute r : routes) {
@@ -361,7 +368,7 @@ public class RouteSvgLayoutTest {
                 List<Element> badges = withClass(byId(parse(RouteSvgRenderer.render(r, a)), "badges"), "g", "badge");
                 for (int i = 0; i < badges.size(); i++) {
                     Element ci = all(badges.get(i), "circle").get(0);
-                    assertEquals(radius, num(ci, "r"), 1e-6);
+                    assertEquals(radius, num(ci, "r"), PX);
                     for (int j = i + 1; j < badges.size(); j++) {
                         Element cj = all(badges.get(j), "circle").get(0);
                         double gap = Math.hypot(num(ci, "cx") - num(cj, "cx"), num(ci, "cy") - num(cj, "cy"));

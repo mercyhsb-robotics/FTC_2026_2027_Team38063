@@ -94,7 +94,7 @@ public class GeometryTest {
 
     @Test
     public void overshootAndInsideRectAreMeasuredFromTheBoundingBox() {
-        Rect field = new Rect(0, 144, 0, 144);
+        Rect field = new Rect(0, BioBuzzConstants.Field.SIZE_IN, 0, BioBuzzConstants.Field.SIZE_IN);
         Footprint out = Footprint.of(Pose2.ofDegrees(35, 9.2, -115));
         // heading -115 at y = 9.2 (the old B1 shooting pose): the rotated robot reaches 9.77 * cos 25 + 8.90 * sin 25 = 12.62 in
         // toward the audience wall from its center (the front-left corner leads), so 3.42 in through it
@@ -104,7 +104,7 @@ public class GeometryTest {
         assertFalse(out.insideRect(field, 0.1));
         assertFalse(out.insideRect(field, 3.3));
         assertTrue(out.insideRect(field, 3.5));
-        assertTrue(Footprint.of(Pose2.ofDegrees(72, 72, 33)).insideRect(field, 0));
+        assertTrue(Footprint.of(Pose2.ofDegrees(BioBuzzConstants.Field.CENTER_IN, BioBuzzConstants.Field.CENTER_IN, 33)).insideRect(field, 0));
     }
 
     @Test
@@ -156,9 +156,11 @@ public class GeometryTest {
         CellSpec aud = model.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 c1 = Pose2.ofDegrees(58, F, -90);
         double d = ShotGeometry.standoff(c1, aud);
-        assertEquals(37.74, d, 0.05);
+        // the ball exit is a whole robot length from the wall, and the robot stands 0.076 in off the HIVE axis (x 58 against 57.924)
+        assertEquals(Math.hypot(58.0 - aud.originX, aud.originY - BioBuzzConstants.Robot.LENGTH_IN), d, EPS);
+        assertEquals(36.36, d, 0.01);
         assertTrue(d >= BioBuzzConstants.Auto.SHOOT_STANDOFF_MIN_IN && d <= BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
-        assertEquals(1.9, Math.toDegrees(ShotGeometry.aimError(c1, aud)), 0.1);
+        assertEquals(0.12, Math.toDegrees(ShotGeometry.aimError(c1, aud)), 0.05);
         assertTrue(ShotGeometry.onOpeningSide(c1, aud));
     }
 
@@ -166,7 +168,11 @@ public class GeometryTest {
     public void b1HoldPoseIsAimedAtTheCellButFartherThanTheStandoffBand() {
         CellSpec aud = model.cell(Alliance.RED, Side.AUDIENCE);
         Pose2 b1 = Pose2.ofDegrees(35, F, -115);
-        assertEquals(43.76, ShotGeometry.standoff(b1, aud), 0.05);
+        // the back of the robot is turned toward the cell (heading -115), so the ball exit is 8.03 in out along that direction
+        Point2 exit = ShotGeometry.launchPoint(b1);
+        assertEquals(Math.hypot(aud.originX - exit.x, aud.originY - exit.y), ShotGeometry.standoff(b1, aud), EPS);
+        assertEquals(41.93, ShotGeometry.standoff(b1, aud), 0.01);
+        assertTrue(ShotGeometry.standoff(b1, aud) > BioBuzzConstants.Auto.SHOOT_STANDOFF_MAX_IN);
         assertTrue(Math.toDegrees(ShotGeometry.aimError(b1, aud)) < 5.0);
     }
 
@@ -185,8 +191,8 @@ public class GeometryTest {
         }
         // red audience cell: robot south of the HIVE, heading -90, center of rotation 13.5 in from the wall (the ball exit 8.03 in behind it)
         Pose2 red = ShotGeometry.nominalPose(model.cell(Alliance.RED, Side.AUDIENCE));
-        assertEquals(59.25, red.x, EPS);
-        assertEquals(55.52 - 34.0 - B, red.y, 1e-6);
+        assertEquals(BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, red.x, EPS);
+        assertEquals(model.cell(Alliance.RED, Side.AUDIENCE).originY - BioBuzzConstants.Auto.SHOOT_STANDOFF_NOMINAL_IN - B, red.y, 1e-6);
         assertEquals(-90.0, red.headingDegrees(), EPS);
     }
 
@@ -194,7 +200,7 @@ public class GeometryTest {
     public void theBlueNominalPoseIsTheHalfTurnOfTheRedPoseOnTheOppositeSide() {
         Pose2 blueAudience = ShotGeometry.nominalPose(model.cell(Alliance.BLUE, Side.AUDIENCE));
         Pose2 redRear = ShotGeometry.nominalPose(model.cell(Alliance.RED, Side.REAR));
-        Pose2 expected = Alliance.BLUE.fromRed(redRear, 144.0);
+        Pose2 expected = Alliance.BLUE.fromRed(redRear, BioBuzzConstants.Field.SIZE_IN);
         assertEquals(expected.x, blueAudience.x, EPS);
         assertEquals(expected.y, blueAudience.y, EPS);
     }
@@ -205,21 +211,22 @@ public class GeometryTest {
     public void zonesOfTheTwoAlliancesAreHalfTurnImages() {
         AllianceField red = new AllianceField(model, Alliance.RED);
         AllianceField blue = new AllianceField(model, Alliance.BLUE);
+        double size = BioBuzzConstants.Field.SIZE_IN;
         Rect lzRed = red.ownLoadingZone();
         assertEquals(0.0, lzRed.minX, EPS);
         assertEquals(11.0, lzRed.maxX, EPS);
-        assertEquals(96.0, lzRed.minY, EPS);
-        assertEquals(120.0, lzRed.maxY, EPS);
+        assertEquals("the CAD tape: 94.584 to 117.274", 94.584, lzRed.minY, EPS);
+        assertEquals(117.274, lzRed.maxY, EPS);
         Rect lzBlue = blue.ownLoadingZone();
-        assertEquals(133.0, lzBlue.minX, EPS);
-        assertEquals(144.0, lzBlue.maxX, EPS);
-        assertEquals(24.0, lzBlue.minY, EPS);
-        assertEquals(48.0, lzBlue.maxY, EPS);
+        assertEquals(size - 11.0, lzBlue.minX, EPS);
+        assertEquals(size, lzBlue.maxX, EPS);
+        assertEquals(size - 117.274, lzBlue.minY, EPS);
+        assertEquals(size - 94.584, lzBlue.maxY, EPS);
         assertEquals("the blue robot's view of the red zone is the same rectangle", lzRed.minX,
                 blue.loadingZone(Alliance.RED).minX, EPS);
         Rect gBlue = blue.ownGarden();
-        assertEquals(121.0, gBlue.minX, EPS);
-        assertEquals(142.0, gBlue.minY, EPS);
+        assertEquals(size - 23.264, gBlue.minX, EPS);
+        assertEquals(size - 2.574, gBlue.minY, EPS);
     }
 
     @Test
@@ -240,12 +247,13 @@ public class GeometryTest {
     public void sidesAndFlowers() {
         AllianceField red = new AllianceField(model, Alliance.RED);
         AllianceField blue = new AllianceField(model, Alliance.BLUE);
-        assertTrue(red.isOwnSide(72.0));
-        assertFalse(red.isOwnSide(72.5));
-        assertTrue(blue.isOwnSide(72.0));
-        assertFalse(blue.isOwnSide(71.5));
-        assertEquals(2.0, red.pastCenterLine(74.0), EPS);
-        assertEquals(2.0, blue.pastCenterLine(70.0), EPS);
+        double mid = BioBuzzConstants.Field.CENTER_IN;
+        assertTrue(red.isOwnSide(mid));
+        assertFalse(red.isOwnSide(mid + 0.5));
+        assertTrue(blue.isOwnSide(mid));
+        assertFalse(blue.isOwnSide(mid - 0.5));
+        assertEquals(2.0, red.pastCenterLine(mid + 2.0), EPS);
+        assertEquals(2.0, blue.pastCenterLine(mid - 2.0), EPS);
         // FLOWERS 1 and 2 are red's, 3 and 4 are blue's
         assertTrue(red.isOwnFlower(0));
         assertTrue(red.isOwnFlower(1));
@@ -257,25 +265,28 @@ public class GeometryTest {
         assertEquals(-1, red.nearestFlower(new Point2(60, 30)));
         assertEquals(Alliance.RED, red.nearestGarden(new Point2(6, 8)));
         assertEquals(Alliance.BLUE, red.nearestGarden(new Point2(135, 138)));
-        assertNull(red.nearestGarden(new Point2(72, 72)));
+        assertNull(red.nearestGarden(new Point2(mid, mid)));
     }
 
     @Test
     public void cellPlansMatchTheMeasuredFootprints() {
         AllianceField red = new AllianceField(model, Alliance.RED);
+        // the CAD hull of the red audience UP cell: x 47.39 to 68.45 (21.06 wide on the axis 57.924), y 50.61 to 69.05
         Rect up = red.cellPlan(Alliance.RED, Side.AUDIENCE, true);
-        assertEquals(49.25, up.minX, EPS);
-        assertEquals(69.25, up.maxX, EPS);
-        assertEquals(52.3, up.minY, 0.01);
-        assertEquals(69.9, up.maxY, 0.01);
+        assertEquals(47.394, up.minX, EPS);
+        assertEquals(68.454, up.maxX, EPS);
+        assertEquals(50.614, up.minY, 0.001);
+        assertEquals(69.054, up.maxY, 0.001);
+        // the red rear cell DOWN overhangs the frame: y 73.39 to 95.80
         Rect down = red.cellPlan(Alliance.RED, Side.REAR, false);
-        assertEquals(79.4, down.minY, 0.01);
-        assertEquals(96.9, down.maxY, 0.01);
-        // blue UP cell is the rear one at match start: y [74.1, 91.7], x [74.75, 94.75]
+        assertEquals(73.394, down.minY, 0.001);
+        assertEquals(95.804, down.maxY, 0.001);
+        // blue UP cell is the rear one at match start: the half turn of the red audience UP cell
+        double size = BioBuzzConstants.Field.SIZE_IN;
         Rect blueUp = red.cellPlan(Alliance.BLUE, model.initialUpSide(Alliance.BLUE), true);
-        assertEquals(74.75, blueUp.minX, EPS);
-        assertEquals(94.75, blueUp.maxX, EPS);
-        assertEquals(74.1, blueUp.minY, 0.01);
-        assertEquals(91.7, blueUp.maxY, 0.01);
+        assertEquals(size - 68.454, blueUp.minX, EPS);
+        assertEquals(size - 47.394, blueUp.maxX, EPS);
+        assertEquals(size - 69.054, blueUp.minY, 0.001);
+        assertEquals(size - 50.614, blueUp.maxY, 0.001);
     }
 }

@@ -45,7 +45,7 @@ public class AsymmetricRobotTest {
     /**
      * Situation: the robot touching the audience wall (y = 0) facing each of the four directions.
      * Expected: the center of rotation is 9.77 in from the wall facing the wall, 8.03 in facing away, 8.90 in sideways (either way).
-     *     The rear wall (y = 144) gives the same numbers from the other side.
+     *     The rear wall (y = Field.SIZE_IN) gives the same numbers from the other side.
      */
     @Test
     public void theCenterIsADifferentDistanceFromTheWallForEachFacing() {
@@ -56,13 +56,13 @@ public class AsymmetricRobotTest {
             Pose2 rear = WallStarts.againstWall(field, ROBOT, 1, 60.0, e[0], 0.0);
             // facing +90 the FRONT is toward the rear wall; facing -90 the back is
             double expectedRear = e[0] == 90 ? FRONT : e[0] == -90 ? REAR : SIDE;
-            assertEquals("rear wall, facing " + e[0], 144.0 - expectedRear, rear.y, EPS);
+            assertEquals("rear wall, facing " + e[0], BioBuzzConstants.Field.SIZE_IN - expectedRear, rear.y, EPS);
             Pose2 red = WallStarts.againstWall(field, ROBOT, 2, 60.0, e[0], 0.0);
             double expectedRed = e[0] == 180 ? FRONT : e[0] == 0 ? REAR : SIDE;
             assertEquals("red wall, facing " + e[0], expectedRed, red.x, EPS);
             Pose2 blue = WallStarts.againstWall(field, ROBOT, 3, 60.0, e[0], 0.0);
             double expectedBlue = e[0] == 0 ? FRONT : e[0] == 180 ? REAR : SIDE;
-            assertEquals("blue wall, facing " + e[0], 144.0 - expectedBlue, blue.x, EPS);
+            assertEquals("blue wall, facing " + e[0], BioBuzzConstants.Field.SIZE_IN - expectedBlue, blue.x, EPS);
         }
     }
 
@@ -138,7 +138,7 @@ public class AsymmetricRobotTest {
      * Situation: the planner is asked for the in-line audience-cell shot with a range band wide enough and a fine enough step that
      *     the wall is the only limit.
      * Expected: it stands with its FRONT edge on the wall clearance: the center of rotation 9.77 + 0.25 = 10.02 in from the wall,
-     *     and the ball exit 18.05 in from it, so 37.47 in from the aim point.
+     *     and the ball exit 18.05 in from it, so (aim point 54.16 in from the wall) 36.11 in from the aim point.
      * Negative twin: told the robot is a centered 17.8 in square (front 8.9 in) but still given the real ball exit, the same planner
      *     would stand 0.87 in closer to the wall (9.15 in), which puts the real front edge 0.87 in through it.
      */
@@ -157,7 +157,7 @@ public class AsymmetricRobotTest {
         assertTrue(s.toString(), s.ok());
         assertEquals("center of rotation 9.77 + 0.25 in from the wall", FRONT + c.wallClearanceIn, s.pose.y, 0.02);
         assertEquals("ball exit 8.03 in farther out", FRONT + c.wallClearanceIn + REAR, ShotGeometry.launchY(s.pose, c.launchForwardIn, c.launchLeftIn), 0.02);
-        assertEquals(55.52 - (FRONT + c.wallClearanceIn + REAR), s.rangeIn, 0.02);
+        assertEquals(cell.originY - (FRONT + c.wallClearanceIn + REAR), s.rangeIn, 0.02);
         assertEquals(-90.0, s.pose.headingDegrees(), 1e-6);
         // the real front edge is exactly on the clearance
         assertEquals(c.wallClearanceIn, Footprint.of(s.pose).bounds().minY, 0.02);

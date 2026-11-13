@@ -229,7 +229,8 @@ public class RouteSvgFootprintTest {
             List<Element> pressing = withClass(intake, "circle", "pressing");
             assertEquals(1, pressing.size());
             assertEquals(wheel.name(), pressing.get(0).getAttribute("data-wheel"));
-            assertEquals("the pressing wheel is on the FLOWER's center line (the wall is at x = 0, so y = 48)", py(48.0), num(pressing.get(0), "cy"), 0.05);
+            assertEquals("the pressing wheel is on the FLOWER's center line (the wall is at x = 0, so y = the FLOWER's y)",
+                    py(BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][1]), num(pressing.get(0), "cy"), 0.05);
             // a short arrow along the wheel's path: it starts at the line-up pose and ends inside the POLLEN
             Element group = withClass(intake, "g", "press-in").get(0);
             assertEquals(wheel.name(), group.getAttribute("data-wheel"));
@@ -238,7 +239,7 @@ public class RouteSvgFootprintTest {
             Element head = withClass(group, "polygon", "arrowhead").get(0);
             assertEquals("the arrowhead tip is the front tip of the wheel", tipX, Double.parseDouble(head.getAttribute("points").split("\\s+")[0].split(",")[0]), 0.05);
             double pollenEdge = px(BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0);
-            assertTrue("the arrow points into the wall and ends inside the POLLEN (1.25 in past its edge)", tipX < pollenEdge - 1.0);
+            assertTrue("the arrow points into the wall and ends inside the POLLEN (1.2 in past its edge)", tipX < pollenEdge - 1.0);
             assertTrue("it moves toward the wall (left in the picture)", num(line, "x2") < num(line, "x1"));
             assertEquals("a straight run in the direction the robot faces", num(line, "y1"), num(line, "y2"), 0.05);
             // it starts at the middle of the wheel at the line-up pose, so it is the approach plus half a wheel long

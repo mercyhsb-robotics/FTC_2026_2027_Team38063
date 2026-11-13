@@ -98,7 +98,8 @@ public final class RouteCatalog {
                             + "turns to face +x by itself because it drives toward -x backwards.")
                 .park(12, 90, 0)
                     .note("The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone "
-                            + "by only 2.9 in (the robot reaches 8.9 in to its left, y 98.9; the zone starts at y 96).")
+                            + "by 4.3 in (the robot reaches 8.9 in to its left, y 98.9; the zone, taken from the CAD tape, starts at y 94.58), "
+                            + "deep enough for PARK. With the old 144 in field numbers the zone started at y 96 and this was only 2.9 in.")
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -125,7 +126,7 @@ public final class RouteCatalog {
                 .driveReverseTangent(12.0, 118.1, -90).label("path3")
                     .note("The -90 deg heading in the source is ignored: the robot ends facing 0 deg.")
                 .park(12.0, 118.1, 0)
-                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.0 x 10.8 in (the back edge is 8.03 in behind the center of rotation).")
+                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.0 x 8.1 in (the back edge is 8.03 in behind the center of rotation; the zone ends at y 117.27).")
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -134,7 +135,7 @@ public final class RouteCatalog {
         routes.add(AutoRoute.builder(RED_LEAVE_PARK)
                 .title("Red A3: leave the wall and park (no shooting)")
                 .description("Conversion of RedAlliance_LeavePark.java. Starts on the left wall in tile A3 facing 180 deg, "
-                        + "drives to (24.86, 83.62) turning to 135 deg, then to (16, 91.5): LEAVE and a shallow PARK. "
+                        + "drives to (24.86, 83.62) turning to 135 deg, then to (16, 91.5): LEAVE and a PARK with only a corner in the zone. "
                         + "The 4 pre-loads are never fired.")
                 .startTile("A3")
                 .start(9.2112, 70.2702, 180)
@@ -147,7 +148,7 @@ public final class RouteCatalog {
                 .driveLinear(16.0, 91.5, 135).label("path2")
                     .note("Paths.line(point2Start, point2).linear(point2Start, point2)")
                 .park(16.0, 91.5, 135)
-                    .note("Only a corner of the robot reaches the LOADING ZONE, 4.3 in deep; the source does not call it PARK.")
+                    .note("Only a corner of the robot reaches the LOADING ZONE, 5.7 in deep; the source does not call it PARK.")
                 .build());
 
         // -----------------------------------------------------------------------------------------
@@ -156,7 +157,7 @@ public final class RouteCatalog {
         routes.add(AutoRoute.builder(WALL_SHOOT_PARK)
                 .title("Wall shoot and park: C1, shoot 4 (tips the HIVE), left corridor to the LOADING ZONE")
                 .description("Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver "
-                        + "picks, then drives out through the left corridor (x < 47, clear of the HIVE frame) and "
+                        + "picks, then drives out through the left corridor (x < 43, clear of the HIVE frame keep-out) and "
                         + "parks deep inside the red LOADING ZONE. The 4 POLLEN land on top of the NECTAR that already "
                         + "sit in the UP cell and tip the HIVE, so the route claims LEAVE 3 + PARK 5 + our TIP 20.")
                 .startTile("C1")
@@ -166,10 +167,12 @@ public final class RouteCatalog {
                 .shootUp(4)
                     .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose. "
                             + "The staged NECTAR in the cell plus these 4 POLLEN tip the HIVE: one volley is enough for the first tip.")
-                .driveReverseTangent(30.0, 45.0).label("to corridor").via(30.0, 12.6)
-                    .note("A curve: leaves the shooting pose sideways along the wall, then bends up into the corridor.")
+                .driveConstant(30.0, 45.0, -90.0).label("to corridor").via(30.0, 24.0)
+                    .note("A curve: slides sideways away from the wall (the robot keeps its front toward the audience wall, because at the "
+                            + "nominal shooting pose its center is only 12.1 in from the wall and a robot that turns on the spot there swings "
+                            + "a corner 1.1 in through it), then bends up into the corridor.")
                 .driveReverseTangent(30.0, 100.0).label("corridor")
-                    .note("Straight up the left corridor, 21 in clear of the HIVE frame keep-out.")
+                    .note("Straight up the left corridor, 12.9 in (center to keep-out) clear of the HIVE frame keep-out at x 42.94.")
                 .driveLinear(12.0, 108.0, 0.0).label("to zone")
                     .note("Turns to face +x while sliding into the zone.")
                 .park(12.0, 108.0, 0.0)
@@ -193,8 +196,8 @@ public final class RouteCatalog {
                     .note("Slides along the audience wall with the intake still facing it.")
                 .driveConstant(9.0, FRONT_ON_WALL_IN + 0.8, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
-                .intakeGarden(5.9, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 4)
-                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.4, 4.5, 7.3 and 10.3. The robot now holds 4 for TELEOP.")
+                .intakeGarden(5.7, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 4)
+                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot now holds 4 for TELEOP.")
                 .driveConstant(20.0, 24.0, -90).label("off the wall")
                     .note("Ends with the whole footprint more than 1.5 in off every wall: LEAVE.")
                 .build());

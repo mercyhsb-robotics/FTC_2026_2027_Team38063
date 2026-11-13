@@ -12,8 +12,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  * {@code intakeFlower(...)}; this class derives everything else from the FLOWER and from that step.
  *
  * <p><b>Why a press-in.</b> The FLOWER holds its POLLEN in a stack in the middle of a plate that stands on the field wall.
- * The bottom POLLEN sits in a 2.79 in hole of a ring that is 0.43 in tall, so to get it out the ball has to be pushed UP
- * AND OVER the edge of that ring (the "lip"). Our intake wheels lie flat (parallel to the floor) at the front corners of
+ * The bottom POLLEN sits in the hole of a ring that is about 0.4 in tall (0.354 in in the official CAD, 0.43 in in the manual),
+ * so to get it out the ball has to be pushed UP AND OVER the edge of that ring (the "lip"). Our intake wheels lie flat (parallel to the floor) at the front corners of
  * the robot. They do the job only if they <b>press into</b> the POLLEN and roll it over the lip toward the robot. So the
  * robot faces the wall, drives straight in until the wheel overlaps the POLLEN, runs the intake while it stays pressed in,
  * then backs straight out. It is not a drive-by and not a drive through the plate.
@@ -28,26 +28,26 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  * <pre>
  *                    robot (front toward the wall)
  *            +-----------------------------+
- *            |           chassis           |        chassis front: 5.25 in from the wall
- *            +--+------+----------+------+-+        (plate 4.75 in + clearance 0.5 in)
+ *            |           chassis           |        chassis front: 5.533 in from the wall
+ *            +--+------+----------+------+-+        (plate edge 5.033 in + clearance 0.5 in)
  *               |wheel |          |wheel |           the two flat wheels stick out 2.7 in
  *               +--+---+          +------+           in front of the chassis
  *     plate        |
- *   +----------+   |  the pressing wheel is on the POLLEN, 1.25 in past its edge
- *   |  (POLLEN)|---+  front tip of the wheel: 2.55 in from the wall
+ *   +----------+   |  the pressing wheel is on the POLLEN, 1.201 in past its edge
+ *   |  (POLLEN)|---+  front tip of the wheel: 2.833 in from the wall
  *   +----------+
  * ==================== wall ===================
  * </pre>
  * Measured out from the wall, with the default numbers:
  * <pre>
- *   0.00 in   the wall
- *   2.40 in   center line of the POLLEN stack (the wheel never goes closer than this)
- *   2.55 in   PRESS STOP LINE: the front tip of the pressing wheel (3.8 - FLOWER_PRESS_DEPTH_IN of 1.25)
- *   3.80 in   field-side edge of the bottom POLLEN (so the wheel overlaps it by 1.25 in)
- *   4.75 in   field-side edge of the plate
- *   5.25 in   the closest the chassis front may be (plate + FLOWER_CHASSIS_CLEARANCE_IN of 0.5 in)
+ *   0.000 in   the wall (the plate's back edge stands 0.162 in off it)
+ *   2.634 in   center line of the POLLEN stack (the wheel never goes closer than this)
+ *   2.833 in   PRESS STOP LINE: the front tip of the pressing wheel (4.034 - FLOWER_PRESS_DEPTH_IN of 1.201)
+ *   4.034 in   field-side edge of the bottom POLLEN (so the wheel overlaps it by 1.201 in)
+ *   5.033 in   field-side edge of the plate (4.871 in deep, 5.95 in along the wall)
+ *   5.533 in   the closest the chassis front may be (plate + FLOWER_CHASSIS_CLEARANCE_IN of 0.5 in)
  * </pre>
- * The chassis front stands 2.7 in (the wheel reach) behind the wheel tips, i.e. at 2.55 + 2.7 = 5.25 in: exactly the
+ * The chassis front stands 2.7 in (the wheel reach) behind the wheel tips, i.e. at 2.833 + 2.7 = 5.533 in: exactly the
  * closest it may be. If the real wheels reach less than that, the validator says how many inches are missing.
  *
  * <p>The three poses of a press-in (the position is the pose point, the point the robot spins about):
@@ -56,7 +56,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  *       robot pose), or derived by {@link #idealLineUp}.</li>
  *   <li>{@link #press}: derived. Facing the wall squarely, with the middle of the pressing wheel on the FLOWER's center
  *       line and the wheel's front tip on the press stop line ({@link AllianceField#flowerPressStopLineIn()}: the POLLEN's
- *       field-side edge, 3.8 in from the wall, minus {@code Auto.FLOWER_PRESS_DEPTH_IN}).</li>
+ *       field-side edge, 4.034 in from the wall, minus {@code Auto.FLOWER_PRESS_DEPTH_IN}).</li>
  *   <li>{@link #retreat}: derived. The press pose backed straight out by the step's retreat length. The INTAKE step
  *       ends here.</li>
  * </ol>

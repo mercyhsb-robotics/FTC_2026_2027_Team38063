@@ -21,8 +21,8 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * Limelight Diagnostic OpMode.
  *
  * <p>Frame and vocabulary. Coordinates are the Pedro field frame, in inches: origin at the corner where the
- * audience wall meets the red wall, +x toward blue, +y away from the audience, so the field spans 0..144 on
- * both axes. A HIVE CELL is one scoring opening; the AUDIENCE cell is at small y, the REAR cell at large y. The
+ * audience wall meets the red wall (the inner face of the walls), +x toward blue, +y away from the audience, so the field
+ * spans 0..141.348 on both axes ({@code Field.SIZE_IN}, from the official CAD). A HIVE CELL is one scoring opening; the AUDIENCE cell is at small y, the REAR cell at large y. The
  * FLOWERS are four plates on the perimeter walls. A "keep-out" is a box the robot must not enter, and
  * {@link #hardObstacles} are the keep-outs that never move (the HIVE frame and the FLOWERS).
  */
@@ -51,6 +51,8 @@ public final class FieldModel {
         public double tagRowZ = BioBuzzConstants.Field.UP_CELL_TAG_ROW_Z_IN;
         /** Height of the AprilTag row of a DOWN cell (how the camera tells UP from DOWN by height). */
         public double downTagRowZ = BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_Z_IN;
+        /** How far out from the pivot plane the AprilTag row of a DOWN cell is, along y (it swings in toward the pivot as it tips). */
+        public double downTagRowOut = BioBuzzConstants.Field.DOWN_CELL_TAG_ROW_OUT_IN;
         /** Tag centers along the sticker, measured from its centerline, in tag-ID order. */
         public double[] tagXOffsets = BioBuzzConstants.Field.TAG_X_OFFSETS_IN;
         /** First AprilTag ID of each cell's four consecutive IDs (see the names for which cell). */
@@ -63,9 +65,9 @@ public final class FieldModel {
         public Side blueUpAtStart = BioBuzzConstants.Field.BLUE_UP_SIDE_AT_MATCH_START;
         /** The {x, y} centers of the four FLOWER plates in the RED frame, in field inches. */
         public double[][] flowerCenters = BioBuzzConstants.Field.FLOWER_CENTERS_IN;
-        /** Length of a FLOWER keep-out measured along its wall, in inches. */
+        /** Length of a FLOWER keep-out measured along its wall, in inches (centered on the FLOWER's center line). */
         public double flowerAlongWall = BioBuzzConstants.Field.FLOWER_KEEPOUT_ALONG_WALL_IN;
-        /** Depth of a FLOWER keep-out measured out from its wall, in inches. */
+        /** How far a FLOWER keep-out reaches out from its wall, in inches (the plate's field-side edge). */
         public double flowerDepth = BioBuzzConstants.Field.FLOWER_KEEPOUT_DEPTH_IN;
     }
 
@@ -89,11 +91,11 @@ public final class FieldModel {
         // and the tag row are each a fixed distance out from the field's middle line (y = c): the audience cell
         // at c - out, the rear cell at c + out.
         CellSpec redAudience = new CellSpec(Alliance.RED, Side.AUDIENCE, p.redAudienceBaseId, p.redHiveAxisX,
-                p.redHiveAxisX, c - p.upOriginOut, p.upOriginZ, c - p.tagRowOut, p.tagRowZ, p.downTagRowZ,
-                p.tagXOffsets);
+                p.redHiveAxisX, c - p.upOriginOut, p.upOriginZ, c - p.tagRowOut, p.tagRowZ, c - p.downTagRowOut,
+                p.downTagRowZ, p.tagXOffsets);
         CellSpec redRear = new CellSpec(Alliance.RED, Side.REAR, p.redRearBaseId, p.redHiveAxisX,
-                p.redHiveAxisX, c + p.upOriginOut, p.upOriginZ, c + p.tagRowOut, p.tagRowZ, p.downTagRowZ,
-                p.tagXOffsets);
+                p.redHiveAxisX, c + p.upOriginOut, p.upOriginZ, c + p.tagRowOut, p.tagRowZ, c + p.downTagRowOut,
+                p.downTagRowZ, p.tagXOffsets);
         // Blue cell on side S is the half-turn image of the red cell on the OPPOSITE side. (A half turn about the
         // field center swaps the audience end and the rear end, so the red REAR cell lands on the blue AUDIENCE end.)
         CellSpec blueAudience = rotated(redRear, Alliance.BLUE, Side.AUDIENCE, p.blueAudienceBaseId);
@@ -125,19 +127,33 @@ public final class FieldModel {
         return new CellSpec(alliance, side, baseTagId,
                 alliance.fromRedX(red.axisX, s),
                 alliance.fromRedX(red.originX, s), alliance.fromRedY(red.originY, s), red.originZ,
-                alliance.fromRedY(red.tagRowY, s), red.tagRowZ, red.downTagRowZ, p.tagXOffsets);
+                alliance.fromRedY(red.tagRowY, s), red.tagRowZ, alliance.fromRedY(red.downTagRowY, s), red.downTagRowZ,
+                p.tagXOffsets);
     }
 
-    /** A FLOWER keep-out, oriented so its long side runs along whichever perimeter wall it sits on. */
+    /**
+     * A FLOWER keep-out: a box that starts at the wall the FLOWER stands on and reaches {@code flowerDepth} out from it, with
+     * its long side along that wall, centered on the FLOWER's center line. (The FLOWER's center is the middle of its POLLEN stack,
+     * a little off the wall, so the box is built from the wall, not around that point: the plate really starts at the wall.)
+     */
     private Rect flowerRect(double cx, double cy) {
-        // Distance from the plate center to the nearest x wall and to the nearest y wall: the closer one is the wall
-        // the plate is mounted on.
-        double toLeftRight = Math.min(cx, p.size - cx);
-        double toBottomTop = Math.min(cy, p.size - cy);
-        if (toLeftRight <= toBottomTop) {
-            return Rect.centered(cx, cy, p.flowerDepth, p.flowerAlongWall);   // on a left/right wall
+        double half = p.flowerAlongWall / 2.0;
+        // Distance from the center to each of the four walls: the nearest one is the wall the FLOWER is mounted on.
+        double toRed = cx;
+        double toBlue = p.size - cx;
+        double toAudience = cy;
+        double toRear = p.size - cy;
+        double nearest = Math.min(Math.min(toRed, toBlue), Math.min(toAudience, toRear));
+        if (nearest == toRed) {
+            return new Rect(0, p.flowerDepth, cy - half, cy + half);
         }
-        return Rect.centered(cx, cy, p.flowerAlongWall, p.flowerDepth);       // on the audience/rear wall
+        if (nearest == toBlue) {
+            return new Rect(p.size - p.flowerDepth, p.size, cy - half, cy + half);
+        }
+        if (nearest == toAudience) {
+            return new Rect(cx - half, cx + half, 0, p.flowerDepth);
+        }
+        return new Rect(cx - half, cx + half, p.size - p.flowerDepth, p.size);
     }
 
     /** Side length of the (square) field in inches; the field spans 0..size on both x and y. */
@@ -145,7 +161,7 @@ public final class FieldModel {
         return p.size;
     }
 
-    /** The field's middle on each axis, in inches (72): the HIVE sits here, and y = center splits the two sides. */
+    /** The field's middle on each axis, in inches (70.674): the HIVE sits here, and y = center splits the two sides. */
     public double center() {
         return p.size / 2.0;
     }

@@ -230,6 +230,14 @@ public final class ConstantsCheck {
             }
         }
 
+        // ---- the field numbers must fit each other (size, tiles, HIVE, FLOWERS, zones)
+        checkFieldNumbers(r, BioBuzzConstants.Field.SIZE_IN, BioBuzzConstants.Field.TILE_PITCH_IN, BioBuzzConstants.Field.TILES_PER_SIDE,
+                BioBuzzConstants.Field.HIVE_FRAME_WIDTH_X_IN, BioBuzzConstants.Field.HIVE_FRAME_DEPTH_Y_IN,
+                BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, BioBuzzConstants.Field.CELL_OPENING_WIDTH_IN,
+                BioBuzzConstants.Field.FLOWER_CENTERS_IN, BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN,
+                BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MIN_IN, BioBuzzConstants.Auto.RED_LOADING_ZONE_X_MAX_IN,
+                BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MIN_IN, BioBuzzConstants.Auto.RED_LOADING_ZONE_Y_MAX_IN);
+
         // ---- the field model must hold together
         // Build the field from the constants and make sure every aim point is on the field; this catches a typo in
         // the HIVE geometry (for example a wrong sign or a missing digit) before the planner trusts it.
@@ -249,6 +257,64 @@ public final class ConstantsCheck {
             r.errors.add("Field geometry is invalid: " + e.getMessage());
         }
         return r;
+    }
+
+    /**
+     * The field numbers must fit each other, whatever the field turns out to measure: the tiles must fit between the walls, the HIVE
+     * frame must stand inside the field with its two cells' openings between its feet, each FLOWER must stand the POLLEN-center
+     * distance from a wall, and the red LOADING ZONE must touch the red wall and lie on the red half. The values are parameters (the
+     * shipped constants are passed in by {@link #run()}) so a unit test can feed in bad ones. All lengths are inches.
+     *
+     * <p>Why: the field is one frame (the wall-corner frame of the official CAD) and every number is given in it. A number copied
+     * from the old 144 in frame (or typed in the HIVE-centered frame) breaks one of these relations at once.
+     */
+    static void checkFieldNumbers(Report r, double size, double tilePitch, int tiles, double frameWidth, double frameDepth,
+                                  double redAxisX, double openingWidth, double[][] flowerCenters, double pollenFromWall,
+                                  double zoneXMin, double zoneXMax, double zoneYMin, double zoneYMax) {
+        final double tolerance = 0.01;
+        if (size <= 0 || tilePitch <= 0 || tiles <= 0) {
+            r.errors.add("Field.SIZE_IN, TILE_PITCH_IN and TILES_PER_SIDE must be positive.");
+            return;
+        }
+        // The tiles lie edge to edge inside the walls: they can leave a sliver of the outer tiles cut away (the CAD: 141.0 of tile in a
+        // 141.348 in field) but never more than a couple of inches, and they cannot be longer than the field.
+        double tiled = tilePitch * tiles;
+        if (tiled > size + tolerance || size - tiled > 2.0) {
+            r.errors.add("Field.TILE_PITCH_IN (" + tilePitch + ") x TILES_PER_SIDE (" + tiles + ") = " + String.format(Locale.ROOT, "%.2f", tiled)
+                    + " in does not fit Field.SIZE_IN (" + size + " in): the tiles must cover the floor between the walls to within about 2 in.");
+        }
+        double center = size / 2.0;
+        // The HIVE frame stands in the middle of the field and the red HIVE hangs on the left half of it.
+        if (frameWidth <= 0 || frameDepth <= 0 || frameWidth >= size || frameDepth >= size) {
+            r.errors.add("Field.HIVE_FRAME_WIDTH_X_IN and HIVE_FRAME_DEPTH_Y_IN (" + frameWidth + " x " + frameDepth
+                    + " in) must be positive and smaller than the field.");
+        } else {
+            double frameMinX = center - frameWidth / 2.0;
+            if (redAxisX - openingWidth / 2.0 < frameMinX - tolerance || redAxisX + openingWidth / 2.0 > center + tolerance) {
+                r.errors.add("Field.RED_HIVE_AXIS_X_IN (" + redAxisX + ") puts the red cell opening (" + openingWidth + " in wide) outside the red half"
+                        + " of the HIVE frame (x " + String.format(Locale.ROOT, "%.2f", frameMinX) + " to " + String.format(Locale.ROOT, "%.2f", center)
+                        + "): was a number typed in the old 144 in frame, or measured from the field center instead of the wall corner?");
+            }
+        }
+        // Every FLOWER stands against one wall: its POLLEN center is pollenFromWall in from that wall and inside the field.
+        for (int i = 0; i < flowerCenters.length; i++) {
+            double x = flowerCenters[i][0];
+            double y = flowerCenters[i][1];
+            double[] fromWall = {x, size - x, y, size - y};
+            boolean onAWall = false;
+            for (double d : fromWall) {
+                onAWall |= Math.abs(d - pollenFromWall) < tolerance;
+            }
+            if (!onAWall || x < 0 || y < 0 || x > size || y > size) {
+                r.errors.add("Field.FLOWER_CENTERS_IN[" + i + "] = (" + x + ", " + y + ") is not " + pollenFromWall
+                        + " in (Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN) from a wall of the " + size + " in field.");
+            }
+        }
+        // The red LOADING ZONE is a box against the red wall, inside the red half.
+        if (Math.abs(zoneXMin) > tolerance || zoneXMax <= zoneXMin || zoneXMax >= center || zoneYMin < 0 || zoneYMax <= zoneYMin || zoneYMax > size) {
+            r.errors.add("The red LOADING ZONE (Auto.RED_LOADING_ZONE_*: x " + zoneXMin + " to " + zoneXMax + ", y " + zoneYMin + " to " + zoneYMax
+                    + ") must touch the red wall (x = 0), lie on the red half and inside the field.");
+        }
     }
 
     /**

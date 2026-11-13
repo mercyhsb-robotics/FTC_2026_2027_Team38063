@@ -31,15 +31,15 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * with Pedro describes the routine as a list of steps called <b>Commands</b>: {@code sequential(...)} runs them one
  * after another, and the <b>Scheduler</b> advances them each time {@code Scheduler.execute()} is called, once per loop.
  *
- * <p><b>Field frame and units.</b> Pedro's field frame: inches, origin at the corner where the audience wall meets
- * the red wall, +x toward the blue side, +y away from the audience. Headings in this file are written in DEGREES
+ * <p><b>Field frame and units.</b> Pedro's field frame: inches, origin at the INNER corner where the audience wall meets
+ * the red wall (the face of the walls: the field is 141.348 in across, per the official CAD), +x toward the blue side, +y away from the audience. Headings in this file are written in DEGREES
  * ({@code PoseFactory.degrees()}), 0 = facing +x, counter-clockwise positive, so 180 means facing the red wall.
  * (Telemetry prints the heading in radians.)
  *
  * <p><b>What the route does, in order.</b>
  * <ol>
  *   <li>Start at (9.2, 70.3) with heading 180: robot FRONT toward the red wall (the front is about 0.3 inch from it),
- *       close to the middle of the red wall (y = 72).</li>
+ *       close to the middle of the red wall (the field center is y = 70.67).</li>
  *   <li>Path 1: drive in a straight line to (24.9, 83.6): about 16 inches farther from the wall and 13 inches farther
  *       up the field (20.6 inches of travel). The robot turns gradually while it goes, from heading 180 to heading
  *       135.</li>

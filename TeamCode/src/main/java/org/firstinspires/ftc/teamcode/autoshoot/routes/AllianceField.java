@@ -34,7 +34,7 @@ public final class AllianceField {
         List<Rect> built = new ArrayList<Rect>();
         for (int i = 0; i < BioBuzzConstants.Field.FLOWER_CENTERS_IN.length; i++) {
             built.add(alongWallBox(flowerWallPoint(i), flowerInward(i), BioBuzzConstants.Field.FLOWER_PLATE_ALONG_WALL_IN / 2.0,
-                    BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN));
+                    BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN));
         }
         this.plates = Collections.unmodifiableList(built);
     }
@@ -65,10 +65,11 @@ public final class AllianceField {
     }
 
     /**
-     * The four FLOWER plates (no margin) at their real size, {@code Field.FLOWER_PLATE_DEPTH_IN x
-     * FLOWER_PLATE_ALONG_WALL_IN} (4.75 x 5.87 in), standing on their wall and centered on the FLOWER, in the order of
-     * {@code Field.FLOWER_CENTERS_IN}. (The path planner of the TeleOp uses the slightly larger boxes of
-     * {@link FieldModel#flowerKeepOuts()} instead.)
+     * The four FLOWER plates (no margin) at their real size, drawn as a box from the wall out to the plate's field-side edge
+     * ({@code Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN}, 5.033 in: the plate is 4.871 in deep and stands 0.162 in off the wall)
+     * and {@code FLOWER_PLATE_ALONG_WALL_IN} (5.95 in) along it, centered on the FLOWER, in the order of
+     * {@code Field.FLOWER_CENTERS_IN}. (The path planner of the TeleOp uses the same boxes through
+     * {@link FieldModel#flowerKeepOuts()} and grows them by its own margin.)
      */
     public List<Rect> flowerPlates() {
         return plates;
@@ -156,7 +157,7 @@ public final class AllianceField {
 
     /**
      * The press stop line: how far from the wall (inches) the FRONT EDGE of the robot stops when the wheels are pressed
-     * into the POLLEN. It is the POLLEN's field-side edge (the center line 2.4 in plus the 1.4 in radius = 3.8 in) minus
+     * into the POLLEN. It is the POLLEN's field-side edge (the center line 2.634 in plus the 1.4 in radius = 4.034 in) minus
      * {@code Auto.FLOWER_PRESS_DEPTH_IN}, and never closer to the wall than the POLLEN's center line.
      */
     public double flowerPressStopLineIn() {
@@ -182,7 +183,7 @@ public final class AllianceField {
      * {@code FLOWER_CHASSIS_CLEARANCE_IN} off the plate: plate depth + clearance - press stop line.
      */
     public double flowerRequiredReachIn() {
-        return BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN
+        return BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN
                 - flowerPressStopLineIn();
     }
 
@@ -276,9 +277,9 @@ public final class AllianceField {
     }
 
     /**
-     * The plan view footprint of a cell of the given alliance: the 20 in wide cell on its HIVE axis,
-     * reaching out from the pivot line on its side. An UP cell is the long box that points out
-     * of the frame; a DOWN cell overhangs the frame the other way.
+     * The plan view footprint of a cell of the given alliance: the 21.06 in wide cell ({@code Field.CELL_PLAN_WIDTH_X_IN}, the
+     * hull of the whole cell) on its HIVE axis, reaching out from the pivot line on its side. An UP cell is the long box that
+     * points out of the frame; a DOWN cell overhangs the frame the other way.
      */
     public Rect cellPlan(Alliance a, Side side, boolean up) {
         if (a == Alliance.BLUE) {
@@ -288,7 +289,7 @@ public final class AllianceField {
         double near = up ? BioBuzzConstants.Auto.UP_CELL_PLAN_OUT_NEAR_IN : BioBuzzConstants.Auto.DOWN_CELL_PLAN_OUT_NEAR_IN;
         double far = up ? BioBuzzConstants.Auto.UP_CELL_PLAN_OUT_FAR_IN : BioBuzzConstants.Auto.DOWN_CELL_PLAN_OUT_FAR_IN;
         double axis = BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN;
-        double half = BioBuzzConstants.Field.CELL_OPENING_WIDTH_IN / 2.0;
+        double half = BioBuzzConstants.Field.CELL_PLAN_WIDTH_X_IN / 2.0;
         double y0 = center + side.ySign() * near;
         double y1 = center + side.ySign() * far;
         return new Rect(axis - half, axis + half, y0, y1);

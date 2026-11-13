@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
+import org.firstinspires.ftc.teamcode.autoshoot.core.TileGrid;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
@@ -176,8 +177,8 @@ public class RouteCatalogTest {
             assertFalse(r.id(), r.title().isEmpty());
             assertFalse(r.id(), r.description().isEmpty());
             Pose2 s = r.startPose();
-            String tile = "" + (char) ('A' + (int) (s.x / 24.0)) + (1 + (int) (s.y / 24.0));
-            assertEquals("start tile of " + r.id(), tile, r.startTile());
+            // the tiles have a 23.5 in pitch and their own seams (TileGrid), not 24 in
+            assertEquals("start tile of " + r.id(), TileGrid.nameAt(s.x, s.y), r.startTile());
             assertEquals(Alliance.RED, r.alliance());
             assertEquals(StepKind.START, r.step(0).kind());
         }
@@ -331,16 +332,16 @@ public class RouteCatalogTest {
                 assertEquals("path1", 3, i.stepIndex);
             }
         }
-        // the park is deep; the shot is aimed, but at the OpMode's old y = 9.2 the real ball exit (8.03 in behind the center of
-        // rotation) is 38.3 in from the aim point, just outside the 30 to 38 in band: a WARN that goes away when the robot is
-        // placed with its front ON the wall (y = 9.77: 37.7 in, the measured shot)
+        // the park is deep, and the shot is aimed and inside the 30 to 38 in band: with the CAD aim point (54.156 in from the wall)
+        // the real ball exit (8.03 in behind the center of rotation, at y = 9.2 + 8.03) is 36.9 in from it. (With the old 144 in field
+        // the aim point was 1.4 in farther out and this was a WARN at 38.3 in.)
         assertEquals(0, count(l, Rule.PARK_ZONE, Severity.WARN));
-        assertEquals(1, count(l, Rule.SHOOT_POSE, Severity.WARN));
+        assertEquals(0, count(l, Rule.SHOOT_POSE, Severity.WARN));
         // and the old start y = 9.2 puts the front edge 0.57 in through the audience wall (the start, and the first leg that
         // turns toward the HIVE a couple of degrees: 0.9 in)
         assertEquals(1, count(l, Rule.START_G304, Severity.ERROR));
         assertEquals(1, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
-        assertEquals(4, l.size());
+        assertEquals(3, l.size());
         assertFalse(RouteValidator.isRunnable(l));
     }
 
@@ -367,14 +368,16 @@ public class RouteCatalogTest {
     }
 
     @Test
-    public void redB1TurnsThroughTheWallShootsFromTooFarAndParksShallowly() {
+    public void redB1TurnsThroughTheWallAndShootsFromTooFar() {
         List<Issue> l = issues("red_b1", Alliance.RED);
         // the -115 deg hold swings a corner 3.4 in through the audience wall (9.2 in out, and it needs 12.6), and so does turning back for path1
         assertEquals(2, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
         assertEquals(1, count(l, Rule.SHOOT_POSE, Severity.WARN));
-        assertEquals(1, count(l, Rule.PARK_ZONE, Severity.WARN));
+        // the park used to be a shallow WARN (2.9 in into a zone that started at y 96); the CAD tape starts the zone at y 94.58, so the
+        // same pose is now 4.3 in deep, more than the 3 in the field tolerance asks for
+        assertEquals(0, count(l, Rule.PARK_ZONE, Severity.WARN));
         // The old code drove up x = 35..35.8 for a 16.77 in wide robot. The real robot is 17.80 in wide, so its
-        // right edge is at 35.8 + 8.9 = 44.7 in, 0.43 in inside the keep-out (the HIVE frame at x = 47.27 minus the
+        // right edge is at 35.8 + 8.9 = 44.7 in, 1.76 in inside the keep-out (the HIVE frame at x = 45.94 minus the
         // 3 in margin): path1 (step 4) enters it for the last 49 in, and path2 (step 5) turns on the spot at
         // (35.8, 90) with a corner even closer to the frame.
         assertEquals(2, count(l, Rule.HIVE_KEEPOUT, Severity.ERROR));
@@ -435,7 +438,9 @@ public class RouteCatalogTest {
         Step.Drive curve = (Step.Drive) r.step(2);
         assertEquals(1, curve.via().size());
         for (RouteAnalysis.StepInfo s : a.steps()) {
-            assertTrue("never right of x = 47 in the corridor part", s.step.kind() != StepKind.DRIVE || s.to.x < 47.0);
+            double keepOutMinX = a.field().hiveKeepOut().minX;
+            assertTrue("never right of the HIVE keep-out (x = " + keepOutMinX + ") in the corridor part",
+                    s.step.kind() != StepKind.DRIVE || s.to.x < keepOutMinX);
         }
     }
 

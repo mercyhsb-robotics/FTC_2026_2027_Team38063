@@ -42,8 +42,8 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * <b>feeder</b> is the servo that pushes each POLLEN into it (both are in the {@code Launcher} class). Flywheel speed
  * is measured in encoder <b>ticks</b> per second (a tick is one count of the motor's encoder).
  *
- * <p><b>Field frame and units.</b> Pedro's field frame: inches, origin at the corner where the audience wall meets
- * the red wall, +x toward the blue side, +y away from the audience. Headings in this file are written in DEGREES
+ * <p><b>Field frame and units.</b> Pedro's field frame: inches, origin at the INNER corner where the audience wall meets
+ * the red wall (the face of the walls: the field is 141.348 in across, per the official CAD), +x toward the blue side, +y away from the audience. Headings in this file are written in DEGREES
  * ({@code PoseFactory.degrees()}), 0 = facing +x, counter-clockwise positive, so -90 means facing the audience wall
  * and +90 facing away from it. (Telemetry prints the heading in radians.)
  *
@@ -60,8 +60,8 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  *   <li>Path 1: drive in a straight line from (35.0, 9.2) to (35.8, 90), about 81 inches up the field, BACKWARDS
  *       (the back of the robot leads).</li>
  *   <li>Path 2: drive in a straight line, backwards, to (12, 90), about 24 inches toward the red wall. The robot
- *       ends there facing 0 degrees (+x). (The HIVE frame spans about y = 52.5 to 91.5, so this is level with its
- *       far end.)</li>
+ *       ends there facing 0 degrees (+x). (The HIVE frame spans about y = 51.2 to 90.1 in the official CAD field, so
+ *       this is level with its far end.)</li>
  * </ol>
  */
 @Autonomous(name = "RedAlliance_B1", group = "Autonomous")

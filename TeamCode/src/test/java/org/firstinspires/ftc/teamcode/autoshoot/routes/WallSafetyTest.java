@@ -378,9 +378,9 @@ public class WallSafetyTest {
                 // wallX (0 = red wall, NaN none), wallY (0 = audience wall, 144 = rear wall, NaN none), freeX, freeY
                 {0.0, Double.NaN, Double.NaN, 30.0},
                 {Double.NaN, 0.0, 30.0, Double.NaN},
-                {Double.NaN, 144.0, 30.0, Double.NaN},
+                {Double.NaN, SIZE, 30.0, Double.NaN},
                 {0.0, 0.0, Double.NaN, Double.NaN},
-                {0.0, 144.0, Double.NaN, Double.NaN}};
+                {0.0, SIZE, Double.NaN, Double.NaN}};
         int starts = 0;
         for (double[] p : placements) {
             for (int deg : new int[] {0, 90, 180, -90}) {

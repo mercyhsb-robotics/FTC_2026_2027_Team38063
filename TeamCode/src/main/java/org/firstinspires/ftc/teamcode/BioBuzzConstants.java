@@ -14,8 +14,9 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
  *
  * <p>Units are in the name or the comment: {@code _IN} inches, {@code _DEG} degrees,
  * {@code _SEC} seconds, {@code _MS} milliseconds, {@code _TPS} encoder ticks per second,
- * {@code _FRAC} a 0..1 fraction. Field coordinates are the Pedro frame: origin at the corner where
- * the audience wall meets the red wall, +x toward blue, +y away from the audience. Everything
+ * {@code _FRAC} a 0..1 fraction. Field coordinates are the Pedro frame: origin at the INNER corner where
+ * the audience wall meets the red wall (the face of the walls, 141.348 in apart in the official CAD),
+ * +x toward blue, +y away from the audience. Everything
  * field-related is written for the RED alliance and converted for BLUE by a 180 degree rotation
  * about the field center.
  *
@@ -162,8 +163,8 @@ public final class BioBuzzConstants {
          */
         public static final double TIP_SPILL_CLEAR_SEC = 3.0;
         /**
-         * VERIFY (rule G409): the spill zone is the plan footprint of the cell that tips (a 20 in wide box; for the red
-         * audience cell x [49.25, 69.25], y [52.3, 69.9], from field_layout 2.1) grown by this much on every side,
+         * VERIFY (rule G409): the spill zone is the plan footprint of the cell that tips (a 21.06 in wide box; for the red
+         * audience cell x [47.39, 68.45], y [50.61, 69.05], from the CAD) grown by this much on every side,
          * because the balls bounce and roll a little after they land. The other cell's side of the HIVE is not part of
          * it: a robot standing on the far side of the HIVE is clear. 6 in is a guess: POLLEN are 2.8 in balls.
          */
@@ -177,35 +178,51 @@ public final class BioBuzzConstants {
 
         // ---- field zones and layout used by the validator and the diagrams (RED frame) --------
 
-        /** FIXED (manual 9.3, tile A5): the red LOADING ZONE is x [0, 11] ... */
+        /**
+         * FIXED (checklist 3.2-3.4: 11 in +/- 0.125, measured from the wall to the far edge of the tape): the red LOADING ZONE
+         * is 11.0 in deep, x [0, 11] ... The CAD models the tape 0.57 in off the wall (its outer edge is at 11.574), so the
+         * physical zone is probably x 0 to 11.0; the checklist figure is the PLANNING value (a robot that overlaps the zone
+         * by the planned amount is safe whichever is true). Both numbers are known; they differ by 0.57 in.
+         */
         public static final double RED_LOADING_ZONE_X_MIN_IN = 0.0;
         public static final double RED_LOADING_ZONE_X_MAX_IN = 11.0;
-        /** FIXED (manual 9.3, tile A5): ... y [96, 120]. The blue one is its half-turn image. */
-        public static final double RED_LOADING_ZONE_Y_MIN_IN = 96.0;
-        public static final double RED_LOADING_ZONE_Y_MAX_IN = 120.0;
-
-        /** FIXED (manual 9.3): the red GARDEN is about 23 x 2 in in the corner of tile A1. */
-        public static final double RED_GARDEN_X_MIN_IN = 0.0;
-        public static final double RED_GARDEN_X_MAX_IN = 23.0;
-        public static final double RED_GARDEN_Y_MIN_IN = 0.0;
-        public static final double RED_GARDEN_Y_MAX_IN = 2.0;
-        /** VERIFY (manual Fig 9-17, +/- 0.5 in): centers of the 4 red GARDEN POLLEN along the audience wall. */
-        public static final double[] RED_GARDEN_POLLEN_X_IN = {1.4, 4.5, 7.3, 10.3};
-        /** VERIFY: y of those centers (one POLLEN radius off the wall). */
-        public static final double RED_GARDEN_POLLEN_Y_IN = 1.4;
+        /**
+         * FIXED (CAD, the outer edge of the tape; the zone is 22.69 in long and touches seam lines Y and Z within 0.41 in):
+         * ... y [94.584, 117.274]. The blue one is its half-turn image (x [130.348, 141.348], y [24.074, 46.764]).
+         */
+        public static final double RED_LOADING_ZONE_Y_MIN_IN = 94.584;
+        public static final double RED_LOADING_ZONE_Y_MAX_IN = 117.274;
 
         /**
-         * VERIFY (field report 2.1, +/- 1 in): plan footprint of the UP cell, as the distance OUT from the
-         * HIVE pivot line (y = 72) to its inner and outer ends. Red audience UP cell = y [52.3, 69.9].
+         * FIXED (CAD, the outer edge of the two 1 in tape strips, which the CAD puts 0.574 in off both walls): the red GARDEN is
+         * 22.69 x 2 in in the corner of tile A1 (the manual says about 23 x 2).
          */
-        public static final double UP_CELL_PLAN_OUT_NEAR_IN = 2.1;
-        public static final double UP_CELL_PLAN_OUT_FAR_IN = 19.7;
+        public static final double RED_GARDEN_X_MIN_IN = 0.574;
+        public static final double RED_GARDEN_X_MAX_IN = 23.264;
+        public static final double RED_GARDEN_Y_MIN_IN = 0.574;
+        public static final double RED_GARDEN_Y_MAX_IN = 2.574;
         /**
-         * VERIFY (field report 2.1, +/- 1 in): the same for the DOWN cell, which overhangs the frame
-         * (red rear DOWN cell = y [79.4, 96.9]).
+         * FIXED (CAD, spacing 2.89 in; the first POLLEN touches the red wall): centers of the 4 red GARDEN POLLEN along the audience
+         * wall, measured from the red wall.
          */
-        public static final double DOWN_CELL_PLAN_OUT_NEAR_IN = 7.4;
-        public static final double DOWN_CELL_PLAN_OUT_FAR_IN = 24.9;
+        public static final double[] RED_GARDEN_POLLEN_X_IN = {1.40, 4.29, 7.18, 10.07};
+        /** FIXED (CAD): y of those centers: one POLLEN radius (1.4 in) off the audience wall. */
+        public static final double RED_GARDEN_POLLEN_Y_IN = 1.40;
+
+        /**
+         * FIXED (CAD, the hull of the whole cell incl. cable ties, +/- 1 in on the real field): plan footprint of the UP cell, as the
+         * distance OUT from the HIVE pivot line (y = Field.CENTER_IN) to its inner and outer ends. The red audience UP cell is
+         * y [50.61, 69.05], i.e. 1.62 to 20.06 in out from the pivot line (the old report said 2.1 to 19.7).
+         */
+        public static final double UP_CELL_PLAN_OUT_NEAR_IN = 1.62;
+        public static final double UP_CELL_PLAN_OUT_FAR_IN = 20.06;
+        /**
+         * FIXED (CAD): the same for the DOWN cell, which overhangs the frame (the red rear cell DOWN is y [73.39, 95.80]). The
+         * part nearest the pivot is the cell's base tube; the box of the cell itself starts 7.4 in out. The overhang beyond the
+         * frame is high up: at 35.5 in or more above the floor, so a 12.13 in tall robot passes under it.
+         */
+        public static final double DOWN_CELL_PLAN_OUT_NEAR_IN = 2.72;
+        public static final double DOWN_CELL_PLAN_OUT_FAR_IN = 25.13;
 
         /**
          * TUNE: an INTAKE step belongs to a FLOWER or GARDEN when its target point is within this
@@ -261,7 +278,7 @@ public final class BioBuzzConstants {
         public static final double SWEEP_RESOLUTION_IN = 0.001;
         /**
          * TUNE (G417 / G409 design guard): extra clearance, in inches, kept on EVERY side of the HIVE frame footprint.
-         * The validator's keep-out is the whole frame footprint (x 47.27 to 96.73, y 52.53 to 91.47) grown by this much.
+         * The validator's keep-out is the whole frame footprint (x 45.94 to 95.41, y 51.20 to 90.15) grown by this much.
          *
          * <p><b>What the 12.13 in tall robot can actually hit</b> (audit of field_layout.verified.md 2.1 and 2.1b):
          * <ul>
@@ -302,7 +319,8 @@ public final class BioBuzzConstants {
 
         // ---- FLOWER press-in (autoshoot.routes.FlowerPress) -------------------------------------------------------
         // To take the bottom POLLEN out of a FLOWER the flat intake wheels (they spin parallel to the floor at the front
-        // corners) must PRESS INTO the POLLEN and roll it up and over the 0.43 in lip of the lower ring. The two wheels
+        // corners) must PRESS INTO the POLLEN and roll it up and over the lip of the lower ring (0.35 in in the CAD, about 0.43 in
+        // in the manual: the harder number is the safe one for a ball that must be lifted). The two wheels
         // are 12.2 in apart, too far to pinch one 2.8 in POLLEN, so ONE wheel does the pressing while the robot stands
         // to one side of the FLOWER's center line (Robot.INTAKE_WHEEL_OFFSET_IN). The robot faces the wall, drives
         // straight in until that wheel overlaps the POLLEN, runs the intake while it stays pressed, then backs straight
@@ -310,13 +328,13 @@ public final class BioBuzzConstants {
 
         /**
          * ADD: how far (inches) the pressing wheel pushes into the bottom POLLEN, past the POLLEN's field-side edge (which
-         * is 2.4 + 1.4 = 3.8 in from the wall). The front tip of the wheel stops at 3.8 - this = 2.55 in from the wall and
-         * never closer than the POLLEN's center line (2.4 in). 1.25 in is what the drawing gives when the chassis stands
-         * its clearance off the plate and the wheels reach {@code Robot.INTAKE_REACH_IN}: 4.75 + 0.5 - 2.7 = 2.55. Measure
-         * how far the wheel must overlap the ball to roll it over the lip without jamming it against the closed wall
-         * side.
+         * is 2.634 + 1.4 = 4.034 in from the wall). The front tip of the wheel stops at 4.034 - this = 2.833 in from the wall and
+         * never closer than the POLLEN's center line (2.634 in). 1.201 in is what the CAD gives when the chassis stands its
+         * clearance off the plate and the wheels reach {@code Robot.INTAKE_REACH_IN}: 5.033 + 0.5 - 2.7 = 2.833 (the old 144 in
+         * numbers gave 1.25). Measure how far the wheel must overlap the ball to roll it over the lip without jamming it
+         * against the closed wall side.
          */
-        public static final double FLOWER_PRESS_DEPTH_IN = 1.25;
+        public static final double FLOWER_PRESS_DEPTH_IN = 1.201;
         /**
          * ADD: how far (degrees) the robot's heading may be from "facing the wall squarely" when it lines up for a
          * FLOWER. A crooked robot presses the wheel in at an angle and lets the chassis corner swing toward the plate.
@@ -338,8 +356,8 @@ public final class BioBuzzConstants {
         public static final double FLOWER_RETREAT_LENGTH_IN = 6.0;
         /**
          * ADD: the gap (inches) the CHASSIS (the robot without its two flat wheels) keeps from the FLOWER plate while the
-         * wheel is pressed in. The plate is 4.75 in deep, so the chassis front stands at least 4.75 + this from the
-         * wall and the wheel must reach the rest of the way: see {@code Robot.INTAKE_REACH_IN}. Measure the standoff
+         * wheel is pressed in. The plate's field-side edge is 5.033 in from the wall, so the chassis front stands at least
+         * 5.033 + this from the wall and the wheel must reach the rest of the way: see {@code Robot.INTAKE_REACH_IN}. Measure the standoff
          * between the wall and the robot's chassis front when the wheel is properly pressed into the POLLEN.
          */
         public static final double FLOWER_CHASSIS_CLEARANCE_IN = 0.5;
@@ -371,15 +389,15 @@ public final class BioBuzzConstants {
 
         /** TUNE: the SVG is this many pixels wide and tall; the diagrams must stay readable at this size. */
         public static final double RENDER_CANVAS_PX = 900.0;
-        /** TUNE: pixels per field inch. 144 in x 4.6 = 662 px leaves room for the title above and the footer below. */
+        /** TUNE: pixels per field inch. 141.348 in x 4.6 = 650 px leaves room for the title above and the footer below. */
         public static final double RENDER_FIELD_SCALE_PX_PER_IN = 4.6;
         /** TUNE: distance from the top of the SVG to the rear wall of the field. */
         public static final double RENDER_FIELD_TOP_PX = 64.0;
         /** TUNE: an ALLIANCE AREA is really 54 in deep outside the field wall (manual 9.5); only this much of it is drawn (faded out), to leave the field room in a square image. */
         public static final double RENDER_ALLIANCE_AREA_SHOWN_IN = 20.0;
-        /** VERIFY (field report D7): the ALLIANCE AREA spans y 23 to 121 along the wall. */
-        public static final double RENDER_ALLIANCE_AREA_Y_MIN_IN = 23.0;
-        public static final double RENDER_ALLIANCE_AREA_Y_MAX_IN = 121.0;
+        /** FIXED (CAD, the outer edges of the ALLIANCE AREA tape; the manual says about 97 in): the ALLIANCE AREA spans y 22.26 to 119.08 along the wall (96.82 in). */
+        public static final double RENDER_ALLIANCE_AREA_Y_MIN_IN = 22.26;
+        public static final double RENDER_ALLIANCE_AREA_Y_MAX_IN = 119.08;
         /** TUNE: ink of a RED alliance route. */
         public static final String RENDER_INK_RED = "#c62828";
         /** TUNE: ink of a BLUE alliance route. */
@@ -493,7 +511,7 @@ public final class BioBuzzConstants {
          * read off the drawing: the outer perimeter reaches 9.77 in ahead of the center of rotation and the frame 7.1 in.
          * {@link #LENGTH_IN} INCLUDES these wheels, so everything that plans with the footprint (the TeleOp auto-shoot,
          * the route validator) sees the same rectangle. The wheels must reach at least
-         * {@code Field.FLOWER_PLATE_DEPTH_IN + Auto.FLOWER_CHASSIS_CLEARANCE_IN - the press stop line} = 2.7 in to press
+         * {@code Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN + Auto.FLOWER_CHASSIS_CLEARANCE_IN - the press stop line} = 2.7 in to press
          * a FLOWER's POLLEN with the chassis kept off its plate; the route validator checks it and says how many
          * inches are missing.
          */
@@ -576,6 +594,16 @@ public final class BioBuzzConstants {
          * center is probably a little lower. The other rows are PLACEHOLDERS that follow a typical
          * speed-vs-range slope; record the real speed that scores at 3-5 distances with the shooter
          * tuner and replace them.
+         *
+         * <p>THE ANCHOR ROW IS A MEASUREMENT, so it is NOT changed when the field numbers change. But the
+         * model computes the range of that same physical shot from the field: with the official CAD the aim
+         * point is 54.156 in from the audience wall (the old 144 in field said 55.52) and the ball exit is
+         * 17.80 in from the wall, so the model says 36.36 in for the very place where the team measured
+         * 37.7 in: 1.34 in less. Either the tape measured something slightly different, or the ball leaves
+         * the robot farther forward than {@code Robot.LAUNCH_POINT_FORWARD_IN} says (the robot CAD suggests
+         * 6.58 in behind the center of rotation, which would give 37.8 in). On the real robot,
+         * re-measure the distance from the ball exit to the cell opening center with a tape (see
+         * docs/DAY_ONE_CHECKLIST.md) before trusting the rows next to the anchor.
          */
         public static final double[][] SHOT_TABLE = {
                 {30.0, 1150.0},
@@ -930,14 +958,14 @@ public final class BioBuzzConstants {
 
         /**
          * VERIFY: where a RED robot stands at the start of TeleOp if the pose was not carried over from
-         * autonomous (RED frame; BLUE is the half-turn of it): the CENTER of tile C1 (60 in from the red
-         * wall, 0.75 in from the HIVE axis), robot FRONT pressed against the audience wall, back toward the
+         * autonomous (RED frame; BLUE is the half-turn of it): the CENTER of tile C1 (58.924 in from the red
+         * wall, 1.0 in from the HIVE axis), robot FRONT pressed against the audience wall, back toward the
          * HIVE. This is also the one measured good shot position (37.7 in from the aim point). The robot must
          * really be placed here for odometry to be right. The position is the robot's center of rotation, which is
          * {@link Robot#FRONT_EXTENT_IN} behind the front edge, so the Y value is that distance (the front edge is then
          * exactly on the wall; the start check in ConstantsCheck rejects a value that would put the robot through it).
          */
-        public static final double DEFAULT_START_X_IN = 60.0;
+        public static final double DEFAULT_START_X_IN = Field.CENTER_IN - Field.TILE_PITCH_IN / 2.0;
         public static final double DEFAULT_START_Y_IN = Robot.FRONT_EXTENT_IN;
         public static final double DEFAULT_START_HEADING_DEG = -90.0;
         /** TUNE: a pose saved by an earlier OpMode is only trusted if it is newer than this (seconds). */
@@ -954,41 +982,88 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
-    // FIELD AND HIVE (manual TU09 sections 9.2-9.9; RED frame)
+    // FIELD AND HIVE (the official field CAD, v26-27.2, read with the manual TU09 sections 9.2-9.9; RED frame)
+    //
+    // THE FRAME. Every coordinate in this group (and in Auto below) is in the WALL-CORNER frame: the origin is the
+    // INNER corner where the red wall meets the audience wall, +x runs toward blue along the audience wall, +y runs away
+    // from the audience along the red wall, heading 0 is +x and angles grow counter-clockwise. "The wall" always means the
+    // inner face of the polycarbonate panel, the face a robot can touch. A robot pressed against a wall therefore has its
+    // edge at 0 (or SIZE_IN), and its pose point is that edge's distance (Robot.*_EXTENT_IN) from the wall.
+    // The BLUE alliance is the RED one turned half a turn about the field center (CENTER_IN, CENTER_IN):
+    // (x, y, heading) becomes (SIZE_IN - x, SIZE_IN - y, heading + 180 degrees).
     // =========================================================================================
     public static final class Field {
         private Field() {
         }
 
-        /** FIXED (manual 9.2): the field interior is 144 x 144 in. */
-        public static final double SIZE_IN = 144.0;
-
-        /** FIXED (manual 9.6.1): the HIVE frame is 49.46 in wide along x ... */
-        public static final double HIVE_FRAME_WIDTH_X_IN = 49.46;
-        /** FIXED (manual 9.6.1): ... and 38.95 in deep along y, centered on the field center. */
-        public static final double HIVE_FRAME_DEPTH_Y_IN = 38.95;
-
-        /** FIXED (manual Fig 9-10): the red HIVE axis is 12.75 in left of the field center (HIVEs are 25.5 in apart). */
-        public static final double RED_HIVE_AXIS_X_IN = 59.25;
-        /** FIXED (manual 9.6.2): a CELL opening is 20 in wide. */
-        public static final double CELL_OPENING_WIDTH_IN = 20.0;
+        /**
+         * FIXED (official field CAD, v26-27.2): the field interior, wall face to wall face, is 141.348 in square. The manual
+         * (9.2) only says "approximately 144 in" (+/- 1 in), but its own CAD is 2.65 in smaller, an older FIRST field guide
+         * says about 141 in for the same perimeter kit, and AndyMark's tiles (24.25 to 24.375 in across, laid edge to edge
+         * with a 23.5 in pitch) agree. We trust the CAD. Two small facts: a thin rail runs along the top and the bottom of
+         * every wall panel and sticks out 0.089 in past the glass (it is the first thing a robot with material at 10.5 to
+         * 11.6 in or below 0.6 in touches), and real fields vary by about +/- 1 in (tiles can drift by 3/4 in across the
+         * field), so 0.05 in digits are modelling precision, not field truth.
+         */
+        public static final double SIZE_IN = 141.348;
+        /**
+         * Derived from {@link #SIZE_IN}, not a setting: the field's middle on each axis, 70.674 in. The HIVE frame is centered on
+         * it, the half turn between the alliances is about it, and y = this splits the audience half from the rear half.
+         */
+        public static final double CENTER_IN = SIZE_IN / 2.0;
 
         /**
-         * FIXED (derived from manual Fig 9-9/9-10 and the FTC SDK AprilTagGameDatabase): distance
-         * from the HIVE pivot-axis plane (y = 72) out to the cluster ORIGIN of an UP cell. The cluster
-         * origin is the center of the CELL opening, which is the point to aim at.
+         * FIXED (CAD + AndyMark): the floor tiles are laid with a 23.5 in pitch (centre to centre), not 24 in; six of them make
+         * 141 in. The two outer tiles of each row are cut to fit the walls. So the seams (tile edges) are at
+         * {@code CENTER_IN +/- 23.5, +/- 47.0}: x or y = 23.674, 47.174, 70.674, 94.174, 117.674. {@code core/TileGrid} turns
+         * these numbers into seams and tile names.
          */
-        public static final double UP_CELL_ORIGIN_OUT_IN = 16.48;
-        /** FIXED (same derivation): height of that aim point above the floor for an UP cell. */
-        public static final double UP_CELL_ORIGIN_Z_IN = 58.31;
-        /** FIXED (same derivation): distance out from the pivot plane to the middle of the AprilTag row of an UP cell. */
-        public static final double UP_CELL_TAG_ROW_OUT_IN = 13.07;
-        /** FIXED (same derivation): height of the AprilTag row of an UP cell. */
-        public static final double UP_CELL_TAG_ROW_Z_IN = 49.85;
-        /** FIXED (same derivation): height of the AprilTag row of a DOWN cell (used to tell UP from DOWN by tag height). */
-        public static final double DOWN_CELL_TAG_ROW_Z_IN = 35.58;
+        public static final double TILE_PITCH_IN = 23.5;
+        /** FIXED (manual 9.2): the floor is 6 x 6 tiles. Columns A to F run along x from the red wall, rows 1 to 6 along y from the audience wall. */
+        public static final int TILES_PER_SIDE = 6;
 
-        /** FIXED (manual 9.9 / SDK): tag centers along the sticker, from its centerline, in tag-ID order. */
+        /**
+         * FIXED (CAD, the two foot bars of the HIVE frame, which hold the frame to the floor; manual 9.6.1 says 49.46): the HIVE frame
+         * is 49.466 in wide along x ... Two cells hang from the frame, and the red and the blue HIVE share it.
+         */
+        public static final double HIVE_FRAME_WIDTH_X_IN = 49.466;
+        /** FIXED (CAD; manual 9.6.1 says 38.95): ... and 38.944 in deep along y, centered on the field center. */
+        public static final double HIVE_FRAME_DEPTH_Y_IN = 38.944;
+
+        /**
+         * FIXED (manual Fig 9-10 and the CAD, which measures 25.500 in): the distance between the axes of the two HIVEs, 25.5 in.
+         * The red HIVE axis is half of it left of the field center and the blue one half of it right. (The CAD axles are at
+         * 57.931 and 83.431, i.e. 0.007 in right of this exact picture: its own half-turn mismatch, far below anything that matters.)
+         */
+        public static final double HIVE_AXIS_SPACING_IN = 25.5;
+        /** FIXED (the line above): the red HIVE axis, the center line of its cell openings, 12.75 in left of the field center: 57.924 in. */
+        public static final double RED_HIVE_AXIS_X_IN = CENTER_IN - HIVE_AXIS_SPACING_IN / 2.0;
+        /** FIXED (CAD: 20.03 in; manual 9.6.2 says 20): a CELL opening is 20.03 in wide (and 14.03 in tall). */
+        public static final double CELL_OPENING_WIDTH_IN = 20.03;
+        /**
+         * FIXED (CAD, the hull of a whole cell including its cable ties): a cell's PLAN outline is 21.06 in wide along x (the
+         * opening plus the cell's side walls). The spill zone and the diagrams use it; the aim point and the cone use the opening.
+         */
+        public static final double CELL_PLAN_WIDTH_X_IN = 21.06;
+
+        /**
+         * FIXED (CAD: the sticker's cluster origin, the SDK AprilTagGameDatabase's point, lies at the middle of the opening on the
+         * cell's front plane): distance from the HIVE pivot-axis plane (y = CENTER_IN) out to the cluster ORIGIN of an UP cell,
+         * 16.518 in. The cluster origin is the center of the CELL opening, which is the point to aim at.
+         */
+        public static final double UP_CELL_ORIGIN_OUT_IN = 16.518;
+        /** FIXED (CAD): height of that aim point above the floor for an UP cell, 58.254 in. */
+        public static final double UP_CELL_ORIGIN_Z_IN = 58.254;
+        /** FIXED (CAD, tag centres measured from the sticker art and the cell): distance out from the pivot plane to the middle of the AprilTag row of an UP cell, 13.104 in. */
+        public static final double UP_CELL_TAG_ROW_OUT_IN = 13.104;
+        /** FIXED (CAD): height of the AprilTag row of an UP cell, 49.791 in. */
+        public static final double UP_CELL_TAG_ROW_Z_IN = 49.791;
+        /** FIXED (CAD): height of the AprilTag row of a DOWN cell, 35.522 in (used to tell UP from DOWN by tag height). */
+        public static final double DOWN_CELL_TAG_ROW_Z_IN = 35.522;
+        /** FIXED (CAD): distance out from the pivot plane to the middle of the AprilTag row of a DOWN cell, 11.611 in (the cell swings in toward the pivot as it tips down). */
+        public static final double DOWN_CELL_TAG_ROW_OUT_IN = 11.611;
+
+        /** FIXED (manual 9.9 / SDK, and the production art; the CAD agrees exactly): tag centers along the sticker, from its centerline, in tag-ID order. */
         public static final double[] TAG_X_OFFSETS_IN = {-6.5, -2.75, 2.75, 6.5};
         /** FIXED (manual 9.9): tags are 3.25 in square (82.55 mm). */
         public static final double TAG_SIZE_IN = 3.25;
@@ -1010,29 +1085,40 @@ public final class BioBuzzConstants {
         public static final Side BLUE_UP_SIDE_AT_MATCH_START = Side.REAR;
 
         /**
-         * FIXED (manual 9.7, Fig 9-17): the four FLOWERS, as {x, y} centers of their wall plates, in
-         * the RED frame. They are obstacles for the path planner (a robot may touch one only to
-         * retrieve POLLEN).
+         * FIXED (CAD): the four FLOWERS, as {x, y} centers of the POLLEN stack, in the RED frame, each 2.634 in out from its wall (see
+         * {@link #FLOWER_POLLEN_CENTER_FROM_WALL_IN}). In order: the red (left) wall, the rear wall, the blue (right) wall, the
+         * audience wall. They are obstacles for the path planner (a robot may touch one only to retrieve POLLEN). The CAD puts
+         * every FLOWER on a tile seam to within 0.11 in, and the four are half-turn images of each other to 0.000 in.
          */
         public static final double[][] FLOWER_CENTERS_IN = {
-                {2.4, 48.0}, {48.0, 141.6}, {141.6, 96.0}, {96.0, 2.4}};
+                {2.634, 47.281}, {47.281, 138.714}, {138.714, 94.067}, {94.067, 2.634}};
         /**
-         * FIXED (manual Fig 9-12): the FLOWER base plate, 4.75 in deep (out from the wall) ...
-         * The plate is what the robot must not touch; the POLLEN stack stands in its middle.
+         * FIXED (CAD, the bottom ring "Layer X": the plate the robot must not touch; the manual's Fig 9-12 says 4.75): the FLOWER base
+         * plate is 4.871 in deep (measured out from its own back edge) ... The POLLEN stack stands in its middle. The rings above
+         * it (the middle ring is 5.013 in deep and is at 3.9 to 5.25 in up, inside the robot's height) end at about the same
+         * distance from the wall, so the plate is what a robot hits.
          */
-        public static final double FLOWER_PLATE_DEPTH_IN = 4.75;
-        /** FIXED (manual Fig 9-12): ... and 5.87 in long along the wall, centered on the FLOWER's center point. */
-        public static final double FLOWER_PLATE_ALONG_WALL_IN = 5.87;
+        public static final double FLOWER_PLATE_DEPTH_IN = 4.871;
+        /** FIXED (CAD): ... whose back edge stands 0.162 in off the wall face (a thin gap the robot cannot enter). */
+        public static final double FLOWER_PLATE_GAP_TO_WALL_IN = 0.162;
         /**
-         * FIXED (manual Fig 9-12 / 9.7): the center line of the POLLEN stack is this far (inches) out from the wall. The
-         * bottom POLLEN is 2.8 in across ({@code Auto.POLLEN_DIAMETER_IN}), so it spans 1.0 to 3.8 in from the wall.
-         * (The FLOWER centers below are on this line.)
+         * Derived, not a setting: how far the FIELD-SIDE edge of the plate is from the wall, 5.033 in
+         * ({@link #FLOWER_PLATE_GAP_TO_WALL_IN} + {@link #FLOWER_PLATE_DEPTH_IN}). Every check calls THIS "how deep the plate is",
+         * because the robot cannot reach into the gap behind it: the plate is drawn and checked as a box from the wall out to here.
          */
-        public static final double FLOWER_POLLEN_CENTER_FROM_WALL_IN = 2.4;
-        /** FIXED (manual Fig 9-12): FLOWER plate extent measured along the wall; used as a planning keep-out. */
-        public static final double FLOWER_KEEPOUT_ALONG_WALL_IN = 6.0;
-        /** FIXED (manual Fig 9-12): FLOWER plate depth out from the wall; used as a planning keep-out. */
-        public static final double FLOWER_KEEPOUT_DEPTH_IN = 5.0;
+        public static final double FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN = FLOWER_PLATE_GAP_TO_WALL_IN + FLOWER_PLATE_DEPTH_IN;
+        /** FIXED (CAD; the manual says 5.87): ... and 5.95 in long along the wall, centered on the FLOWER's center point. */
+        public static final double FLOWER_PLATE_ALONG_WALL_IN = 5.95;
+        /**
+         * FIXED (CAD; the manual's Fig 9-12 says 2.4): the center line of the POLLEN stack is this far (inches) out from the wall face.
+         * The bottom POLLEN is 2.8 in across ({@code Auto.POLLEN_DIAMETER_IN}), so it spans 1.234 to 4.034 in from the wall.
+         * (The FLOWER centers above are on this line.)
+         */
+        public static final double FLOWER_POLLEN_CENTER_FROM_WALL_IN = 2.634;
+        /** Derived (the plate): FLOWER keep-out extent measured along the wall, 5.95 in; the TeleOp planner grows it by its own margin. */
+        public static final double FLOWER_KEEPOUT_ALONG_WALL_IN = FLOWER_PLATE_ALONG_WALL_IN;
+        /** Derived (the plate): FLOWER keep-out depth out from the wall, 5.033 in. */
+        public static final double FLOWER_KEEPOUT_DEPTH_IN = FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN;
     }
 
     // =========================================================================================

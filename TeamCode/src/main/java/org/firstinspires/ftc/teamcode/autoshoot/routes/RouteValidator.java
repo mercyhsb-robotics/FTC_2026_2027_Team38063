@@ -364,11 +364,11 @@ public final class RouteValidator {
         double reach = intakeReachIn;
         if (press.reachMissingIn(reach) > EPS) {
             // with the chassis standing its clearance off the plate, the wheel tip can get no closer to the wall than this
-            double tipFromWall = BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN - reach;
+            double tipFromWall = BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN - reach;
             double pollenEdge = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0;
             out.add(error(info.index, Rule.FLOWER_PRESS, what + ": the flat wheels stick out only " + in(reach) + " in front of the"
                     + " chassis (Robot.INTAKE_REACH_IN), too short for the press: with the chassis "
-                    + in(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN) + " off the " + in(BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN)
+                    + in(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN) + " off the " + in(BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN)
                     + " deep plate the wheel tip reaches only " + in(tipFromWall) + " from the wall, "
                     + (tipFromWall < pollenEdge ? "pressing the POLLEN in " + in(pollenEdge - tipFromWall)
                     + " instead of the " + in(BioBuzzConstants.Auto.FLOWER_PRESS_DEPTH_IN) : "which does not even touch the POLLEN (its edge is "
