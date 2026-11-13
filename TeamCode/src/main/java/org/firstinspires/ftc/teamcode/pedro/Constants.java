@@ -41,8 +41,14 @@ public class Constants {
         c.offsetUnits.set(DistanceUnit.INCH);
     });
 
-    // PROVISIONAL: these are the official documentation's example Foresight
-    // values, NOT values measured on your robot. Run Foresight AutoTune.
+    // PROVISIONAL: these are the official documentation's example Foresight values, NOT values
+    // measured on this robot. They are complete and work as a starting point (every required
+    // field is set), so paths run today, just less accurately.
+    //
+    // TO REPLACE THEM: run "Foresight Tuner" from the Pedro tuning menu (registered in
+    // Tuning.java; see the order and floor-space notes there). It ends by printing a full
+    // foresightConfig block; paste its contents over the body of the lambda below, then delete
+    // this PROVISIONAL note.
     public static ForesightConfig foresightConfig = new ForesightConfig(c -> {
         Controller forwardPrimary = Controller.proportional(0.3);
         Controller forwardSecondary = Controller.proportional(0.1);
