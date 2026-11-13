@@ -11,8 +11,9 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * <p>A candidate shooting pose has its ball exit on the side the opening faces, inside a cone around
  * the opening's centre line, at a range inside the measured shot-table band, with the shooter (the
  * robot's back) pointed straight at the aim point. A candidate is feasible if the robot's footprint at
- * that pose is inside the field and clear of the HIVE frame and the FLOWERS, and a collision-free route
- * to it exists. Among the feasible candidates the cheapest (travel + turning + small preferences) wins.
+ * that pose is inside the field and clear of the HIVE frame and the FLOWERS, and a route to it exists that the
+ * whole robot can drive without touching a wall or an obstacle. Among the feasible candidates the cheapest (travel +
+ * turning + small preferences) wins.
  *
  * <p>Where it sits in the data flow: when the driver holds the shoot button, the PLAN state of
  * {@link AutoShootController} calls {@link #solve} with the robot's pose (from odometry) and the cell the
@@ -41,6 +42,26 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * steps) and every azimuth in the cone (in steps) it builds one candidate pose, throws it away if the robot would
  * not fit or cannot get there, and keeps the cheapest survivor. That is only a few hundred candidates, which is
  * fast enough to do when the button is pressed.
+ *
+ * <p><b>Why the route is checked as a rectangle, not a point.</b> The road to a candidate is first found for a single
+ * dot, the robot's center ({@link PathPlanner}); a dot has no corners, so that road keeps the dot only half a robot
+ * width from a wall. But the robot is a 17.8 in square and it TURNS while it drives (see {@link HeadingProfile}), and a
+ * square that is turned needs more room: turned 25 degrees it needs 11.8 in from its center to the wall, not 8.9 in,
+ * and turned 45 degrees it needs 12.6 in. A robot that starts against a wall facing the wrong way and turns on its way
+ * to the shooting spot can therefore push a corner through the wall, although the dot never goes near it and the
+ * standing pose at the end is fine. So every candidate's road is walked with the real rotated rectangle
+ * ({@link RouteSweep}) against the four walls, the HIVE frame and the FLOWER plates. A road that fails is repaired,
+ * cheapest fix first:
+ * <ol>
+ *   <li>turn only where there is room: keep the starting heading while the robot is still close to the wall, do the
+ *       whole turn on the stretch of the road where the robot could spin on the spot, and be finished before the road
+ *       gets close to a wall again;</li>
+ *   <li>a detour: drive straight out to open floor, turn on the way across, and come back in (a bend is added to the
+ *       trip if the turn needs a longer road to stay gentle enough for the robot to follow);</li>
+ *   <li>if neither is safe the candidate is thrown away exactly like a pose that is blocked. If every candidate is
+ *       thrown away the answer is {@link Status#NO_FEASIBLE_POSE} and the controller stops instead of driving.</li>
+ * </ol>
+ * The repaired turn window travels in the {@link Solution} so the drive follows exactly what was checked.
  *
  * <p>Frame: Pedro field frame, inches and radians (0 = +x, counter-clockwise positive).
  */
