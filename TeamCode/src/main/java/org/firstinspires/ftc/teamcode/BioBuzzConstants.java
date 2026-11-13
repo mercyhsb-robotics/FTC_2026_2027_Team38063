@@ -842,8 +842,17 @@ public final class BioBuzzConstants {
 
         /** VERIFY: feeder servo power while pushing a ball (the team's code uses 0.3; the stock StarterBot uses 1.0). */
         public static final double FEEDER_FORWARD_POWER = 0.3;
-        /** VERIFY: feeder power when clearing a jam (runs the other way). */
-        public static final double FEEDER_REVERSE_POWER = 0.3;
+        /**
+         * VERIFY: feeder (indexer) power when it is run BACKWARD by hand to clear a jammed POLLEN. Kept slow on purpose
+         * (0 to 1; 0.15 is about half the forward speed): fast enough to free a ball, slow enough not to throw it.
+         */
+        public static final double FEEDER_REVERSE_POWER = 0.15;
+        /**
+         * VERIFY: flywheel motor power (0 to 1) when it is run BACKWARD by hand to clear a jammed POLLEN. This is plain
+         * motor power with no speed control, so it stays gentle: raise it a little at a time only if a ball does not
+         * come free.
+         */
+        public static final double FLYWHEEL_UNJAM_POWER = 0.15;
         /** VERIFY: set true if "forward" feeds the ball the wrong way. */
         public static final boolean FEEDER_INVERTED = false;
 
@@ -1160,6 +1169,19 @@ public final class BioBuzzConstants {
         public static final Button ALLIANCE_RED_BUTTON = Button.DPAD_LEFT;
         /** TUNE: during INIT, press this to choose the BLUE alliance. */
         public static final Button ALLIANCE_BLUE_BUTTON = Button.DPAD_RIGHT;
+        /** FIXED (safety): the jam-clearing reverse powers may never be set above this (0 to 1), so a typo cannot make them fast. */
+        public static final double UNJAM_MAX_POWER = 0.5;
+        /**
+         * TUNE: HOLD this to run the indexer (the feeder) slowly BACKWARD and free a jammed POLLEN (speed:
+         * Shooter.FEEDER_REVERSE_POWER). It stops when you let go, and it stops any automatic shooting.
+         */
+        public static final Button UNJAM_INDEXER_BUTTON = Button.LEFT_BUMPER;
+        /**
+         * TUNE: HOLD this to run the shooter flywheel slowly BACKWARD and free a jammed POLLEN (speed:
+         * Shooter.FLYWHEEL_UNJAM_POWER). It stops when you let go, and it stops any automatic shooting. (During INIT
+         * the same D-pad button chooses the alliance; the two uses never overlap.)
+         */
+        public static final Button UNJAM_SHOOTER_BUTTON = Button.DPAD_RIGHT;
 
         /** TUNE: a trigger counts as pressed beyond this (0-1). */
         public static final double TRIGGER_THRESHOLD = 0.3;

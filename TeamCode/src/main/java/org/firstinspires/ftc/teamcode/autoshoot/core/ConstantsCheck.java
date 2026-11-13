@@ -114,6 +114,28 @@ public final class ConstantsCheck {
         if (Math.abs(BioBuzzConstants.Shooter.FEEDER_FORWARD_POWER) > 1.0 || Math.abs(BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER) > 1.0) {
             r.errors.add("Shooter.FEEDER_*_POWER must be between -1 and 1.");
         }
+        // The jam-clearing reverse must be slow (a fast reverse can throw the ball or hurt the mechanism) and must run.
+        double unjamMax = BioBuzzConstants.Controls.UNJAM_MAX_POWER;
+        if (BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER <= 0.0 || BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER > unjamMax) {
+            r.errors.add("Shooter.FEEDER_REVERSE_POWER must be above 0 and at most " + unjamMax
+                    + ": the jam-clearing reverse is meant to be slow.");
+        }
+        if (BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER <= 0.0 || BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER > unjamMax) {
+            r.errors.add("Shooter.FLYWHEEL_UNJAM_POWER must be above 0 and at most " + unjamMax
+                    + ": the jam-clearing reverse is meant to be slow.");
+        }
+        // The two jam-clearing buttons must be different from each other and from the other TeleOp buttons.
+        Button indexerButton = BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON;
+        Button shooterButton = BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON;
+        if (indexerButton == shooterButton) {
+            r.errors.add("Controls.UNJAM_INDEXER_BUTTON and UNJAM_SHOOTER_BUTTON are the same button.");
+        }
+        for (Button unjam : new Button[]{indexerButton, shooterButton}) {
+            if (unjam == BioBuzzConstants.Controls.SHOOT_BUTTON || unjam == BioBuzzConstants.Controls.TOGGLE_HIVE_BUTTON
+                    || unjam == BioBuzzConstants.Controls.RESET_POSE_BUTTON) {
+                r.errors.add("A jam-clearing button (" + unjam + ") is also used for shooting, the HIVE toggle or the pose reset.");
+            }
+        }
 
         // ---- robot size (rule R102: the start configuration fits an 18 in cube)
         if (BioBuzzConstants.Robot.LENGTH_IN <= 0 || BioBuzzConstants.Robot.WIDTH_IN <= 0) {
