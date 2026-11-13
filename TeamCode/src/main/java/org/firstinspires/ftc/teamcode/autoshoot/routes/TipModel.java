@@ -132,6 +132,26 @@ public final class TipModel {
     }
 
     /**
+     * How many POLLEN of a camera-gated volley are still launched AFTER the one that tips the HIVE, before the feeder can stop. The POLLEN
+     * leave the shooter {@code secondsPerShot} apart. The one that tips lands {@code flightSec} after it left, and the feeder has stopped
+     * {@code stopLatencySec} after that landing. So the j-th POLLEN after the tipping one (it leaves j x secondsPerShot later) is launched if
+     * {@code j x secondsPerShot < flightSec + stopLatencySec}. At most {@code spare}, the POLLEN the volley plans beyond what the cell needed.
+     *
+     * <p>Example with the shipped numbers (0.9 s between POLLEN, 0.5 s flight, 0.85 s to stop): the next POLLEN leaves 0.9 s after the tipping
+     * one, the feeder stops 1.35 s after it, so one POLLEN is launched into the cell that is swinging down; the one after that (1.8 s) is not. With a
+     * feeder that stops within 0.4 s of the landing, none is.
+     */
+    public static int launchedBeforeTheFeederStops(int spare, double secondsPerShot, double flightSec, double stopLatencySec) {
+        if (spare <= 0 || !(secondsPerShot > 0.0)) {
+            return 0;
+        }
+        // j x secondsPerShot < window  <=>  j < window / secondsPerShot: the largest such whole j is ceil(window / secondsPerShot) - 1
+        // (the 1e-9 keeps a window that is exactly j x secondsPerShot from counting the j-th POLLEN)
+        int fed = (int) Math.ceil((flightSec + stopLatencySec) / secondsPerShot - 1e-9) - 1;
+        return Math.max(0, Math.min(spare, fed));
+    }
+
+    /**
      * One volley worked out in plain words: what the UP cell holds and what the volley does to it, for example
      * {@code "the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8
      * POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the volley stops there; the last 1
@@ -147,6 +167,15 @@ public final class TipModel {
      * tipping down.
      */
     public static String explainVolley(int nectar, int pollenBefore, int count, boolean stopsAtTip) {
+        return explainVolley(nectar, pollenBefore, count, stopsAtTip, 0);
+    }
+
+    /**
+     * The same, saying how many of the POLLEN after the tipping one the camera-gated volley still launches before its feeder can stop
+     * ({@code launchedAfterTip}, see {@link #launchedBeforeTheFeederStops}): those go into the cell that is swinging down and are spent, so
+     * only the rest of the spare stays in the robot. The camera needs about {@code Auto.TIP_STOP_LATENCY_SEC} to see the tip, which is a guess to be measured.
+     */
+    public static String explainVolley(int nectar, int pollenBefore, int count, boolean stopsAtTip, int launchedAfterTip) {
         int threshold = BioBuzzConstants.Auto.TIP_POLLEN_EQUIVALENT_THRESHOLD;
         int pollenAfter = pollenBefore + count;
         StringBuilder s = new StringBuilder();
@@ -159,7 +188,15 @@ public final class TipModel {
                     .append(equivalentsText(nectar, onTheTip)).append(" POLLEN-equivalents, the ").append(threshold)
                     .append(" that tip a cell, so the HIVE tips on POLLEN ").append(needed).append(" of the ").append(count);
             int spare = count - needed;
-            if (spare > 0 && stopsAtTip) {
+            if (spare > 0 && stopsAtTip && launchedAfterTip > 0) {
+                int kept = spare - launchedAfterTip;
+                s.append(" and the camera stops the volley, but only about ").append(String.format(java.util.Locale.ROOT, "%.2f",
+                        BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC)).append(" s after the tip, so the next ").append(launchedAfterTip)
+                        .append(" POLLEN ").append(launchedAfterTip == 1 ? "is" : "are").append(" probably launched into the cell while it swings down and ")
+                        .append(launchedAfterTip == 1 ? "is" : "are").append(" spent")
+                        .append(kept > 0 ? "; the last " + kept + " stay" + (kept == 1 ? "s" : "") + " in the robot" : "; none stays in the robot as a spare")
+                        .append(" (the spare is for a field that needs one more POLLEN, not a POLLEN to carry on)");
+            } else if (spare > 0 && stopsAtTip) {
                 s.append(" and the volley stops there; the last ").append(spare).append(" stay").append(spare == 1 ? "s" : "")
                         .append(" in the robot as the spare");
             } else if (spare > 0) {

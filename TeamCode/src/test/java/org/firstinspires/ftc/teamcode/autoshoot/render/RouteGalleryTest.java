@@ -205,11 +205,11 @@ public class RouteGalleryTest {
         assertEquals("6", rowValue(garden, "Steps"));
         assertTrue(rowValue(garden, "Estimated time"), rowValue(garden, "Estimated time").contains("placeholder"));
         assertEquals("23 = LEAVE 3 + PARK 0 + our HIVE TIP 20", rowValue(garden, "Our AUTO points"));
-        assertEquals("the volley stops at the tip and keeps the spare: 3 fired, 1 kept + 3 taken = 4 at the end",
-                "hold 4 at the start, +3 taken, -3 fired, 4 at the end (balance 0)", rowValue(garden, "POLLEN"));
+        assertEquals("the camera stops the feeder only after the 4th is launched: 4 fired, 0 kept + 3 taken = 3 at the end",
+                "hold 4 at the start, +3 taken, -4 fired, 3 at the end (balance -1)", rowValue(garden, "POLLEN"));
         assertEquals("1 (the first needs 3 POLLEN into the UP cell, each later one 8; 1 POLLEN to spare, so a field that needs 1 more still tips)",
                 rowValue(garden, "Our HIVE TIPs"));
-        assertEquals("no findings", rowValue(garden, "Validator"));
+        assertEquals("the one WARN: the spare is probably spent", "1 WARN", rowValue(garden, "Validator"));
         Element c1 = section(page, "red_c1");
         assertEquals("3 ERROR, 1 WARN", rowValue(c1, "Validator"));
         assertTrue(rowValue(c1, "Ends"), rowValue(c1, "Ends").startsWith("LEAVE yes, PARK yes"));
@@ -350,7 +350,9 @@ public class RouteGalleryTest {
         List<Element> garden = withClass(section(page, "garden_cycle"), "li", "tipline");
         assertEquals(1, garden.size());
         assertEquals("Step 2: the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley fires up to 4: 3 NECTAR x 5/3 + 3 POLLEN = 8 POLLEN-equivalents,"
-                + " the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the volley stops there; the last 1 stays in the robot as the spare.",
+                + " the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN"
+                + " is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare (the spare is for a field that needs"
+                + " one more POLLEN, not a POLLEN to carry on).",
                 garden.get(0).getTextContent());
         // the partner family: the partner's tip, then our volley into the empty cell that came up
         List<Element> partner = withClass(section(page, "partner_rear"), "li", "tipline");
@@ -377,9 +379,10 @@ public class RouteGalleryTest {
         String b1 = withClass(section(page, "red_b1"), "li", "tipline").get(0).getTextContent();
         assertTrue(b1, b1.contains("so the HIVE tips on POLLEN 3 of the 4; this volley is TIMED and cannot stop, so the last 1 goes into a cell that is already tipping down."));
         assertFalse(b1, b1.contains("stays in the robot"));
-        // a camera-gated volley keeps its spare
+        // a camera-gated volley is better, but not instant: it stops only after the camera has seen the tip, so the spare is probably spent
         String wall = withClass(section(page, "wall_shoot_park"), "li", "tipline").get(0).getTextContent();
-        assertTrue(wall, wall.contains("the volley stops there; the last 1 stays in the robot as the spare"));
+        assertTrue(wall, wall.contains("the camera stops the volley, but only about 0.85 s after the tip, so the next 1 POLLEN is probably launched into the cell while it swings down"));
+        assertFalse(wall, wall.contains("stays in the robot as the spare"));
     }
 
     @Test
@@ -451,7 +454,9 @@ public class RouteGalleryTest {
         Document page = parse(RouteGallery.indexHtml(Collections.singletonList(two)));
         List<Element> notes = withClass(section(page, "two"), "div", "confirmnote");
         assertEquals(1, notes.size());
-        assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("stands here for 0.5 s until its camera has seen the cell that came up with its own tip steady"));
+        // the 4th POLLEN of the first volley is launched before the feeder stops, which is 0.9 s after the 3rd left; the tip lands 0.5 s after it left and is
+        // confirmed 0.5 s after that: the robot has only 0.1 s left to wait
+        assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("stands here for 0.1 s until its camera has seen the cell that came up with its own tip steady"));
         assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("never because a time has passed"));
         // a route with a single volley has no such wait
         assertEquals(0, withClass(section(parse(RouteGallery.indexHtml(RouteCatalog.all())), "garden_cycle"), "div", "confirmnote").size());
@@ -486,10 +491,17 @@ public class RouteGalleryTest {
         }
         assertEquals(5, errors);
         assertTrue("one shared list when red and blue agree", b1.getTextContent().contains("Same for RED and BLUE."));
-        Element clean = section(page, "wall_shoot_park");
-        List<Element> ok = withClass(clean, "li", "ok");
-        assertEquals(1, ok.size());
-        assertEquals(0, withClass(clean, "li", "error").size());
+        // wall_shoot_park has no ERROR; its one finding is the WARN that the spare is probably spent
+        Element demo = section(page, "wall_shoot_park");
+        assertEquals(0, withClass(demo, "li", "ok").size());
+        assertEquals(1, withClass(demo, "li", "issue").size());
+        assertEquals("WARN", withClass(demo, "li", "issue").get(0).getAttribute("data-severity"));
+        // a route with nothing to say says "ok"
+        AutoRoute clean = AutoRoute.builder("clean").title("Clean").description("d").startTile("B1").start(30, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
+                .driveConstant(30, 60, -90).build();
+        Element ok = section(parse(RouteGallery.indexHtml(Collections.singletonList(clean))), "clean");
+        assertEquals(1, withClass(ok, "li", "ok").size());
+        assertEquals(0, withClass(ok, "li", "error").size());
     }
 
     @Test
@@ -582,7 +594,7 @@ public class RouteGalleryTest {
             assertTrue(new File(dir, r.id() + "_blue.svg").isFile());
         }
         assertTrue(out, out.contains("5 ERROR, 2 WARN"));
-        assertTrue(out, out.contains("no findings"));
+        assertTrue(out, out.contains("1 WARN"));
         // every route line says who is assumed to shoot the first tip
         assertTrue(out, out.contains("1st tip"));
         for (String line : out.split("\\r?\\n")) {

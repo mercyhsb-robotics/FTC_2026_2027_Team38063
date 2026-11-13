@@ -68,7 +68,8 @@ public final class BioBuzzConstants {
             "Auto.FLOWER_CHASSIS_CLEARANCE_IN",
             "Auto.INTAKE_DWELL_GARDEN_SEC",
             "Auto.AIM_SPINUP_SEC",
-            "Auto.TIME_PER_SHOT_SEC"};
+            "Auto.TIME_PER_SHOT_SEC",
+            "Auto.TIP_STOP_LATENCY_SEC"};
 
     // =========================================================================================
     // HARDWARE NAMES (must match the robot configuration on the Driver Station exactly)
@@ -161,8 +162,9 @@ public final class BioBuzzConstants {
          * TUNE: how many POLLEN more than the minimum a route should plan to put into a cell it wants to tip. A real field
          * drifts: FIRST's own Q&amp;A (QA46) tells of a HIVE that needed 9 POLLEN instead of 8 after 8 to 10 matches. A
          * route that puts in exactly the minimum has no spare and gets a WARN; with a spare of 1 a field that is one POLLEN
-         * stiffer still tips. A volley that tips earlier stops there, and the spare stays in the robot (it is not launched at
-         * a cell that is already tipping down).
+         * stiffer still tips. A volley that tips earlier stops there, but not at once: the camera sees the tip only about
+         * {@link #TIP_STOP_LATENCY_SEC} after the tipping POLLEN lands, so the next POLLEN is probably already on its way into the cell that is
+         * swinging down. The spare is what covers a stiff field; do not count on carrying it into TELEOP.
          */
         public static final int TIP_PLANNING_MARGIN_POLLEN = 1;
         /**
@@ -296,6 +298,25 @@ public final class BioBuzzConstants {
         public static final double AIM_SPINUP_SEC = 1.9;
         /** ADD: feeding one POLLEN through the shooter. */
         public static final double TIME_PER_SHOT_SEC = 0.9;
+        /**
+         * VERIFY: seconds from a POLLEN leaving the shooter to landing in the HIVE cell. From the shot geometry: the ball leaves at 68.5 degrees
+         * above horizontal about 8.7 in up, and must reach a mouth about 55 in up that is 37.7 in away (the measured anchor shot), which takes about
+         * 0.5 s. The route plan counts a HIVE tip from the moment the tipping POLLEN LANDS, not from the moment it leaves, and the feeder cannot know
+         * about the tip before that. Check it with a phone video of one shot (count the frames from the shooter to the cell).
+         */
+        public static final double BALL_FLIGHT_SEC = 0.5;
+        /**
+         * ADD: seconds from the moment the POLLEN that tips the HIVE LANDS until the feeder has STOPPED feeding, because the camera has seen the tip.
+         * It is slow on purpose: the camera keeps reading the cell as UP until the cell has swung about half way down (the team's own simulation
+         * swings it 60 degrees in 1.2 s, so about 0.6 s; nobody has measured the real swing), then the feeder pauses only after the tags have been
+         * gone for {@code AutoShoot.VISION_LOSS_PAUSE_SEC} (0.15 s), and the camera frame and its processing add about 0.1 s: about 0.85 s. A POLLEN
+         * that is fed during that time is launched into a cell that is already swinging down. Next to {@link #TIME_PER_SHOT_SEC} (0.9 s between POLLEN)
+         * and {@link #BALL_FLIGHT_SEC} (0.5 s) that means the POLLEN after the one that tips is launched BEFORE the feeder can stop, so a spare
+         * POLLEN in a volley is probably spent, not kept: the route plan counts it as fired and the validator warns. The spare is kept only if this number
+         * is no more than the time between POLLEN minus the flight (0.4 s with the numbers above). Measure it on day one: tip a HIVE with a volley and watch whether the
+         * next POLLEN leaves (docs/DAY_ONE_CHECKLIST.md).
+         */
+        public static final double TIP_STOP_LATENCY_SEC = 0.85;
 
         // ---- validator limits ------------------------------------------------------------------
 

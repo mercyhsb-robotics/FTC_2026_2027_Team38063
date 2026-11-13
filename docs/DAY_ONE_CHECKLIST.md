@@ -142,6 +142,13 @@ TUNE and delete its name from `PLACEHOLDERS`, otherwise the TeleOp keeps listing
       (`Auto.TIP_SPILL_MARGIN_IN`); the standard shooting pose (rear edge about 48 in out) is outside it on purpose. If balls reach 48 in or the robot's
       rear, raise the reach and shoot from farther. Also: how many seconds until everything has landed and stopped rolling? The planner keeps the
       robot out for `Auto.TIP_SPILL_CLEAR_SEC` (3 s). Replace all three with what you see (rule G409: a robot may not catch what a tipped HIVE releases).
+- [ ] **Does the 4th POLLEN go?** Fire a volley of 4 at a HIVE that the 3rd POLLEN tips (3 NECTAR in the UP cell) and film it with a phone. Count the frames:
+      (a) how long a POLLEN is in the air from the shooter to the cell (`Auto.BALL_FLIGHT_SEC`, 0.5 s guessed); (b) how many seconds from the 3rd POLLEN
+      landing until the feeder has stopped (`Auto.TIP_STOP_LATENCY_SEC`, 0.85 s guessed: the cell must swing far enough for the camera to read it
+      differently, then the feeder pauses after `AutoShoot.VISION_LOSS_PAUSE_SEC`); (c) whether the 4th POLLEN leaves at all, and how far the cell
+      has swung when it arrives. The route planner counts the 4th POLLEN as spent if the stop takes longer than the time between POLLEN minus
+      the flight (0.9 - 0.5 = 0.4 s). If it really is spent, a route can fire exactly 3 (no spare) or accept the loss; if the feeder does stop in time, set the
+      latency and the validator's WARN on every first volley goes away.
 - [ ] Ask the alliance partner team: does their auto shoot the first tip of the HIVE, and how many seconds into AUTO
       is it done? Write the answer into `Auto.PARTNER_FIRST_TIP_DONE_SEC` (12 s is a guess). Then pick the auto that
       matches: the gallery (`docs/autos/index.html`) says for every route whether it assumes "we shoot the first tip" or

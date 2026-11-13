@@ -40,15 +40,19 @@ public class RouteAnalysisTest {
         RouteAnalysis a = corridorPark().build().analyze();
         assertTrue(a.leave());
         assertTrue(a.park());
-        // the 3rd of the 4 pre-loads, on top of the 3 staged NECTAR, is the first tip; the volley stops there and keeps the 4th
+        // the 3rd of the 4 pre-loads, on top of the 3 staged NECTAR, is the first tip; the camera stops the feeder only after the 4th has left too
         assertEquals(1, a.tips());
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
                 a.points());
-        assertEquals(-3, a.pollenBalance());
-        assertEquals("the spare pre-load stays in the hopper", 1, a.pollenEnd());
-        assertEquals(3, a.pollenShot());
+        assertEquals(-4, a.pollenBalance());
+        assertEquals("the spare pre-load was launched into the swinging cell: the hopper is empty", 0, a.pollenEnd());
+        assertEquals(4, a.pollenShot());
         assertEquals(0, a.pollenGained());
         assertTrue(a.parkOverlapIn() > 7.0);
+        // a feeder that stopped in time would keep it
+        RouteAnalysis fast = FastFeederRobot.analyze(corridorPark().build());
+        assertEquals(1, fast.pollenEnd());
+        assertEquals(3, fast.pollenShot());
     }
 
     @Test
@@ -87,7 +91,7 @@ public class RouteAnalysisTest {
     // ---- the HIVE tip: the staged NECTAR make the first tip need only 3 POLLEN (FIRST's calibration) -------------
 
     @Test
-    public void aVolleyOfFourTipsTheFirstHiveOnItsThirdPollenAndKeepsTheFourthAsTheSpare() {
+    public void aVolleyOfFourTipsTheFirstHiveOnItsThirdPollenAndTheFourthIsLaunchedBeforeTheFeederCanStop() {
         RouteAnalysis a = AutoRoute.builder("tip").start(35, FRONT, -90).shootUp(4).build().analyze();
         assertEquals(1, a.tips());
         assertEquals(BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
@@ -98,15 +102,35 @@ public class RouteAnalysisTest {
         assertTrue(shoot.tipped);
         assertEquals("the UP cell is on the other side after the tip", Side.REAR, shoot.upSideAfter);
         assertEquals("the counter starts again after a tip", 0, shoot.pollenInCellAfter);
-        assertEquals("the volley stops at the tip: it ends the moment the 3rd POLLEN lands", shoot.endSec(), shoot.tipSec, 1e-9);
-        assertEquals("the tip comes after the aim and spin-up and three feeds", shoot.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC
-                + 3 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, shoot.tipSec, 1e-9);
+        // the tip is when the 3rd POLLEN LANDS: after the aim and spin-up, three feeds, and the flight
+        assertEquals("the tip comes after the aim and spin-up, three feeds and the flight of the 3rd POLLEN", shoot.launchSec
+                + BioBuzzConstants.Auto.AIM_SPINUP_SEC + 3 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC + BioBuzzConstants.Auto.BALL_FLIGHT_SEC, shoot.tipSec, 1e-9);
         assertEquals("3 POLLEN tip the cell that holds the staged NECTAR", 3, shoot.tipNeeded);
-        assertEquals("one pre-load is spare", 1, shoot.tipSpare);
-        assertEquals("a camera-gated volley launches nothing after the tip", 0, shoot.firedAfterTip);
-        assertEquals("only the 3 that were needed left the robot", 3, shoot.pollenBefore - shoot.pollenAfter);
+        assertEquals("one pre-load is planned as the spare", 1, shoot.tipSpare);
+        // the 4th leaves 0.9 s after the 3rd, the camera stops the feeder 0.85 s after the 3rd LANDS (0.5 s after it left): 1.35 s after it left
+        assertEquals("the 4th POLLEN is launched into the cell that is swinging down", 1, shoot.firedAfterTip);
+        assertEquals("all 4 left the robot", 4, shoot.pollenBefore - shoot.pollenAfter);
+        assertEquals("nothing is left as a spare", 0, shoot.pollenAfter);
+        assertEquals("the volley ends when the 4th has left", shoot.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC
+                + 4 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, shoot.endSec(), 1e-9);
+        assertEquals("the plan still had a spare of 1", 1, a.minimumTipSpare());
+    }
+
+    /**
+     * Situation: the same volley of 4 for a robot whose feeder stops the instant the camera sees the tip ({@link FastFeederRobot}).
+     * Expected: the volley fires only the 3 that tip, keeps the 4th, ends when the 3rd has left (the 3rd is then still in the air) and the tip lands
+     *     one flight time later. This is the old model, kept for the tests about other rules.
+     */
+    @Test
+    public void aFeederThatStopsInTimeKeepsTheFourthPollenAsTheSpare() {
+        RouteAnalysis a = FastFeederRobot.analyze(AutoRoute.builder("tip").start(35, FRONT, -90).shootUp(4).build());
+        RouteAnalysis.StepInfo shoot = a.step(1);
+        assertEquals(0, shoot.firedAfterTip);
+        assertEquals(3, shoot.pollenBefore - shoot.pollenAfter);
         assertEquals(1, shoot.pollenAfter);
-        assertEquals(1, a.minimumTipSpare());
+        assertEquals("the volley ends when the 3rd has left", shoot.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC
+                + 3 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, shoot.endSec(), 1e-9);
+        assertEquals("and the tip lands a flight time later", shoot.endSec() + BioBuzzConstants.Auto.BALL_FLIGHT_SEC, shoot.tipSec, 1e-9);
     }
 
     @Test
@@ -178,7 +202,7 @@ public class RouteAnalysisTest {
     }
 
     @Test
-    public void aCameraGatedVolleyThatIsBiggerThanTheTipNeedsStopsAtTheTipAndKeepsTheRest() {
+    public void aCameraGatedVolleyThatIsBiggerThanTheTipNeedsStopsOnlyWhenTheCameraHasSeenTheTip() {
         // 2 POLLEN: 3 NECTAR + 2 POLLEN = 21 thirds, not yet. Then a volley of 4: the 1st POLLEN of it makes 3 in the cell and tips.
         AutoRoute r = AutoRoute.builder("late").start(35, FRONT, -90)
                 .shootUp(2).intakeFloor(40, 30, 38, 30, 0, 2).shootUp(4).build();
@@ -186,11 +210,19 @@ public class RouteAnalysisTest {
         assertTrue(volley.tipped);
         assertEquals(1, volley.tipNeeded);
         assertEquals("3 of the 4 are the spare", 3, volley.tipSpare);
-        assertEquals("the camera sees the tip, the feeder stops: nothing is launched into the tipping cell", 0, volley.firedAfterTip);
-        assertEquals("one POLLEN left the robot, three stayed", 1, volley.pollenBefore - volley.pollenAfter);
-        // the tip is when the 1st POLLEN lands, and the volley ends there
-        assertEquals(volley.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC + BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, volley.tipSec, 1e-9);
-        assertEquals(volley.tipSec, volley.endSec(), 1e-9);
+        // the 1st POLLEN lands 0.5 s after it left; the feeder stops 0.85 s after that, 1.35 s after the 1st left: the 2nd (0.9 s after the 1st) is launched,
+        // the 3rd (1.8 s) is not
+        assertEquals("the 2nd POLLEN is launched into the tipping cell, the 3rd and 4th are not", 1, volley.firedAfterTip);
+        assertEquals("two POLLEN left the robot, two stayed", 2, volley.pollenBefore - volley.pollenAfter);
+        assertEquals(volley.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC + BioBuzzConstants.Auto.TIME_PER_SHOT_SEC
+                + BioBuzzConstants.Auto.BALL_FLIGHT_SEC, volley.tipSec, 1e-9);
+        assertEquals("the volley ends when the 2nd has left", volley.launchSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC
+                + 2 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, volley.endSec(), 1e-9);
+        // with a feeder that stops in time: nothing is launched into the tipping cell
+        RouteAnalysis.StepInfo fast = FastFeederRobot.analyze(r).step(3);
+        assertEquals(0, fast.firedAfterTip);
+        assertEquals(1, fast.pollenBefore - fast.pollenAfter);
+        assertEquals(fast.tipSec - BioBuzzConstants.Auto.BALL_FLIGHT_SEC, fast.endSec(), 1e-9);
     }
 
     @Test
@@ -204,8 +236,8 @@ public class RouteAnalysisTest {
         assertEquals(1, volley.tipSpare);
         assertEquals("the 4th is launched after the tip", 1, volley.firedAfterTip);
         assertEquals("all 4 left the robot", 4, volley.pollenBefore - volley.pollenAfter);
-        // the POLLEN leave at an even pace: the 3rd of 4 leaves three quarters of the way through the 8 s
-        assertEquals(volley.launchSec + 8.0 * 3 / 4, volley.tipSec, 1e-9);
+        // the POLLEN leave at an even pace: the 3rd of 4 leaves three quarters of the way through the 8 s, and lands a flight time later
+        assertEquals(volley.launchSec + 8.0 * 3 / 4 + BioBuzzConstants.Auto.BALL_FLIGHT_SEC, volley.tipSec, 1e-9);
         assertEquals("the volley lasts its fixed 8 s", volley.launchSec + 8.0, volley.endSec(), 1e-9);
     }
 

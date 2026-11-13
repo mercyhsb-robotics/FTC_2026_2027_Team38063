@@ -154,7 +154,7 @@ Two rules of thumb that the validator enforces:
   wall still reaches 9.5 in into it). A POLLEN squeezed between the robot and the wall does not count as the robot touching
   it (QA47), so only the robot's outline is looked at. The 3 NECTAR that sit in the UP cell at the start help: **3 POLLEN**
   tip the first HIVE (3 NECTAR + 3 POLLEN tip it, 3 NECTAR + 2 POLLEN do not: FIRST's calibration), so a volley of 4 tips it
-  with 1 spare and stops at the tip, keeping the spare in the robot. The HIVE flips after a tip and the cell that comes
+  with 1 spare (the camera stops the feeder only about 0.85 s after the tip, so that spare is probably spent, see "How a HIVE tips"). The HIVE flips after a tip and the cell that comes
   up holds no NECTAR, so the next tip at the other cell needs 8 POLLEN (two volleys of 4, plan 9). See "How a HIVE tips"
   below. The partner's assumed tip (20 points for the alliance) is shown next to the route's points but is **never
   counted** in them: it is an assumption, not something our robot does.
@@ -169,7 +169,7 @@ Two rules of thumb that the validator enforces:
 | FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.871 x 5.95 in, its field-side edge 5.033 in from the wall; the 6.67 in long wall bracket above it counts too, see below). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its wiggle (next row): the chassis, the other wheel and every other step stay out | |
 | FLOWER wiggle | 9.7, G415 | at ANY pose of the straight approach, **the turn on the spot** or the retreat: the chassis comes within 0.5 in of the plate; the working wheel goes nearer the wall than the POLLEN's center line (the **press stop line**); the other wheel enters the plate; anything leaves the field. The wheel cannot REACH the POLLEN once the chassis has been stood far enough out to clear the plate through the swing (the finding says how many inches of wheel are missing). With the wheel left to `AUTO`: neither wheel is legal | the retreat is shorter than 6 in |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
-| POLLEN | G407 | more than 4 held (a volley that tips keeps its spare in the robot, so 4 pre-loads at the UP cell leave 1 and a GARDEN intake of 3 fits), firing more than held, taking from the other alliance's GARDEN or FLOWER | a source that is empty or that does not exist; a floor intake before anything was shot |
+| POLLEN | G407 | more than 4 held (a volley that tips launches its spare before the camera can stop the feeder, so 4 pre-loads at the UP cell leave 0 and a GARDEN intake of 3 fits; with a feeder that stops in time they would leave 1 and it still fits; the intake never takes a 4th), firing more than held, taking from the other alliance's GARDEN or FLOWER | a source that is empty or that does not exist; a floor intake before anything was shot |
 | Time | G401 | the estimate is over 30 s | within 2 s of the limit |
 | End pose | 10.5.4, QA21 | the route ends inside the HIVE frame | the route ends in the LOADING ZONE touching (or within 1.5 in of) a wall: PARK counts, LEAVE is lost (QA21) |
 | SHOOT | G417 | | pose off the 30-38 in standoff band, back more than 15 degrees off the cell, wrong side of the HIVE, or the target cell is DOWN at that moment |
@@ -384,10 +384,10 @@ not reproduce the table, and `TipModelTest` pins all six cases. (The first versi
 said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first tip: that was wrong.)
 
 * **The first tip needs 3 POLLEN.** The UP cell holds 3 NECTAR when the match starts (Fig 10-2), so the 3rd POLLEN tips it. The
-  robot starts with 4 pre-loads, so **a route that fires its 4 pre-loads at the UP cell tips it with 1 spare**: the volley
-  stops at the tip (the camera sees the cell's tags vanish and the feeder pauses, G417) and the 4th POLLEN **stays in the
-  robot**, which can then take 3 more before the next volley (capacity 4, G407). A volley written for exactly
-  3 POLLEN has no spare and gets a WARN (below).
+  robot starts with 4 pre-loads, so **a route that fires its 4 pre-loads at the UP cell tips it with 1 spare**. The spare covers a field that
+  needs one more POLLEN. It is **probably not a POLLEN you keep**: the volley stops only when the camera has seen the cell's tags change and the
+  feeder has paused (G417), which takes about 0.85 s after the tipping POLLEN lands, and the 4th POLLEN is fed 0.9 s after the 3rd (see "The camera
+  stops a volley late" below). A volley written for exactly 3 POLLEN has no spare and gets a WARN (below).
 * **Every later tip needs 8 POLLEN.** After a tip the OTHER cell is the UP one, and Fig 10-2 shows NECTAR only in the cell that is
   UP at the start, so the new UP cell is **empty**: it needs 8 POLLEN, two volleys of 4, and the robot can hold only 4 POLLEN at a
   time (G407), so it has to fetch more in between. A second volley of 4 at the SAME side as the first does not tip anything: that
@@ -400,7 +400,20 @@ said that 3 NECTAR + 3 POLLEN do **not** tip and wanted 4 POLLEN for the first t
 * **A timed volley cannot stop.** A volley with `launchSeconds(...)` (an old OpMode feeds for a fixed time) cannot stop when the camera
   sees the tip, so the POLLEN still to be fired after the tip go into a cell that is already tipping down. FIRST's Q&A QA12 says elements
   may be added to a HIVE that is moving, but G417 allows launching only into an upward-facing CELL, so the validator WARNs. A volley
-  without `launchSeconds` is gated by the camera and stops at the tip.
+  without `launchSeconds` is gated by the camera and stops a moment after the tip (the next bullet).
+* **The camera stops a volley late.** The model used to say that a camera-gated volley "stops exactly at the tip" and keeps its spare. Nothing
+  supports zero delay. The tipping POLLEN is in the air for about 0.5 s (`Auto.BALL_FLIGHT_SEC`, VERIFY: from the 68.5 degree launch at the 37.7 in anchor
+  shot); the tip begins when it LANDS. The camera still reads the cell as UP until the cell has swung about half way down (0.6 s of the 1.2 s
+  swing the team's own simulation assumes; nobody has measured it), the feeder pauses only after the tags have been gone for
+  `AutoShoot.VISION_LOSS_PAUSE_SEC` (0.15 s), and the camera frame adds about 0.1 s: **`Auto.TIP_STOP_LATENCY_SEC` = 0.85 s (ADD: measure it)**.
+  The next POLLEN of a volley leaves `Auto.TIME_PER_SHOT_SEC` = 0.9 s after the last. So the j-th POLLEN after the tipping one is launched into the
+  cell, while it swings down, if `j x 0.9 < 0.5 + 0.85`: **the spare is spent** (`TipModel.launchedBeforeTheFeederStops`, `StepInfo.firedAfterTip`
+  = 1). The plan counts it as fired (the robot holds 0 after the standard first volley, not 1), the volley lasts one more feed, and the validator WARNs
+  (rule G417, QA12: elements added to a moving HIVE still count, but a launch at a rocking HIVE can spoil the tip). The feeder stops in time only if the
+  latency is under 0.9 - 0.5 = 0.4 s. Two ways out: fire exactly the POLLEN that tip (no spare), or measure the real swing on day one and set the
+  constant. The tip itself is timed from the LANDING, so the spill window and the wait for the camera's confirmation start 0.5 s later than they used to.
+  The closed-loop test `AutoShootSequenceTest.theSpareBallIsLaunchedIntoTheSwingingCellUnlessTheHiveSwingsFast` runs the real controller against a
+  ball flight and a swing: with the 1.2 s swing the 4th ball goes into the swinging cell, with a swing of 0.2 s it stays.
 * **Our tips and the partner's tip.** `RouteAnalysis.tips()` and the points count only the tips OUR volleys cause. Our volleys and
   the partner's assumed tip are tracked separately, so a plan can never claim the partner's 20 points as its own. **A HIVE belongs to
   the alliance and a TIP is defined only by what the HIVE does** (the cells swap and the damper touches the frame; no rule counts
@@ -516,8 +529,8 @@ PARK) after the volley**, so they are done whether or not the tip comes.
 * The footer shows the estimated time, the POLLEN balance, **our** AUTO points (LEAVE, PARK and our own tips), the
   partner's assumed tip "(not ours)" when the route has one, and the first findings. The gallery page has all of
   them with their full text, and works out the tip arithmetic of every volley (for example `3 NECTAR x 5/3 + 3 POLLEN = 8
-  POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the volley stops there; the last 1 stays in
-  the robot as the spare`).
+  POLLEN-equivalents, the 8 that tip a cell, so the HIVE tips on POLLEN 3 of the 4 and the camera stops the volley, but only about 0.85 s after
+  the tip, so the next 1 POLLEN is probably launched into the cell while it swings down and is spent; none stays in the robot as a spare`).
 
 ## About the numbers
 
@@ -564,7 +577,8 @@ the OpMode's start y (or x) to match once the real center of rotation is measure
   earns LEAVE and PARK.
 * **`red_c1`** and **`red_b1`** feed for a fixed 5 s (`launchSeconds(5.0)`, as the old OpModes do): the HIVE tips on the 3rd of
   their 4 POLLEN and the 4th goes into a cell that is already tipping down, so each has a WARN for it. A camera-gated volley
-  (without `launchSeconds`) would stop at the tip and keep the 4th.
+  (without `launchSeconds`) stops only a moment after the tip, so its 4th POLLEN is probably launched too (see "The camera stops a
+  volley late"): better than a timed volley, not free.
 * **`red_c1`** drives its first leg, straight from (58, 9.2) to (62, 118.1), **through the HIVE frame**. The route cannot
   work as written. At y = 9.2 its shot is also 38.3 in from the aim point, just outside the 30-38 in band (placed with the
   front on the wall, 37.7 in: the measured shot).
@@ -572,11 +586,11 @@ the OpMode's start y (or x) to match once the real center of rotation is measure
   center 9.2 in out the robot needs 12.6 in to turn that far), shoots from 44 in (the good band is 30-38 in), drives so close
   to the HIVE that the robot is inside the 3 in keep-out (the numbers were written for a narrower robot), and parks only
   **2.9 in** into the LOADING ZONE.
-* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: both start with the **front edge on the
+* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes with no ERROR (one WARN each, see below): both start with the **front edge on the
   audience wall** (`start(x, 9.77, -90)`, written with `Robot.FRONT_EXTENT_IN`). The first shoots the pre-loads (the first
-  tip: 3 POLLEN, the 4th stays in the robot as the spare), leaves through the left corridor and parks deep in the zone, standing about
+  tip: 3 POLLEN; the 4th is the spare and is probably launched before the feeder can stop, which is the one WARN), slides along the wall and leaves through the left corridor and parks deep in the zone, standing about
 4 in off the red wall so that it keeps its LEAVE (28 points); the second shoots the pre-loads (the first tip, same spare), sweeps up
-3 of the 4 GARDEN POLLEN (the robot already holds 1; standing 0.8 in off the wall) and steps off the wall (23 points). It does not
+3 of the 4 GARDEN POLLEN (the robot holds 0, or 1 if the feeder stops in time; standing 0.8 in off the wall) and steps off the wall (23 points). It does not
 shoot the GARDEN POLLEN: the UP cell is on the far side of the HIVE after the tip and needs 8 POLLEN (plan 9).
 
 One thing to know about a start with the front exactly on the wall: the robot cannot turn toward that wall at all, not even

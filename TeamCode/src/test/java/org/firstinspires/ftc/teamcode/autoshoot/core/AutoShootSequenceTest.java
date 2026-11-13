@@ -100,6 +100,22 @@ public class AutoShootSequenceTest {
         int hitsIntoUp;
         /** Balls needed to tip the HIVE. 1000 means it never tips during a test. (The real HIVE tips after about 8.) */
         int tipAfterHits = 1000;
+        /**
+         * Seconds a ball is in the air between the shooter and the cell. 0 (the default) is the old simplification: it lands the instant it leaves.
+         * The real flight is about 0.5 s ({@code Auto.BALL_FLIGHT_SEC}), and a tip happens when the ball LANDS.
+         */
+        double flightSec = 0.0;
+        /**
+         * Seconds the HIVE takes to swing over once the tipping ball has landed. 0 (the default) is the old simplification: the other cell is up at once.
+         * With a swing, the cluster stays readable by the camera for the first half of it, then its tags vanish, and at the end the other cell is up.
+         */
+        double swingSec = 0.0;
+        /** Seconds of feeding between two balls. The default 0.45 is the fast pace most tests use; a test about the tip uses the slower real one. */
+        double feedSecPerBall = 0.45;
+        /** Landing times of the balls in the air. */
+        private final List<Double> landings = new ArrayList<Double>();
+        /** When the swing started (the tipping ball landed); NaN when the HIVE is not swinging. */
+        private double swingStartedAt = Double.NaN;
         /** POLLEN left in the hopper. The robot may hold at most 4 (rule G407). */
         int balls = 4;
         /** The flywheel's true speed in ticks per second. */
@@ -136,6 +152,11 @@ public class AutoShootSequenceTest {
          * after a tip.
          */
         int shotsAtDownCell;
+        /**
+         * Balls launched while the HIVE was swinging down: after the tipping ball landed, before the swing was over. They only exist when a test sets
+         * {@link #swingSec}; with the instant tip of the other tests it stays 0.
+         */
+        int shotsIntoSwingingCell;
         /** Balls fired at an UP cell but too slow, outside the shot table range or badly aimed. */
         int badShots;           // fired too slow, outside the table, or badly aimed
         /** Every ball that left the robot, good or bad. */
@@ -224,8 +245,10 @@ public class AutoShootSequenceTest {
             }
             List<TagObservation> tags = new ArrayList<TagObservation>();
             // Tags are only produced on a new frame, when the frame is not randomly dropped, and when the robot stands
-            // on the side of the HIVE whose cell is really UP.
-            if (newFrame && rng.nextDouble() >= dropoutRate && robotSide() == trueUp) {
+            // on the side of the HIVE whose cell is really UP. While the HIVE swings the tags stay readable for the first half of the swing
+            // and are gone for the second half.
+            boolean swingHidesTheTags = swinging() && t >= swingStartedAt + 0.5 * swingSec;
+            if (newFrame && rng.nextDouble() >= dropoutRate && robotSide() == trueUp && !swingHidesTheTags) {
                 CellSpec cell = field.cell(alliance, trueUp);
                 Pose2 p = pose();
                 for (int i = 0; i < cell.tagCount(); i++) {
@@ -253,6 +276,7 @@ public class AutoShootSequenceTest {
         void step() {
             // Time moves on one tick.
             t += DT;
+            landBalls();
             VisionFrame frame = makeFrame();
             List<ClusterView> views = analyzer.analyze(alliance, heading, frame.tags);
             tracker.update(t, frame, views, robotSide());
@@ -359,8 +383,8 @@ public class AutoShootSequenceTest {
                 }
                 if (balls > 0) {
                     feedProgress += DT;
-                    // One ball leaves for every 0.45 s of feeding.
-                    if (feedProgress >= 0.45) {
+                    // One ball leaves for every feedSecPerBall (0.45 s unless a test says otherwise) of feeding.
+                    if (feedProgress >= feedSecPerBall) {
                         feedProgress = 0;
                         fire(out);
                     }
@@ -400,10 +424,47 @@ public class AutoShootSequenceTest {
                 badShots++;
                 return;
             }
+            // A ball launched while the HIVE swings goes into a cell that is already tipping down (the case the planner's spare is about).
+            if (swinging()) {
+                shotsIntoSwingingCell++;
+                return;
+            }
             shotsIntoUpCell++;
+            if (flightSec <= 0.0) {
+                land();
+            } else {
+                landings.add(t + flightSec);
+            }
+        }
+
+        /** True while the HIVE is swinging down after a tip. */
+        boolean swinging() {
+            return !Double.isNaN(swingStartedAt);
+        }
+
+        /** One ball has landed in the UP cell. Enough balls: the HIVE tips (at once, or after a swing) and the other cell becomes the UP one. */
+        private void land() {
             hitsIntoUp++;
-            // Enough balls landed: the HIVE tips and the other cell becomes the UP one.
             if (hitsIntoUp >= tipAfterHits) {
+                if (swingSec <= 0.0) {
+                    hitsIntoUp = 0;
+                    trueUp = trueUp.opposite();
+                } else if (!swinging()) {
+                    swingStartedAt = t;
+                }
+            }
+        }
+
+        /** Lands the balls whose flight is over, and finishes the swing of the HIVE when its time is up. */
+        private void landBalls() {
+            for (int i = landings.size() - 1; i >= 0; i--) {
+                if (landings.get(i) <= t + 1e-9) {
+                    landings.remove(i);
+                    land();
+                }
+            }
+            if (swinging() && t >= swingStartedAt + swingSec) {
+                swingStartedAt = Double.NaN;
                 hitsIntoUp = 0;
                 trueUp = trueUp.opposite();
             }
@@ -868,5 +929,77 @@ public class AutoShootSequenceTest {
         // 25 tps is a loose bound: the controller works from the camera's range and this test from the true pose. With
         // the current table that is roughly 3 to 4 in of range (about 6 to 8 tps per inch).
         assertEquals(s.table.velocityAt(range), s.last.flywheelTargetTps, 25.0);
+    }
+
+    /**
+     * Runs the standard first volley (4 balls, the 3rd tips the HIVE) with a REAL ball flight and a REAL swing: a ball takes 0.5 s to reach the cell, the
+     * tip starts when the 3rd ball LANDS, and the cluster stays readable by the camera for the first half of the swing, then its tags vanish.
+     * The feed pace is 0.7 s of feeding per ball, which with the flywheel recovering after each ball is about 0.9 s between balls (the
+     * route planner's {@code Auto.TIME_PER_SHOT_SEC}).
+     *
+     * <p>The run ends when the volley is over: DONE, or the moment the controller has seen the tip and leaves FEED to plan the drive to the OTHER cell (a
+     * button that is still held would take the spare there, which is what TeleOp wants; the route plan counts the volley as over at the tip).
+     */
+    private static Sim volleyWithAFlightAndASwing(double swingSec) {
+        Sim s = redAtC1();
+        s.tipAfterHits = 3;
+        s.flightSec = BioBuzzConstants.Auto.BALL_FLIGHT_SEC;
+        s.swingSec = swingSec;
+        s.feedSecPerBall = 0.7;
+        s.held = true;
+        boolean fed = false;
+        while (s.t < 30.0) {
+            s.step();
+            AutoShootController.State state = s.controller.state();
+            fed |= state == AutoShootController.State.FEED;
+            if (state == DONE || state == FAULT || (fed && (state == AutoShootController.State.PLAN || state == AutoShootController.State.APPROACH))) {
+                break;
+            }
+        }
+        return s;
+    }
+
+    /**
+     * Situation: the real controller fires the standard first volley (4 balls, the 3rd tips the HIVE) at a cell that really takes 0.5 s to be reached and
+     *     then swings for 1.2 s (the only swing time the project has, the guess of PartnerTipSimulationTest), and, for contrast, at a cell that swings in 0.2 s.
+     * Expected: with the slow swing the camera keeps reading the cell as UP for 0.6 s after the 3rd ball lands, the 4th ball is fed 0.4 s after that landing, so it
+     *     is launched into the cell while it swings down: 1 ball in the swinging cell, all 4 balls fired, the hopper empty. With the fast swing the tags are gone
+     *     0.1 s after the landing, the feeder stops before the 4th ball and it stays in the robot: 3 balls fired, none into a swinging cell, 1 ball left.
+     * Why: this is the evidence behind the route model. The model used to say a camera-gated volley "stops exactly at the tip" and keeps its spare; with a
+     *     flight time and a swing the real controller cannot, unless the cell swings in about half a second or less. The planner now counts the spare as
+     *     spent (Auto.TIP_STOP_LATENCY_SEC, TipModel.launchedBeforeTheFeederStops) and the day-one checklist asks for the real number.
+     */
+    @Test
+    public void theSpareBallIsLaunchedIntoTheSwingingCellUnlessTheHiveSwingsFast() {
+        Sim slow = volleyWithAFlightAndASwing(1.2);
+        assertEquals("ended in " + slow.controller.state() + " " + (slow.last == null ? "" : slow.last.message), DONE, slow.controller.state());
+        assertEquals("the 3 balls that tip it landed in the UP cell", 3, slow.shotsIntoUpCell);
+        assertEquals("the 4th went into the cell while it was swinging down", 1, slow.shotsIntoSwingingCell);
+        assertEquals(4, slow.shotsFired);
+        assertEquals("the hopper is empty: the spare is spent", 0, slow.balls);
+        assertEquals("no ball at a cell that was already down", 0, slow.shotsAtDownCell);
+
+        Sim fast = volleyWithAFlightAndASwing(0.2);
+        assertEquals(3, fast.shotsIntoUpCell);
+        assertEquals("the feeder stopped before the 4th ball", 0, fast.shotsIntoSwingingCell);
+        assertEquals(3, fast.shotsFired);
+        assertEquals("the spare is kept", 1, fast.balls);
+        assertEquals(0, fast.shotsAtDownCell);
+    }
+
+    /**
+     * Situation: the same volley with the old simplifications (a ball lands the instant it leaves, the HIVE flips at once, 0.45 s of feeding per ball).
+     * Expected: nothing changes: 3 balls into the UP cell and at most one toward the cell that just tipped, as before.
+     * Why: the new flight and swing are opt-in; every other test of this class keeps its meaning.
+     */
+    @Test
+    public void withoutAFlightOrASwingTheTipIsInstantAsBefore() {
+        Sim s = redAtC1();
+        s.tipAfterHits = 3;
+        s.held = true;
+        s.run(30, DONE, FAULT);
+        assertEquals(DONE, s.controller.state());
+        assertEquals(0, s.shotsIntoSwingingCell);
+        assertTrue("at most one ball toward the cell that just tipped, got " + s.shotsAtDownCell, s.shotsAtDownCell <= 1);
     }
 }

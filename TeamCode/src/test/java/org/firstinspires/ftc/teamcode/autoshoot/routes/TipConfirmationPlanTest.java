@@ -69,14 +69,15 @@ public class TipConfirmationPlanTest {
     public void theVolleyAfterOurOwnTipWaitsForTheCameraToSeeTheNewCellSteady() {
         // Two volleys from the same pose, the second aimed at the cell that comes up with OUR tip: nothing separates them, so
         // without the settle time the second volley would start the moment the first tip lands.
-        RouteAnalysis a = AutoRoute.builder("two").start(58, FRONT, -90)
-                .shootUp(58, 30, -90, 4).shootSide(Side.REAR, 58, 30, -90, 2).build().analyze();
+        RouteAnalysis a = FastFeederRobot.analyze(AutoRoute.builder("two").start(58, FRONT, -90)
+                .shootUp(58, 30, -90, 4).shootSide(Side.REAR, 58, 30, -90, 2).build());
         RouteAnalysis.StepInfo first = a.step(1);
         RouteAnalysis.StepInfo second = a.step(2);
         assertTrue(first.tipped);
         assertEquals("the first volley is not waiting for any tip", 0.0, first.confirmWaitSec, EPS);
         assertFalse(first.tipDependent);
-        assertEquals("the robot stands at its pose until the camera has seen the cell steady", SETTLE, second.confirmWaitSec, EPS);
+        // the first volley ends when the 3rd POLLEN has left; it lands one flight time later and the camera needs the settle time after that
+        assertEquals("the robot stands at its pose until the camera has seen the cell steady", BioBuzzConstants.Auto.BALL_FLIGHT_SEC + SETTLE, second.confirmWaitSec, EPS);
         assertEquals("the first POLLEN of the second volley leaves no earlier than the confirmed tip", first.tipSec + SETTLE, second.launchSec, EPS);
         assertEquals("and the wait is part of the step", second.confirmWaitSec + BioBuzzConstants.Auto.AIM_SPINUP_SEC
                 + 2 * BioBuzzConstants.Auto.TIME_PER_SHOT_SEC, second.durationSec, EPS);
@@ -166,8 +167,8 @@ public class TipConfirmationPlanTest {
     @Test
     public void ourOwnSecondVolleyIsLeftOutTooWhenTheCameraCannotConfirmOurTip() {
         // our own second volley depends on our own tip: with a dead camera it is left out too (no camera, no shot)
-        RouteAnalysis plan = AutoRoute.builder("two").start(58, FRONT, -90)
-                .shootUp(58, 30, -90, 4).shootSide(Side.REAR, 58, 30, -90, 2).driveConstant(58, 20, -90).build().analyze();
+        RouteAnalysis plan = FastFeederRobot.analyze(AutoRoute.builder("two").start(58, FRONT, -90)
+                .shootUp(58, 30, -90, 4).shootSide(Side.REAR, 58, 30, -90, 2).driveConstant(58, 20, -90).build());
         RouteAnalysis g = plan.giveUpPlan();
         assertNotNull(g);
         assertFalse("the first volley is at the cell that is up from the start, it goes ahead", g.step(1).skipped);

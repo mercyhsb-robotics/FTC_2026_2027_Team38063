@@ -27,6 +27,13 @@ public final class TimingModel {
         public double settleSec = BioBuzzConstants.Auto.SETTLE_SEC;
         public double aimSpinUpSec = BioBuzzConstants.Auto.AIM_SPINUP_SEC;
         public double timePerShotSec = BioBuzzConstants.Auto.TIME_PER_SHOT_SEC;
+        /** Seconds from a POLLEN leaving the shooter to landing in the HIVE cell ({@code Auto.BALL_FLIGHT_SEC}): a tip happens when the POLLEN LANDS. */
+        public double ballFlightSec = BioBuzzConstants.Auto.BALL_FLIGHT_SEC;
+        /**
+         * Seconds from the tipping POLLEN landing until the feeder has stopped, because the camera has seen the tip ({@code Auto.TIP_STOP_LATENCY_SEC}).
+         * The POLLEN a camera-gated volley feeds in that time still go into the cell that is swinging down.
+         */
+        public double tipStopLatencySec = BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC;
         /** Fraction of the cruise speed for the final approach to a FLOWER and for the retreat from it. */
         public double flowerSpeedFraction = BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION;
         /** How long one half of a wiggle cycle's turn takes (seconds), at least; the drive's own turn rate can make it longer. */
@@ -57,6 +64,8 @@ public final class TimingModel {
             c.settleSec = settleSec;
             c.aimSpinUpSec = aimSpinUpSec;
             c.timePerShotSec = timePerShotSec;
+            c.ballFlightSec = ballFlightSec;
+            c.tipStopLatencySec = tipStopLatencySec;
             c.flowerSpeedFraction = flowerSpeedFraction;
             c.wiggleTurnSec = wiggleTurnSec;
             c.wigglePushHoldSec = wigglePushHoldSec;
@@ -235,5 +244,27 @@ public final class TimingModel {
     /** The settle time the camera needs before it calls a tipped HIVE fully tipped, in seconds. */
     public double tipSettleSec() {
         return p.tipSettleSec;
+    }
+
+    /** Seconds between two POLLEN of a volley (feeding one through the shooter). */
+    public double timePerShotSec() {
+        return p.timePerShotSec;
+    }
+
+    /** Seconds from a POLLEN leaving the shooter to landing in the HIVE cell. */
+    public double ballFlightSec() {
+        return p.ballFlightSec;
+    }
+
+    /** Seconds from the tipping POLLEN landing until the feeder has stopped because the camera has seen the tip. */
+    public double tipStopLatencySec() {
+        return p.tipStopLatencySec;
+    }
+
+    /** The same model with another feeder-stop latency (a robot whose feeder stops sooner or later); a new model, this one is unchanged. */
+    public TimingModel withTipStopLatencySec(double seconds) {
+        Params c = p.copy();
+        c.tipStopLatencySec = seconds;
+        return new TimingModel(c);
     }
 }

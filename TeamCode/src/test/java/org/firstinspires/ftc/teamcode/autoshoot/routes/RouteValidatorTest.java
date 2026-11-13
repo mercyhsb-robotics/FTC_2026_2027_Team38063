@@ -36,10 +36,14 @@ public class RouteValidatorTest {
         return validate(b.build());
     }
 
-    /** Validates the route for RED and for BLUE and checks both give the same rule/severity/step findings. */
+    /**
+     * Validates the route for RED and for BLUE and checks both give the same rule/severity/step findings. These tests are about the geometry and the other
+     * rules, so they use {@link FastFeederRobot}, whose feeder stops the instant the camera sees the tip: the spare of a 4-POLLEN volley is kept and the
+     * validator has nothing to say about it. What the real numbers say about the spare is tested in {@code TipStopLatencyTest}.
+     */
     private static List<Issue> validate(AutoRoute red) {
-        List<Issue> r = RouteValidator.check(red);
-        List<Issue> blue = RouteValidator.check(red.forAlliance(Alliance.BLUE));
+        List<Issue> r = FastFeederRobot.check(red);
+        List<Issue> blue = FastFeederRobot.check(red.forAlliance(Alliance.BLUE));
         assertEquals("red and blue findings differ:\n" + r + "\n" + blue, signature(r), signature(blue));
         return r;
     }

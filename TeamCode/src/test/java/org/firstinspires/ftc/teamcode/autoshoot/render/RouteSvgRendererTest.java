@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -506,9 +507,10 @@ public class RouteSvgRendererTest {
         assertTrue(metrics, metrics.contains("HIVE TIP 20"));
         String pollen = byId(d, "footer-pollen").getTextContent();
         assertTrue(pollen, pollen.contains("+3 taken"));
-        assertTrue(pollen, pollen.contains("-3 fired"));
-        assertTrue(pollen, pollen.contains("balance 0"));
-        assertTrue(pollen, pollen.contains("no findings"));
+        assertTrue(pollen, pollen.contains("-4 fired"));
+        assertTrue(pollen, pollen.contains("3 at the end"));
+        assertTrue(pollen, pollen.contains("balance -1"));
+        assertTrue("the spare is probably spent: one WARN, no ERROR: " + pollen, pollen.contains("0 ERROR, 1 WARN"));
         assertNotNull(byId(d, "legend"));
         assertTrue(withClass(byId(d, "legend"), "g", "legend-item").size() >= 10);
     }
@@ -589,7 +591,10 @@ public class RouteSvgRendererTest {
 
     @Test
     public void aCleanRouteHasNoIssueMarks() throws Exception {
-        Document d = parse(RouteSvgRenderer.render(RouteCatalog.byId("wall_shoot_park"), Alliance.BLUE));
+        AutoRoute clean = AutoRoute.builder("clean").title("Clean").startTile("B1").start(30, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
+                .driveConstant(30, 60, -90).build();
+        assertTrue(RouteValidator.check(clean).toString(), RouteValidator.check(clean).isEmpty());
+        Document d = parse(RouteSvgRenderer.render(clean, Alliance.BLUE));
         assertEquals(0, withClass(byId(d, "route"), "g", "issue-mark").size());
         assertEquals(0, withClass(byId(d, "footer"), "g", "issue-line").size());
     }

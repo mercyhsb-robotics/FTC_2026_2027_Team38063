@@ -60,13 +60,15 @@ public final class RouteAnalysis {
         public final int pollenInCellAfter;
         /** SHOOT: route time in seconds at which the first POLLEN leaves the shooter (after the move to the pose); NaN otherwise. */
         public final double launchSec;
-        /** SHOOT that tipped the HIVE: route time in seconds of the POLLEN that tipped it; NaN otherwise. */
+        /** SHOOT that tipped the HIVE: route time in seconds at which the POLLEN that tips it LANDS (it left {@code Auto.BALL_FLIGHT_SEC} earlier); NaN otherwise. */
         public final double tipSec;
         /**
          * SHOOT that tipped the HIVE: POLLEN of the same volley that are still launched AFTER the tip, i.e. into a cell that
-         * is already tipping down. A volley that is gated by the camera (the normal one) stops at the tip and keeps the rest,
-         * so this is 0 for it; only a TIMED volley (an old OpMode that feeds for a fixed time) cannot stop and fires them
-         * all. 0 when the last POLLEN of the volley is the one that tips.
+         * is already tipping down. A TIMED volley (an old OpMode that feeds for a fixed time) cannot stop and fires them all. A volley that is
+         * gated by the camera (the normal one) stops when the camera has seen the tip, which takes about {@code Auto.TIP_STOP_LATENCY_SEC}
+         * after the tipping POLLEN lands (and that one is still in the air for {@code Auto.BALL_FLIGHT_SEC} after it left), so the POLLEN it feeds
+         * in that time are launched too ({@link TipModel#launchedBeforeTheFeederStops}) and only the rest of the spare stays in the robot.
+         * 0 when the last POLLEN of the volley is the one that tips, or when the feeder stops in time.
          */
         public final int firedAfterTip;
         /**
@@ -76,8 +78,8 @@ public final class RouteAnalysis {
         public final int tipNeeded;
         /**
          * SHOOT that tipped the HIVE: how many POLLEN the volley plans beyond what the cell needed, the route's SPARE (a
-         * field that is stiffer by that many POLLEN still tips). The camera-gated volley keeps the spare in the robot. 0
-         * means the plan has exactly the minimum; 0 also for a volley that did not tip.
+         * field that is stiffer by that many POLLEN still tips). It is the POLLEN PLANNED beyond the minimum: how many of them the robot still has
+         * afterwards is this minus {@link #firedAfterTip}. 0 means the plan has exactly the minimum; 0 also for a volley that did not tip.
          */
         public final int tipSpare;
         /** SHOOT: NECTAR sitting in the targeted cell when the volley starts (3 in the starting UP cell, else 0). */
@@ -492,9 +494,9 @@ public final class RouteAnalysis {
                         // How many POLLEN of THIS volley does the cell need? (see TipModel for the arithmetic.) At
                         // least 1: a cell cannot tip before something is launched into it.
                         int needed = Math.max(1, TipModel.pollenStillNeeded(hive.nectar, hive.pollen));
-                        // The POLLEN leave one every timePerShot after the aim and spin-up; the tip happens when the
-                        // needed one lands.
-                        double wouldTipAt = launchSec + timing.shootSeconds(sh, needed);
+                        // The POLLEN leave one every timePerShot after the aim and spin-up; the needed one then flies for the
+                        // ball flight time, and the tip happens when it LANDS.
+                        double wouldTipAt = launchSec + timing.shootSeconds(sh, needed) + timing.ballFlightSec();
                         boolean partnerFirst = hive.partnerPending && hive.partnerSec <= wouldTipAt;
                         if (sh.count() >= needed && !partnerFirst) {
                             tipped = true;
@@ -506,10 +508,15 @@ public final class RouteAnalysis {
                                 // A timed volley cannot stop: it goes on launching into the cell that is tipping down.
                                 firedAfterTip = tipSpare;
                             } else {
-                                // A camera-gated volley stops the moment the camera sees the tip (the cell's tags vanish and
-                                // the feeder pauses, G417), so only the needed POLLEN leave and the spare stays in the robot.
-                                fired = needed;
-                                shootSec = timing.shootSeconds(sh, needed);
+                                // A camera-gated volley stops when the camera has seen the tip (the cell's tags change and the feeder
+                                // pauses, G417), but that is late: the tipping POLLEN is still in the air, the cell has to swing far
+                                // enough for the tags to look different, and the pause comes after they have been gone a moment.
+                                // The POLLEN fed in that time still go into the cell that is swinging down; only the rest of the
+                                // spare stays in the robot.
+                                firedAfterTip = TipModel.launchedBeforeTheFeederStops(tipSpare, timing.timePerShotSec(), timing.ballFlightSec(),
+                                        timing.tipStopLatencySec());
+                                fired = needed + firedAfterTip;
+                                shootSec = timing.shootSeconds(sh, fired);
                             }
                             hive.events.add(new TipEvent(tipSec, hive.up, hive.up.opposite(), false, i));
                             hive.ownConfirmedSec = tipSec + timing.tipSettleSec();
@@ -759,6 +766,21 @@ public final class RouteAnalysis {
      */
     public double tipSettleSec() {
         return timing.tipSettleSec();
+    }
+
+    /** Seconds between two POLLEN of a volley, as this analysis counted them. */
+    public double timePerShotSec() {
+        return timing.timePerShotSec();
+    }
+
+    /** Seconds a POLLEN is in the air between the shooter and the cell, as this analysis counted them. */
+    public double ballFlightSec() {
+        return timing.ballFlightSec();
+    }
+
+    /** Seconds from the tipping POLLEN landing until the camera-gated feeder has stopped, as this analysis counted them. */
+    public double tipStopLatencySec() {
+        return timing.tipStopLatencySec();
     }
 
     /**

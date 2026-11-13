@@ -159,6 +159,7 @@ public final class ConstantsCheck {
         checkReapproachHeading(r, BioBuzzConstants.AutoShoot.REAPPROACH_HEADING_DEG, BioBuzzConstants.AutoShoot.APPROACH_HANDOFF_DEG);
         checkSpillZone(r, BioBuzzConstants.Auto.TIP_SPILL_REACH_IN, BioBuzzConstants.Auto.DOWN_CELL_PLAN_OUT_FAR_IN,
                 BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN, BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
+        checkTipStop(r, BioBuzzConstants.Auto.BALL_FLIGHT_SEC, BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC, BioBuzzConstants.Auto.TIME_PER_SHOT_SEC);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -309,6 +310,21 @@ public final class ConstantsCheck {
      * (and FEED) plan a NEW route for a robot that was turned ({@code reapproachDeg}) must be larger than that. If it were not, ALIGN would send
      * the robot straight back to PLAN, and PLAN straight back to ALIGN, for ever.
      */
+    /**
+     * The numbers that decide whether the spare POLLEN of a volley is kept or spent: how long a POLLEN is in the air, how long the camera-gated feeder
+     * takes to stop after the tipping POLLEN lands, and the time between two POLLEN. The flight and the time between POLLEN must be positive, the
+     * stop latency cannot be negative; a latency of 0 means a feeder that stops the instant the tip lands.
+     */
+    static void checkTipStop(Report r, double flightSec, double stopLatencySec, double secondsPerShot) {
+        if (!(flightSec > 0.0) || !(secondsPerShot > 0.0)) {
+            r.errors.add("Auto.BALL_FLIGHT_SEC (" + flightSec + ") and TIME_PER_SHOT_SEC (" + secondsPerShot + ") must be positive: they are the seconds a POLLEN is in the"
+                    + " air and the seconds between two POLLEN of a volley.");
+        }
+        if (stopLatencySec < 0.0) {
+            r.errors.add("Auto.TIP_STOP_LATENCY_SEC (" + stopLatencySec + ") cannot be negative: it is the time from the tipping POLLEN landing until the feeder has stopped.");
+        }
+    }
+
     static void checkReapproachHeading(Report r, double reapproachDeg, double handoffDeg) {
         if (reapproachDeg <= handoffDeg) {
             r.errors.add("AutoShoot.REAPPROACH_HEADING_DEG (" + reapproachDeg + ") must be larger than APPROACH_HANDOFF_DEG (" + handoffDeg

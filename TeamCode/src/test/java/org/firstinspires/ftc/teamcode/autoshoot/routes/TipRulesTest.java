@@ -92,10 +92,11 @@ public class TipRulesTest {
     // ---- the volley that tips: stops at the tip, spare, and the timed volley that cannot stop ---------------------
 
     @Test
-    public void aCameraGatedVolleyThatIsBiggerThanTheTipNeedsIsFineBecauseItStopsAtTheTip() {
-        // 2 POLLEN, take 2 back from the floor, then fire 4: the 1st POLLEN of those 4 is the tip and the feeder stops there
-        List<Issue> l = validate(AutoRoute.builder("late").start(58, FRONT, -90)
-                .shootUp(2).intakeFloor(60, 30, BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, 30, -90, 2).shootUp(4));
+    public void aCameraGatedVolleyThatIsBiggerThanTheTipNeedsIsFineForAFeederThatStopsInTime() {
+        // 2 POLLEN, take 2 back from the floor, then fire 4: the 1st POLLEN of those 4 is the tip and a feeder that stops at once stops there
+        AutoRoute.Builder b = AutoRoute.builder("late").start(58, FRONT, -90)
+                .shootUp(2).intakeFloor(60, 30, BioBuzzConstants.Field.RED_HIVE_AXIS_X_IN, 30, -90, 2).shootUp(4);
+        List<Issue> l = FastFeederRobot.check(b.build());
         assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.ERROR));
         assertEquals(l.toString(), 0, count(l, Rule.SHOOT_TARGET, Severity.WARN));
         assertEquals("3 of the 4 are spare", 0, count(l, Rule.TIP_MARGIN, Severity.WARN));
@@ -116,8 +117,8 @@ public class TipRulesTest {
         assertTrue(issue.message, issue.message.contains("QA12"));
         assertTrue(issue.message, issue.message.contains("G417"));
         assertTrue(issue.message, issue.message.contains("a cell tips at 8 POLLEN-equivalents"));
-        // the same volley without the fixed time is gated by the camera: nothing to say
-        assertEquals(0, count(validate(AutoRoute.builder("gated").start(58, FRONT, -90).shootUp(4)), Rule.SHOOT_TARGET, Severity.WARN));
+        // the same volley without the fixed time is gated by the camera: a feeder that stops in time has nothing to say...
+        assertEquals(0, count(FastFeederRobot.check(AutoRoute.builder("gated").start(58, FRONT, -90).shootUp(4).build()), Rule.SHOOT_TARGET, Severity.WARN));
         // and a timed volley of exactly the 3 that tip fires nothing after the tip
         assertEquals(0, count(validate(AutoRoute.builder("exact").start(58, FRONT, -90).shootUp(3).launchSeconds(5.0)), Rule.SHOOT_TARGET,
                 Severity.WARN));

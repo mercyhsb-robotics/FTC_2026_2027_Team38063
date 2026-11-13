@@ -164,8 +164,9 @@ public final class RouteCatalog {
                 .description("Starts in tile C1, fires the 4 pre-loads at the UP cell from the standoff pose the solver "
                         + "picks, then drives out through the left corridor (x < 43, clear of the HIVE frame keep-out) and "
                         + "parks deep inside the red LOADING ZONE. The 3 NECTAR already in the UP cell plus the 3rd POLLEN tip "
-                        + "the HIVE (FIRST's calibration), so the 4 pre-loads tip it with 1 spare: the volley stops at the tip "
-                        + "and the 4th POLLEN stays in the robot, and a HIVE that needs one more POLLEN still tips. The route "
+                        + "the HIVE (FIRST's calibration), so the 4 pre-loads tip it with 1 spare for a HIVE that needs one more POLLEN. "
+                        + "The camera sees the tip only about 0.85 s after the 3rd POLLEN lands, so the 4th is probably launched into the cell "
+                        + "while it swings down and is spent (the validator says so; measure the real time on day one). The route "
                         + "claims LEAVE 3 + PARK 5 + our TIP 20: it parks standing about 4 in off the red wall, because a robot that "
                         + "touches ANY wall at the end of AUTO, the one inside the LOADING ZONE too, loses its LEAVE (QA21).")
                 .startTile("C1")
@@ -175,7 +176,8 @@ public final class RouteCatalog {
                 .shootUp(4)
                     .note("AUTO pose: the solver stands about 34 in in front of the cell; the diagram shows the nominal pose. "
                             + "The 3 staged NECTAR plus the 3rd POLLEN tip the HIVE: one volley is the first tip, and the 4th "
-                            + "pre-load is the spare (it stays in the robot if the HIVE tips on the 3rd).")
+                            + "pre-load is the spare for a stiff HIVE (the camera cannot stop the feeder before the 4th is launched, so it "
+                            + "is probably spent).")
                 .driveConstant(30.0, 14.8, -90.0).label("along the wall")
                     .note("Slides sideways along the audience wall, STAYING LOW and keeping the front toward the wall (at the nominal shooting pose "
                             + "the center is only 12.1 in from the wall and a robot that turns on the spot there swings a corner 1.1 in through it). "
@@ -193,27 +195,29 @@ public final class RouteCatalog {
         routes.add(AutoRoute.builder(GARDEN_CYCLE)
                 .title("Garden cycle: shoot 4 to tip the HIVE (1 spare), take 3 GARDEN POLLEN, step off the wall")
                 .description("Starts in tile B1 and fires the 4 pre-loads at the UP cell. With the 3 NECTAR already in that "
-                        + "cell the 3rd POLLEN tips the HIVE (+20) and the 4th pre-load stays in the robot as the spare. After a "
+                        + "cell the 3rd POLLEN tips the HIVE (+20); the 4th pre-load is the spare for a stiff HIVE, and because the camera "
+                        + "sees the tip only about 0.85 s after the 3rd POLLEN lands it is probably launched into the swinging cell and spent. After a "
                         + "tip the UP cell is on the OTHER side of the HIVE, about 111 in away around it, and it holds no NECTAR, "
                         + "so it needs 8 POLLEN (plan 9): far more than this route can carry there. So the route does not shoot "
-                        + "again: it sweeps up 3 of the 4 POLLEN of the red GARDEN along the audience wall (the robot holds 1 "
-                        + "spare + 3 = 4, the most it may hold, G407) to carry into TELEOP and steps off the wall. LEAVE 3 + our "
-                        + "TIP 20.")
+                        + "again: it sweeps up 3 of the 4 POLLEN of the red GARDEN along the audience wall (the robot holds 0 + 3 = 3; "
+                        + "if the feeder does stop in time it holds 1 + 3 = 4, the most it may hold, G407, so never take a 4th) to carry "
+                        + "into TELEOP and steps off the wall. LEAVE 3 + our TIP 20.")
                 .startTile("B1")
                 .start(35.0, FRONT_ON_WALL_IN, -90)
                     .note("Front edge ON the audience wall (the center of rotation is " + FRONT_ON_WALL_IN + " in out). Place the robot with the "
                             + "wheel tips touching the wall and the middle of the robot over tile B1.")
                 .shootUp(4)
                     .note("AUTO pose: the solver moves from B1 to the standoff pose in front of the UP cell. The 3 staged "
-                            + "NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load stays in the robot; the REAR cell "
-                            + "is the UP one from now on.")
+                            + "NECTAR plus the 3rd POLLEN tip the HIVE and the 4th pre-load is probably spent (the feeder stops only "
+                            + "about 0.85 s after the tip); the REAR cell is the UP one from now on.")
                 .driveConstant(9.0, 18.0, -90).label("to GARDEN")
                     .note("Slides along the audience wall with the intake still facing it.")
                 .driveConstant(9.0, FRONT_ON_WALL_IN + 0.8, -90).label("into GARDEN").wallContact()
                     .note("Front edge ends 0.8 in from the wall, on the row of POLLEN (x 0..12).")
                 .intakeGarden(5.7, 1.4, 9.0, FRONT_ON_WALL_IN + 0.8, -90, 3)
-                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 1 (the spare "
-                            + "pre-load) and takes 3, so it carries 4 into TELEOP, the most it may hold (G407).")
+                    .note("The 4 GARDEN POLLEN lie along the wall at x 1.40, 4.29, 7.18 and 10.07 (CAD). The robot holds 0 (the spare "
+                            + "pre-load was probably spent) or 1 (the feeder stopped in time) and takes 3, so it carries 3 or 4 into TELEOP; "
+                            + "4 is the most it may hold (G407), so the intake never takes a 4th.")
                 .driveConstant(20.0, 24.0, -90).label("off the wall")
                     .note("Ends with the whole footprint more than 1.5 in off every wall: LEAVE.")
                 .build());

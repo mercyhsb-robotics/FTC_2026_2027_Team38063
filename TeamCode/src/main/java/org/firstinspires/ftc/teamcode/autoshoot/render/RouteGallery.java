@@ -405,7 +405,7 @@ public final class RouteGallery {
                     .append(": ");
             if (info.targetWasUp) {
                 h.append(esc(TipModel.explainVolley(info.nectarInCellBefore, info.pollenInCellBefore, count,
-                        !((Step.Shoot) info.step).hasFixedSeconds())));
+                        !((Step.Shoot) info.step).hasFixedSeconds(), ((Step.Shoot) info.step).hasFixedSeconds() ? 0 : info.firedAfterTip)));
             } else {
                 h.append("fires ").append(count).append(" POLLEN at the ").append(info.targetSide)
                         .append(" cell, which faces down when they leave, so they count for nothing");

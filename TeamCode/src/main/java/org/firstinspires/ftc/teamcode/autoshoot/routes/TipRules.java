@@ -21,13 +21,15 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  * <ul>
  *   <li><b>The tip arithmetic and the spare ({@link TipModel}).</b> The simulation says on which POLLEN of a volley the
  *       HIVE tips (FIRST's calibration: 3 POLLEN for the cell that holds the 3 staged NECTAR, 8 for an empty cell). A
- *       volley that tips with POLLEN to spare is normal: the camera sees the tip, the feeder stops and the spare stays in
- *       the robot. A route that puts in exactly the minimum has no spare, and a field that drifts (QA46: one needed 9
- *       instead of 8) would not tip: WARN.</li>
- *   <li><b>G417, a timed volley that is too big.</b> A volley that feeds for a fixed time (an old OpMode) cannot stop when
+ *       volley that tips with POLLEN to spare is normal: it covers a field that needs one more POLLEN. The camera stops the feeder
+ *       only a moment after the tip, so the spare is probably spent (see the next rule), not carried on. A route that puts in exactly
+ *       the minimum has no spare, and a field that drifts (QA46: one needed 9 instead of 8) would not tip: WARN.</li>
+ *   <li><b>G417, a volley that is too big.</b> A volley that feeds for a fixed time (an old OpMode) cannot stop when
  *       the camera sees the tip. POLLEN that such a volley would still launch after the tip go into a cell that is
  *       tipping down: WARN (QA12 allows adding to a moving HIVE, but G417 allows launching only into an upward-facing
- *       CELL and a launch at a rocking HIVE can spoil the tip).</li>
+ *       CELL and a launch at a rocking HIVE can spoil the tip). A volley gated by the camera is better but not instant: the camera
+ *       sees the tip about {@code TIP_STOP_LATENCY_SEC} after the tipping POLLEN lands, so the POLLEN fed in that time are launched too
+ *       ({@link TipModel#launchedBeforeTheFeederStops}): the same WARN, and the spare is counted as spent.</li>
  *   <li><b>G417, launching into a cell that faces down.</b> Only an upward-facing cell may be launched into. A SHOOT at
  *       a cell that is DOWN when the first POLLEN leaves is a WARN, except in a route that assumes the PARTNER shoots
  *       the first tip. There the cell that comes UP with the partner's tip is special, because partner teams tip at
@@ -73,7 +75,7 @@ final class TipRules {
 
     static void check(RouteAnalysis a, List<Issue> out) {
         for (RouteAnalysis.StepInfo info : a.steps()) {
-            checkVolleyAfterTip(info, out);
+            checkVolleyAfterTip(a, info, out);
             checkSpare(info, out);
             checkTarget(a, info, out);
             checkWaitForTip(a, info, out);
@@ -108,11 +110,15 @@ final class TipRules {
      * Only a timed volley can launch POLLEN after the tip: the camera-gated volley stops when the cell's tags vanish and
      * keeps the rest (see {@link RouteAnalysis.StepInfo#firedAfterTip}).
      */
-    private static void checkVolleyAfterTip(RouteAnalysis.StepInfo info, List<Issue> out) {
+    private static void checkVolleyAfterTip(RouteAnalysis a, RouteAnalysis.StepInfo info, List<Issue> out) {
         if (!(info.step instanceof Step.Shoot) || !info.tipped || info.firedAfterTip <= 0) {
             return;
         }
         int count = ((Step.Shoot) info.step).count();
+        if (!((Step.Shoot) info.step).hasFixedSeconds()) {
+            checkGatedVolleyAfterTip(a, info, count, out);
+            return;
+        }
         out.add(warn(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": this volley is TIMED (it feeds for "
                 + RouteValidator.sec(((Step.Shoot) info.step).fixedSeconds()) + " whatever happens, it cannot stop when the camera sees the tip) and the HIVE tips with POLLEN "
                 + info.tipNeeded + " of the " + count + " (" + info.nectarInCellBefore + " NECTAR in the cell; "
@@ -121,6 +127,32 @@ final class TipRules {
                 + " that is moving, but G417 allows launching only into an upward-facing CELL and a launch at a rocking HIVE can spoil the tip."
                 + " Drop launchSeconds() so the volley is gated by the camera (it stops at the tip and keeps the spare), or fire only "
                 + info.tipNeeded));
+    }
+
+    /**
+     * A volley gated by the camera stops when the camera has seen the tip, and that is LATE: the tipping POLLEN is still in the air for
+     * {@code BALL_FLIGHT_SEC}, the cell has to swing far enough for its tags to look different, and the feeder pauses only after they have been gone a
+     * moment ({@code TIP_STOP_LATENCY_SEC} in all). The POLLEN it feeds in that time ({@link TipModel#launchedBeforeTheFeederStops}) are launched into a cell
+     * that is already swinging down, and the plan counts them as fired. WARN: the spare is probably spent, not carried on, and a launch at a rocking HIVE may
+     * spoil the tip (manual 10.5.1; Q&amp;A QA12 lets you add elements to a HIVE that is moving).
+     */
+    private static void checkGatedVolleyAfterTip(RouteAnalysis a, RouteAnalysis.StepInfo info, int count, List<Issue> out) {
+        // the feeder stops in time when the latency is below the time between POLLEN minus the flight
+        double stopsInTimeBelowSec = a.timePerShotSec() - a.ballFlightSec();
+        out.add(warn(info.index, Rule.SHOOT_TARGET, RouteValidator.describe(info) + ": the HIVE tips with POLLEN " + info.tipNeeded + " of the " + count
+                + " (" + info.nectarInCellBefore + " NECTAR in the cell; " + TipModel.ruleShort() + "), but the camera cannot stop the feeder at once: the POLLEN that tips"
+                + " it is in the air for " + sec2(a.ballFlightSec()) + " and the feeder stops about " + sec2(a.tipStopLatencySec())
+                + " after it lands (Auto.TIP_STOP_LATENCY_SEC), while the next POLLEN leaves " + sec2(a.timePerShotSec()) + " after the last. So the next "
+                + info.firedAfterTip + " POLLEN will probably be launched into the cell while it swings down (G417: a launch at a rocking HIVE can spoil the tip;"
+                + " QA12 lets you add elements to a HIVE that is moving) and " + (info.firedAfterTip == 1 ? "is" : "are") + " spent: the plan counts "
+                + (info.tipNeeded + info.firedAfterTip) + " fired and " + (info.tipSpare - info.firedAfterTip) + " of the spare kept. The spare is for a field that needs one"
+                + " more POLLEN, not a POLLEN to carry on. Fire only " + info.tipNeeded + " to keep it for sure (no spare then), or measure the real stop time on day one:"
+                + " with a latency under " + sec2(stopsInTimeBelowSec) + " the spare stays in the robot"));
+    }
+
+    /** Seconds with two decimals ("0.85 s"): the stop latency is a number like 0.85 that one decimal would round the wrong way. */
+    private static String sec2(double seconds) {
+        return String.format(Locale.ROOT, "%.2f s", seconds);
     }
 
     // ---- the spare: plan one POLLEN more than the minimum ------------------------------------------------------

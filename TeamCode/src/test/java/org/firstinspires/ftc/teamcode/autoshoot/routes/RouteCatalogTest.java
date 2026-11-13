@@ -415,12 +415,24 @@ public class RouteCatalogTest {
 
     // ---- the two demonstration routes --------------------------------------------------------------------
 
+    /**
+     * The demonstration routes have no ERROR for either alliance. Their ONE finding is the WARN that says the 4th pre-load, the spare of the first
+     * volley, is probably launched into the cell while it swings down (the camera stops the feeder only about 0.85 s after the tipping POLLEN
+     * lands, see Auto.TIP_STOP_LATENCY_SEC, a number to be measured on day one). With a feeder that stops in time they are clean.
+     */
     @Test
-    public void theDemonstrationRoutesPassTheValidatorCleanlyForBothAlliances() {
+    public void theDemonstrationRoutesHaveNoErrorAndOnlyTheSpareWarningForBothAlliances() {
         for (String id : new String[] {"wall_shoot_park", "garden_cycle"}) {
             for (Alliance a : Alliance.values()) {
                 List<Issue> l = issues(id, a);
-                assertTrue(id + " " + a + ": " + l, l.isEmpty());
+                assertEquals(id + " " + a + ": " + l, 1, l.size());
+                assertEquals(l.toString(), Rule.SHOOT_TARGET, l.get(0).rule);
+                assertEquals(l.toString(), Severity.WARN, l.get(0).severity);
+                assertEquals("on the volley", 1, l.get(0).stepIndex);
+                assertTrue(l.get(0).message, l.get(0).message.contains("the camera cannot stop the feeder at once"));
+                assertTrue(l.get(0).message, l.get(0).message.contains("Auto.TIP_STOP_LATENCY_SEC"));
+                // the same route for a robot whose feeder stops in time is clean
+                assertTrue(id + " " + a, FastFeederRobot.check(RouteCatalog.byId(id).forAlliance(a)).isEmpty());
             }
         }
     }
@@ -430,9 +442,10 @@ public class RouteCatalogTest {
         AutoRoute r = RouteCatalog.byId("wall_shoot_park");
         assertEquals("C1", r.startTile());
         RouteAnalysis a = r.analyze();
-        assertEquals("the volley stops at the tip, on the 3rd POLLEN", 3, a.pollenShot());
+        assertEquals("the volley tips on the 3rd POLLEN and the 4th is launched before the feeder can stop", 4, a.pollenShot());
         assertEquals("3 staged NECTAR + the 3rd of the 4 pre-loads: one volley is the first tip", 1, a.tips());
-        assertEquals("the 4th pre-load is the spare", 1, a.minimumTipSpare());
+        assertEquals("the 4th pre-load is the planned spare", 1, a.minimumTipSpare());
+        assertEquals("a feeder that stops in time would keep it", 3, FastFeederRobot.analyze(r).pollenShot());
         assertTrue(a.park());
         assertTrue(a.leave());
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
@@ -458,13 +471,16 @@ public class RouteCatalogTest {
         assertEquals("B1", r.startTile());
         RouteAnalysis a = r.analyze();
         // one volley only: after the tip the UP cell is on the far side of the HIVE and holds no NECTAR, so a second
-        // volley of 4 there would not tip it (it needs 8). The first volley fires 3 and keeps the spare, so 3 GARDEN POLLEN fit.
-        assertEquals(3, a.pollenShot());
+        // volley of 4 there would not tip it (it needs 8). The first volley tips on its 3rd POLLEN and the 4th is probably launched before the
+        // feeder can stop, so the robot holds 0 and the 3 GARDEN POLLEN are what it carries (3 with the spare spent, 4 if it was kept).
+        assertEquals(4, a.pollenShot());
         assertEquals(3, a.pollenGained());
         assertEquals(1, a.tips());
         assertEquals(Side.REAR, a.step(1).upSideAfter);
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.TIP_POINTS, r.claimablePoints());
-        assertEquals("the GARDEN POLLEN are carried into TELEOP", BioBuzzConstants.Auto.GARDEN_POLLEN, a.pollenEnd());
+        assertEquals("the GARDEN POLLEN are carried into TELEOP (the spare was probably spent)", BioBuzzConstants.Auto.GARDEN_POLLEN - 1, a.pollenEnd());
+        assertEquals("with a feeder that stops in time the robot carries the most it may hold (G407)", BioBuzzConstants.Auto.POLLEN_CAPACITY,
+                FastFeederRobot.analyze(r).pollenEnd());
         assertEquals("own GARDEN", a.step(4).sourceName);
         assertTrue(a.leave());
         assertTrue(a.totalSeconds() < BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC);
