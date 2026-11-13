@@ -102,6 +102,40 @@ public final class AutoRoute {
         return new AutoRoute(id, title, description, startTile, target, turned);
     }
 
+    // ---- derived values ------------------------------------------------------------------------
+
+    /** Plays the route through (poses, times, POLLEN, HIVE state) in its own alliance's frame. */
+    public RouteAnalysis analyze() {
+        return RouteAnalysis.of(this);
+    }
+
+    /** Estimated duration in seconds, from the placeholder {@link TimingModel}. */
+    public double estimatedSeconds() {
+        return analyze().totalSeconds();
+    }
+
+    /**
+     * AUTO points the route can claim if everything goes to plan: LEAVE 3 if it ends off every wall,
+     * PARK 5 if it ends overlapping the own LOADING ZONE, 20 per HIVE TIP its shots reach.
+     */
+    public int claimablePoints() {
+        return analyze().points();
+    }
+
+    /** POLLEN taken in minus POLLEN fired over the whole route. */
+    public int pollenBalance() {
+        return analyze().pollenBalance();
+    }
+
+    /** The robot pose after each step (the effective end heading of every DRIVE included). */
+    public List<Pose2> endPoses() {
+        List<Pose2> out = new ArrayList<Pose2>();
+        for (RouteAnalysis.StepInfo info : analyze().steps()) {
+            out.add(info.to);
+        }
+        return out;
+    }
+
     @Override
     public String toString() {
         return "AutoRoute{" + id + ", " + alliance + ", " + steps.size() + " steps}";
