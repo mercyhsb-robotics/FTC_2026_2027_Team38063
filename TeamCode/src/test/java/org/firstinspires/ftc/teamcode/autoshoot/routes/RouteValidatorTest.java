@@ -257,13 +257,15 @@ public class RouteValidatorTest {
 
     @Test
     public void firingPollenTheRobotDoesNotHoldIsAnError() {
+        // (the 4 pre-loads tip the HIVE, so the second volley goes to the other cell: that move has findings of its own)
         List<Issue> none = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(4).shootUp(1));
-        assertOnly(none, Rule.CAPACITY_G407, Severity.ERROR);
+        assertEquals(1, count(none, Rule.CAPACITY_G407, Severity.ERROR));
         assertEquals(2, first(none, Rule.CAPACITY_G407).stepIndex);
         assertTrue(first(none, Rule.CAPACITY_G407).message.contains("holds none"));
 
+        // (5 POLLEN into a cell that tips on the 4th also fires one past the tip: that is its own G417 finding)
         List<Issue> tooMany = validate(AutoRoute.builder("x").start(58, 9.2, -90).shootUp(5));
-        assertOnly(tooMany, Rule.CAPACITY_G407, Severity.ERROR);
+        assertEquals(1, count(tooMany, Rule.CAPACITY_G407, Severity.ERROR));
         assertTrue(first(tooMany, Rule.CAPACITY_G407).message.contains("only 4"));
     }
 
@@ -411,7 +413,8 @@ public class RouteValidatorTest {
         // fixed AUDIENCE is right at the start...
         assertEquals(0, count(validate(AutoRoute.builder("x").start(58, 9.2, -90).shootSide(Side.AUDIENCE, 4)),
                 Rule.SHOOT_TARGET, Severity.WARN));
-        // ...but after 8 POLLEN tip the HIVE the REAR cell is the UP one and AUDIENCE is down
+        // ...but once the 4 pre-loads have tipped the HIVE (3 staged NECTAR + 4 POLLEN) the REAR cell is the UP one and
+        // AUDIENCE is down; the second volley of 4 into the empty REAR cell does not tip it again
         AutoRoute.Builder afterTip = AutoRoute.builder("x").start(58, 9.2, -90)
                 .shootUp(4)
                 .driveConstant(9, 9.7, -90).wallContact()

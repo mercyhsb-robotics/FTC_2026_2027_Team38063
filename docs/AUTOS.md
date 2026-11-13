@@ -105,8 +105,10 @@ Two rules of thumb that the validator enforces:
 * **A move is a DRIVE.** If an INTAKE, SHOOT or PARK has a pose far from where the previous step left the robot,
   the validator warns: add a `drive...` before it so the path is planned and checked.
 * **Scoring.** A route claims LEAVE (3 points) when it ends with the whole robot off every wall, PARK (5) when it ends
-  partly in the own LOADING ZONE, and a HIVE TIP (20) for every 8 POLLEN it launches into the UP cell. The HIVE
-  flips after a tip, so the next volley counts from zero at the other cell.
+  partly in the own LOADING ZONE, and a HIVE TIP (20) for every tip its volleys cause. The 3 NECTAR that sit in the
+  UP cell at the start help: ONE volley of 4 POLLEN tips the first HIVE (3 NECTAR + 4 POLLEN is enough, 3 NECTAR +
+  3 POLLEN is not). The HIVE flips after a tip and the cell that comes up holds no NECTAR, so the next tip at the
+  other cell needs 8 POLLEN (two volleys of 4). See "How a HIVE tips" below.
 
 ## What the validator checks
 
@@ -125,6 +127,28 @@ Two rules of thumb that the validator enforces:
 
 Every finding names its step number (the same number as in the picture) and quotes the numbers: how far through the
 wall, where the footprint first enters the keep-out, how far the shot is from the cell.
+
+## How a HIVE tips
+
+The manual does not say how much it takes to tip a HIVE, so the planner uses the team's figures: **5 NECTAR, or 8
+POLLEN, or a mix**. A mix works like a recipe: each NECTAR is worth 1/5 of a tip, each POLLEN 1/8 of a tip, and the
+cell tips when the shares add up to 1. The code multiplies this by 5 x 8 so that it needs only whole numbers: a cell
+tips when
+
+```
+NECTAR x 8  +  POLLEN x 5  >=  40
+```
+
+* **The first tip.** The UP cell holds 3 NECTAR when the match starts (Fig 10-2). 3 NECTAR + 4 POLLEN is
+  3 x 8 + 4 x 5 = 44, so **one volley of 4 POLLEN is the first tip**; 3 NECTAR + 3 POLLEN is 24 + 15 = 39, which is
+  not. Two volleys are NOT needed for the first tip.
+* **Every later tip.** After a tip the OTHER cell is the UP one, and Fig 10-2 shows NECTAR only in the cell that is
+  UP at the start, so the new UP cell is empty: it needs 8 POLLEN (0 x 8 + 8 x 5 = 40), two volleys of 4, and the
+  robot can hold only 4 POLLEN at a time (G407), so it has to fetch more in between. A second volley of 4 at the SAME
+  side as the first does not tip anything: that cell has just tipped DOWN.
+* **A volley that is too big.** If a tip happens in the middle of a volley, the POLLEN still to be fired would go
+  into a cell that is already tipping down (a G417 violation). The validator reports that as an ERROR.
+* **Our tips and the partner's tip.** `RouteAnalysis.tips()` and the points count only the tips OUR volleys cause.
 
 ## Reading a diagram
 
@@ -154,7 +178,8 @@ wall, where the footprint first enters the keep-out, how far the shot is from th
   `INTAKE_DWELL_*_SEC`, `AIM_SPINUP_SEC`, `TIME_PER_SHOT_SEC`. Compare routes with them, but do not trust a route
   that is within a few seconds of the limit. When you measure one, replace it, change its marker to VERIFY or TUNE
   and delete its name from `BioBuzzConstants.PLACEHOLDERS`, then regenerate the pictures.
-* **The HIVE needs 8 POLLEN** to tip (`Auto.TIP_POLLEN_THRESHOLD`, VERIFY): the team's figure is 5 NECTAR or 8 POLLEN.
+* **The tip figures** (`Auto.NECTAR_TIP_THRESHOLD` = 5 and `Auto.POLLEN_TIP_THRESHOLD` = 8, VERIFY) are the team's:
+  5 NECTAR, or 8 POLLEN, or a mix. The manual does not give them. `Auto.NECTAR_STAGED_IN_UP_CELL` = 3 is FIXED (Fig 10-2).
 * **Rule limits** (30 s, 4 POLLEN, the 3/5/20 points) are FIXED from the manual. The safety margins (3 in around the
   HIVE, 2 s before the end, the standoff band) are TUNE or VERIFY.
 * The look of the diagrams (scale, inks, tile colours, label sizes) is in `BioBuzzConstants.Auto` with the
@@ -170,9 +195,10 @@ wall, where the footprint first enters the keep-out, how far the shot is from th
 * **`red_b1`** turns to -115 degrees right against the audience wall (a corner pokes **2.6 in through the wall**), shoots
   from 43 in (the good band is 30-38 in), drives so close to the HIVE that the robot is **0.4 in inside the 3 in
   keep-out** (the numbers were written for a narrower robot), and parks only **2.9 in** into the LOADING ZONE.
-* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: the first leaves through the
-  left corridor and parks deep in the zone (8 points); the second shoots the pre-loads, sweeps up the 4 GARDEN POLLEN and
-  shoots them too, so 8 POLLEN reach one cell and the HIVE tips (23 points).
+* **`wall_shoot_park`** and **`garden_cycle`** are new demonstration routes that pass: the first shoots the pre-loads
+  (the first tip), leaves through the left corridor and parks deep in the zone (28 points); the second shoots the
+  pre-loads (the first tip), sweeps up the 4 GARDEN POLLEN and steps off the wall (23 points). It does not shoot the
+  GARDEN POLLEN: the UP cell is on the far side of the HIVE after the tip and needs 8 POLLEN.
 
 These are findings about the **route data**. Whether the old OpModes should be corrected is the team's call; the
 catalog deliberately does not "improve" them.

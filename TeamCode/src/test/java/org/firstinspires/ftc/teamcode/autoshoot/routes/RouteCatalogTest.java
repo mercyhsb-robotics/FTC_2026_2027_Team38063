@@ -16,6 +16,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
@@ -284,15 +285,16 @@ public class RouteCatalogTest {
     }
 
     @Test
-    public void wallShootParkShootsThePreloadsThenParksInTheCornerOfTheZone() {
+    public void wallShootParkTipsTheHiveWithThePreloadsThenParksInTheCornerOfTheZone() {
         AutoRoute r = RouteCatalog.byId("wall_shoot_park");
         assertEquals("C1", r.startTile());
         RouteAnalysis a = r.analyze();
         assertEquals(4, a.pollenShot());
-        assertEquals(0, a.tips());
+        assertEquals("3 staged NECTAR + the 4 pre-loads: one volley is the first tip", 1, a.tips());
         assertTrue(a.park());
         assertTrue(a.leave());
-        assertEquals(8, r.claimablePoints());
+        assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
+                r.claimablePoints());
         assertTrue(a.parkOverlapIn() > 7.0);
         // it uses the curved leg and the left corridor
         Step.Drive curve = (Step.Drive) r.step(2);
@@ -303,17 +305,20 @@ public class RouteCatalogTest {
     }
 
     @Test
-    public void gardenCycleReachesTheTipThresholdWithTheGardenPollen() {
+    public void gardenCycleTipsWithThePreloadsThenCarriesTheGardenPollenAndStepsOffTheWall() {
         AutoRoute r = RouteCatalog.byId("garden_cycle");
         assertEquals("B1", r.startTile());
         RouteAnalysis a = r.analyze();
-        assertEquals(8, a.pollenShot());
+        // one volley only: after the tip the UP cell is on the far side of the HIVE and holds no NECTAR, so a second
+        // volley of 4 there would not tip it (it needs 8)
+        assertEquals(4, a.pollenShot());
         assertEquals(4, a.pollenGained());
-        assertEquals(BioBuzzConstants.Auto.TIP_POLLEN_THRESHOLD, a.pollenShot());
         assertEquals(1, a.tips());
+        assertEquals(Side.REAR, a.step(1).upSideAfter);
         assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.TIP_POINTS, r.claimablePoints());
-        assertEquals(0, a.pollenEnd());
+        assertEquals("the GARDEN POLLEN are carried into TELEOP", BioBuzzConstants.Auto.GARDEN_POLLEN, a.pollenEnd());
         assertEquals("own GARDEN", a.step(4).sourceName);
+        assertTrue(a.leave());
         assertTrue(a.totalSeconds() < BioBuzzConstants.Auto.AUTO_DURATION_SEC - BioBuzzConstants.Auto.TIME_SAFETY_MARGIN_SEC);
     }
 }

@@ -22,6 +22,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TipModel;
 
 /**
  * Builds the route gallery: one {@code <id>_red.svg} and one {@code <id>_blue.svg} per route and an
@@ -277,8 +278,8 @@ public final class RouteGallery {
                 + a.tipPoints());
         row(h, "POLLEN", "hold " + BioBuzzConstants.Auto.PRELOAD_POLLEN + " at the start, +" + a.pollenGained() + " taken, -"
                 + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")");
-        row(h, "HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (" + BioBuzzConstants.Auto.TIP_POLLEN_THRESHOLD
-                + " POLLEN into the UP cell each)"));
+        row(h, "HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (the first needs " + TipModel.firstTipPollen()
+                + " POLLEN into the UP cell, each later one " + TipModel.laterTipPollen() + ")"));
         row(h, "Ends", "LEAVE " + (a.leave() ? "yes" : "no") + ", PARK " + (a.park() ? "yes, " + inches(a.parkOverlapIn()) + " inside the LOADING ZONE" : "no")
                 + ", at " + esc(pose(a.endPose())));
         row(h, "Validator", statusHtml(e));

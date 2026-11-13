@@ -448,8 +448,8 @@ public class RouteSvgRendererTest {
         assertTrue(metrics, metrics.contains("HIVE TIP 20"));
         String pollen = byId(d, "footer-pollen").getTextContent();
         assertTrue(pollen, pollen.contains("+4 taken"));
-        assertTrue(pollen, pollen.contains("-8 fired"));
-        assertTrue(pollen, pollen.contains("balance -4"));
+        assertTrue(pollen, pollen.contains("-4 fired"));
+        assertTrue(pollen, pollen.contains("balance 0"));
         assertTrue(pollen, pollen.contains("no findings"));
         assertNotNull(byId(d, "legend"));
         assertTrue(withClass(byId(d, "legend"), "g", "legend-item").size() >= 10);

@@ -203,8 +203,8 @@ public class RouteGalleryTest {
         assertEquals("6", rowValue(garden, "Steps"));
         assertTrue(rowValue(garden, "Estimated time"), rowValue(garden, "Estimated time").contains("placeholder"));
         assertEquals("23 = LEAVE 3 + PARK 0 + HIVE TIP 20", rowValue(garden, "Claimable AUTO points"));
-        assertEquals("hold 4 at the start, +4 taken, -8 fired, 0 at the end (balance -4)", rowValue(garden, "POLLEN"));
-        assertEquals("1 (8 POLLEN into the UP cell each)", rowValue(garden, "HIVE TIPs"));
+        assertEquals("hold 4 at the start, +4 taken, -4 fired, 4 at the end (balance 0)", rowValue(garden, "POLLEN"));
+        assertEquals("1 (the first needs 4 POLLEN into the UP cell, each later one 8)", rowValue(garden, "HIVE TIPs"));
         assertEquals("no findings", rowValue(garden, "Validator"));
         Element c1 = section(page, "red_c1");
         assertEquals("1 ERROR", rowValue(c1, "Validator"));

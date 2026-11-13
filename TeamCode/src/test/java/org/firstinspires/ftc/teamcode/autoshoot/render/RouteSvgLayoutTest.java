@@ -254,7 +254,7 @@ public class RouteSvgLayoutTest {
                 }
             }
             int expected = countSteps(r, StepKind.START) + countSteps(r, StepKind.SHOOT) + countSteps(r, StepKind.INTAKE)
-                    + countSteps(r, StepKind.PARK);
+                    + countSteps(r, StepKind.PARK) + (endsOnADrive(r) ? 1 : 0);      // a route that ends on a DRIVE draws an END outline
             assertEquals(r.id(), expected, fronts);
             assertEquals(r.id(), expected, backs);
         }
@@ -273,8 +273,13 @@ public class RouteSvgLayoutTest {
         assertEquals(Y_BOTTOM - 30.0 * S, (b[2] + b[3]) / 2.0, 0.05);
         assertTrue(stepLabels(d).contains("END"));
         for (AutoRoute r : RouteCatalog.all()) {
-            assertEquals(r.id(), 0, withClass(byId(parse(RouteSvgRenderer.render(r, Alliance.RED)), "route"), "g", "end-outline").size());
+            assertEquals(r.id(), endsOnADrive(r) ? 1 : 0,
+                    withClass(byId(parse(RouteSvgRenderer.render(r, Alliance.RED)), "route"), "g", "end-outline").size());
         }
+    }
+
+    private static boolean endsOnADrive(AutoRoute r) {
+        return r.step(r.size() - 1).kind() == StepKind.DRIVE;
     }
 
     // ---- the 900 x 900 px image --------------------------------------------------------------------
@@ -344,10 +349,13 @@ public class RouteSvgLayoutTest {
     public void aSingleShotIsLabelledPlainlyAndShotsFromTheSamePoseCarryTheirStepNumber() throws Exception {
         List<String> single = stepLabels(render("wall_shoot_park", Alliance.RED));
         assertTrue(single.toString(), single.contains("SHOOT 4"));
-        List<String> twice = stepLabels(render("garden_cycle", Alliance.RED));
-        assertTrue(twice.toString(), twice.contains("SHOOT 4 (step 2)"));
-        assertTrue(twice.toString(), twice.contains("SHOOT 4 (step 6)"));
-        assertFalse(twice.toString(), twice.contains("SHOOT 4"));
+        // two volleys of 2 into the same UP cell from the same solver pose (together they are the first tip)
+        AutoRoute split = AutoRoute.builder("split").title("Two volleys").startTile("B1").start(35, 9.2, -90)
+                .shootUp(2).shootUp(2).build();
+        List<String> twice = stepLabels(parse(RouteSvgRenderer.render(split, Alliance.RED)));
+        assertTrue(twice.toString(), twice.contains("SHOOT 2 (step 2)"));
+        assertTrue(twice.toString(), twice.contains("SHOOT 2 (step 3)"));
+        assertFalse(twice.toString(), twice.contains("SHOOT 2"));
     }
 
     @Test

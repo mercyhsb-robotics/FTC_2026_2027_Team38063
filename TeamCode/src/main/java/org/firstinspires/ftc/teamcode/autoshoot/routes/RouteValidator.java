@@ -80,6 +80,7 @@ public final class RouteValidator {
             checkPark(a, info, out);
             checkUnplannedMove(info, out);
         }
+        TipRules.check(a, out);
         checkTime(a, out);
         checkEnd(a, out);
         Collections.sort(out, new Comparator<Issue>() {
@@ -430,22 +431,22 @@ public final class RouteValidator {
 
     // ---- helpers ---------------------------------------------------------------------------------------------
 
-    private static String describe(RouteAnalysis.StepInfo info) {
+    static String describe(RouteAnalysis.StepInfo info) {
         String label = info.step instanceof Step.Drive && !((Step.Drive) info.step).label().isEmpty()
                 ? " '" + ((Step.Drive) info.step).label() + "'" : "";
         String suffix = info.path == null && info.approach != null ? ", the move to its pose" : "";
         return "step " + (info.index + 1) + " (" + info.step.kind() + label + suffix + ")";
     }
 
-    private static String pose(Pose2 p) {
+    static String pose(Pose2 p) {
         return String.format(Locale.ROOT, "(%.1f, %.1f, %.0f deg)", p.x, p.y, p.headingDegrees());
     }
 
-    private static String in(double v) {
+    static String in(double v) {
         return String.format(Locale.ROOT, "%.1f in", v);
     }
 
-    private static String sec(double v) {
+    static String sec(double v) {
         return String.format(Locale.ROOT, "%.1f s", v);
     }
 

@@ -27,12 +27,14 @@ public class RouteAnalysisTest {
     }
 
     @Test
-    public void aShootThenParkRouteScoresLeaveAndParkButNoTip() {
+    public void aShootThenParkRouteScoresLeaveParkAndTheFirstTip() {
         RouteAnalysis a = corridorPark().build().analyze();
         assertTrue(a.leave());
         assertTrue(a.park());
-        assertEquals(0, a.tips());
-        assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS, a.points());
+        // the 4 pre-loads on top of the 3 staged NECTAR are the first tip
+        assertEquals(1, a.tips());
+        assertEquals(BioBuzzConstants.Auto.LEAVE_POINTS + BioBuzzConstants.Auto.PARK_POINTS + BioBuzzConstants.Auto.TIP_POINTS,
+                a.points());
         assertEquals(-4, a.pollenBalance());
         assertEquals(0, a.pollenEnd());
         assertEquals(4, a.pollenShot());
@@ -73,51 +75,105 @@ public class RouteAnalysisTest {
         assertTrue(a.totalSeconds() > 5 && a.totalSeconds() < 25);
     }
 
+    // ---- the HIVE tip: staged NECTAR make the first tip one volley of 4 POLLEN --------------------------------
+
     @Test
-    public void eightPollenIntoTheUpCellTipsTheHiveAndFlipsWhichCellIsUp() {
-        AutoRoute r = AutoRoute.builder("tip").start(35, 9.2, -90)
-                .shootUp(4)
-                .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)
-                .shootUp(4)
-                .build();
-        RouteAnalysis a = r.analyze();
+    public void oneVolleyOfFourPollenTipsTheFirstHiveBecauseOfTheStagedNectar() {
+        RouteAnalysis a = AutoRoute.builder("tip").start(35, 9.2, -90).shootUp(4).build().analyze();
         assertEquals(1, a.tips());
         assertEquals(BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
-        RouteAnalysis.StepInfo first = a.step(1);
-        RouteAnalysis.StepInfo second = a.step(3);
-        assertEquals(Side.AUDIENCE, first.upSideBefore);
-        assertFalse(first.tipped);
-        assertEquals(4, first.pollenInCellAfter);
-        assertTrue(second.tipped);
-        assertEquals(Side.AUDIENCE, second.targetSide);
-        assertEquals(Side.REAR, second.upSideAfter);
-        assertEquals(0, second.pollenInCellAfter);
-        // 4 pre-loads + 4 from the GARDEN = 8 fired: the robot ends with none
-        assertEquals(4 - 8, a.pollenBalance());
-        assertEquals(0, a.pollenEnd());
+        RouteAnalysis.StepInfo shoot = a.step(1);
+        assertEquals(Side.AUDIENCE, shoot.upSideBefore);
+        assertEquals("the cell that is UP at the start holds the staged NECTAR", BioBuzzConstants.Auto.NECTAR_STAGED_IN_UP_CELL,
+                shoot.nectarInCellBefore);
+        assertTrue(shoot.tipped);
+        assertEquals("the UP cell is on the other side after the tip", Side.REAR, shoot.upSideAfter);
+        assertEquals("the counter starts again after a tip", 0, shoot.pollenInCellAfter);
+        assertEquals("the last POLLEN of the volley is the one that tips", shoot.endSec(), shoot.tipSec, 1e-9);
+        assertEquals(0, shoot.firedAfterTip);
     }
 
     @Test
-    public void fourPollenAloneDoNotTipAndAFixedDownCellDoesNotCount() {
-        assertEquals(0, AutoRoute.builder("a").start(35, 9.2, -90).shootUp(4).build().analyze().tips());
-        // 4 into the UP (audience) cell, then 4 at the DOWN rear cell: nothing reaches 8 in one cell
-        AutoRoute r = AutoRoute.builder("b").start(35, 9.2, -90)
-                .shootUp(4).shootSide(Side.REAR, 4).build();
+    public void threePollenDoNotTipTheFirstHiveButFourDoEvenWhenTheyComeInTwoVolleys() {
+        // 3 NECTAR + 3 POLLEN = 3 x 8 + 3 x 5 = 39, one short of 40: no tip
+        RouteAnalysis three = AutoRoute.builder("three").start(35, 9.2, -90).shootUp(3).build().analyze();
+        assertEquals(0, three.tips());
+        assertFalse(three.step(1).tipped);
+        assertEquals(3, three.step(1).pollenInCellAfter);
+        assertEquals(Side.AUDIENCE, three.step(1).upSideAfter);
+        assertTrue(Double.isNaN(three.step(1).tipSec));
+        // the POLLEN of two volleys into the same cell add up: 3 + 1 = 4 tips
+        RouteAnalysis split = AutoRoute.builder("split").start(35, 9.2, -90).shootUp(3).shootUp(1).build().analyze();
+        assertEquals(1, split.tips());
+        assertFalse(split.step(1).tipped);
+        assertTrue(split.step(2).tipped);
+        assertEquals(0, split.step(2).pollenInCellAfter);
+    }
+
+    @Test
+    public void theSecondTipNeedsEightPollenBecauseTheNewUpCellHoldsNoNectar() {
+        AutoRoute r = AutoRoute.builder("second").start(35, 9.2, -90)
+                .shootUp(4)                                          // tip 1: 3 NECTAR + 4 POLLEN
+                .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
+                .shootUp(4)                                          // 4 POLLEN into the empty REAR cell: not enough
+                .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
+                .shootUp(4)                                          // 8 POLLEN in total: tip 2
+                .build();
         RouteAnalysis a = r.analyze();
-        assertEquals(0, a.tips());
-        assertFalse(a.step(2).targetWasUp);
-        assertEquals(Side.REAR, a.step(2).targetSide);
-        assertEquals(Side.AUDIENCE, a.step(2).upSideAfter);
+        assertTrue(a.step(1).tipped);
+        RouteAnalysis.StepInfo half = a.step(3);
+        assertEquals(Side.REAR, half.targetSide);
+        assertEquals(0, half.nectarInCellBefore);
+        assertFalse("4 POLLEN with no NECTAR are only half a tip", half.tipped);
+        assertEquals(4, half.pollenInCellAfter);
+        assertEquals(Side.REAR, half.upSideAfter);
+        RouteAnalysis.StepInfo full = a.step(5);
+        assertTrue(full.tipped);
+        assertEquals(Side.REAR, full.targetSide);
+        assertEquals(Side.AUDIENCE, full.upSideAfter);
+        assertEquals(2, a.tips());
+        assertEquals(2 * BioBuzzConstants.Auto.TIP_POINTS, a.tipPoints());
     }
 
     @Test
-    public void afterATipTheNextVolleyCountsFromZeroInTheOtherCell() {
+    public void aVolleyThatIsBiggerThanTheTipNeedsFiresItsLastPollenAfterTheTip() {
+        // 2 POLLEN: 3 x 8 + 2 x 5 = 34, not yet. Then a volley of 4: the 2nd POLLEN of it makes 4 in the cell and tips.
+        AutoRoute r = AutoRoute.builder("late").start(35, 9.2, -90)
+                .shootUp(2).intakeFloor(40, 30, 38, 30, 0, 2).shootUp(4).build();
+        RouteAnalysis.StepInfo volley = r.analyze().step(3);
+        assertTrue(volley.tipped);
+        assertEquals(2, volley.firedAfterTip);
+        // the tip is half way through the volley's firing, not at its end
+        double firing = volley.endSec() - volley.launchSec;
+        assertEquals(volley.launchSec + firing * 2 / 4, volley.tipSec, 1e-9);
+        assertTrue(volley.tipSec < volley.endSec());
+    }
+
+    @Test
+    public void aVolleyAtTheDownCellDoesNotCountTowardTheTip() {
+        // at match start the red REAR cell is DOWN: 4 POLLEN fired at it do nothing, and the UP cell stays AUDIENCE
+        RouteAnalysis a = AutoRoute.builder("b").start(35, 9.2, -90).shootSide(Side.REAR, 4).build().analyze();
+        assertEquals(0, a.tips());
+        assertFalse(a.step(1).targetWasUp);
+        assertEquals(Side.REAR, a.step(1).targetSide);
+        assertEquals(Side.AUDIENCE, a.step(1).upSideAfter);
+        // ...so a later volley at the UP cell still needs only 4 POLLEN
+        RouteAnalysis later = AutoRoute.builder("b2").start(35, 9.2, -90).shootSide(Side.REAR, 2).shootUp(2).shootUp(2)
+                .build().analyze();
+        assertEquals(1, later.tips());
+        assertTrue(later.step(3).tipped);
+    }
+
+    @Test
+    public void afterATipTheNextVolleysCountInTheOtherCellFromZero() {
         AutoRoute r = AutoRoute.builder("c").start(35, 9.2, -90)
                 .shootUp(4).shootUp(4).shootUp(3).build();
         RouteAnalysis a = r.analyze();
         assertEquals(1, a.tips());
-        assertEquals(3, a.step(3).pollenInCellAfter);
-        assertEquals(Side.REAR, a.step(3).targetSide);
+        assertEquals(Side.REAR, a.step(2).targetSide);
+        assertEquals(4, a.step(2).pollenInCellAfter);
+        assertEquals("4 + 3 = 7 POLLEN are still one short of the 8 an empty cell needs", 7, a.step(3).pollenInCellAfter);
+        assertFalse(a.step(3).tipped);
     }
 
     @Test

@@ -111,11 +111,21 @@ public final class BioBuzzConstants {
         /** FIXED (manual 9.8): POLLEN diameter, drawn to scale by the diagrams. */
         public static final double POLLEN_DIAMETER_IN = 2.8;
         /**
-         * VERIFY: POLLEN that must be LAUNCHED into the UP cell to tip the HIVE. Team statement:
-         * 5 NECTAR, 8 POLLEN or a mix. Not in the manual; whether the 3 NECTAR staged in the cell
-         * count is unknown. Measure on the real HIVE.
+         * FIXED (manual Fig 10-2): NECTAR that sit in the HIVE cell that is UP when the match starts (3 of the
+         * alliance's own colour). Only that cell holds them: after the HIVE has tipped, the cell that comes up
+         * is empty, so it has no NECTAR to help the next tip.
          */
-        public static final int TIP_POLLEN_THRESHOLD = 8;
+        public static final int NECTAR_STAGED_IN_UP_CELL = 3;
+        /**
+         * VERIFY: the team's figure for tipping a HIVE cell with NECTAR alone: 5 NECTAR. The manual gives no
+         * tip threshold at all, so this and {@link #POLLEN_TIP_THRESHOLD} are the team's figures. A cell tips
+         * when {@code nectar / NECTAR_TIP_THRESHOLD + pollen / POLLEN_TIP_THRESHOLD >= 1}: every NECTAR is worth
+         * 1/5 of a tip and every POLLEN 1/8 of a tip, so 5 NECTAR, or 8 POLLEN, or a mix tips it. The code
+         * multiplies the whole inequality out so it uses whole numbers only (see TipModel).
+         */
+        public static final int NECTAR_TIP_THRESHOLD = 5;
+        /** VERIFY: the team's figure for tipping a cell with POLLEN alone: 8 POLLEN (two volleys of 4). See {@link #NECTAR_TIP_THRESHOLD}. */
+        public static final int POLLEN_TIP_THRESHOLD = 8;
         /** FIXED (manual Table 10-2): LEAVE is worth 3 points in AUTO. */
         public static final int LEAVE_POINTS = 3;
         /** FIXED (manual Table 10-2): PARK is worth 5 points in AUTO. */

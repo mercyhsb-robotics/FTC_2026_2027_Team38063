@@ -55,6 +55,17 @@ public final class RouteAnalysis {
         public final boolean tipped;
         /** SHOOT: POLLEN in the targeted cell after this volley (0 right after a tip). */
         public final int pollenInCellAfter;
+        /** SHOOT: route time in seconds at which the first POLLEN leaves the shooter (after the move to the pose); NaN otherwise. */
+        public final double launchSec;
+        /** SHOOT that tipped the HIVE: route time in seconds of the POLLEN that tipped it; NaN otherwise. */
+        public final double tipSec;
+        /**
+         * SHOOT that tipped the HIVE: POLLEN of the same volley that are still fired AFTER the tip, i.e. into a
+         * cell that is already tipping down (0 when the last POLLEN of the volley is the one that tips).
+         */
+        public final int firedAfterTip;
+        /** SHOOT: NECTAR sitting in the targeted cell when the volley starts (3 in the starting UP cell, else 0). */
+        public final int nectarInCellBefore;
 
         /** INTAKE: what the robot takes from: "FLOWER n", "own GARDEN", "other GARDEN" or "FLOOR"; null if nothing matched. */
         public final String sourceName;
@@ -66,7 +77,8 @@ public final class RouteAnalysis {
         StepInfo(int index, Step step, Pose2 from, Pose2 to, DrivePath path, DrivePath approach, double startSec,
                  double durationSec, int pollenBefore, int pollenAfter, Side upSideBefore, Side upSideAfter,
                  Side targetSide, boolean targetWasUp, Pose2 shootPose, boolean shootPoseIsNominal, boolean tipped,
-                 int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits) {
+                 int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits,
+                 double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore) {
             this.index = index;
             this.step = step;
             this.from = from;
@@ -88,6 +100,10 @@ public final class RouteAnalysis {
             this.sourceName = sourceName;
             this.sourceRemainingBefore = sourceRemainingBefore;
             this.sourceOffLimits = sourceOffLimits;
+            this.launchSec = launchSec;
+            this.tipSec = tipSec;
+            this.firedAfterTip = firedAfterTip;
+            this.nectarInCellBefore = nectarInCellBefore;
         }
 
         public double endSec() {
@@ -140,7 +156,10 @@ public final class RouteAnalysis {
         Pose2 pose = route.startPose();
         double t = 0.0;
         int held = BioBuzzConstants.Auto.PRELOAD_POLLEN;
+        // The HIVE: which cell is UP, how many NECTAR sit in it (only the cell that is UP at the start holds the
+        // 3 staged ones) and how many of OUR POLLEN were launched into it since the last tip.
         Side up = field.initialUpSide();
+        int nectar = BioBuzzConstants.Auto.NECTAR_STAGED_IN_UP_CELL;
         int inCell = 0;
         int gained = 0;
         int shot = 0;
@@ -171,6 +190,10 @@ public final class RouteAnalysis {
             String sourceName = null;
             int sourceLeft = -1;
             boolean offLimits = false;
+            double launchSec = Double.NaN;
+            double tipSec = Double.NaN;
+            int firedAfterTip = 0;
+            int nectarBefore = 0;
 
             switch (step.kind()) {
                 case START:
@@ -230,16 +253,28 @@ public final class RouteAnalysis {
                     }
                     to = shootPose;
                     approach = approachOrNull(from, to);
-                    duration = (approach == null ? 0.0 : timing.moveSeconds(from, to)) + timing.shootSeconds(sh);
+                    double approachSec = approach == null ? 0.0 : timing.moveSeconds(from, to);
+                    double shootSec = timing.shootSeconds(sh);
+                    duration = approachSec + shootSec;
+                    launchSec = t + approachSec;
+                    nectarBefore = nectar;
                     held -= sh.count();
                     shot += sh.count();
                     if (targetWasUp) {
-                        inCell += sh.count();
-                        if (inCell >= BioBuzzConstants.Auto.TIP_POLLEN_THRESHOLD) {
+                        // How many POLLEN of THIS volley does the cell need? (see TipModel for the arithmetic.) At
+                        // least 1: a cell cannot tip before something is launched into it.
+                        int needed = Math.max(1, TipModel.pollenStillNeeded(nectar, inCell));
+                        if (sh.count() >= needed) {
                             tipped = true;
                             tips++;
+                            // The POLLEN leave one every timePerShot; the tip happens when the needed one lands.
+                            tipSec = launchSec + shootSec * needed / sh.count();
+                            firedAfterTip = sh.count() - needed;
                             up = up.opposite();
+                            nectar = 0;     // the cell that comes up has no staged NECTAR (Fig 10-2)
                             inCell = 0;
+                        } else {
+                            inCell += sh.count();
                         }
                     }
                     break;
@@ -258,7 +293,8 @@ public final class RouteAnalysis {
             }
 
             out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, up,
-                    targetSide, targetWasUp, shootPose, nominal, tipped, inCell, sourceName, sourceLeft, offLimits));
+                    targetSide, targetWasUp, shootPose, nominal, tipped, inCell, sourceName, sourceLeft, offLimits,
+                    launchSec, tipSec, firedAfterTip, nectarBefore));
             t += duration;
             pose = to;
         }
@@ -319,7 +355,11 @@ public final class RouteAnalysis {
         return pollenGained - pollenShot;
     }
 
-    /** Number of HIVE TIPs the shots reach (each needs {@code TIP_POLLEN_THRESHOLD} POLLEN into the UP cell). */
+    /**
+     * Number of HIVE TIPs the route's own volleys cause. A cell tips by the weighted rule of {@link TipModel}: the
+     * first tip needs one volley of 4 POLLEN (the 3 staged NECTAR help), every later tip needs 8 POLLEN into the
+     * cell that came up.
+     */
     public int tips() {
         return tips;
     }
