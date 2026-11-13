@@ -81,3 +81,38 @@ lint/tmp/
 # lint/reports/
 # Local Claude Code settings (per user, not part of the robot code)
 .claude/
+
+# Reference material that is NOT part of the robot code: keep it out of git.
+# CAD models and drawing sheets
+*.step
+*.stp
+*.iges
+*.igs
+*.stl
+*.obj
+*.glb
+*.gltf
+*.3mf
+*.sldprt
+*.sldasm
+*.slddrw
+*.f3d
+*.f3z
+*.dwg
+*.dxf
+*.ipt
+*.iam
+*.x_t
+# Game manuals, datasheets and other downloaded documents (the SDK's licence PDF in doc/legal is kept)
+*.pdf
+!doc/legal/*.pdf
+# Folders for downloaded or scratch research
+reference/
+research/
+downloads/
+scratch/
+# Python scratch files
+__pycache__/
+*.pyc
+venv/
+.venv/
