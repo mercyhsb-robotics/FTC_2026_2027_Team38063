@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autoshoot.opmodes;
+package org.firstinspires.ftc.teamcode.diagnostics;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,22 +1,28 @@
-package org.firstinspires.ftc.teamcode.pedro;
+package org.firstinspires.ftc.teamcode.autonomous.pathtests;
 
 import static com.pedropathing.api.Paths.line;
 
+//import com.bylazar.configurables.annotations.Configurable;
+//import com.bylazar.telemetry.PanelsTelemetry;
+//import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "PedroPathingAuto_Strafe", group = "Autonomous")
-public class Test_Strafe extends OpMode {
+@Autonomous(name = "PedroPathingAuto_Forward", group = "Autonomous")
+//@Configurable
+public class Test_Forward extends OpMode {
+//    private TelemetryManager panelsTelemetry;
     private Follower follower;
     private int pathState;
 
     private final PoseFactory poses = PoseFactory.degrees();
     private final Pose pose1 = poses.of(0, 0, 90);
-    private final Pose pose2 = poses.of(48, 0, 90);
+    private final Pose pose2 = poses.of(0, 48, 90);
     private Path outbound;
     private Path inbound;
 

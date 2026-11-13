@@ -1,9 +1,10 @@
-package org.firstinspires.ftc.teamcode.mechanisms.launcher;
+package org.firstinspires.ftc.teamcode.diagnostics;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
 
 @TeleOp
 public class LauncherTest extends OpMode {

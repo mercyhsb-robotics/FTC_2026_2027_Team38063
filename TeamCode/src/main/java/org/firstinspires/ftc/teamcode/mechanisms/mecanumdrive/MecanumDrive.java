@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.mechanisms.mecanumDrive;
+package org.firstinspires.ftc.teamcode.mechanisms.mecanumdrive;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;

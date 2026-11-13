@@ -95,7 +95,7 @@ public class ConstantsDisciplineTest {
     /** Files that make decisions or command hardware: no tunable number may be written into them. */
     private static List<File> logicFiles() {
         List<File> out = new ArrayList<File>();
-        for (String dir : new String[]{"autoshoot/core", "autoshoot/hardware", "autoshoot/opmodes"}) {
+        for (String dir : new String[]{"autoshoot/core", "autoshoot/hardware", "diagnostics"}) {
             File[] files = source(dir).listFiles();
             if (files != null) {
                 for (File f : files) {
@@ -106,7 +106,7 @@ public class ConstantsDisciplineTest {
             }
         }
         out.add(source("mechanisms/launcher/Launcher.java"));
-        out.add(source("robots/biobuzz/BioBuzzRobot.java"));
+        out.add(source("teleop/BioBuzzRobot.java"));
         return out;
     }
 

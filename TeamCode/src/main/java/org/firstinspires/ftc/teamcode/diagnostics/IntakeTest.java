@@ -1,7 +1,8 @@
-package org.firstinspires.ftc.teamcode.mechanisms.intake;
+package org.firstinspires.ftc.teamcode.diagnostics;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
 
 @TeleOp
 public class IntakeTest extends OpMode {

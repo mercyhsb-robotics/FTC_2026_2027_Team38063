@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.robots.biobuzz;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.hardware.LimelightVision;
 import org.firstinspires.ftc.teamcode.autoshoot.hardware.PedroDrive;
 import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
 import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
-import org.firstinspires.ftc.teamcode.mechanisms.mecanumDrive.MecanumDrive;
+import org.firstinspires.ftc.teamcode.mechanisms.mecanumdrive.MecanumDrive;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 /**

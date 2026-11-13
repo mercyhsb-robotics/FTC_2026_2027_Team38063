@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedro;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.Scheduler.schedule;
@@ -20,19 +20,22 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
+import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "RedAlliance_B1", group = "Autonomous")
+@Autonomous(name = "RedAlliance_C1", group = "Autonomous")
 public class
-RedAlliance_B1 extends LinearOpMode {
+RedAlliance_C1 extends LinearOpMode {
     Launcher launcher;
 
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(35.0, 9.2, -90);
-    private final Pose point1 = poseFactory.of(35.8, 90, -90);
-    private final Pose point2 = poseFactory.of(12, 90, 0);
+    private final Pose start = poseFactory.of(58.0, 9.2, -90);
+//
+    private final Pose point1 = poseFactory.of(62.0, 118.1, -90);
+    private final Pose point2 = poseFactory.of(58.0, 118.1, -90);
+    private final Pose point3 = poseFactory.of(12, 118.1, -90);
 
     public Path path1() {
         return line(start, point1).reverseTangent();
@@ -40,7 +43,7 @@ RedAlliance_B1 extends LinearOpMode {
 
     public Path path2() {return line(point1, point2).reverseTangent();}
 
-//    public Path path3() {return line(point2, point3).tangent();}
+    public Path path3() {return line(point2, point3).reverseTangent();}
 
     // Autonomous routine
     public Command autoRoutine() {
@@ -49,7 +52,7 @@ RedAlliance_B1 extends LinearOpMode {
                 hold(follower, poseFactory.of(
                         start.x(),
                         start.y(),
-                        -115
+                        -90
                 )),
 
                 // Detect which side of the hive to shoot into, aim and launch pollen.
@@ -62,11 +65,10 @@ RedAlliance_B1 extends LinearOpMode {
                     launcher.stop();
                 }),
 
-                // Go to path 1
+                // Go home
                 follow(follower, path1()),
-
-                // Go to path 2
-                follow(follower, path2())
+                follow(follower, path2()),
+                follow(follower, path3())
         );
     }
 
@@ -128,6 +130,7 @@ RedAlliance_B1 extends LinearOpMode {
                 // Ideally we can detect when the launcher has launched four pollen.
                 // For now, wait 3 seconds.
                 waitMs(5000)
+
         );
     }
 
