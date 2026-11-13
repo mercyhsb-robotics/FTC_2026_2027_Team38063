@@ -47,4 +47,28 @@ public class ConstantsCheckStartPlacementTest {
             assertEquals(r.warnings.toString(), 1, r.warnings.size());
         }
     }
+
+    private static ConstantsCheck.Report words(double toleranceDeg) {
+        ConstantsCheck.Report r = new ConstantsCheck.Report();
+        ConstantsCheck.checkPlacementWords(r, toleranceDeg);
+        return r;
+    }
+
+    /** Situation: the shipped tolerance of the placement words (1 degree), none (0) and 10 degrees. Expected: accepted. */
+    @Test
+    public void theShippedToleranceOfThePlacementWordsIsAccepted() {
+        assertTrue(words(BioBuzzConstants.Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG).errors.isEmpty());
+        assertTrue(words(0.0).errors.isEmpty());
+        assertTrue(words(10.0).errors.isEmpty());
+    }
+
+    /** Situation: a negative tolerance, 45 degrees, and more. Expected: an ERROR that names the constant (a robot turned 40 degrees would be called straight). */
+    @Test
+    public void aToleranceThatCallsEveryHeadingStraightIsAnError() {
+        for (double bad : new double[] {-1.0, 45.0, 60.0, Double.NaN}) {
+            ConstantsCheck.Report r = words(bad);
+            assertEquals(bad + ": " + r.errors, 1, r.errors.size());
+            assertTrue(r.errors.get(0), r.errors.get(0).contains("PLACEMENT_ALIGNED_TOLERANCE_DEG"));
+        }
+    }
 }

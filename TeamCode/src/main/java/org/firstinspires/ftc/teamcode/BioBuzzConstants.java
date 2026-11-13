@@ -533,6 +533,13 @@ public final class BioBuzzConstants {
          */
         public static final double START_SEARCH_TIE_SEC = 0.001;
         /**
+         * TUNE: when the words that tell a student where to put the robot ({@code StartPlacement.placementText}) describe a start, a heading within this many degrees of
+         * straight at a wall (0, 90, 180 or -90) is called straight ("Facing the audience wall") and the robot is placed by its edges; a heading farther from straight is
+         * described by the angle it is turned and by the corner that touches the wall. A person cannot set a robot straighter than a degree by eye, and the placement
+         * margin is 3 degrees, so 1 degree loses nothing.
+         */
+        public static final double PLACEMENT_ALIGNED_TOLERANCE_DEG = 1.0;
+        /**
          * TUNE: how far (inches) any part of the robot may overlap a field wall before the validator reports it.
          * Touching a wall is legal; pushing into it is not. This tiny value only absorbs rounding in the numbers a
          * route is written with, so it is NOT permission to clip a wall. It is the same for every step: the start,

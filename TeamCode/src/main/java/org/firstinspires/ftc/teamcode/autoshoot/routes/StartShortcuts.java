@@ -346,7 +346,7 @@ public final class StartShortcuts {
         if (!Double.isNaN(best.standardSeconds)) {
             sb.append(String.format(Locale.ROOT, ", saves %.1f s against the standard start", best.secondsSaved()));
         }
-        sb.append("\n");
+        sb.append("\n      place it: ").append(StartPlacement.placementText(best.start, Alliance.RED)).append("\n");
     }
 
     /** Prints the table (of one family if its id is given). Run it with {@code tools/start-shortcuts.sh [id]}. */

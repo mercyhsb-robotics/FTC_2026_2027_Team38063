@@ -163,6 +163,7 @@ public final class ConstantsCheck {
         checkStartSearch(r, BioBuzzConstants.Auto.START_SEARCH_STEP_IN, BioBuzzConstants.Auto.START_SEARCH_HEADING_STEP_DEG);
         checkStartPlacementMargin(r, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_IN, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_DEG);
         checkStartSearchLimits(r, BioBuzzConstants.Auto.START_SEARCH_MAX_VALIDATIONS, BioBuzzConstants.Auto.START_SEARCH_TIE_SEC);
+        checkPlacementWords(r, BioBuzzConstants.Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -362,6 +363,17 @@ public final class ConstantsCheck {
         if (marginIn > 3.0 || marginDeg > 15.0) {
             r.warnings.add("Auto.START_PLACEMENT_MARGIN_IN (" + marginIn + " in) or START_PLACEMENT_MARGIN_DEG (" + marginDeg + " degrees) is so large that almost no"
                     + " start passes the placement check; a person places a robot to about 1 in and 3 degrees.");
+        }
+    }
+
+    /**
+     * How far from straight at a wall a start may be and still be described as straight in the placement words: 0 or more, and less than 45 degrees (at 45 every
+     * heading would count as straight and a robot turned 40 degrees would be told to face a wall).
+     */
+    static void checkPlacementWords(Report r, double alignedToleranceDeg) {
+        if (!(alignedToleranceDeg >= 0.0) || alignedToleranceDeg >= 45.0) {
+            r.errors.add("Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG (" + alignedToleranceDeg + " degrees) must be at least 0 and less than 45: it is how far from straight at a wall"
+                    + " a robot may be and still be told \"Facing the audience wall\" instead of a turn.");
         }
     }
 
