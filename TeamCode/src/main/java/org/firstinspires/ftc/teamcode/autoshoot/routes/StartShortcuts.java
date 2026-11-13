@@ -311,7 +311,8 @@ public final class StartShortcuts {
             sb.append("  named, ").append(n.name).append(": ").append(describeStart(s.template, at, st));
             if (!Double.isNaN(best.standardSeconds)) {
                 double sec = RouteAnalysis.of(s.template.build(at), new FieldModel(), st.timing).totalSeconds();
-                sb.append(String.format(Locale.ROOT, ", %+.1f s against the standard", sec - best.standardSeconds));
+                double difference = sec - best.standardSeconds;
+                sb.append(String.format(Locale.ROOT, ", %+.1f s against the standard", Math.abs(difference) < 0.05 ? 0.0 : difference));       // "+0.0", never "-0.0"
             }
             sb.append("\n");
             return;
