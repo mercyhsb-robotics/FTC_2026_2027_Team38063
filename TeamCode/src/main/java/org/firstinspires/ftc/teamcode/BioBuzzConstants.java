@@ -196,9 +196,12 @@ public final class BioBuzzConstants {
         public static final double FLOWER_KEEPOUT_MARGIN_IN = 0.5;
         /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
         public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
-        /** TUNE: how far the footprint may poke past the field edge on a step marked wall-contact. */
-        public static final double WALL_CONTACT_ALLOWANCE_IN = 1.0;
-        /** TUNE: footprint overshoot past a wall that is ignored everywhere (rounding, field tolerance). */
+        /**
+         * TUNE: how far (inches) any part of the robot may overlap a field wall before the validator reports it.
+         * Touching a wall is legal; pushing into it is not. This tiny value only absorbs rounding in the numbers a
+         * route is written with, so it is NOT permission to clip a wall. It is the same for every step: the start,
+         * every DRIVE leg (marked wall-contact or not), every INTAKE, the PARK pose and the end pose.
+         */
         public static final double FIELD_BOUNDS_TOLERANCE_IN = 0.1;
         /** TUNE (field report 3.3): LEAVE needs the whole footprint at least this far off every wall. */
         public static final double LEAVE_WALL_MARGIN_IN = 1.5;

@@ -159,14 +159,15 @@ public class RouteValidatorTest {
     }
 
     @Test
-    public void onlyAStepMarkedWallContactMayGrazeTheWall() {
-        // center y = 8.0 puts the front edge 0.9 in through the wall: more than the 0.1 in tolerance, less than the 1.0 in allowance
+    public void aStepMarkedWallContactGetsNoExtraRoomEither() {
+        // center y = 8.0 puts the front edge 0.9 in through the wall: an ERROR whether or not the leg says it touches the
+        // wall on purpose (the old 1.0 in allowance is gone; WallSafetyTest has the full set of wall tests)
         assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.0, -90)),
                 Rule.FIELD_BOUNDS, Severity.ERROR);
-        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.0, -90).wallContact()));
-        // but not a full 2 in through
-        assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 6.9, -90).wallContact()),
+        assertOnly(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.0, -90).wallContact()),
                 Rule.FIELD_BOUNDS, Severity.ERROR);
+        // touching is fine
+        assertClean(validate(AutoRoute.builder("x").start(58, 9.2, -90).driveConstant(30, 8.9, -90).wallContact()));
     }
 
     @Test

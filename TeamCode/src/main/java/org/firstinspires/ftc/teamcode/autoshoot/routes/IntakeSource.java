@@ -9,7 +9,10 @@ public enum IntakeSource {
     /** The line of POLLEN in a GARDEN along the wall (manual 9.3). */
     GARDEN;
 
-    /** True for the sources the robot reaches by touching the field wall (the footprint may graze the wall). */
+    /**
+     * True for the sources the robot reaches at the field wall (GARDEN and FLOWER). Information only: the robot may
+     * touch the wall there but still may not overlap it (see {@code Auto.FIELD_BOUNDS_TOLERANCE_IN}).
+     */
     public boolean isWallContact() {
         return this != FLOOR;
     }

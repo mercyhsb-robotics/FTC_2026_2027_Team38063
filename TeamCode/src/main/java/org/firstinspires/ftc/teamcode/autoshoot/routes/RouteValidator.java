@@ -29,8 +29,8 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
  *       a FLOWER (G304.D) and not attached to the HIVE frame (G304.B).</li>
  *   <li><b>Every leg, 9.2/G412, G417/G409, G415.</b> Every DRIVE leg and every unplanned move to an INTAKE,
  *       SHOOT or PARK pose is sampled every {@code PATH_SAMPLE_STEP_IN} (and every
- *       {@code TURN_SAMPLE_STEP_DEG} while turning in place). The footprint must stay inside the field (a
- *       small allowance only on steps marked wall-contact), out of the HIVE frame grown by
+ *       {@code TURN_SAMPLE_STEP_DEG} while turning in place). The footprint must stay inside the field (it may
+ *       touch a wall but never overlap it by more than {@code FIELD_BOUNDS_TOLERANCE_IN}, on every step), out of the HIVE frame grown by
  *       {@code HIVE_KEEPOUT_MARGIN_IN}, and out of the FLOWER plates except the FLOWER an INTAKE step
  *       targets.</li>
  *   <li><b>AUTO sides, G402.</b> The robot center stays on the own side of the center line at all times.</li>
@@ -182,11 +182,9 @@ public final class RouteValidator {
             return;
         }
         AllianceField f = a.field();
-        Step step = info.step;
-        boolean wallContact = (step instanceof Step.Drive && ((Step.Drive) step).isWallContact())
-                || (step instanceof Step.Intake && ((Step.Intake) step).source().isWallContact());
-        double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN
-                + (wallContact ? BioBuzzConstants.Auto.WALL_CONTACT_ALLOWANCE_IN : 0.0);
+        // A wall may be TOUCHED, never entered: one tolerance for every step, wall-contact legs and GARDEN/FLOWER
+        // intakes included (they are not allowed to poke through either).
+        double fieldTol = BioBuzzConstants.Auto.FIELD_BOUNDS_TOLERANCE_IN;
         boolean[] exempt = exemptFlowers(a, info);
 
         List<Pose2> poses = new ArrayList<Pose2>(

@@ -258,7 +258,10 @@ public final class AutoRoute {
             return replaceLast(lastDrive("label").withLabel(label));
         }
 
-        /** Marks the DRIVE added last as touching a wall on purpose (the footprint may graze the field edge). */
+        /**
+         * Marks the DRIVE added last as touching a wall on purpose (a note for people and the picture). It buys NO
+         * extra room: touching a wall is legal, pushing into it is an ERROR for this leg like for any other.
+         */
         public Builder wallContact() {
             return replaceLast(lastDrive("wallContact").withWallContact(true));
         }

@@ -173,7 +173,7 @@ public abstract class Step {
             return label;
         }
 
-        /** True if the leg is explicitly allowed to graze the field wall (see Auto.WALL_CONTACT_ALLOWANCE_IN). */
+        /** True if the leg touches a field wall on purpose. A note only: the wall rule is the same for every leg. */
         public boolean isWallContact() {
             return wallContact;
         }

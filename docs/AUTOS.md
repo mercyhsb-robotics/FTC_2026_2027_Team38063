@@ -96,7 +96,7 @@ Modifiers apply to the step added **just before** them:
 | `.via(x, y)` | DRIVE | Adds a Bezier control point: the path bends toward it but does **not** pass through it. |
 | `.speed(0.5)` | DRIVE | Drive at this fraction of the cruise speed. |
 | `.label("corridor")` | DRIVE | Names the leg in the picture. |
-| `.wallContact()` | DRIVE | The robot may graze the field wall on purpose (sweeping the GARDEN POLLEN). |
+| `.wallContact()` | DRIVE | A note that the leg touches the field wall on purpose (sweeping the GARDEN POLLEN). It gives **no** extra room: the robot may touch a wall but never push into it. |
 | `.launchSeconds(5.0)` | SHOOT | The step takes exactly this long (instead of the estimate). |
 | `.note("why")` | any | Free text for people; shown on the page. |
 
@@ -113,7 +113,7 @@ Two rules of thumb that the validator enforces:
 | Check | Rule | ERROR when | WARN when |
 |---|---|---|---|
 | Start | G304 | outside the field or the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
-| Field walls | 9.2, G412 | any footprint along a leg or while turning pokes through a wall (steps marked `wallContact` get 1 in) | |
+| Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the corners of the square sweep out to 12.6 in from the center), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
 | HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame | |
 | FLOWERS | G304.D, G415 | a leg runs into a FLOWER plate (except the one an INTAKE takes from) | |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
