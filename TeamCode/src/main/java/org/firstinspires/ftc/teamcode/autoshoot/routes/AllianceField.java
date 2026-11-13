@@ -24,12 +24,19 @@ public final class AllianceField {
     private final Alliance alliance;
     private final double size;
     private final double center;
+    private final List<Rect> plates;
 
     public AllianceField(FieldModel model, Alliance alliance) {
         this.model = model;
         this.alliance = alliance;
         this.size = model.size();
         this.center = model.center();
+        List<Rect> built = new ArrayList<Rect>();
+        for (int i = 0; i < BioBuzzConstants.Field.FLOWER_CENTERS_IN.length; i++) {
+            built.add(alongWallBox(flowerWallPoint(i), flowerInward(i), BioBuzzConstants.Field.FLOWER_PLATE_ALONG_WALL_IN / 2.0,
+                    BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN));
+        }
+        this.plates = Collections.unmodifiableList(built);
     }
 
     public Alliance alliance() {
@@ -57,20 +64,136 @@ public final class AllianceField {
         return model.hiveFrame().inflate(BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN);
     }
 
-    /** The four FLOWER plates (no margin), in the order of {@code Field.FLOWER_CENTERS_IN}. */
+    /**
+     * The four FLOWER plates (no margin) at their real size, {@code Field.FLOWER_PLATE_DEPTH_IN x
+     * FLOWER_PLATE_ALONG_WALL_IN} (4.75 x 5.87 in), standing on their wall and centered on the FLOWER, in the order of
+     * {@code Field.FLOWER_CENTERS_IN}. (The path planner of the TeleOp uses the slightly larger boxes of
+     * {@link FieldModel#flowerKeepOuts()} instead.)
+     */
     public List<Rect> flowerPlates() {
-        return model.flowerKeepOuts();
+        return plates;
     }
 
-    /** A FLOWER plate grown by {@link BioBuzzConstants.Auto#FLOWER_KEEPOUT_MARGIN_IN}. */
+    /** One FLOWER plate. */
+    public Rect flowerPlate(int index) {
+        return plates.get(index);
+    }
+
+    /** A FLOWER plate grown by {@link BioBuzzConstants.Auto#FLOWER_KEEPOUT_MARGIN_IN}: where the robot may not be. */
     public Rect flowerKeepOut(int index) {
-        return model.flowerKeepOuts().get(index).inflate(BioBuzzConstants.Auto.FLOWER_KEEPOUT_MARGIN_IN);
+        return plates.get(index).inflate(BioBuzzConstants.Auto.FLOWER_KEEPOUT_MARGIN_IN);
+    }
+
+    /**
+     * The plate grown by {@link BioBuzzConstants.Auto#FLOWER_CHASSIS_CLEARANCE_IN}: where the CHASSIS (the robot without
+     * its intake strip) may not be while its wheels are pressed into this FLOWER.
+     */
+    public Rect flowerChassisKeepOut(int index) {
+        return plates.get(index).inflate(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN);
     }
 
     /** The center of FLOWER {@code index}. */
     public Point2 flowerCenter(int index) {
         double[] c = BioBuzzConstants.Field.FLOWER_CENTERS_IN[index];
         return new Point2(c[0], c[1]);
+    }
+
+    // ---- FLOWER geometry: which wall, how far out, how far along ----------------------------------------------
+
+    /**
+     * The unit vector that points from the wall FLOWER {@code index} stands on INTO the field: (1, 0) for the left wall,
+     * (-1, 0) for the right one, (0, 1) for the audience wall and (0, -1) for the rear wall.
+     */
+    public Point2 flowerInward(int index) {
+        Point2 c = flowerCenter(index);
+        double toLeft = c.x;
+        double toRight = size - c.x;
+        double toAudience = c.y;
+        double toRear = size - c.y;
+        double nearest = Math.min(Math.min(toLeft, toRight), Math.min(toAudience, toRear));
+        if (nearest == toLeft) {
+            return new Point2(1.0, 0.0);
+        }
+        if (nearest == toRight) {
+            return new Point2(-1.0, 0.0);
+        }
+        if (nearest == toAudience) {
+            return new Point2(0.0, 1.0);
+        }
+        return new Point2(0.0, -1.0);
+    }
+
+    /** The point of the wall that is straight behind the FLOWER's center line (where its POLLEN stack stands). */
+    public Point2 flowerWallPoint(int index) {
+        Point2 c = flowerCenter(index);
+        Point2 n = flowerInward(index);
+        double out = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN;
+        return new Point2(c.x - n.x * out, c.y - n.y * out);
+    }
+
+    /** How far a point is out from the FLOWER's wall, in inches (positive = on the field side of the wall). */
+    public double flowerWallDistance(int index, Point2 p) {
+        Point2 w = flowerWallPoint(index);
+        Point2 n = flowerInward(index);
+        return (p.x - w.x) * n.x + (p.y - w.y) * n.y;
+    }
+
+    /**
+     * How far a point is along the wall from the FLOWER's center line, in inches (the sign only says which way along
+     * the wall). A robot lined up on the FLOWER has a lateral offset near 0.
+     */
+    public double flowerLateral(int index, Point2 p) {
+        Point2 c = flowerCenter(index);
+        Point2 n = flowerInward(index);
+        return (p.x - c.x) * -n.y + (p.y - c.y) * n.x;
+    }
+
+    /** The heading (radians) of a robot that faces FLOWER {@code index}'s wall squarely, front toward the wall. */
+    public double flowerFacingHeading(int index) {
+        Point2 n = flowerInward(index);
+        return Math.atan2(-n.y, -n.x);
+    }
+
+    /**
+     * The press stop line: how far from the wall (inches) the FRONT EDGE of the robot stops when the wheels are pressed
+     * into the POLLEN. It is the POLLEN's field-side edge (the center line 2.4 in plus the 1.4 in radius = 3.8 in) minus
+     * {@code Auto.FLOWER_PRESS_DEPTH_IN}, and never closer to the wall than the POLLEN's center line.
+     */
+    public double flowerPressStopLineIn() {
+        double centerLine = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN;
+        double edge = centerLine + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0;
+        return Math.max(centerLine, edge - BioBuzzConstants.Auto.FLOWER_PRESS_DEPTH_IN);
+    }
+
+    /**
+     * The part of FLOWER {@code index}'s plate that is nearer the wall than the press stop line: no part of the robot
+     * may enter it, not even the wheels.
+     */
+    public Rect flowerPressZone(int index) {
+        Point2 w = flowerWallPoint(index);
+        Point2 n = flowerInward(index);
+        double half = BioBuzzConstants.Field.FLOWER_PLATE_ALONG_WALL_IN / 2.0;
+        double stop = flowerPressStopLineIn();
+        return alongWallBox(w, n, half, stop);
+    }
+
+    /**
+     * How far the wheels must reach in front of the chassis (inches) to press the POLLEN with the chassis kept
+     * {@code FLOWER_CHASSIS_CLEARANCE_IN} off the plate: plate depth + clearance - press stop line.
+     */
+    public double flowerRequiredReachIn() {
+        return BioBuzzConstants.Field.FLOWER_PLATE_DEPTH_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN
+                - flowerPressStopLineIn();
+    }
+
+    /** The box from the wall out to {@code depth} inches, {@code half} inches either side of the wall point. */
+    private static Rect alongWallBox(Point2 wall, Point2 n, double half, double depth) {
+        // the tangent along the wall is (-n.y, n.x)
+        double ax = wall.x + -n.y * half;
+        double ay = wall.y + n.x * half;
+        double bx = wall.x + n.x * depth - -n.y * half;
+        double by = wall.y + n.y * depth - n.x * half;
+        return new Rect(ax, bx, ay, by);
     }
 
     /** True if the FLOWER is on this alliance's half (the other half is off limits in AUTO, rule G402). */

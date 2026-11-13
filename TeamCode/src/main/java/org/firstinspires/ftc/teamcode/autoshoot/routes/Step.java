@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 
@@ -220,16 +222,40 @@ public abstract class Step {
 
     // ---------------------------------------------------------------------------------------------
 
-    /** Take POLLEN from a source. The robot first goes to {@link #robotPose()}, then dwells there. */
+    /**
+     * Take POLLEN from a source. The robot first goes to {@link #robotPose()}, then takes the POLLEN there.
+     *
+     * <p>For a FLOWER the step is a PRESS-IN (see {@link FlowerPress}). The two flat intake wheels are 12.2 in apart, too
+     * far to pinch one 2.8 in POLLEN, so ONE of them presses while the robot stands to one side of the FLOWER's center line:
+     * {@link #wheel()} names it (LEFT or RIGHT, the robot's own left and right). {@link #robotPose()} is the LINE-UP pose,
+     * the place the straight final approach starts from: facing the wall squarely with that wheel on the FLOWER's center
+     * line. From there the robot drives straight in until the wheel overlaps the bottom POLLEN, dwells with the intake on,
+     * and backs {@link #retreatLengthIn()} inches straight out; the step ends at that retreat pose. The press and retreat
+     * poses are derived from the FLOWER, so route authors never write them. A FLOWER INTAKE without a wheel is refused when
+     * the step is made.
+     */
     public static final class Intake extends Step {
         private final IntakeSource source;
         private final Point2 target;
         private final Pose2 robotPose;
         private final double dwellSec;
         private final int expectedCount;
+        private final double retreatLengthIn;
+        private final IntakeWheel wheel;
 
+        /** An INTAKE from a GARDEN or the floor. (A FLOWER needs to name its wheel: see the constructor with an IntakeWheel.) */
         public Intake(IntakeSource source, Point2 target, Pose2 robotPose, double dwellSec, int expectedCount,
                       String note) {
+            this(source, target, robotPose, dwellSec, expectedCount, BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN, null, note);
+        }
+
+        /**
+         * @param retreatLengthIn FLOWER only: how far the robot backs straight out after the dwell, in inches (the default
+         *                        is {@code Auto.FLOWER_RETREAT_LENGTH_IN}; a shorter retreat is a WARN)
+         * @param wheel           FLOWER only (required there, ignored elsewhere): which flat wheel presses the POLLEN
+         */
+        public Intake(IntakeSource source, Point2 target, Pose2 robotPose, double dwellSec, int expectedCount,
+                      double retreatLengthIn, IntakeWheel wheel, String note) {
             super(StepKind.INTAKE, note);
             if (source == null || target == null || robotPose == null) {
                 throw new IllegalArgumentException("an INTAKE needs a source, a target point and a robot pose");
@@ -240,11 +266,20 @@ public abstract class Step {
             if (expectedCount < 1) {
                 throw new IllegalArgumentException("expected POLLEN count must be >= 1, got " + expectedCount);
             }
+            if (!(retreatLengthIn >= 0.0)) {
+                throw new IllegalArgumentException("retreat length must be >= 0, got " + retreatLengthIn);
+            }
+            if (source == IntakeSource.FLOWER && wheel == null) {
+                throw new IllegalArgumentException("a FLOWER INTAKE must say which flat intake wheel presses the POLLEN"
+                        + " (IntakeWheel.LEFT or RIGHT): the two wheels are too far apart to straddle it");
+            }
             this.source = source;
             this.target = target;
             this.robotPose = robotPose;
             this.dwellSec = dwellSec;
             this.expectedCount = expectedCount;
+            this.retreatLengthIn = retreatLengthIn;
+            this.wheel = source == IntakeSource.FLOWER ? wheel : null;
         }
 
         public IntakeSource source() {
@@ -256,12 +291,12 @@ public abstract class Step {
             return target;
         }
 
-        /** The robot pose to take it from. */
+        /** The robot pose to take it from (for a FLOWER: the line-up pose where the straight final approach starts). */
         public Pose2 robotPose() {
             return robotPose;
         }
 
-        /** Seconds spent at the pose with the intake running. */
+        /** Seconds spent at the pose with the intake running (for a FLOWER: pressed in). */
         public double dwellSec() {
             return dwellSec;
         }
@@ -271,20 +306,40 @@ public abstract class Step {
             return expectedCount;
         }
 
+        /** FLOWER only: how far the robot backs straight out after the dwell, in inches. */
+        public double retreatLengthIn() {
+            return retreatLengthIn;
+        }
+
+        /**
+         * FLOWER only: which flat intake wheel presses the POLLEN (the robot's own LEFT or RIGHT; it is the same for the
+         * red and the blue alliance). Null for a GARDEN or floor INTAKE.
+         */
+        public IntakeWheel wheel() {
+            return wheel;
+        }
+
+        /** The same step with another retreat length. */
+        public Intake withRetreatLengthIn(double inches) {
+            return new Intake(source, target, robotPose, dwellSec, expectedCount, inches, wheel, note());
+        }
+
         @Override
         public Step withNote(String note) {
-            return new Intake(source, target, robotPose, dwellSec, expectedCount, note);
+            return new Intake(source, target, robotPose, dwellSec, expectedCount, retreatLengthIn, wheel, note);
         }
 
         @Override
         Step halfTurn(double fieldSize) {
+            // a half turn of the field turns the whole robot with it, so its left wheel stays its left wheel
             return new Intake(source, rotate(target, fieldSize), rotate(robotPose, fieldSize), dwellSec,
-                    expectedCount, note());
+                    expectedCount, retreatLengthIn, wheel, note());
         }
 
         @Override
         public String describe() {
-            return "INTAKE " + source + " +" + expectedCount + " from " + fmt(robotPose);
+            return "INTAKE " + source + " +" + expectedCount + " from " + fmt(robotPose)
+                    + (wheel == null ? "" : " with the " + wheel + " wheel");
         }
     }
 

@@ -217,18 +217,23 @@ public class RouteValidatorTest {
     }
 
     @Test
-    public void theFlowerAnIntakeTargetsIsExemptFromTheKeepOut() {
-        // the same approach to (13.5, 48, 180): a plain drive hits the plate, an intake there is the whole point
+    public void noDriveMayEnterAFlowerPlateEvenJustBeforeItsIntake() {
+        // a drive to (13.5, 48, 180) puts the front edge 4.6 in from the wall, inside the 4.75 in plate (plus its margin)
         AutoRoute.Builder plain = AutoRoute.builder("x").start(8.9, 61.5, 180).driveConstant(13.5, 62, 180)
                 .driveConstant(13.5, 48, 180);
         assertOnly(validate(plain), Rule.FLOWER_KEEPOUT, Severity.ERROR);
 
+        // the old validator excused the whole plate for the drive that led to a FLOWER intake. Not any more: the only part
+        // of the robot that may enter a plate is the wheel strip, during the press-in (see FlowerPressTest)
         AutoRoute.Builder intake = AutoRoute.builder("x").start(8.9, 61.5, 180).driveConstant(13.5, 62, 180)
                 .driveConstant(13.5, 48, 180)
                 .intakeFlower(2.4, 48, 13.5, 48, 180, 4);
-        // the drive that ends at the FLOWER is exempt too; one FLOWER-intake with the 4 pre-loads held is over capacity
         List<Issue> l = validate(intake);
-        assertEquals(0, count(l, Rule.FLOWER_KEEPOUT, Severity.ERROR));
+        boolean driveFlagged = false;
+        for (Issue i : l) {
+            driveFlagged |= i.rule == Rule.FLOWER_KEEPOUT && i.severity == Severity.ERROR && i.stepIndex == 2;
+        }
+        assertTrue("the DRIVE into the plate is an ERROR: " + l, driveFlagged);
     }
 
     // ---- 3. G402 sides -----------------------------------------------------------------------------------
