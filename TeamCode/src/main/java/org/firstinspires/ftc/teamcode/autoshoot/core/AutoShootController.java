@@ -968,15 +968,17 @@ public final class AutoShootController {
         }
         // Rule G417: only launch into an UP cell. If a working camera has not yet confirmed which cell is up, or the
         // driver has not forced it, refuse. With no usable camera there is nothing to confirm with, so this check
-        // (and the tag-loss check) is skipped and the driver's button is the only way to correct the belief.
+        // is skipped and the driver's button is the only way to correct the belief.
         boolean cameraWorking = in.frame.usable();
         if (cfg.requireHiveConfirmation && cameraWorking && !tracker.confirmed()) {
             return Refusal.HIVE_UNCONFIRMED;
         }
         // The UP cell's tags were visible but have been gone for visionLossPauseSec: the cell is probably tipping, and
         // launching into a tipping cell is a foul (G417). Pause immediately; the tracker flips its belief a little
-        // later.
-        if (cameraWorking && everSawCluster && in.nowSec - lastUpClusterSeen >= cfg.visionLossPauseSec) {
+        // later. This also covers a camera that was working and then stopped delivering frames: we saw the tags, so
+        // not seeing them any more must stop the feeder (fail closed). A robot that never saw the tags (no camera
+        // fitted) is not affected.
+        if (everSawCluster && in.nowSec - lastUpClusterSeen >= cfg.visionLossPauseSec) {
             return Refusal.TAGS_LOST;
         }
         // The shot table only covers a band of ranges; outside it the flywheel speed would be a guess.
