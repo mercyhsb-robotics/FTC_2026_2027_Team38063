@@ -161,6 +161,7 @@ public final class ConstantsCheck {
                 BioBuzzConstants.Auto.TIP_SPILL_MARGIN_IN, BioBuzzConstants.Auto.TIP_SPILL_CLEAR_SEC);
         checkTipStop(r, BioBuzzConstants.Auto.BALL_FLIGHT_SEC, BioBuzzConstants.Auto.TIP_STOP_LATENCY_SEC, BioBuzzConstants.Auto.TIME_PER_SHOT_SEC);
         checkStartSearch(r, BioBuzzConstants.Auto.START_SEARCH_STEP_IN, BioBuzzConstants.Auto.START_SEARCH_HEADING_STEP_DEG);
+        checkStartPlacementMargin(r, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_IN, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_DEG);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -343,6 +344,23 @@ public final class ConstantsCheck {
                 r.warnings.add("Auto.START_SEARCH_HEADING_STEP_DEG (" + headingStepDeg + " degrees) does not divide 90 evenly, so the search never tries the headings"
                         + " that point the robot straight at a wall (0, 90, 180 and -90 degrees). Use 1, 2, 3, 5, 6, 9, 10 or 15.");
             }
+        }
+    }
+
+    /**
+     * The placement margin: how far off along the wall ({@code marginIn} inches) and how far off in heading ({@code marginDeg} degrees) a route's start may be
+     * set by hand and the route must still work. A margin cannot be negative (a margin of 0 asks for exact placement, which is allowed for a test but no
+     * person can do); a margin of more than a few inches or tens of degrees is a warning, because nothing a person could place would pass.
+     */
+    static void checkStartPlacementMargin(Report r, double marginIn, double marginDeg) {
+        if (!(marginIn >= 0.0) || !(marginDeg >= 0.0)) {
+            r.errors.add("Auto.START_PLACEMENT_MARGIN_IN (" + marginIn + " in) and START_PLACEMENT_MARGIN_DEG (" + marginDeg + " degrees) cannot be negative:"
+                    + " they are how far off a hand-placed start may be.");
+            return;
+        }
+        if (marginIn > 3.0 || marginDeg > 15.0) {
+            r.warnings.add("Auto.START_PLACEMENT_MARGIN_IN (" + marginIn + " in) or START_PLACEMENT_MARGIN_DEG (" + marginDeg + " degrees) is so large that almost no"
+                    + " start passes the placement check; a person places a robot to about 1 in and 3 degrees.");
         }
     }
 

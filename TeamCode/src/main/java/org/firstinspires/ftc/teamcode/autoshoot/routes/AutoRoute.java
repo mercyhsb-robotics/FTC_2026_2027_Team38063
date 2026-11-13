@@ -112,6 +112,18 @@ public final class AutoRoute {
     }
 
     /**
+     * The same route started from another pose (in this route's own alliance frame): every step after the START stays exactly as it is, and so do the
+     * id, the title, the notes and the start tile's name (a label of where the route was written to start, not a computed value). It is how the search
+     * for a better place to set the robot up, and the test "what if the robot is placed an inch off?", ask the validator about the same route from a
+     * different start.
+     */
+    public AutoRoute withStartPose(Pose2 start) {
+        List<Step> moved = new ArrayList<Step>(steps);
+        moved.set(0, new Step.Start(start, steps.get(0).note()));
+        return new AutoRoute(id, title, description, startTile, alliance, firstTip, moved);
+    }
+
+    /**
      * This route in the given alliance's frame. For the same alliance it returns this route; for the
      * other one it returns a new route with every pose and point turned half a turn about the field center (Field.CENTER_IN, CENTER_IN) and
      * every fixed HIVE side flipped. Applying it twice gives back the original.

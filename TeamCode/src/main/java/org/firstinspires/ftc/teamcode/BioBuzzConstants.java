@@ -510,6 +510,18 @@ public final class BioBuzzConstants {
          */
         public static final double START_SEARCH_HEADING_STEP_DEG = 5.0;
         /**
+         * TUNE (the "placement margin"): a person sets the robot down by hand, so it is never exactly where the route says. A route must still work when the
+         * robot is this many inches off along the wall (the wall itself keeps it from being off in the other direction: it is pushed against the wall, which is
+         * the rule). The field is only good to about 1 in anyway. A route that fails at this much is placed too close to the edge of what is legal
+         * (a FLOWER, the LOADING ZONE, the center line) or too tight to a wall, and the checker says which step breaks.
+         */
+        public static final double START_PLACEMENT_MARGIN_IN = 1.0;
+        /**
+         * TUNE: ... and when its heading is this many degrees off, which a person setting the robot by eye does easily (the robot turns about its contact
+         * with the wall, so a few degrees also moves its corner). Fewer than 3 degrees is more exact than a tape measure and the wall give.
+         */
+        public static final double START_PLACEMENT_MARGIN_DEG = 3.0;
+        /**
          * TUNE: how far (inches) any part of the robot may overlap a field wall before the validator reports it.
          * Touching a wall is legal; pushing into it is not. This tiny value only absorbs rounding in the numbers a
          * route is written with, so it is NOT permission to clip a wall. It is the same for every step: the start,
