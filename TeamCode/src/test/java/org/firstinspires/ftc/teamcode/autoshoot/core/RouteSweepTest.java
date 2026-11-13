@@ -232,6 +232,35 @@ public class RouteSweepTest {
     }
 
     /**
+     * Situation: the real HIVE frame (47.3 to 96.7 in across, 52.5 to 91.5 in deep). A robot drives straight up beside
+     *     it with its center 36 in from the red wall, so its right side is 2.4 in from the frame: (a) facing +90 degrees
+     *     the whole way, (b) turning from 90 to 45 degrees on the way, which at the HIVE's middle is 67.5 degrees.
+     * Expected: (a) safe (2.4 in is more than the 1.5 in margin); (b) a violation naming the obstacle, because a square
+     *     turned 22.5 degrees off an axis is 11.6 in from center to side, not 8.9 in, which puts it inside the margin.
+     *     The slow referee agrees that (b) comes closer to the frame than the margin allows.
+     * Why: the HIVE frame is what the robot most often drives around. The check must use its real size and the same
+     *     margin that standing poses keep, and a corner swinging toward it counts.
+     */
+    @Test
+    public void turningPastTheRealHiveFrameSwingsACornerIntoItsMargin() {
+        FieldModel field = new FieldModel();
+        double margin = BioBuzzConstants.AutoShoot.KEEPOUT_MARGIN_IN;
+        List<Rect> hive = Collections.singletonList(field.hiveFrame());
+        RouteSweep s = sweep(field.fieldRect(), CLEAR, hive, margin);
+        Pose2 start = Pose2.ofDegrees(36, 30, 90);
+        assertNull(s.check(route(start, 90, 36, 110)));
+        RouteSweep.Violation v = s.check(route(start, 45, 36, 110));
+        assertNotNull(v);
+        assertTrue(v.what, v.what.startsWith("obstacle 0"));
+        // The referee, asked to keep the same margin (it shrinks the box by the tolerance it is given, so grow it).
+        Rect grown = field.hiveFrame().inflate(margin);
+        assertNotNull(BruteForceFootprint.firstClip(route(start, 45, 36, 110), SIZE, SIZE, field.fieldRect(),
+                Collections.singletonList(grown), TOL));
+        assertNull(BruteForceFootprint.firstClip(route(start, 90, 36, 110), SIZE, SIZE, field.fieldRect(),
+                Collections.singletonList(grown), TOL));
+    }
+
+    /**
      * Situation: a tiny 2 x 2 in robot, a very coarse look (every 5 in), and a wall only 0.1 in thick across its path.
      *     The thin wall falls BETWEEN two of the coarse samples.
      * Expected: the check still finds it. A wall 0.1 in thick somewhere else (not across the path) is not reported.
