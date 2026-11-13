@@ -68,6 +68,28 @@ public final class TipModel {
         return pollenStillNeeded(0, 0);
     }
 
+    /**
+     * One volley worked out in plain words: what the UP cell holds and what the volley does to it, for example
+     * {@code "the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley adds 4: 3 x 8 + 4 x 5 = 44, at least 40, so the
+     * HIVE tips"}.
+     */
+    public static String explainVolley(int nectar, int pollenBefore, int count) {
+        int n = BioBuzzConstants.Auto.NECTAR_TIP_THRESHOLD;
+        int p = BioBuzzConstants.Auto.POLLEN_TIP_THRESHOLD;
+        int pollenAfter = pollenBefore + count;
+        StringBuilder s = new StringBuilder();
+        s.append("the UP cell holds ").append(nectar).append(" NECTAR and ").append(pollenBefore).append(" POLLEN of ours; this volley adds ")
+                .append(count).append(": ").append(nectar).append(" x ").append(p).append(" + ").append(pollenAfter).append(" x ")
+                .append(n).append(" = ").append(nectar * p + pollenAfter * n);
+        if (tips(nectar, pollenAfter)) {
+            s.append(", at least ").append(n * p).append(", so the HIVE tips");
+        } else {
+            s.append(", short of ").append(n * p).append(", so no tip yet (").append(pollenStillNeeded(nectar, pollenAfter))
+                    .append(" more POLLEN into this cell would tip it)");
+        }
+        return s.toString();
+    }
+
     /** The plain-words version of the rule with the real numbers, for the gallery page and the documentation. */
     public static String explainRule() {
         int n = BioBuzzConstants.Auto.NECTAR_TIP_THRESHOLD;

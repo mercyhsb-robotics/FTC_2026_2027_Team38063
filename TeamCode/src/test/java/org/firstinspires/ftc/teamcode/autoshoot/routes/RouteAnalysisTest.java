@@ -178,6 +178,24 @@ public class RouteAnalysisTest {
         assertFalse(a.step(3).tipped);
     }
 
+    @Test
+    public void eachVolleyRemembersWhatItsCellHeldBeforeItStarted() {
+        // 3 POLLEN, then 1 more at the same cell: the second volley starts with 3 POLLEN of ours already in it
+        RouteAnalysis split = AutoRoute.builder("split").start(35, 9.2, -90).shootUp(3).shootUp(1).build().analyze();
+        assertEquals(0, split.step(1).pollenInCellBefore);
+        assertEquals(3, split.step(1).nectarInCellBefore);
+        assertEquals(3, split.step(2).pollenInCellBefore);
+        assertEquals(3, split.step(2).nectarInCellBefore);
+        // after the tip the other cell starts empty: no NECTAR and no POLLEN of ours
+        RouteAnalysis tipped = AutoRoute.builder("tipped").start(35, 9.2, -90).shootUp(4).shootUp(2).build().analyze();
+        assertEquals(0, tipped.step(2).pollenInCellBefore);
+        assertEquals(0, tipped.step(2).nectarInCellBefore);
+        // a volley at the cell that faces DOWN has nothing in it that counts
+        RouteAnalysis down = AutoRoute.builder("down").start(35, 9.2, -90).shootSide(Side.REAR, 2).build().analyze();
+        assertEquals(0, down.step(1).pollenInCellBefore);
+        assertEquals(0, down.step(1).nectarInCellBefore);
+    }
+
     // ---- the partner shoots the first tip ----------------------------------------------------------------------
 
     private static final double PARTNER_SEC = BioBuzzConstants.Auto.PARTNER_FIRST_TIP_DONE_SEC;

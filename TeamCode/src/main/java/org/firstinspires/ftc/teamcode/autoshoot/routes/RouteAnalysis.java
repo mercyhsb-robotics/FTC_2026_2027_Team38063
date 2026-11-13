@@ -66,6 +66,8 @@ public final class RouteAnalysis {
         public final int firedAfterTip;
         /** SHOOT: NECTAR sitting in the targeted cell when the volley starts (3 in the starting UP cell, else 0). */
         public final int nectarInCellBefore;
+        /** SHOOT: POLLEN of this route that are already in the targeted cell when the volley starts (0 for a cell that is DOWN). */
+        public final int pollenInCellBefore;
         /**
          * WAIT_FOR_TIP: the route time in seconds of the partner's tip that the step waits for; NaN when there is no
          * tip to wait for (a route that assumes SELF, or the HIVE has tipped already). Else NaN.
@@ -83,7 +85,8 @@ public final class RouteAnalysis {
                  double durationSec, int pollenBefore, int pollenAfter, Side upSideBefore, Side upSideAfter,
                  Side targetSide, boolean targetWasUp, Pose2 shootPose, boolean shootPoseIsNominal, boolean tipped,
                  int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits,
-                 double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore, double tipWaitSec) {
+                 double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore, double tipWaitSec,
+                 int pollenInCellBefore) {
             this.index = index;
             this.step = step;
             this.from = from;
@@ -110,6 +113,7 @@ public final class RouteAnalysis {
             this.firedAfterTip = firedAfterTip;
             this.nectarInCellBefore = nectarInCellBefore;
             this.tipWaitSec = tipWaitSec;
+            this.pollenInCellBefore = pollenInCellBefore;
         }
 
         public double endSec() {
@@ -263,6 +267,7 @@ public final class RouteAnalysis {
             double tipSec = Double.NaN;
             int firedAfterTip = 0;
             int nectarBefore = 0;
+            int pollenBeforeInCell = 0;
             double tipWaitSec = Double.NaN;
 
             switch (step.kind()) {
@@ -333,6 +338,7 @@ public final class RouteAnalysis {
                     hive.advanceTo(launchSec);
                     targetWasUp = targetSide == hive.up;
                     nectarBefore = targetWasUp ? hive.nectar : 0;
+                    pollenBeforeInCell = targetWasUp ? hive.pollen : 0;
                     held -= sh.count();
                     shot += sh.count();
                     if (targetWasUp) {
@@ -383,7 +389,7 @@ public final class RouteAnalysis {
             hive.advanceTo(t + duration);
             out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, hive.up,
                     targetSide, targetWasUp, shootPose, nominal, tipped, hive.pollen, sourceName, sourceLeft, offLimits,
-                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec));
+                    launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell));
             t += duration;
             pose = to;
         }

@@ -70,6 +70,21 @@ public class TipModelTest {
     }
 
     @Test
+    public void aVolleyIsWorkedOutInWordsWithTheRealSums() {
+        assertEquals("the UP cell holds 3 NECTAR and 0 POLLEN of ours; this volley adds 4: 3 x 8 + 4 x 5 = 44, at least 40, so the HIVE tips",
+                TipModel.explainVolley(3, 0, 4));
+        // one POLLEN short: the sum is 39 and the words say how many more POLLEN it would take
+        String short3 = TipModel.explainVolley(3, 0, 3);
+        assertTrue(short3, short3.contains("3 x 8 + 3 x 5 = 39, short of 40, so no tip yet (1 more POLLEN into this cell would tip it)"));
+        // the POLLEN that are in the cell already count: 4 + 4 into a cell with no NECTAR is exactly the 40 that tips
+        String second = TipModel.explainVolley(0, 4, 4);
+        assertTrue(second, second.contains("holds 0 NECTAR and 4 POLLEN of ours; this volley adds 4: 0 x 8 + 8 x 5 = 40, at least 40, so the HIVE tips"));
+        // and the first half volley into the empty cell is only half a tip
+        String half = TipModel.explainVolley(0, 0, 4);
+        assertTrue(half, half.contains("= 20, short of 40, so no tip yet (4 more POLLEN"));
+    }
+
+    @Test
     public void theRuleInWordsQuotesTheRealNumbers() {
         String words = TipModel.explainRule();
         assertTrue(words, words.contains("NECTAR x 8 + POLLEN x 5 reaches 40"));
