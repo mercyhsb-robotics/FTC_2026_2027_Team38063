@@ -79,8 +79,8 @@ public final class RouteGallery {
         Map<String, String> files = new LinkedHashMap<String, String>();
         files.put(INDEX_FILE, page(entries));
         for (Entry e : entries) {
-            files.put(svgFileName(e.route, Alliance.RED), RouteSvgRenderer.render(e.route, Alliance.RED, e.redIssues, timing));
-            files.put(svgFileName(e.route, Alliance.BLUE), RouteSvgRenderer.render(e.route, Alliance.BLUE, e.blueIssues, timing));
+            files.put(svgFileName(e.route, Alliance.RED), RouteSvgRenderer.render(e.route, Alliance.RED, e.redIssues, timing, BioBuzzConstants.Auto.RENDER_GALLERY_SHOWS_START_BANDS));
+            files.put(svgFileName(e.route, Alliance.BLUE), RouteSvgRenderer.render(e.route, Alliance.BLUE, e.blueIssues, timing, BioBuzzConstants.Auto.RENDER_GALLERY_SHOWS_START_BANDS));
         }
         return files;
     }

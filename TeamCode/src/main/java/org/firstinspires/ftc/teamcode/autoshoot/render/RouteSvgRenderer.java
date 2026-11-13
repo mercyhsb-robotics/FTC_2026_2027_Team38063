@@ -29,6 +29,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.ShotGeometry;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.StartPoseSearch;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
@@ -60,6 +61,10 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
  * {@code circle.pushed-wheel}), a curved arrow ({@code path.wiggle-arc}) along the circle the pressing wheel travels on while the robot turns
  * about its pose point, a label {@code text.wiggle-label} such as "wiggle x4", a short arrow ({@code line.press-arrow}) for the straight final
  * approach and a dotted one ({@code line.retreat-arrow}) for the retreat.
+ *
+ * <p>When asked for ({@link #render(AutoRoute, Alliance, List, TimingModel, boolean)}) the diagram also has {@code g#start-bands}, between the structures and the
+ * route, so the route's start footprint lies on top of it: one {@code rect.start-band} for every stretch of an own wall where a robot facing the start's heading may
+ * be set up (rule G304).
  */
 public final class RouteSvgRenderer {
     private RouteSvgRenderer() {
@@ -95,6 +100,17 @@ public final class RouteSvgRenderer {
     public static String render(AutoRoute route, Alliance alliance, TimingModel timing) {
         AutoRoute own = route.forAlliance(alliance);
         return new Drawing(own, RouteAnalysis.of(own, new FieldModel(), timing), new RouteValidator(new FieldModel(), timing).validate(own)).draw();
+    }
+
+    /**
+     * As {@link #render(AutoRoute, Alliance, List, TimingModel)}, and with {@code startBands} also the LEGAL START STRETCHES (rule G304): the parts of the own walls where a
+     * robot facing the way this route's start faces may be set up, tinted in the alliance's ink along each wall (see {@link StartPoseSearch#legalIntervals}), with the chosen
+     * start's footprint drawn on top of them. The gaps are what G304 keeps clear: a FLOWER and its bracket, the LOADING ZONE, the corners the robot cannot fit in and the
+     * center line. With {@code startBands == false} the picture is exactly the one without them.
+     */
+    public static String render(AutoRoute route, Alliance alliance, List<Issue> issues, TimingModel timing, boolean startBands) {
+        AutoRoute own = route.forAlliance(alliance);
+        return new Drawing(own, RouteAnalysis.of(own, new FieldModel(), timing), issues, startBands).draw();
     }
 
     // =============================================================================================
@@ -147,7 +163,15 @@ public final class RouteSvgRenderer {
         private final List<double[]> labelBoxes = new ArrayList<double[]>(); // {x0, y0, x1, y1}
         private final Set<String> labelledNominal = new HashSet<String>();
 
+        /** True if the legal start stretches (rule G304) are drawn along the own walls. */
+        private final boolean startBands;
+
         Drawing(AutoRoute route, RouteAnalysis analysis, List<Issue> issues) {
+            this(route, analysis, issues, false);
+        }
+
+        Drawing(AutoRoute route, RouteAnalysis analysis, List<Issue> issues, boolean startBands) {
+            this.startBands = startBands;
             this.route = route;
             this.alliance = route.alliance();
             this.a = analysis;
@@ -220,6 +244,9 @@ public final class RouteSvgRenderer {
             title();
             floor();
             structures();
+            if (startBands) {
+                startBands();
+            }
             route();
             legend();
             footer();
@@ -506,6 +533,45 @@ public final class RouteSvgRenderer {
             double cy = sy((z.minY + z.maxY) / 2.0);
             w.element("text", "LOADING ZONE", "x", n(cx), "y", n(cy + 3.5), "font-size", "9.5", "font-weight", "bold", "fill", color,
                     "text-anchor", "middle", "transform", "rotate(-90 " + n(cx) + " " + n(cy) + ")");
+            w.close("g");
+        }
+
+        // ---- the legal start stretches (rule G304) ---------------------------------------------------
+
+        /**
+         * The legal start stretches for the heading this route starts with, tinted along the own walls: a thin strip hugging each wall, from where along the wall
+         * the robot's position may start to where it may end. The strip is drawn under the route, so the start footprint of the route lies on top. Each strip is a
+         * {@code rect.start-band} with the wall and the stretch (inches along the wall: x for the audience and rear walls, y for the side wall) in {@code data-wall},
+         * {@code data-from} and {@code data-to}.
+         */
+        private void startBands() {
+            double heading = route.startPose().headingDegrees();
+            double thickness = BioBuzzConstants.Auto.RENDER_START_BAND_THICKNESS_IN;
+            double size = f.model().size();
+            w.open("g", "id", "start-bands", "data-heading", n(heading));
+            w.element("title", "Where a robot facing " + n(heading) + " degrees may be set up (rule G304): the tinted stretches of the own walls. The gaps are the FLOWERS, the LOADING ZONE,"
+                    + " the corners and the center line.");
+            for (StartPoseSearch.Interval in : StartPoseSearch.legalIntervals(alliance, heading)) {
+                // the strip as a box in field inches: along the wall from..to, thickness deep into the field
+                Rect box;
+                switch (in.wall) {
+                    case RED:
+                        box = new Rect(0.0, thickness, in.fromIn, in.toIn);
+                        break;
+                    case BLUE:
+                        box = new Rect(size - thickness, size, in.fromIn, in.toIn);
+                        break;
+                    case AUDIENCE:
+                        box = new Rect(in.fromIn, in.toIn, 0.0, thickness);
+                        break;
+                    default:
+                        box = new Rect(in.fromIn, in.toIn, size - thickness, size);
+                        break;
+                }
+                w.empty("rect", "class", "start-band", "data-wall", in.wall.name(), "data-from", n(in.fromIn), "data-to", n(in.toIn), "x", n(sx(box.minX)), "y", n(sy(box.maxY)),
+                        "width", n(len(box.maxX - box.minX)), "height", n(len(box.maxY - box.minY)), "fill", ink, "fill-opacity", n(BioBuzzConstants.Auto.RENDER_START_BAND_OPACITY));
+            }
+            w.element("text", "tinted: where this start may stand (G304)", "class", "start-band-label", "x", n(x0), "y", n(yTop - 6), "font-size", "9", "fill", MUTED_TEXT);
             w.close("g");
         }
 

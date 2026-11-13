@@ -615,6 +615,18 @@ public final class BioBuzzConstants {
         public static final int RENDER_MAX_ISSUE_LINES = 5;
         /** TUNE: gap between the bottom of the field (below its tile letters and the AUDIENCE label) and the legend, in SVG pixels. */
         public static final double RENDER_LEGEND_GAP_PX = 56.0;
+        /**
+         * TUNE: how thick, in field inches, the tinted strip along a wall is that shows where a start may stand (the legal start stretches of rule G304, drawn when
+         * a diagram is asked for them). Thin enough to leave the field readable, thick enough to see.
+         */
+        public static final double RENDER_START_BAND_THICKNESS_IN = 2.5;
+        /** TUNE: how strongly (0 to 1) the legal start stretches are tinted in the alliance's ink. */
+        public static final double RENDER_START_BAND_OPACITY = 0.35;
+        /**
+         * TUNE: true if the route gallery (docs/autos) draws the legal start stretches on every diagram. It is false for now: the gallery is a committed copy of what the
+         * code draws and a test fails when the two differ, so switching this on means running tools/render-autos.sh (or .bat) and committing docs/autos in the same change.
+         */
+        public static final boolean RENDER_GALLERY_SHOWS_START_BANDS = false;
     }
 
     // =========================================================================================

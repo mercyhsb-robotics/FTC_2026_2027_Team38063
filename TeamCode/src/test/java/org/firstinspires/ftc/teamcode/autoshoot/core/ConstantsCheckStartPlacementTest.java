@@ -71,4 +71,27 @@ public class ConstantsCheckStartPlacementTest {
             assertTrue(r.errors.get(0), r.errors.get(0).contains("PLACEMENT_ALIGNED_TOLERANCE_DEG"));
         }
     }
+
+    private static ConstantsCheck.Report bands(double thicknessIn, double opacity) {
+        ConstantsCheck.Report r = new ConstantsCheck.Report();
+        ConstantsCheck.checkRenderStartBands(r, thicknessIn, opacity);
+        return r;
+    }
+
+    /** Situation: the shipped look of the start strips. Expected: accepted. */
+    @Test
+    public void theShippedLookOfTheStartStripsIsAccepted() {
+        assertTrue(bands(BioBuzzConstants.Auto.RENDER_START_BAND_THICKNESS_IN, BioBuzzConstants.Auto.RENDER_START_BAND_OPACITY).errors.isEmpty());
+    }
+
+    /** Situation: no thickness, a strip as thick as a robot, an invisible tint and a tint above 1. Expected: an ERROR that names the constant. */
+    @Test
+    public void aStripThatCannotBeSeenOrCoversTheFieldIsAnError() {
+        assertEquals(1, bands(0.0, 0.35).errors.size());
+        assertEquals(1, bands(18.0, 0.35).errors.size());
+        assertEquals(1, bands(2.5, 0.0).errors.size());
+        assertEquals(1, bands(2.5, 1.5).errors.size());
+        assertTrue(bands(0.0, 0.35).errors.get(0).contains("RENDER_START_BAND_THICKNESS_IN"));
+        assertTrue(bands(2.5, 1.5).errors.get(0).contains("RENDER_START_BAND_OPACITY"));
+    }
 }

@@ -164,6 +164,7 @@ public final class ConstantsCheck {
         checkStartPlacementMargin(r, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_IN, BioBuzzConstants.Auto.START_PLACEMENT_MARGIN_DEG);
         checkStartSearchLimits(r, BioBuzzConstants.Auto.START_SEARCH_MAX_VALIDATIONS, BioBuzzConstants.Auto.START_SEARCH_TIE_SEC);
         checkPlacementWords(r, BioBuzzConstants.Auto.PLACEMENT_ALIGNED_TOLERANCE_DEG);
+        checkRenderStartBands(r, BioBuzzConstants.Auto.RENDER_START_BAND_THICKNESS_IN, BioBuzzConstants.Auto.RENDER_START_BAND_OPACITY);
         if (BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK <= 0 || BioBuzzConstants.AutoShoot.DRIVER_OVERRIDE_STICK > 1) {
             r.errors.add("AutoShoot.DRIVER_OVERRIDE_STICK must be between 0 and 1.");
         }
@@ -363,6 +364,19 @@ public final class ConstantsCheck {
         if (marginIn > 3.0 || marginDeg > 15.0) {
             r.warnings.add("Auto.START_PLACEMENT_MARGIN_IN (" + marginIn + " in) or START_PLACEMENT_MARGIN_DEG (" + marginDeg + " degrees) is so large that almost no"
                     + " start passes the placement check; a person places a robot to about 1 in and 3 degrees.");
+        }
+    }
+
+    /**
+     * The look of the legal start stretches in a route diagram: the strip along a wall must have a thickness above 0 and below the 18 in a robot is wide (a strip
+     * thicker than the robot would cover the diagram), and its tint must be more than 0 (invisible) and at most 1 (solid).
+     */
+    static void checkRenderStartBands(Report r, double thicknessIn, double opacity) {
+        if (!(thicknessIn > 0.0) || thicknessIn >= 18.0) {
+            r.errors.add("Auto.RENDER_START_BAND_THICKNESS_IN (" + thicknessIn + " in) must be more than 0 and less than 18: it is how thick the tinted legal-start strip along a wall is.");
+        }
+        if (!(opacity > 0.0) || opacity > 1.0) {
+            r.errors.add("Auto.RENDER_START_BAND_OPACITY (" + opacity + ") must be more than 0 and at most 1: it is how strongly the legal-start strips are tinted.");
         }
     }
 
