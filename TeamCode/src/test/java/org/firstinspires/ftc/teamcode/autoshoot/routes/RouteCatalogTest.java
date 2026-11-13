@@ -221,12 +221,22 @@ public class RouteCatalogTest {
     @Test
     public void redB1TurnsThroughTheWallShootsFromTooFarAndParksShallowly() {
         List<Issue> l = issues("red_b1", Alliance.RED);
-        // the -115 deg hold swings a corner 2.4 in through the audience wall, and so does turning back for path1
+        // the -115 deg hold swings a corner 2.6 in through the audience wall, and so does turning back for path1
         assertEquals(2, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
         assertEquals(1, count(l, Rule.SHOOT_POSE, Severity.WARN));
         assertEquals(1, count(l, Rule.PARK_ZONE, Severity.WARN));
-        // path2 turns at (35.8, 90) with its long side toward the HIVE: inside the 3 in keep-out margin
-        assertEquals(1, count(l, Rule.HIVE_KEEPOUT, Severity.ERROR));
+        // The old code drove up x = 35..35.8 for a 16.77 in wide robot. The real robot is 17.80 in wide, so its
+        // right edge is at 35.8 + 8.9 = 44.7 in, 0.43 in inside the keep-out (the HIVE frame at x = 47.27 minus the
+        // 3 in margin): path1 (step 4) enters it for the last 49 in, and path2 (step 5) turns on the spot at
+        // (35.8, 90) with a corner even closer to the frame.
+        assertEquals(2, count(l, Rule.HIVE_KEEPOUT, Severity.ERROR));
+        java.util.List<Integer> keepOutSteps = new java.util.ArrayList<Integer>();
+        for (Issue i : l) {
+            if (i.rule == Rule.HIVE_KEEPOUT) {
+                keepOutSteps.add(i.stepIndex);
+            }
+        }
+        assertEquals(java.util.Arrays.asList(3, 4), keepOutSteps);
         assertFalse(RouteValidator.isRunnable(l));
     }
 

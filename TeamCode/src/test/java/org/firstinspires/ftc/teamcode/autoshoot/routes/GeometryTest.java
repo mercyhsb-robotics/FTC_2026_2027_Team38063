@@ -76,21 +76,28 @@ public class GeometryTest {
     public void overshootAndInsideRectAreMeasuredFromTheBoundingBox() {
         Rect field = new Rect(0, 144, 0, 144);
         Footprint out = Footprint.of(Pose2.ofDegrees(35, 9.2, -115));
-        // heading -115 at y = 9.2 sticks 2.4 in through the audience wall (the old B1 shooting pose)
-        assertEquals(2.4, out.overshootOutside(field), 0.05);
+        // heading -115 at y = 9.2 (the old B1 shooting pose): the rotated 17.80 x 17.80 in robot reaches
+        // 8.9 * (|sin 115| + |cos 115|) = 11.83 in below its center, so 2.63 in through the audience wall
+        double reach = HL * Math.abs(Math.sin(Math.toRadians(-115))) + HW * Math.abs(Math.cos(Math.toRadians(-115)));
+        assertEquals(2.627, reach - 9.2, 0.001);
+        assertEquals(reach - 9.2, out.overshootOutside(field), EPS);
         assertFalse(out.insideRect(field, 0.1));
-        assertTrue(out.insideRect(field, 2.5));
+        assertFalse(out.insideRect(field, 2.5));
+        assertTrue(out.insideRect(field, 2.7));
         assertTrue(Footprint.of(Pose2.ofDegrees(72, 72, 33)).insideRect(field, 0));
     }
 
     @Test
     public void clippedBoundsGivesTheOverlapWithARectangle() {
         Rect zone = new Rect(0, 11, 96, 120);
-        // B1 park (12, 90, 0): 7.9 in in x, 2.385 in in y
+        // B1 park (12, 90, 0): the robot spans x 3.1..20.9 and y 81.1..98.9, so 7.9 in of it is inside the zone in x
+        // (0..11) and 2.9 in in y (96..120)
         Rect c = Footprint.of(Pose2.ofDegrees(12, 90, 0)).clippedBounds(zone);
         assertNotNull(c);
+        assertEquals(11.0 - (12.0 - HL), c.maxX - c.minX, EPS);
         assertEquals(7.9, c.maxX - c.minX, EPS);
-        assertEquals(98.385 - 96.0, c.maxY - c.minY, EPS);
+        assertEquals(90.0 + HW - 96.0, c.maxY - c.minY, EPS);
+        assertEquals(2.9, c.maxY - c.minY, EPS);
         // far away -> null
         assertNull(Footprint.of(Pose2.ofDegrees(60, 60, 0)).clippedBounds(zone));
         // merely touching -> null

@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Rule;
@@ -170,11 +171,17 @@ public class RouteValidatorTest {
 
     @Test
     public void turningInPlaceAgainstTheWallCountsToo() {
-        // the old B1 hold: -90 -> -115 degrees at y = 9.2 swings a corner 2.4 in through the audience wall
+        // the old B1 hold: -90 -> -115 degrees at y = 9.2 swings a corner through the audience wall; the square
+        // 17.80 in robot reaches 8.9 * (sin 115 + cos 115 in magnitude) = 11.83 in below its center, 2.63 in too far
         List<Issue> l = validate(AutoRoute.builder("x").start(35, 9.2, -90).shootUp(35, 9.2, -115, 4));
         assertEquals(1, count(l, Rule.FIELD_BOUNDS, Severity.ERROR));
         assertEquals(1, first(l, Rule.FIELD_BOUNDS).stepIndex);
-        assertTrue(first(l, Rule.FIELD_BOUNDS).message.contains("2.4 in"));
+        double halfLength = BioBuzzConstants.Robot.LENGTH_IN / 2.0;
+        double halfWidth = BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+        double overshoot = halfLength * Math.abs(Math.sin(Math.toRadians(115))) + halfWidth * Math.abs(Math.cos(Math.toRadians(115))) - 9.2;
+        assertEquals(2.63, overshoot, 0.005);
+        assertTrue(first(l, Rule.FIELD_BOUNDS).message, first(l, Rule.FIELD_BOUNDS).message
+                .contains(String.format(java.util.Locale.ROOT, "%.1f in", overshoot)));
     }
 
     @Test
@@ -186,8 +193,16 @@ public class RouteValidatorTest {
 
     @Test
     public void theHiveKeepOutIncludesTheMargin() {
-        // robot x half-width 8.385; frame minX 47.27, margin 3.0 -> a center at x = 35.8 clears (44.19 < 44.27), x = 37 does not
-        assertClean(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(35.8, 90, -90)));
+        // Driving up the left corridor with the robot facing -y: its x half-extent is half the 17.80 in width (8.9 in).
+        // The frame starts at x = 72 - 49.46 / 2 = 47.27 and the keep-out 3.0 in before it, at 44.27, so the center may
+        // be at most 44.27 - 8.9 = 35.37 in from the left wall.
+        double frameMinX = BioBuzzConstants.Field.SIZE_IN / 2.0 - BioBuzzConstants.Field.HIVE_FRAME_WIDTH_X_IN / 2.0;
+        double limit = frameMinX - BioBuzzConstants.Auto.HIVE_KEEPOUT_MARGIN_IN - BioBuzzConstants.Robot.WIDTH_IN / 2.0;
+        assertEquals(35.37, limit, 0.005);
+        assertClean(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(35.3, 90, -90)));
+        // 0.13 in past the limit is inside the margin: the old B1 path1 target x = 35.8 was chosen for a narrower robot
+        assertOnly(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(35.5, 90, -90)),
+                Rule.HIVE_KEEPOUT, Severity.ERROR);
         assertOnly(validate(AutoRoute.builder("x").start(35, 9.2, -90).driveConstant(37.0, 90, -90)),
                 Rule.HIVE_KEEPOUT, Severity.ERROR);
     }
@@ -419,12 +434,12 @@ public class RouteValidatorTest {
 
     @Test
     public void aShallowParkIsAWarningADeepOneIsFine() {
-        // the old B1 park: 2.4 in into the zone
+        // the old B1 park: the 17.80 in square robot at (12, 90, 0) reaches y 98.9, 2.9 in into the zone (y from 96)
         AutoRoute.Builder shallow = AutoRoute.builder("x").start(35, 9.2, -90)
                 .driveReverseTangent(34, 50, -90).driveReverseTangent(30, 90, -90).driveReverseTangent(12, 90, 0).park(12, 90, 0);
         List<Issue> l = validate(shallow);
         assertOnly(l, Rule.PARK_ZONE, Severity.WARN);
-        assertTrue(first(l, Rule.PARK_ZONE).message.contains("2.4 in"));
+        assertTrue(first(l, Rule.PARK_ZONE).message, first(l, Rule.PARK_ZONE).message.contains("only 2.9 in"));
         // 12 in deeper in y: 7.9 in overlap
         assertClean(validate(AutoRoute.builder("x").start(35, 9.2, -90)
                 .driveReverseTangent(34, 50, -90).driveReverseTangent(30, 90, -90).driveLinear(12, 108, 0).park(12, 108, 0)));

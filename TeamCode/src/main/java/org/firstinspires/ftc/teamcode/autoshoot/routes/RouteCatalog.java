@@ -13,7 +13,7 @@ import java.util.List;
  * it appears in {@code docs/autos/}. See {@code docs/AUTOS.md}.
  *
  * <p>The first three entries are faithful conversions of the existing OpModes
- * ({@code pedro/RedAlliance_B1}, {@code RedAlliance_C1}, {@code RedAlliance_LeavePark}); the numbers
+ * ({@code RedAlliance_B1}, {@code RedAlliance_C1}, {@code RedAlliance_LeavePark}); the numbers
  * are copied from their source, including the headings that Pedro ignores for reverse-tangent legs.
  * They are NOT improved here, so the validator reports their real problems honestly. The last two are
  * small demonstration routes that pass the validator.
@@ -53,7 +53,7 @@ public final class RouteCatalog {
         List<AutoRoute> routes = new ArrayList<AutoRoute>();
 
         // -----------------------------------------------------------------------------------------
-        // pedro/RedAlliance_B1.java
+        // RedAlliance_B1.java
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(RED_B1)
                 .title("Red B1: shoot, then drive up the left side to the LOADING ZONE")
@@ -74,11 +74,11 @@ public final class RouteCatalog {
                             + "turns to face +x by itself because it drives toward -x backwards.")
                 .park(12, 90, 0)
                     .note("The source never says PARK, but this pose is the red LOADING ZONE corner: it overlaps the zone "
-                            + "by about 2.4 in only.")
+                            + "by only 2.9 in (the 17.80 in square robot reaches y 98.9; the zone starts at y 96).")
                 .build());
 
         // -----------------------------------------------------------------------------------------
-        // pedro/RedAlliance_C1.java
+        // RedAlliance_C1.java
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(RED_C1)
                 .title("Red C1: shoot, then drive past the HIVE to the LOADING ZONE")
@@ -98,11 +98,11 @@ public final class RouteCatalog {
                 .driveReverseTangent(12.0, 118.1, -90).label("path3")
                     .note("The -90 deg heading in the source is ignored: the robot ends facing 0 deg.")
                 .park(12.0, 118.1, 0)
-                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.9 x 9.8 in.")
+                    .note("The source never says PARK; this pose overlaps the red LOADING ZONE by 7.9 x 10.8 in.")
                 .build());
 
         // -----------------------------------------------------------------------------------------
-        // pedro/RedAlliance_LeavePark.java
+        // RedAlliance_LeavePark.java
         // -----------------------------------------------------------------------------------------
         routes.add(AutoRoute.builder(RED_LEAVE_PARK)
                 .title("Red A3: leave the wall and park (no shooting)")
@@ -116,7 +116,7 @@ public final class RouteCatalog {
                 .driveLinear(16.0, 91.5, 135).label("path2")
                     .note("Paths.line(point2Start, point2).linear(point2Start, point2)")
                 .park(16.0, 91.5, 135)
-                    .note("Overlaps the LOADING ZONE corner by about 3 in; the source does not call it PARK.")
+                    .note("Only a corner of the robot reaches the LOADING ZONE, 3.1 in deep; the source does not call it PARK.")
                 .build());
 
         // -----------------------------------------------------------------------------------------
