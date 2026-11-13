@@ -484,6 +484,18 @@ public final class BioBuzzConstants {
          * 120 degrees per second.
          */
         public static final double PATH_MAX_TURN_DEG_PER_IN = 4.0;
+        /**
+         * TUNE: when the planner squeezes a turn into the part of a route where the robot is far from every wall, it
+         * finishes the turn this many inches before that part ends, so the real robot's heading can catch up with the
+         * planned one while it is still far from the wall (inches).
+         */
+        public static final double PATH_TURN_SETTLE_IN = 3.0;
+        /**
+         * TUNE: when a robot standing against a wall has to turn a long way, the planner sends it out to open floor and
+         * adds a bend to the trip so the turn has room to be gentle. It looks for that bend by trying points around a
+         * ring, one every this many degrees (smaller = more places tried, slower).
+         */
+        public static final double PATH_DETOUR_ANGLE_STEP_DEG = 15.0;
 
         // ---- fine alignment ---------------------------------------------------------------
         /** TUNE: alignment is settled when the position error is below this (inches). Mecanum drives rarely settle below about 1 in. */

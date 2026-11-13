@@ -91,6 +91,12 @@ public final class ScoringPlanner {
         public double sweepMinStepIn;
         /** The most degrees per inch of driving a squeezed-in turn may ask of the robot. */
         public double maxTurnDegPerIn;
+        /** A squeezed-in turn is finished this many inches before the stretch with room to turn ends. */
+        public double turnSettleIn;
+        /** The drive drops route points closer together than this many inches (see {@link HeadingProfile}). */
+        public double minLegIn;
+        /** A detour looks for its bend at points around a ring, one every this many degrees. */
+        public double detourAngleStepDeg;
 
         /**
          * The configuration the robot runs with, from {@link BioBuzzConstants} and the shot table. The usable range
@@ -119,6 +125,9 @@ public final class ScoringPlanner {
             c.sweepToleranceIn = BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN;
             c.sweepMinStepIn = BioBuzzConstants.AutoShoot.PATH_SWEEP_MIN_STEP_IN;
             c.maxTurnDegPerIn = BioBuzzConstants.AutoShoot.PATH_MAX_TURN_DEG_PER_IN;
+            c.turnSettleIn = BioBuzzConstants.AutoShoot.PATH_TURN_SETTLE_IN;
+            c.minLegIn = BioBuzzConstants.AutoShoot.PATH_MIN_LEG_IN;
+            c.detourAngleStepDeg = BioBuzzConstants.AutoShoot.PATH_DETOUR_ANGLE_STEP_DEG;
             return c;
         }
     }
@@ -206,14 +215,25 @@ public final class ScoringPlanner {
         this.field = field;
         this.cfg = cfg;
 
-        // Half the diagonal = distance from the robot's center to a corner (its "circumscribed radius", the
-        // smallest circle that holds the whole robot). halfMin = half of the shorter side.
-        double halfDiag = 0.5 * Math.hypot(cfg.robotLengthIn, cfg.robotWidthIn);
+        // The route check comes first because it knows the robot's REACH: the distance from the rotation center to the
+        // farthest corner (the "circumscribed radius", the smallest circle that holds the whole robot whatever way it
+        // faces). Taking it from the same Footprint the check uses means the planner and the check cannot disagree about
+        // how big the robot is. halfMin = half of the shorter side.
+        RouteSweep.Settings settings = new RouteSweep.Settings();
+        settings.stepIn = cfg.sweepStepIn;
+        settings.stepDeg = cfg.sweepStepDeg;
+        settings.toleranceIn = cfg.sweepToleranceIn;
+        settings.minStepIn = cfg.sweepMinStepIn;
+        sweep = new RouteSweep(field.fieldRect(), cfg.wallClearanceIn, field.hardObstacles(), cfg.keepOutMarginIn,
+                cfg.robotLengthIn, cfg.robotWidthIn, settings);
+        double halfDiag = sweep.reachIn();
         double halfMin = 0.5 * Math.min(cfg.robotLengthIn, cfg.robotWidthIn);
 
         // Driving: the robot is a point; obstacles grow by its circumscribed radius (it may rotate while
         // it drives) and the field shrinks by its smallest half-extent. (Using the smaller half-size for the walls
-        // lets poses that sit flush against a wall, such as the audience-wall shot, stay reachable.)
+        // lets poses that sit flush against a wall, such as the audience-wall shot, stay reachable. The cost is that a
+        // route planned this way can squeeze a TURNING robot against a wall; that is what the route check and the
+        // repairs below are for.)
         List<Rect> inflated = new ArrayList<Rect>();
         for (Rect o : field.hardObstacles()) {
             inflated.add(o.inflate(halfDiag + cfg.keepOutMarginIn));
@@ -227,14 +247,7 @@ public final class ScoringPlanner {
         }
         standingBounds = field.fieldRect().inflate(-cfg.wallClearanceIn);
 
-        // The route check, and the detour planner that only uses places where the robot may face any way.
-        RouteSweep.Settings settings = new RouteSweep.Settings();
-        settings.stepIn = cfg.sweepStepIn;
-        settings.stepDeg = cfg.sweepStepDeg;
-        settings.toleranceIn = cfg.sweepToleranceIn;
-        settings.minStepIn = cfg.sweepMinStepIn;
-        sweep = new RouteSweep(field.fieldRect(), cfg.wallClearanceIn, field.hardObstacles(), cfg.keepOutMarginIn,
-                cfg.robotLengthIn, cfg.robotWidthIn, settings);
+        // The detour planner only uses places where the robot may face any way.
         turnSafeBounds = field.fieldRect().inflate(-(sweep.reachIn() + cfg.wallClearanceIn));
         List<Rect> turnSafeObstacles = new ArrayList<Rect>();
         for (Rect o : field.hardObstacles()) {
@@ -431,7 +444,7 @@ public final class ScoringPlanner {
                 }
             }
             double[] run = runs.remove(longest);
-            SafeRoute tried = tryWindow(robot, pose, route, run[0], length - run[1], turnDeg, run[1] - run[0]);
+            SafeRoute tried = tryWindow(robot, pose, route, run[0], run[1], turnDeg);
             if (tried != null) {
                 return tried;
             }
@@ -440,16 +453,29 @@ public final class ScoringPlanner {
     }
 
     /**
-     * Checks one turn window: the route with the start heading held for {@code holdIn} and the turn finished
-     * {@code settleIn} before the end. {@code windowIn} is the length left for turning. Null if the turn would be
-     * faster than allowed or the check fails.
+     * Checks one turn window on a route. The robot keeps its heading for {@code holdIn} inches, then turns, and the turn
+     * must be finished {@code turnSettleIn} inches before {@code freeEndIn}, the distance at which the robot's free
+     * stretch ends (the extra inches let the real robot's heading catch up with the planned one while it is still far
+     * from the wall). Returns null if there is no room for the turn, if the turn would be faster than
+     * {@code maxTurnDegPerIn}, or if the route then fails the wall check.
      */
-    private SafeRoute tryWindow(Pose2 robot, Pose2 pose, List<double[]> route, double holdIn, double settleIn,
-                                double turnDeg, double windowIn) {
-        if (turnDeg > cfg.maxTurnDegPerIn * windowIn) {
+    private SafeRoute tryWindow(Pose2 robot, Pose2 pose, List<double[]> route, double holdIn, double freeEndIn,
+                                double turnDeg) {
+        HeadingProfile plain = HeadingProfile.build(robot, route, pose.heading);
+        if (turnDeg <= 1e-9) {
+            // Nothing to turn: the heading is the same everywhere, so only the route itself needs checking.
+            return sweep.isSafe(plain) ? new SafeRoute(route, 0.0, 0.0) : null;
+        }
+        double turnEndIn = freeEndIn - cfg.turnSettleIn;
+        if (turnEndIn <= holdIn) {
             return null;
         }
+        double settleIn = plain.length() - turnEndIn;
         HeadingProfile windowed = HeadingProfile.build(robot, route, pose.heading, holdIn, settleIn);
+        // The robot cannot turn faster than it can spin, so a window that squeezes the turn too hard is no use.
+        if (windowed.maxTurnRateDegPerIn() > cfg.maxTurnDegPerIn) {
+            return null;
+        }
         return sweep.isSafe(windowed) ? new SafeRoute(route, holdIn, settleIn) : null;
     }
 
@@ -457,7 +483,8 @@ public final class ScoringPlanner {
      * Repair 3: a detour. Walk straight to the nearest spot where the robot may face any way (the field shrunk by the
      * robot's full reach), find a route from there to the matching spot near the pose that avoids the keep-outs
      * grown by the same reach, turn on the way, and finish with a straight move in to the pose. The turn window is the
-     * middle stretch, where there is room by construction.
+     * middle stretch, where there is room by construction. If that stretch is too short for a turn that is gentle
+     * enough, a bend is added to make it longer (see {@link #lengthened}).
      */
     private SafeRoute detourToWhereTheRobotCanTurn(Pose2 robot, Pose2 pose) {
         double[] leaveAt = nearestTurnSafePoint(robot.x, robot.y);
@@ -466,15 +493,102 @@ public final class ScoringPlanner {
         if (middle == null) {
             return null;
         }
+        double turnDeg = Math.toDegrees(Angles.distance(robot.heading, pose.heading));
+        // Room the turn needs: the turn at the fastest allowed rate, plus the settle distance after it, plus one
+        // short-leg limit at each end of the turn (HeadingProfile moves a turn edge that falls that close to a corner of
+        // the route onto the corner, which can shorten the turn by that much).
+        double needIn = turnDeg / cfg.maxTurnDegPerIn + cfg.turnSettleIn + 2.0 * cfg.minLegIn;
+        double haveIn = PathPlanner.length(leaveAt[0], leaveAt[1], middle);
+        if (haveIn < needIn) {
+            middle = lengthened(leaveAt, middle, needIn - haveIn);
+            if (middle == null) {
+                return null;
+            }
+        }
         List<double[]> route = new ArrayList<double[]>();
         route.add(leaveAt);
         route.addAll(middle);
-        route.add(new double[]{pose.x, pose.y});
+        double[] last = route.get(route.size() - 1);
+        if (Math.hypot(pose.x - last[0], pose.y - last[1]) > 1e-9) {
+            // (Skipped when the pose is itself a place with room to turn: the route already ends on it.)
+            route.add(new double[]{pose.x, pose.y});
+        }
         double holdIn = Math.hypot(leaveAt[0] - robot.x, leaveAt[1] - robot.y);
-        double settleIn = Math.hypot(pose.x - arriveAt[0], pose.y - arriveAt[1]);
-        double length = HeadingProfile.build(robot, route, pose.heading).length();
-        double turnDeg = Math.toDegrees(Angles.distance(robot.heading, pose.heading));
-        return tryWindow(robot, pose, route, holdIn, settleIn, turnDeg, length - holdIn - settleIn);
+        double freeEndIn = HeadingProfile.build(robot, route, pose.heading).length()
+                - Math.hypot(pose.x - arriveAt[0], pose.y - arriveAt[1]);
+        return tryWindow(robot, pose, route, holdIn, freeEndIn, turnDeg);
+    }
+
+    /**
+     * Makes the route {@code from -> middle} about {@code extraIn} inches longer by putting one bend into its longest
+     * straight leg (two sides of a triangle are longer than the third). It is used when a robot pressed against a wall
+     * has to turn a long way but the two places with room to turn are close together, so a gentle turn needs a longer
+     * trip.
+     *
+     * <p>Which bend: the leg from A to B becomes A to P to B. The points P for which the trip has exactly the length
+     * wanted (|AP| + |PB| = |AB| + extra) lie on an ellipse around A and B (an "ellipse" is a squashed circle; when A
+     * and B are the same point it is a plain circle). The planner tries points around it, one every
+     * {@code detourAngleStepDeg} degrees, throws away those that are outside the area where the robot may turn freely or
+     * whose two new legs hit a keep-out, and keeps the one closest to the middle of the field, which is away from the
+     * wall the robot is leaning on.
+     *
+     * @param from    where the route starts (a place with room to turn)
+     * @param middle  the rest of the route after {@code from}
+     * @return the new rest of the route (it has one more point), or null if no bend fits
+     */
+    private List<double[]> lengthened(double[] from, List<double[]> middle, double extraIn) {
+        List<double[]> pts = new ArrayList<double[]>();
+        pts.add(from);
+        pts.addAll(middle);
+        // The longest leg is the one most likely to have room for a bend.
+        int leg = 0;
+        double longest = -1.0;
+        for (int i = 0; i + 1 < pts.size(); i++) {
+            double len = Math.hypot(pts.get(i + 1)[0] - pts.get(i)[0], pts.get(i + 1)[1] - pts.get(i)[1]);
+            if (len > longest) {
+                longest = len;
+                leg = i;
+            }
+        }
+        double[] a = pts.get(leg);
+        double[] b = pts.get(leg + 1);
+        double chord = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        // The ellipse: centered on the middle of the leg, long axis along the leg (any direction when the leg has no
+        // length), half-length halfSide along it and "minor" across it.
+        double ux = chord > 1e-9 ? (b[0] - a[0]) / chord : 1.0;
+        double uy = chord > 1e-9 ? (b[1] - a[1]) / chord : 0.0;
+        double midX = 0.5 * (a[0] + b[0]);
+        double midY = 0.5 * (a[1] + b[1]);
+        double halfSide = 0.5 * (chord + extraIn);
+        double halfChord = 0.5 * chord;
+        double minor = Math.sqrt(Math.max(0.0, halfSide * halfSide - halfChord * halfChord));
+        double[] apex = null;
+        double apexFromCenter = Double.POSITIVE_INFINITY;
+        double step = Math.toRadians(cfg.detourAngleStepDeg);
+        for (double phi = 0.0; phi < 2.0 * Math.PI - 1e-9; phi += step) {
+            double along = halfSide * Math.cos(phi);
+            double across = minor * Math.sin(phi);
+            double[] p = {midX + ux * along - uy * across, midY + uy * along + ux * across};
+            double fromCenter = Math.hypot(p[0] - field.center(), p[1] - field.center());
+            if (fromCenter < apexFromCenter && turnSafeBounds.contains(p[0], p[1])
+                    && safeTravel.segmentClear(a[0], a[1], p[0], p[1])
+                    && safeTravel.segmentClear(p[0], p[1], b[0], b[1])) {
+                apex = p;
+                apexFromCenter = fromCenter;
+            }
+        }
+        if (apex == null) {
+            return null;
+        }
+        List<double[]> out = new ArrayList<double[]>();
+        for (int i = 1; i <= leg; i++) {
+            out.add(pts.get(i));
+        }
+        out.add(apex);
+        for (int i = leg + 1; i < pts.size(); i++) {
+            out.add(pts.get(i));
+        }
+        return out;
     }
 
     /** The closest point to (x, y) inside the area where the robot's center leaves room to turn (see turnSafeBounds). */

@@ -207,6 +207,19 @@ public final class HeadingProfile {
         return headings[i];
     }
 
+    /**
+     * The fastest turning anywhere on the route, in degrees per inch driven (0 if the heading never changes). The
+     * robot can only turn so fast while it drives, so the planner refuses a turn window that makes this too large.
+     */
+    public double maxTurnRateDegPerIn() {
+        double fastest = 0.0;
+        for (int i = 0; i + 1 < xs.length; i++) {
+            double turn = Math.abs(headings[i + 1] - headings[i]);
+            fastest = Math.max(fastest, Math.toDegrees(turn) / (along[i + 1] - along[i]));
+        }
+        return fastest;
+    }
+
     /** The whole route's length, in inches (0 when empty). */
     public double length() {
         return along[along.length - 1];

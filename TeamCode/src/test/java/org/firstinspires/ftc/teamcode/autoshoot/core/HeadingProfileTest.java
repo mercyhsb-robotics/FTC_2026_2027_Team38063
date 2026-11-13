@@ -341,6 +341,25 @@ public class HeadingProfileTest {
     }
 
     /**
+     * Situation: a 100 in straight route turning 90 degrees. First with the turn spread over the whole route, then with
+     *     the turn squeezed into a window that leaves 20 in for it (hold 50 in, settle 30 in), then a route that does not
+     *     turn at all.
+     * Expected: the fastest turning is 0.9 degrees per inch for the even turn, 4.5 degrees per inch for the squeezed one
+     *     (90 degrees over 20 in), and 0 when the heading never changes.
+     * Why: the planner refuses a window that asks for more turning per inch than the robot can manage, and it does so by
+     *     asking this number. A version that averaged over the whole route would report 0.9 for the squeezed turn and
+     *     wrongly let it through.
+     */
+    @Test
+    public void theFastestTurnRateIsReadFromTheSteepestLeg() {
+        Pose2 start = Pose2.ofDegrees(0, 0, 0);
+        double end = Math.toRadians(90);
+        assertEquals(0.9, HeadingProfile.build(start, route(100, 0), end).maxTurnRateDegPerIn(), EPS);
+        assertEquals(4.5, HeadingProfile.build(start, route(100, 0), end, 50.0, 30.0).maxTurnRateDegPerIn(), EPS);
+        assertEquals(0.0, HeadingProfile.build(start, route(100, 0), 0.0).maxTurnRateDegPerIn(), EPS);
+    }
+
+    /**
      * Situation: 300 random routes with random windows.
      * Expected: the windowed route is the same polyline (same length, and the position at every distance is the same as
      *     without a window); no leg is shorter than the short-leg limit; every heading lies between the start and the

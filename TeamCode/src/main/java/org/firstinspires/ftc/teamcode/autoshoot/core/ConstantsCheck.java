@@ -171,6 +171,14 @@ public final class ConstantsCheck {
             r.errors.add("AutoShoot.PATH_MAX_TURN_DEG_PER_IN must be positive (the planner could never turn the robot"
                     + " away from a wall).");
         }
+        if (BioBuzzConstants.AutoShoot.PATH_TURN_SETTLE_IN < 0) {
+            r.errors.add("AutoShoot.PATH_TURN_SETTLE_IN cannot be negative.");
+        }
+        // The detour search walks around a ring in steps of this many degrees; it must make progress and fit in a circle.
+        if (BioBuzzConstants.AutoShoot.PATH_DETOUR_ANGLE_STEP_DEG <= 0
+                || BioBuzzConstants.AutoShoot.PATH_DETOUR_ANGLE_STEP_DEG > 180) {
+            r.errors.add("AutoShoot.PATH_DETOUR_ANGLE_STEP_DEG must be between 0 (exclusive) and 180 degrees.");
+        }
         if (BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN < 0) {
             r.errors.add("AutoShoot.PATH_SWEEP_TOLERANCE_IN cannot be negative.");
         } else if (BioBuzzConstants.AutoShoot.PATH_SWEEP_TOLERANCE_IN >= BioBuzzConstants.AutoShoot.WALL_CLEARANCE_IN) {
