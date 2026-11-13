@@ -153,7 +153,7 @@ public final class SelfTipRoutes {
 
     private static AutoRoute anchorShootPark() {
         return toTheZoneAndPark(firstVolley(opening(ANCHOR_SHOOT_PARK, ANCHOR_START,
-                "Safe: shoot 4 from the start, drive up the left side and park in the LOADING ZONE",
+                "Safe: shoot 4 from the start, drive up the side corridor and park in the LOADING ZONE",
                 "THE BASIC ROUTE. Put the robot with its front edge on the audience wall, in line with the HIVE (the placement words above). It already stands where it shoots "
                         + "from, so it fires the 4 pre-loads at once with no drive first, and this is the one shot the team has measured; that start saves about 0.7 s against tile C1 and "
                         + "1.5 s against tile B1, which must drive to a shooting pose first. Then it slides along the wall, goes up the left corridor and parks in the LOWER half of the "
