@@ -597,6 +597,49 @@ public final class BioBuzzConstants {
         public static final double APPROACH_STALL_GRACE_SEC = 0.8;
         /** TUNE: stall detection only applies while farther than this from the pose (inches). */
         public static final double APPROACH_STALL_MIN_DIST_IN = 4.0;
+        /**
+         * TUNE: when the drive turns a route into a Pedro path, a waypoint closer than this to the previous point is
+         * dropped (inches), because Pedro cannot follow a zero-length line. The route checker drops the same points,
+         * so it checks exactly the path that is driven.
+         */
+        public static final double PATH_MIN_LEG_IN = 0.5;
+
+        // ---- keeping the whole robot (not just its center) off the walls while it drives ------
+        // The route checker (core/RouteSweep) slides the robot's real 17.8 in square along the route and tests it
+        // against the walls, the HIVE frame and the FLOWER plates. It looks at least this often, and more often
+        // wherever the robot is close to something.
+
+        /** TUNE: the route checker looks at the robot at least every this many inches of driving (smaller = slower but finer). */
+        public static final double PATH_SWEEP_STEP_IN = 1.0;
+        /** TUNE: ... and at least every this many degrees of turning (a turning square sweeps its corners through a wide arc). */
+        public static final double PATH_SWEEP_STEP_DEG = 3.0;
+        /**
+         * VERIFY: the checker forgives the robot coming this much closer than the wall clearance or keep-out margin
+         * (inches). It absorbs rounding and the tiny amount the robot can start inside a margin (it starts touching a
+         * wall). Keep it well below {@code WALL_CLEARANCE_IN}, or the robot could be allowed to touch the wall.
+         */
+        public static final double PATH_SWEEP_TOLERANCE_IN = 0.05;
+        /** TUNE: the finest spacing the checker refines to when the robot is very close to something (inches). */
+        public static final double PATH_SWEEP_MIN_STEP_IN = 0.02;
+        /**
+         * TUNE: when the planner has to squeeze the robot's turn into part of a route (because the robot is against a
+         * wall and cannot turn there) it never asks for more than this many degrees of turning per inch driven.
+         * The robot cannot follow a heading that changes faster than it can spin: at a 30 in/s drive speed, 4 deg/in is
+         * 120 degrees per second.
+         */
+        public static final double PATH_MAX_TURN_DEG_PER_IN = 4.0;
+        /**
+         * TUNE: when the planner squeezes a turn into the part of a route where the robot is far from every wall, it
+         * finishes the turn this many inches before that part ends, so the real robot's heading can catch up with the
+         * planned one while it is still far from the wall (inches).
+         */
+        public static final double PATH_TURN_SETTLE_IN = 3.0;
+        /**
+         * TUNE: when a robot standing against a wall has to turn a long way, the planner sends it out to open floor and
+         * adds a bend to the trip so the turn has room to be gentle. It looks for that bend by trying points around a
+         * ring, one every this many degrees (smaller = more places tried, slower).
+         */
+        public static final double PATH_DETOUR_ANGLE_STEP_DEG = 15.0;
 
         // ---- fine alignment ---------------------------------------------------------------
         /** TUNE: alignment is settled when the position error is below this (inches). Mecanum drives rarely settle below about 1 in. */

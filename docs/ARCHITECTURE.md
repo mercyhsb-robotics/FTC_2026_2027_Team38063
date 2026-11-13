@@ -100,6 +100,36 @@ footprint is clear of the walls, the HIVE frame and the FLOWERS and a collision-
 visibility graph around the keep-outs; the far side is reached through the left/right corridor). The cheapest
 candidate wins: travel, plus small costs for turning and for being away from the preferred range.
 
+### Why the route is checked as a rectangle, not a point
+
+The route finder (`PathPlanner`) plans for one dot, the robot's center, and keeps the dot a little way from walls and
+obstacles. A dot has no corners. The real robot is a 17.8 in square, and a square that turns takes more room than one
+that faces straight: turned 25 degrees it needs 11.8 in between its center and the wall (not 8.9 in), turned 45 degrees
+it needs 12.6 in. The robot does turn while it drives, so a route that is fine for the dot can swing a corner through a
+wall, or through the HIVE frame or a FLOWER, in between two poses that each fit. A standing pose was always checked with
+the real rectangle; the road between the poses was not.
+
+Two small classes close that gap, and the drive and the check use the SAME ones so they cannot drift apart:
+
+* `HeadingProfile` is the one rule for which way the robot faces at every point of a route (one turn, spread over the
+  distance, optionally squeezed into a window). `PedroDrive` builds its Pedro path from it and the check reads it.
+* `RouteSweep` slides the real rotated rectangle along the route and measures the gap to the four walls, the HIVE frame
+  and every FLOWER plate. It looks every inch and every 3 degrees of turn, and looks more finely wherever the robot is
+  close to something: a piece of route is accepted only when the gaps at its two ends, minus how far a corner can move
+  in between, still leave room, so a thin obstacle cannot hide between two looks.
+
+The planner runs the check on every candidate and repairs a route that fails: first the same road with the turn done only
+where the robot is far enough from everything to spin freely (it keeps its heading while it leaves the wall, and is
+finished turning before it comes back); then a detour out to open floor, with a bend added when the turn needs a longer
+road to stay gentle. If no repair is safe the candidate is dropped like any blocked pose, and if every candidate is
+dropped the controller stops with NO_FEASIBLE_POSE. A route may start touching a wall (the robot is set up there) but
+may never squeeze closer than it started. The rule is tested with a separate, deliberately slow checker and with a
+closed-loop simulation (see below). The numbers are `AutoShoot.PATH_*` in `BioBuzzConstants`.
+
+What is NOT covered: the real robot never follows a route exactly, and the check keeps only the 0.25 in wall clearance
+(plus 1.5 in around the HIVE and FLOWERS). The first time the robot drives out of a wall start, watch its corners and
+retune `PATH_TURN_SETTLE_IN` and `PATH_MAX_TURN_DEG_PER_IN` if it turns late or clips.
+
 ## Rules the design follows
 
 * **G407** at most 4 POLLEN: a volley is at most 4 shots and the intake stops while shooting.
@@ -117,6 +147,10 @@ candidate wins: travel, plus small costs for turning and for being away from the
 * `AutoShootSequenceTest`, a closed loop of the real controller against a simulated robot, flywheel, HIVE that
   tips, and camera: both alliances and all four cells, a tip mid-volley, a wrong belief, no tags, no camera, noise and
   dropouts, release, stick override, a flywheel that never reaches speed, an empty hopper;
+* `ScoringPlannerWallSafetyTest`, which plans from every wall and corner (12 headings, both alliances) and walks every
+  route in tiny steps with a separate checker, and `AutoShootWallSafetySimTest`, the closed loop that checks the
+  robot's rectangle against the walls at every 20 ms tick while it drives out of a wall start (a planner with the check
+  switched off must clip, or the tests prove nothing);
 * `ConstantsDisciplineTest`, which keeps every tunable number in `BioBuzzConstants`.
 
 None of this has run on the robot yet; `docs/DAY_ONE_CHECKLIST.md` is the order to verify it in.
