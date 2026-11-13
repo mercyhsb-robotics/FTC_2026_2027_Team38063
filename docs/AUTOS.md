@@ -70,6 +70,13 @@ columns A-F run along x, rows 1-6 along y, so A1 is the corner and B1 is x 24-48
 stands with its back toward it. The ball leaves 8.9 in behind the robot's center
 (`BioBuzzConstants.Robot.LAUNCH_POINT_FORWARD_IN`).
 
+The intake is **two small wheels that lie flat** (their discs are parallel to the floor, like coins on a table) at the
+two front corners, one on each side of the center line. In front of the chassis frame there is nothing else, so the
+robot is drawn and checked as **three shapes** (`Footprint`): the whole **perimeter** (17.80 x 17.80 in, every wheel
+included: used for walls and the HIVE), the **chassis** (the body without the part where only the wheels stick out in
+front, `Robot.INTAKE_REACH_IN`) and the **two wheel discs** (2.8 in across, 6.1 in either side of the center line,
+`Robot.INTAKE_WHEEL_OFFSET_IN`). The reason for the split is the FLOWER (see "Taking POLLEN from a FLOWER").
+
 ## The steps you can write
 
 Every step is a method of the builder. The first step must be `start(...)`, and there is only one.
@@ -82,7 +89,9 @@ Every step is a method of the builder. The first step must be `start(...)`, and 
 | | `driveLinear(x, y, headingDeg)` | Turn evenly from the heading the leg starts with to the given one. |
 | | `driveConstant(x, y, headingDeg)` | Turn first, then keep that heading all the way (strafing if needed). |
 | | `driveFacing(x, y, px, py)` / `driveBackFacing(...)` | Keep the front / the back pointed at the point (px, py). |
-| **INTAKE** | `intakeFloor(...)`, `intakeFlower(...)`, `intakeGarden(...)` | Take POLLEN: `(targetX, targetY, robotX, robotY, robotHeadingDeg, count)`. |
+| **INTAKE** | `intakeFloor(...)`, `intakeGarden(...)` | Take POLLEN: `(targetX, targetY, robotX, robotY, robotHeadingDeg, count)`. |
+| | `intakeFlower(targetX, targetY, IntakeWheel.LEFT, count)` | Empty a FLOWER by **pressing one flat wheel into its bottom POLLEN**. Give the FLOWER's center, which wheel presses (the robot's own `LEFT` or `RIGHT`) and the count; the line-up pose, the press pose and the retreat are worked out for you. Drive to the line-up pose first (`FlowerPress.idealLineUp`). |
+| | `intakeFlower(targetX, targetY, robotX, robotY, robotHeadingDeg, count)` | The same with your own line-up pose; the wheel is the one nearer the FLOWER's center line (or add the wheel before the count). |
 | **SHOOT** | `shootUp(count)` | Fire at the cell that is UP; the solver picks the pose (the picture shows a nominal one). |
 | | `shootUp(x, y, headingDeg, count)` | Same, from an explicit pose. |
 | | `shootSide(Side.AUDIENCE, count)` | Fire at a fixed cell (a promise that it is UP at that moment). |
@@ -97,6 +106,7 @@ Modifiers apply to the step added **just before** them:
 | `.speed(0.5)` | DRIVE | Drive at this fraction of the cruise speed. |
 | `.label("corridor")` | DRIVE | Names the leg in the picture. |
 | `.wallContact()` | DRIVE | A note that the leg touches the field wall on purpose (sweeping the GARDEN POLLEN). It gives **no** extra room: the robot may touch a wall but never push into it. |
+| `.retreat(8.0)` | FLOWER INTAKE | How far the robot backs straight out after the press (default 6 in; shorter is a WARN). |
 | `.launchSeconds(5.0)` | SHOOT | The step takes exactly this long (instead of the estimate). |
 | `.note("why")` | any | Free text for people; shown on the page. |
 
@@ -115,7 +125,8 @@ Two rules of thumb that the validator enforces:
 | Start | G304 | outside the field or the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
 | Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the corners of the square sweep out to 12.6 in from the center), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
 | HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the floor area of its rails and legs, 49.46 x 38.95 in). The gaps under and inside the frame count as solid: a 12.13 in robot might physically fit between the legs, but nobody has measured the real frame, so no route goes there. A DOWN cell hangs out past the frame by up to 5.4 in, but only 30.6 in up or higher, so it is not an obstacle | |
-| FLOWERS | G304.D, G415 | a leg runs into a FLOWER plate (except the one an INTAKE takes from) | |
+| FLOWERS | G304.D, G415 | any part of the robot comes within 0.5 in of a FLOWER plate (4.75 x 5.87 in). The only exception is the **one flat wheel** of a FLOWER INTAKE, during its press-in (next row): the chassis, the other wheel and every other step stay out | |
+| FLOWER press-in | 9.7, G415 | the chassis comes within 0.5 in of the plate; the pressing wheel goes past the **press stop line**; the wheels are too short to reach it (the finding says how many inches are missing); the line-up heading is more than 5 degrees off "facing the wall squarely"; the middle of the pressing wheel is more than 1 in from the FLOWER's center line; the final approach is shorter than 6 in | the retreat is shorter than 6 in |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
 | POLLEN | G407 | more than 4 held, firing more than held, taking from the other alliance's GARDEN or FLOWER | a source that is empty or that does not exist; a floor intake before anything was shot |
 | Time | G401 | the estimate is over 30 s | within 2 s of the limit |
@@ -136,16 +147,67 @@ clear it cuts the gap in half and looks again, down to 1/1000 in. The result is 
 densely; the proof is the comment at the top of `routes/Sweep.java` and `SweepTest` tries to break it. The first and
 the last pose of every leg are always tested, and so is the last pose of a turn in place.
 
+## Taking POLLEN from a FLOWER (the press-in)
+
+The bottom POLLEN of a FLOWER sits in a small hole of a ring that is 0.43 in tall. To get it out, a wheel has to push it
+**up and over the edge of that ring** (the "lip"). Our two flat wheels can do that only if one of them **presses into
+the POLLEN**. So a FLOWER intake is not a drive-by and not a drive through the plate:
+
+1. the robot lines up **facing the wall**, with the middle of ONE flat wheel on the FLOWER's center line (the other wheel
+   is 12.2 in away along the wall, too far to help: the two wheels cannot pinch a 2.8 in POLLEN);
+2. it drives **straight in, slowly** (30% speed) for at least 6 in until that wheel overlaps the POLLEN;
+3. it **stays pressed** with the intake running (the dwell);
+4. it **backs straight out** for 6 in.
+
+Top view, the wall at the bottom and the robot facing it (so its left side is on the right of the page). The robot's
+LEFT wheel does the pressing, so the robot stands 6.1 in to the left of the FLOWER on the page. `##` is a flat wheel,
+`(##)` the same wheel pressed onto the POLLEN. Distances are measured from the wall:
+
+```
+        +-----------------------------+
+        |           CHASSIS           |      the body, 17.8 in wide: never inside the plate
+        +-----------------------------+      <- chassis front: 5.25 in from the wall (plate 4.75 + 0.5)
+          ##                     ##          the two flat wheels stick out 2.7 in in front of the chassis
+          ##                  +--##---+      <- plate top: 4.75 in from the wall. Only ONE wheel goes in
+                              | (##)  |      <- wheel tip: 2.55 in from the wall = 1.25 in into the POLLEN
+  =======================================    the field wall (the POLLEN is 1.0 to 3.8 in from it)
+```
+
+What the validator holds you to (the numbers are `BioBuzzConstants`, all marked **ADD** because nobody has measured
+them on the robot yet):
+
+* **The chassis never touches a plate** (it stays 0.5 in off, `Auto.FLOWER_CHASSIS_CLEARANCE_IN`), and **only the one
+  pressing wheel may go into the plate**, and only as far as the **press stop line**: the POLLEN's far edge (3.8 in from
+  the wall) minus `Auto.FLOWER_PRESS_DEPTH_IN` (1.25 in) = 2.55 in, never closer than the POLLEN's center line (2.4 in).
+* **The wheels must be long enough.** With the chassis 5.25 in from the wall, the wheel tip is at 5.25 minus the
+  reach. `Robot.INTAKE_REACH_IN` is 2.7 in, which gives exactly 2.55 in. If the real wheels reach less, the validator
+  says **how many inches are missing**.
+* **Square and centered.** The robot faces the wall within 5 degrees (`Auto.FLOWER_HEADING_TOLERANCE_DEG`) and the
+  middle of the pressing wheel is within 1 in of the FLOWER's center line (`Auto.FLOWER_ALIGN_TOLERANCE_IN`).
+* **Straight, slow in and out.** At least 6 in of straight final approach (`Auto.FLOWER_APPROACH_LENGTH_IN`) at 30 %
+  speed (`Auto.FLOWER_APPROACH_SPEED_FRACTION`), then the dwell, then a straight retreat of at least 6 in
+  (`Auto.FLOWER_RETREAT_LENGTH_IN`, shorter is a WARN). The time estimate includes all three phases.
+* **Walls and the HIVE still count in every one of these moves.** Nothing of the robot goes into a wall, and the
+  body keeps out of the HIVE keep-out, during the press-in as everywhere else.
+
+You write only `intakeFlower(2.4, 48.0, IntakeWheel.LEFT, 4)`; the program works out the line-up pose, the press pose
+and the retreat pose. The step ends at the retreat pose, where the next step continues. In the diagram the robot is
+drawn **pressed in**, the pressing wheel has a green ring, a short solid arrow runs along the wheel's path into the
+POLLEN and a dotted arrow shows the retreat.
+
 ## Reading a diagram
 
 * **Top view**, the audience wall at the **bottom**, the red alliance on the **left**. Tiles are labelled A-F and 1-6.
 * The route is drawn in the alliance's **ink**: red ink for the red alliance, blue ink for the blue one.
-* The **robot is drawn to scale**. Its **FRONT edge (intake) is green** and its **BACK edge (shooter) is orange**.
-  The START footprint has an arrow along its heading.
+* The **robot is drawn to scale**, in two tones: the **body** is tinted in the alliance ink and the **two flat intake
+  wheels** are the dark discs at the front. Its **FRONT edge (the wheel tips) is green** and its **BACK edge (shooter)
+  is orange**. The START footprint has an arrow along its heading. A robot drawn with an **amber outline** breaks a
+  rule (an ERROR) at that step.
 * **DRIVE legs** are solid lines or curves with arrowheads. **Dotted arrows** are the moves to a pose that a step makes
   by itself (a SHOOT pose, an INTAKE pose, a PARK pose).
 * Every step has a **numbered circle**, in route order. A red triangle on it is an ERROR, a yellow one a WARN.
-* **INTAKE** is a dashed circle around the target, labelled like `INTAKE GARDEN +4`.
+* **INTAKE** is a dashed circle around the target, labelled like `INTAKE GARDEN +4`. A FLOWER INTAKE shows the robot
+  pressed in (the pressing wheel ringed in green), a short solid arrow into the POLLEN and a dotted retreat arrow.
 * **SHOOT** is the robot at the shooting pose and a dashed arrow from the **ball exit** to the **aim point** in the
   cell opening, labelled `SHOOT 4`. A dashed footprint means the pose is the solver's *nominal* pose. `HIVE TIP +20`
   marks the volley that tips the HIVE.
@@ -164,6 +226,11 @@ the last pose of every leg are always tested, and so is the last pose of a turn 
   `INTAKE_DWELL_*_SEC`, `AIM_SPINUP_SEC`, `TIME_PER_SHOT_SEC`. Compare routes with them, but do not trust a route
   that is within a few seconds of the limit. When you measure one, replace it, change its marker to VERIFY or TUNE
   and delete its name from `BioBuzzConstants.PLACEHOLDERS`, then regenerate the pictures.
+* **The FLOWER press-in numbers are placeholders too** (marked **ADD**): how far the wheel tips stick out in front
+  of the chassis (`Robot.INTAKE_REACH_IN`, 2.7 in from the drawing), how far each wheel is from the center line
+  (`Robot.INTAKE_WHEEL_OFFSET_IN`, 6.1 in), how deep the wheel presses (`Auto.FLOWER_PRESS_DEPTH_IN`) and how far
+  the chassis stays off the plate (`Auto.FLOWER_CHASSIS_CLEARANCE_IN`). They are on the day-one checklist
+  (section C); measure them with the real robot at a real FLOWER.
 * **The HIVE needs 8 POLLEN** to tip (`Auto.TIP_POLLEN_THRESHOLD`, VERIFY): the team's figure is 5 NECTAR or 8 POLLEN.
 * **Rule limits** (30 s, 4 POLLEN, the 3/5/20 points) are FIXED from the manual. The safety margins (3 in around the
   HIVE, 2 s before the end, the standoff band) are TUNE or VERIFY.
@@ -191,7 +258,7 @@ catalog deliberately does not "improve" them.
 
 | Package | What is in it |
 |---|---|
-| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`), the simulation (`RouteAnalysis`, `TimingModel`), the checks (`RouteValidator`, `Issue`), the geometry (`Footprint`, `AllianceField`, `ShotGeometry`) and **`RouteCatalog`**, the list you edit. |
+| `autoshoot.routes` | The data model (`AutoRoute`, `Step`, `DrivePath`, `HeadingMode`, `IntakeSource`, `ShootTarget`), the simulation (`RouteAnalysis`, `TimingModel`), the checks (`RouteValidator`, `Sweep`, `Issue`), the field geometry (`AllianceField`, `ShotGeometry`, `FlowerPress`) and **`RouteCatalog`**, the list you edit. The robot's own shape (`Footprint`: perimeter, chassis, flat wheel discs; `IntakeWheel`) lives in `autoshoot.core`. |
 | `autoshoot.render` | `RouteSvgRenderer` (one route to one SVG), `RouteGallery` (the page), `RenderRoutesMain` (the command line), `SvgWriter` (escaping and number formatting). |
 | `tools/` | `render-autos.sh` and `render-autos.bat`. |
 | `docs/autos/` | The generated page and the SVG files. |
