@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedro;
 
-import static com.pedropathing.api.Paths.*;
 import com.pedropathing.api.Paths;
-
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
@@ -15,8 +13,6 @@ import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "RedAlliance_LeavePark", group = "Autonomous")
 public class RedAlliance_LeavePark extends LinearOpMode {

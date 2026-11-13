@@ -18,13 +18,11 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.mechanisms.intake.Intake;
 import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
 
 @Autonomous(name = "RedAlliance_C1", group = "Autonomous")
 public class
 RedAlliance_C1 extends LinearOpMode {
-    Intake intake;
     Launcher launcher;
 
     private Follower follower;
@@ -105,19 +103,6 @@ RedAlliance_C1 extends LinearOpMode {
     }
 
     /**
-     * Intake pollen from the ground.
-     */
-    public Command intakePollen() {
-        telemetry.addLine("Intaking pollen...");
-        telemetry.update();
-//        intake.startIntake();
-
-        // If pollen count > 4, then stop the intake to save batteries / avoid penalties.
-
-        return null;
-    }
-
-    /**
      * Aim and launch pollen and nectar.
      */
     public Command aimAndLaunch() {
@@ -125,17 +110,8 @@ RedAlliance_C1 extends LinearOpMode {
         return sequential(
 
                 // Step 1: Calculate target RPM and spin up
-                instant(() -> {
-
-                    double distance = getDistanceFromHive();
-
-                    // This is just to test out autonomous for now.   What we really want
-                    // is to calculate rpm based on distance using AprilTag
-//                    long rpm = calculateRpmBasedOnDistance(distance);
-                    long rpm = Launcher.LAUNCHER_TARGET_VELOCITY;
-
-                    launcher.increaseRpm(rpm);
-                }),
+                // TODO: calculate the rpm from the AprilTag distance instead of a fixed velocity.
+                instant(() -> launcher.increaseRpm(Launcher.LAUNCHER_TARGET_VELOCITY)),
 
                 // Step 2: Wait until launcher is ready
                 waitUntil(() -> launcher.isAtTargetRpm()),
@@ -155,16 +131,5 @@ RedAlliance_C1 extends LinearOpMode {
 
         );
     }
-
-    private long calculateRpmBasedOnDistance(double distance) {
-        // Add code to calculate rpm based on distance
-        return -1;
-    }
-
-    private double getDistanceFromHive() {
-        // Add code to get distance from hive
-        return -1;
-    }
-
 
 }
