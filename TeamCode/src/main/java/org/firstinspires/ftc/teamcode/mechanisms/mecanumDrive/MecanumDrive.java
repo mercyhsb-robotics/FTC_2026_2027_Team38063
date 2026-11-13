@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.mechanisms.mecanumDrive;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -47,22 +46,19 @@ public class MecanumDrive {
         imu.initialize(new IMU.Parameters(revOrientation));
     }
 
+    /**
+     * Drives the mecanum base. Inputs are the raw gamepad stick values (-1..1).
+     *
+     * <p>Sign convention: {@code forward} is {@code gamepad.left_stick_y}, which is NEGATIVE when
+     * the stick is pushed forward. The left motors are set to FORWARD and the right motors to
+     * REVERSE in {@link #init}, which together with the un-negated stick value below makes
+     * "stick forward" drive the robot forward, "stick right" strafe right and "right stick right"
+     * rotate clockwise. (The Pedro Pathing drivetrain config uses the opposite motor directions
+     * with conventional signs; both are consistent for this robot.)
+     */
     public void drive(double forward, double strafe, double rotate) {
-
-        // Calculate power for different motors.   This determines
-        // whether drive will go forward, strafe or rotate. 
-//        double frontLeftPower = forward + strafe + rotate;
-//        double backLeftPower = forward - strafe + rotate;
-//        double frontRightPower = forward - strafe - rotate;
-//        double backRightPower = forward + strafe - rotate;
-
-//        double frontLeftPower = forward - strafe + rotate;
-//        double backLeftPower = forward + strafe + rotate;
-//        double frontRightPower = forward + strafe - rotate;
-//        double backRightPower = forward - strafe - rotate;
-
-
-
+        // Calculate power for each wheel. This determines whether the drive goes forward,
+        // strafes or rotates.
         double frontLeftPower = forward - strafe - rotate;
         double backLeftPower = forward + strafe - rotate;
         double frontRightPower = forward + strafe + rotate;
