@@ -79,3 +79,5 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+# Local Claude Code settings (per user, not part of the robot code)
+.claude/
