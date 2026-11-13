@@ -281,23 +281,91 @@ public final class BioBuzzConstants {
         public static final double INTAKE_TARGET_MATCH_RADIUS_IN = 12.0;
 
         // ---- robot and drive model for the timing estimate (all ADD: the robot is unmeasured) --
+        // The starting values come from the benchmark research (docs/AUTOS.md, "About the numbers"). They are plausible, NOT measured: the
+        // range in each comment is how far a real robot like ours could be from the starting value. Replace each by a measurement
+        // (docs/DAY_ONE_CHECKLIST.md), change its marker from ADD to VERIFY or TUNE and delete its name from PLACEHOLDERS.
 
-        /** ADD: cruise speed along a path. Pedro's provisional maximum in Constants.java is ~72 in/s. */
-        public static final double CRUISE_SPEED_IN_PER_SEC = 40.0;
-        /** ADD: acceleration and deceleration while following a path. */
-        public static final double ACCEL_IN_PER_SEC2 = 60.0;
-        /** ADD: how fast the robot turns (a turn overlaps the drive and costs only what is longer). */
-        public static final double TURN_RATE_DEG_PER_SEC = 180.0;
-        /** ADD: time to settle inside the end tolerance after every stop. */
-        public static final double SETTLE_SEC = 0.3;
-        /** ADD: default time to scoop POLLEN off the floor (INTAKE step data may override it). */
+        /**
+         * ADD: cruise speed along a path, in inches per second. Starting value 48 (range 40 to 56). Why: the motors (312 rpm) and wheels
+         * (104 mm) cannot go faster than 66.9 in/s with nothing to push, a loaded robot reaches about 58 to 65 in/s, and a path is driven
+         * below the top speed so the robot can still brake. Replace by 0.8 x the number the Pedro velocity tuner measures (the
+         * Forward velocity tuner's result, {@code maxAchievableForwardVelocity} in pedro/Constants.java).
+         */
+        public static final double CRUISE_SPEED_IN_PER_SEC = 48.0;
+        /**
+         * ADD: acceleration and braking along a path, in inches per second per second. Starting value 110 (range 70 to 160). Why: real
+         * Pedro robots stop from 50 to 60 in/s at about 150 in/s per second, and the wheels' grip allows about 270. Replace by 0.8 x
+         * the number the Pedro velocity tuner measures, or time a 100 in path five times (docs/TUNING.md) and choose the number
+         * that gives the same time in the route estimate (a 100 in leg is about 2.5 s of driving, plus the settle time, with the starting values).
+         */
+        public static final double ACCEL_IN_PER_SEC2 = 110.0;
+        /**
+         * ADD: how fast the robot turns, in degrees per second (a turn overlaps the drive and costs only what is longer). Starting value
+         * 150 (range 100 to 200). Why: this drivetrain could spin at 287 to 293 deg/s with no braking, practical robots reach 175 to
+         * 230, and the heading controller needs room to stop. Replace by timing a 90 degree turn.
+         */
+        public static final double TURN_RATE_DEG_PER_SEC = 150.0;
+        /**
+         * ADD: time to settle inside the end tolerance after every stop, in seconds. Starting value 0.4 (range 0.2 to 0.6). Why: another
+         * team measured 0.38 to 0.57 s between "the path is over" and "the robot is still".
+         */
+        public static final double SETTLE_SEC = 0.4;
+        /** ADD: default time to scoop POLLEN off the floor, in seconds (INTAKE step data may override it). Starting value 2.0 (range 1.5 to 3.0): another team's floor pick-ups take a median 1.5 s. */
         public static final double INTAKE_DWELL_FLOOR_SEC = 2.0;
-        /** ADD: default time to sweep up the GARDEN POLLEN line. */
-        public static final double INTAKE_DWELL_GARDEN_SEC = 2.5;
-        /** ADD: aim with the Limelight and spin the flywheel up before the first shot of a volley. */
-        public static final double AIM_SPINUP_SEC = 1.9;
-        /** ADD: feeding one POLLEN through the shooter. */
-        public static final double TIME_PER_SHOT_SEC = 0.9;
+        /**
+         * ADD: default time to sweep up the GARDEN POLLEN line, in seconds. Starting value 3.0 (range 2.0 to 5.0). Why: a team that sweeps a
+         * line like ours reports 2.6 s, another 5 s, and picking up from the floor takes a median 1.5 s. The floor value above stays at 2.0.
+         */
+        public static final double INTAKE_DWELL_GARDEN_SEC = 3.0;
+        /**
+         * ADD: aim with the Limelight and spin the flywheel up before the first shot of a volley, in seconds. Starting value 1.5 (range 0.9
+         * to 2.2) with no overlap with driving. Why: another team's launcher takes a median 1.1 s from rest to speed; physics says ours
+         * needs only 0.2 to 0.5 s, so aiming is the longer part. Replace by timing 20 spin-ups from rest to the shot speed.
+         */
+        public static final double AIM_SPINUP_SEC = 1.5;
+        /**
+         * VERIFY (vendor figures, not measured): seconds the feeder needs to push ONE POLLEN through when it runs at FULL power. The feeder
+         * is a four-vane windmill turned by a 50 rpm servo, so a quarter turn (one POLLEN) takes 0.30 s at power 1.0, and a continuous
+         * servo's speed follows its power. Used only by {@link #TIME_PER_SHOT_SEC}.
+         */
+        public static final double FEED_SEC_PER_POLLEN_AT_FULL_POWER = 0.30;
+        /**
+         * TUNE: the least time between two POLLEN of a volley, in seconds, however fast the feeder runs: the flywheel must recover and the ramp
+         * must fill the next pocket of the windmill. Starting value 0.35; another team's fastest volley is about 0.45 s per POLLEN.
+         */
+        public static final double TIME_PER_SHOT_MIN_SEC = 0.35;
+        /**
+         * ADD: feeding one POLLEN through the shooter, in seconds. It is NOT a separate guess: it is worked out from the feeder power in
+         * {@code Shooter.FEEDER_FORWARD_POWER} as {@link #FEED_SEC_PER_POLLEN_AT_FULL_POWER} divided by that power, but never less than
+         * {@link #TIME_PER_SHOT_MIN_SEC}. So 1.0 s at power 0.3 (today), 0.5 s at 0.6 and 0.35 s at 1.0. Change the feeder power and this
+         * follows. Replace by timing ten volleys of 4 at your power (docs/DAY_ONE_CHECKLIST.md): the time of one volley divided by 4.
+         */
+        public static final double TIME_PER_SHOT_SEC = timePerShotAt(Shooter.FEEDER_FORWARD_POWER);
+
+        /**
+         * The time between two POLLEN of a volley, in seconds, for a feeder that runs at {@code feederPower} (0 to 1): the full-power time divided
+         * by the power, never less than {@link #TIME_PER_SHOT_MIN_SEC}. {@link #TIME_PER_SHOT_SEC} is this at the shipped feeder power; it is a
+         * method so that a test (or a "what if the feeder ran at 0.6?") can ask for another power. A power of 0 or less never feeds anything: infinite.
+         */
+        public static double timePerShotAt(double feederPower) {
+            return feederPower > 0.0 ? Math.max(FEED_SEC_PER_POLLEN_AT_FULL_POWER / feederPower, TIME_PER_SHOT_MIN_SEC) : Double.POSITIVE_INFINITY;
+        }
+        /**
+         * TUNE: the chance that one POLLEN fired from a shooting pose lands in the HIVE cell, used ONLY for the "expected points" estimate of
+         * a route (never to decide what the robot does). Starting value 0.6. Why: real teams land 2 of 5 and 4 of 6 shots in a match (others
+         * 24 of 43 in practice), a range of 0.55 to 0.70, and none of those robots is a StarterBot. Replace by shooting 20 POLLEN from the
+         * measured anchor spot and counting how many land in the cell.
+         */
+        public static final double PLAN_SHOT_SUCCESS = 0.6;
+        /**
+         * TUNE: how long after the POLLEN that tips the HIVE leaves the shooter the tip is complete (the damper touches the frame), in
+         * seconds, for planning. Starting value 5.5 (range 3.4 to 6.5). Why: filmed tips settle a median 3.9 s after the last POLLEN leaves,
+         * the slowest 6.5 s. A tip that is complete before TELEOP starts counts as AUTO (manual 10.5), so a tip that settles after the
+         * 30 s buzzer is still fine if it settles before {@link #TRANSITION_SEC} later.
+         */
+        public static final double TIP_SETTLE_PLAN_SEC = 5.5;
+        /** FIXED (manual Table 9-1): the pause between the end of AUTO and the start of TELEOP lasts 8 s; no robot may move under power in it (G403). */
+        public static final double TRANSITION_SEC = 8.0;
         /**
          * VERIFY: seconds from a POLLEN leaving the shooter to landing in the HIVE cell. From the shot geometry: the ball leaves at 68.5 degrees
          * above horizontal about 8.7 in up, and must reach a mouth about 55 in up that is 37.7 in away (the measured anchor shot), which takes about
@@ -310,10 +378,10 @@ public final class BioBuzzConstants {
          * It is slow on purpose: the camera keeps reading the cell as UP until the cell has swung about half way down (the team's own simulation
          * swings it 60 degrees in 1.2 s, so about 0.6 s; nobody has measured the real swing), then the feeder pauses only after the tags have been
          * gone for {@code AutoShoot.VISION_LOSS_PAUSE_SEC} (0.15 s), and the camera frame and its processing add about 0.1 s: about 0.85 s. A POLLEN
-         * that is fed during that time is launched into a cell that is already swinging down. Next to {@link #TIME_PER_SHOT_SEC} (0.9 s between POLLEN)
+         * that is fed during that time is launched into a cell that is already swinging down. Next to {@link #TIME_PER_SHOT_SEC} (1.0 s between POLLEN at the feeder power of 0.3)
          * and {@link #BALL_FLIGHT_SEC} (0.5 s) that means the POLLEN after the one that tips is launched BEFORE the feeder can stop, so a spare
          * POLLEN in a volley is probably spent, not kept: the route plan counts it as fired and the validator warns. The spare is kept only if this number
-         * is no more than the time between POLLEN minus the flight (0.4 s with the numbers above). Measure it on day one: tip a HIVE with a volley and watch whether the
+         * is no more than the time between POLLEN minus the flight (0.5 s with the numbers above). Measure it on day one: tip a HIVE with a volley and watch whether the
          * next POLLEN leaves (docs/DAY_ONE_CHECKLIST.md).
          */
         public static final double TIP_STOP_LATENCY_SEC = 0.85;

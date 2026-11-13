@@ -54,6 +54,11 @@ public final class TimingModel {
          * the tip but this long after it.
          */
         public double tipSettleSec = BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC;
+        /**
+         * How long after the tipping POLLEN LEAVES the shooter the tip is complete (the damper touches the frame), for planning
+         * ({@code Auto.TIP_SETTLE_PLAN_SEC}). Not the camera's settle time above: that one is how long the robot looks before it believes the tip.
+         */
+        public double tipCompletePlanSec = BioBuzzConstants.Auto.TIP_SETTLE_PLAN_SEC;
 
         /** A copy of these inputs that can be changed without touching the original. */
         public Params copy() {
@@ -72,6 +77,7 @@ public final class TimingModel {
             c.wiggleReleaseHoldSec = wiggleReleaseHoldSec;
             c.flowerSpec = flowerSpec;
             c.tipSettleSec = tipSettleSec;
+            c.tipCompletePlanSec = tipCompletePlanSec;
             return c;
         }
     }
@@ -239,6 +245,16 @@ public final class TimingModel {
     /** The route time at which the camera has confirmed a tip that is complete at {@code tipSec}: the tip plus the settle time. */
     public double confirmedAtSec(double tipSec) {
         return tipSec + p.tipSettleSec;
+    }
+
+    /**
+     * The route time at which a tip is planned to be COMPLETE (the damper has touched the frame), when the tipping POLLEN lands at {@code landSec}:
+     * it left {@code ballFlightSec} earlier, and the tip settles {@code Auto.TIP_SETTLE_PLAN_SEC} after it left (the filmed times count from the POLLEN
+     * leaving the shooter). A tip complete before TELEOP starts counts as AUTO (manual 10.5), so the point of asking is whether it is before
+     * {@code Auto.AUTO_DURATION_SEC + Auto.TRANSITION_SEC}.
+     */
+    public double tipCompleteAtSec(double landSec) {
+        return landSec - p.ballFlightSec + p.tipCompletePlanSec;
     }
 
     /** The settle time the camera needs before it calls a tipped HIVE fully tipped, in seconds. */
