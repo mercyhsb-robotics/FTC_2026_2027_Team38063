@@ -133,7 +133,7 @@ public class RouteSvgOutlineMatchesFootprintTest {
                     String where = alliance + " " + pose;
                     assertCornersMatch(where + " outline", Footprint.of(pose), withClass(start, "polygon", "outline"));
                     assertCornersMatch(where + " body", Footprint.chassis(pose), withClass(start, "polygon", "chassis"));
-                    for (IntakeWheel wheel : IntakeWheel.values()) {
+                    for (IntakeWheel wheel : IntakeWheel.physical()) {
                         Element disc = null;
                         for (Element c : all(start, "circle")) {
                             if (wheel.name().equals(c.getAttribute("data-wheel"))) {

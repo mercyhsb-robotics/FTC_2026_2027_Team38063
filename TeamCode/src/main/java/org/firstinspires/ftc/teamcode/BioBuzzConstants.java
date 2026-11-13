@@ -63,6 +63,13 @@ public final class BioBuzzConstants {
             "Auto.FLOWER_APPROACH_SPEED_FRACTION",
             "Auto.FLOWER_RETREAT_LENGTH_IN",
             "Auto.FLOWER_CHASSIS_CLEARANCE_IN",
+            "Auto.FLOWER_WHEEL_START_OFFSET_IN",
+            "Auto.FLOWER_WHEEL_PRESS_OFFSET_IN",
+            "Auto.FLOWER_WHEEL_BALL_INBOARD",
+            "Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC",
+            "Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC",
+            "Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN",
+            "Auto.FLOWER_WIGGLE_TURN_SEC",
             "Auto.INTAKE_DWELL_GARDEN_SEC",
             "Auto.AIM_SPINUP_SEC",
             "Auto.TIME_PER_SHOT_SEC"};
@@ -401,6 +408,67 @@ public final class BioBuzzConstants {
          * between the wall and the robot's chassis front when the wheel is properly pressed into the POLLEN.
          */
         public static final double FLOWER_CHASSIS_CLEARANCE_IN = 0.5;
+        // ---- FLOWER wiggle numbers (autoshoot.routes.FlowerWiggle): how ONE flat wheel rolls the bottom POLLEN out of a FLOWER with a small turn
+        // on the spot, toward the ball and back, once per POLLEN. The turn angle and the standoff are derived from these, never typed in.
+
+        /**
+         * ADD: how far (inches) the middle of the pressing wheel stands from the middle of the bottom POLLEN, measured along
+         * the wall, when the straight approach ends and the wiggle begins. 3.8 in = the wheel's radius (1.4 in) plus the POLLEN's
+         * radius (1.4 in) plus 1.0 in of air, so the wheel passes the ball without touching it. Measure it on the real robot:
+         * close enough that a small turn reaches the ball, far enough that the wheel never drags it on the way in.
+         */
+        public static final double FLOWER_WHEEL_START_OFFSET_IN = 3.8;
+        /**
+         * ADD: how close (inches) the middle of the pressing wheel comes to the middle of the POLLEN at the end of the push.
+         * 1.8 in = 1.4 + 1.4 - 1.0: the wheel overlaps the ball by 1.0 in. The turn angle is chosen so that the wheel just reaches this
+         * distance, and never gets closer (a harder push would jam the ball against the closed side of the FLOWER). Measure how far the
+         * wheel has to overlap the ball to roll it out over the lip.
+         */
+        public static final double FLOWER_WHEEL_PRESS_OFFSET_IN = 1.8;
+        /**
+         * ADD: true if the POLLEN is on the INBOARD side of the pressing wheel at the start, that is BETWEEN the wheel and the robot's
+         * center line (the wheel is the outer one); false if the ball is on the OUTBOARD side of it (the wheel is the inner one).
+         * Inboard is believed right: turning toward the ball then also swings the wheel forward, toward the wall, so it reaches the
+         * ball. Confirm it on the real robot with BOTH wheels and write down any difference.
+         */
+        public static final boolean FLOWER_WHEEL_BALL_INBOARD = true;
+        /**
+         * TUNE: the biggest angle (degrees) the push may turn the robot. The turn is derived from the geometry; if the wheel would
+         * have to turn farther than this to reach the ball, the pick-up does not work and the validator reports it.
+         * A big turn swings the robot's corners toward the plate, so keep it small.
+         */
+        public static final double FLOWER_WIGGLE_MAX_TURN_DEG = 20.0;
+        /**
+         * ADD: how long (seconds) the robot stays turned in, with the wheel pressed on the ball and spinning, before it turns back.
+         */
+        public static final double FLOWER_WIGGLE_PUSH_HOLD_SEC = 0.25;
+        /**
+         * ADD: how long (seconds) the robot stays turned back, the wheel away from the ball, so the next POLLEN can drop down the chute
+         * into the ring hole before the next push.
+         */
+        public static final double FLOWER_WIGGLE_RELEASE_HOLD_SEC = 0.4;
+        /**
+         * ADD: how many push-and-release cycles it takes to get ONE POLLEN out (1 is the guess). A FLOWER pick-up of 4 POLLEN makes
+         * 4 times this many cycles.
+         */
+        public static final int FLOWER_WIGGLE_CYCLES_PER_POLLEN = 1;
+        /** TUNE: never plan more than this many cycles for one pick-up, so a bad number cannot make a pick-up swallow the match. */
+        public static final int FLOWER_WIGGLE_MAX_CYCLES = 6;
+        /**
+         * ADD: how long (seconds) ONE half of a cycle's turn takes: turning in to the ball, or turning back out. (The estimate never
+         * uses less than the time the drive needs to turn that far at {@link #TURN_RATE_DEG_PER_SEC}.)
+         */
+        public static final double FLOWER_WIGGLE_TURN_SEC = 0.35;
+        /**
+         * TUNE: the robot counts a turn of the wiggle as finished when its heading is within this many degrees of the wanted heading
+         * (or when the turn time below has passed, whichever comes first).
+         */
+        public static final double FLOWER_WIGGLE_HEADING_TOLERANCE_DEG = 2.0;
+        /**
+         * TUNE: the longest a single turn of the wiggle may take (seconds). If the heading has not got there by then, the robot gives up
+         * this pick-up: it turns back, backs out and goes on with the rest of the route (fail closed: it never keeps pushing).
+         */
+        public static final double FLOWER_WIGGLE_TURN_TIMEOUT_SEC = 1.5;
         /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
         public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
         /**

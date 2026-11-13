@@ -162,7 +162,7 @@ public class FlowerPressTest {
     @Test
     public void thePressPoseHasTheWheelOnThePollenAndTheChassisOnItsClearanceLine() {
         for (int f = 0; f < RED.flowerPlates().size(); f++) {
-            for (IntakeWheel w : IntakeWheel.values()) {
+            for (IntakeWheel w : IntakeWheel.physical()) {
                 Pose2 lineUp = ideal(f, w);
                 Point2 c = RED.flowerCenter(f);
                 Step.Intake step = new Step.Intake(IntakeSource.FLOWER, c, lineUp, 3.0, 4, BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN, w, "");
@@ -213,7 +213,7 @@ public class FlowerPressTest {
     public void aWheelPastTheStopLineWouldBeInsideThePressZoneButTheDerivedPressPoseIsOnTheLine() {
         // the validator's I3 rule: the pressing wheel disc against the press zone. At the press pose they just touch...
         for (int f = 0; f < RED.flowerPlates().size(); f++) {
-            for (IntakeWheel w : IntakeWheel.values()) {
+            for (IntakeWheel w : IntakeWheel.physical()) {
                 Pose2 pose = FlowerPress.poseWithWheelOnCenterLine(RED, f, w, RED.flowerPressStopLineIn());
                 double gap = Footprint.wheelDisc(pose, w).signedGap(RED.flowerPressZone(f));
                 assertEquals("touching, not inside", 0.0, gap, EPS);
@@ -233,7 +233,7 @@ public class FlowerPressTest {
     @Test
     public void theIdealLineUpIsCleanForEveryOwnFlowerAndEitherWheel() {
         for (int f : OWN_FLOWERS) {
-            for (IntakeWheel w : IntakeWheel.values()) {
+            for (IntakeWheel w : IntakeWheel.physical()) {
                 AutoRoute r = lineUpRoute(f, w, ideal(f, w));
                 List<Issue> l = intakeIssues(r);
                 assertTrue("FLOWER " + (f + 1) + " with the " + w + " wheel should be clean but got " + l, l.isEmpty());
@@ -244,7 +244,7 @@ public class FlowerPressTest {
     @Test
     public void theShortBuilderFormWorksOutTheLineUpPoseForYou() {
         for (int f : OWN_FLOWERS) {
-            for (IntakeWheel w : IntakeWheel.values()) {
+            for (IntakeWheel w : IntakeWheel.physical()) {
                 Point2 c = RED.flowerCenter(f);
                 AutoRoute r = base().driveConstant(ideal(f, w).x, ideal(f, w).y, ideal(f, w).headingDegrees())
                         .intakeFlower(c.x, c.y, w, 3).build();
@@ -337,7 +337,7 @@ public class FlowerPressTest {
         Pose2 centered = FlowerPress.poseWithWheelOnCenterLine(RED, 0, IntakeWheel.LEFT, RED.flowerPressStopLineIn()
                 + BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN);
         Pose2 middle = new Pose2(centered.x, RED.flowerCenter(0).y, centered.heading);
-        for (IntakeWheel w : IntakeWheel.values()) {
+        for (IntakeWheel w : IntakeWheel.physical()) {
             List<Issue> l = intakeIssues(lineUpRoute(0, w, middle));
             assertTrue(w + ": " + l, count(l, Rule.FLOWER_PRESS, Severity.ERROR) >= 1);
             assertEquals(BioBuzzConstants.Robot.INTAKE_WHEEL_OFFSET_IN,
@@ -361,7 +361,7 @@ public class FlowerPressTest {
         // pose; the validator keeps checking it (every leg of the press-in) so a robot with its wheels closer together
         // could not press with one while the other pokes into the plate
         for (int f = 0; f < RED.flowerPlates().size(); f++) {
-            for (IntakeWheel w : IntakeWheel.values()) {
+            for (IntakeWheel w : IntakeWheel.physical()) {
                 Pose2 pose = FlowerPress.poseWithWheelOnCenterLine(RED, f, w, RED.flowerPressStopLineIn());
                 double gap = Footprint.wheelDisc(pose, w.other()).signedGap(RED.flowerKeepOut(f));
                 assertTrue("FLOWER " + (f + 1) + ", " + w + " presses, the other wheel is " + gap + " in from the plate keep-out", gap > 5.0);

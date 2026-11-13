@@ -132,6 +132,9 @@ public final class ConstantsCheck {
             r.warnings.add("Robot.LAUNCH_POINT_FORWARD_IN is not negative, but the shooter fires out the BACK.");
         }
 
+        // ---- the FLOWER wiggle (autoshoot.routes.FlowerWiggle)
+        checkFlowerWiggle(r);
+
         // ---- planner
         // The cone half-angle is the angle allowed either side of the opening's center line. 60 degrees is already
         // extreme: from there the opening looks only about half as wide as it does head-on.
@@ -440,6 +443,68 @@ public final class ConstantsCheck {
         if (Math.abs(expectedDownOut - downOut) > tolerance || Math.abs(expectedDownZ - downZ) > tolerance) {
             r.errors.add("Field.DOWN_CELL_TAG_ROW_* (" + downOut + " in out, " + downZ + " in up) is not the UP tag row turned " + tipDeg
                     + " degrees about the pivot axle (" + pivotZ + " in up): that gives " + String.format(Locale.ROOT, "%.3f out, %.3f up", expectedDownOut, expectedDownZ) + ".");
+        }
+    }
+
+    /** The FLOWER wiggle numbers of {@link BioBuzzConstants.Auto}, passed to the checker below. */
+    private static void checkFlowerWiggle(Report r) {
+        checkFlowerWiggle(r, BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN, BioBuzzConstants.Auto.POLLEN_DIAMETER_IN,
+                BioBuzzConstants.Auto.FLOWER_WHEEL_START_OFFSET_IN, BioBuzzConstants.Auto.FLOWER_WHEEL_PRESS_OFFSET_IN,
+                BioBuzzConstants.Auto.FLOWER_WIGGLE_MAX_TURN_DEG, BioBuzzConstants.Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC,
+                BioBuzzConstants.Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC, BioBuzzConstants.Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN,
+                BioBuzzConstants.Auto.FLOWER_WIGGLE_MAX_CYCLES, BioBuzzConstants.Auto.FLOWER_WIGGLE_TURN_SEC,
+                BioBuzzConstants.Auto.FLOWER_WIGGLE_TURN_TIMEOUT_SEC, BioBuzzConstants.Auto.FLOWER_WIGGLE_HEADING_TOLERANCE_DEG,
+                BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN, BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION,
+                BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN, BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN);
+    }
+
+    /**
+     * The numbers of the FLOWER wiggle must make sense together. The two offsets are distances between the MIDDLE of the pressing wheel
+     * and the middle of the POLLEN: at the start the wheel has to pass the ball without touching it (more than the two radii added
+     * up), at the end it has to overlap the ball (less than the two radii added up) but not by so much that it is on top of it. The
+     * values are parameters (the shipped constants are passed in by {@link #run()}) so a unit test can feed in bad ones.
+     */
+    static void checkFlowerWiggle(Report r, double wheelDiameter, double pollenDiameter, double start, double press, double maxTurnDeg,
+                                  double pushHold, double releaseHold, int cyclesPerPollen, int maxCycles, double turnSec,
+                                  double turnTimeout, double headingTolDeg, double approachLen, double approachSpeed,
+                                  double retreatLen, double clearance) {
+        double touching = wheelDiameter / 2.0 + pollenDiameter / 2.0;       // centers this far apart: wheel and POLLEN just touch
+        if (!(start > 0.0) || !(press > 0.0)) {
+            r.errors.add("Auto.FLOWER_WHEEL_START_OFFSET_IN (" + start + ") and FLOWER_WHEEL_PRESS_OFFSET_IN (" + press
+                    + ") are distances between the middle of the wheel and the middle of the POLLEN and must be positive.");
+        } else {
+            if (press >= touching) {
+                r.errors.add("Auto.FLOWER_WHEEL_PRESS_OFFSET_IN (" + press + " in) is not less than the wheel radius plus the POLLEN radius ("
+                        + touching + " in): at the end of the push the wheel would only touch the ball, not press into it.");
+            }
+            if (start <= press) {
+                r.errors.add("Auto.FLOWER_WHEEL_START_OFFSET_IN (" + start + " in) must be more than FLOWER_WHEEL_PRESS_OFFSET_IN (" + press
+                        + " in): the wheel starts beside the ball and the push brings it closer.");
+            } else if (start < touching) {
+                r.warnings.add("Auto.FLOWER_WHEEL_START_OFFSET_IN (" + start + " in) is less than the wheel radius plus the POLLEN radius ("
+                        + touching + " in): the wheel would already touch the ball on the way in and could drag it out of its hole.");
+            }
+        }
+        if (!(maxTurnDeg > 0.0) || maxTurnDeg > 45.0) {
+            r.errors.add("Auto.FLOWER_WIGGLE_MAX_TURN_DEG (" + maxTurnDeg + ") must be more than 0 and at most 45 degrees: a bigger turn"
+                    + " would swing the robot's corners into the FLOWER.");
+        } else if (!(headingTolDeg > 0.0) || headingTolDeg >= maxTurnDeg) {
+            r.errors.add("Auto.FLOWER_WIGGLE_HEADING_TOLERANCE_DEG (" + headingTolDeg + ") must be more than 0 and less than the biggest turn ("
+                    + maxTurnDeg + " degrees).");
+        }
+        if (pushHold < 0.0 || releaseHold < 0.0 || !(turnSec > 0.0)) {
+            r.errors.add("Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC and RELEASE_HOLD_SEC cannot be negative and FLOWER_WIGGLE_TURN_SEC must be positive.");
+        } else if (turnTimeout <= turnSec) {
+            r.warnings.add("Auto.FLOWER_WIGGLE_TURN_TIMEOUT_SEC (" + turnTimeout + " s) is not longer than FLOWER_WIGGLE_TURN_SEC (" + turnSec
+                    + " s): a normal turn would be called stuck.");
+        }
+        if (cyclesPerPollen < 1 || maxCycles < cyclesPerPollen) {
+            r.errors.add("Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN (" + cyclesPerPollen + ") must be at least 1 and no more than FLOWER_WIGGLE_MAX_CYCLES ("
+                    + maxCycles + ").");
+        }
+        if (!(approachLen > 0.0) || !(retreatLen > 0.0) || !(approachSpeed > 0.0) || approachSpeed > 1.0 || clearance < 0.0) {
+            r.errors.add("Auto.FLOWER_APPROACH_LENGTH_IN and FLOWER_RETREAT_LENGTH_IN must be positive, FLOWER_APPROACH_SPEED_FRACTION must be"
+                    + " in (0, 1] and FLOWER_CHASSIS_CLEARANCE_IN cannot be negative.");
         }
     }
 

@@ -122,7 +122,7 @@ public class FootprintShapesTest {
         for (int deg = -180; deg < 180; deg += 7) {
             Pose2 p = Pose2.ofDegrees(60, 70, deg);
             Footprint whole = Footprint.of(p);
-            for (IntakeWheel w : IntakeWheel.values()) {
+            for (IntakeWheel w : IntakeWheel.physical()) {
                 Footprint disc = Footprint.wheelDisc(p, w);
                 for (int i = 0; i < 4; i++) {
                     double[] c = local(disc, i);

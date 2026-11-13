@@ -676,7 +676,7 @@ public final class RouteSvgRenderer {
 
         /** The second tone: the two flat intake wheels as dark discs. Drawn last so the wheel tips show over the front edge. */
         private void flatWheels(Pose2 pose, IntakeWheel pressing) {
-            for (IntakeWheel wheel : IntakeWheel.values()) {
+            for (IntakeWheel wheel : IntakeWheel.physical()) {
                 Point2 c = Footprint.wheelCenter(pose, wheel);
                 boolean presses = wheel == pressing;
                 w.empty("circle", "class", presses ? "wheel pressing" : "wheel", "data-wheel", wheel.name(), "cx", n(sx(c.x)), "cy", n(sy(c.y)),

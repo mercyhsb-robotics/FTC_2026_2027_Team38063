@@ -132,6 +132,28 @@ public final class Footprint {
         return new Point2(pose.fieldX(forward, left), pose.fieldY(forward, left));
     }
 
+    /**
+     * The signed gap between one flat intake wheel, as the TRUE ROUND DISC it is (not the square of {@link #wheelDisc}), and a
+     * rectangle: POSITIVE = that many inches apart, 0 = just touching, NEGATIVE = overlapping, and how deep (how far the disc
+     * would have to slide to get free of the rectangle). A round disc matters for the FLOWER wiggle, where the wheel is turned
+     * toward a line it must not cross: a square turned by 15 degrees has corners that stick out 0.3 in past the real wheel and would
+     * report a collision that is not there. Like every gap here it is a true distance, so moving the wheel by m inches changes it by
+     * at most m (the property the route sweep relies on).
+     */
+    public static double wheelDiscGap(Pose2 pose, IntakeWheel wheel, Rect r) {
+        Point2 c = wheelCenter(pose, wheel);
+        double radius = BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0;
+        double dx = Math.max(Math.max(r.minX - c.x, 0.0), c.x - r.maxX);
+        double dy = Math.max(Math.max(r.minY - c.y, 0.0), c.y - r.maxY);
+        double outside = Math.hypot(dx, dy);
+        if (outside > 0.0) {
+            return outside - radius;
+        }
+        // the middle of the wheel is inside the rectangle: the disc has to slide out through the nearest side
+        double toSide = Math.min(Math.min(c.x - r.minX, r.maxX - c.x), Math.min(c.y - r.minY, r.maxY - c.y));
+        return -toSide - radius;
+    }
+
     public Pose2 pose() {
         return pose;
     }

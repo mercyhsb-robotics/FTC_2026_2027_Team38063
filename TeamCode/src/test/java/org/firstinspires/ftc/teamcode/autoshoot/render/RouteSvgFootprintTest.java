@@ -209,7 +209,7 @@ public class RouteSvgFootprintTest {
 
     @Test
     public void aFlowerIntakeIsDrawnPressedInWithTheWheelRingedAndAnArrowIntoThePollen() throws Exception {
-        for (IntakeWheel wheel : IntakeWheel.values()) {
+        for (IntakeWheel wheel : IntakeWheel.physical()) {
             AutoRoute r = flowerRoute(wheel);
             Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
             Element intake = withClass(byId(d, "route"), "g", "intake").get(0);
