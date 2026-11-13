@@ -634,6 +634,6 @@ they can never disagree with each other.
 | `javac was not found` | Install a JDK (8 or newer) or set `JAVA_HOME` to one. Android Studio's bundled JDK works. |
 | `route id '...' cannot be a file name` | Ids become file names: use only letters, digits, `_` and `-`, and no two routes with the same id. |
 | `IllegalStateException: via() applies to a DRIVE, but the last step is ...` | A modifier (`.via`, `.speed`, `.label`, `.wallContact`) must come right after a `drive...` step; `.launchSeconds` right after a `shoot...`. |
-| A unit test says `docs/autos/... is missing` | You added or renamed a route without regenerating: run the script and commit `docs/autos`. |
+| A unit test says `docs/autos/... is missing` or `... differs from what the code draws now` | You added or renamed a route, or changed a rule, a constant or a text that the page shows, without regenerating: run `tools/render-autos.sh` (or `.bat`) and commit `docs/autos` in the SAME change. The test `RouteGalleryTest.theCommittedGalleryIsExactlyWhatTheCurrentCodeDraws` compares every committed file with a fresh drawing, so a stale page cannot sit next to new code. |
 | A diagram label overlaps something | Labels avoid each other and the step circles, not every line of the field. Open the SVG in a browser and zoom; the step list on the page says what each number is. |
 | The script printed a `Note: ... belongs to no route` | You removed a route. Delete its two old SVG files by hand (the tool never deletes files). |

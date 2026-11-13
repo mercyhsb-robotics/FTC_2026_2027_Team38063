@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.autoshoot.render;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,7 +28,6 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.WiggleTestRobot;
-import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -664,15 +664,25 @@ public class RouteGalleryTest {
 
     // ---- the committed copy ------------------------------------------------------------------------
 
-    @Test
-    public void theCommittedGalleryCoversEveryRouteOfTheCatalog() throws Exception {
-        File dir = null;
+    /** The folder with the committed gallery, whichever folder the tests were started from (Gradle starts in TeamCode, the second path covers the repository root). */
+    private static File committedGalleryFolder() {
         for (String candidate : new String[] {"../docs/autos", "docs/autos"}) {
             if (new File(candidate, "index.html").isFile()) {
-                dir = new File(candidate);
+                return new File(candidate);
             }
         }
-        Assume.assumeNotNull(dir);
+        throw new AssertionError("docs/autos/index.html was not found from " + new File(".").getAbsolutePath()
+                + ": the committed gallery is part of the repository, run tools/render-autos.sh (or .bat) and commit the result");
+    }
+
+    /** A text file with the line ends turned into plain line feeds: git may check the committed files out with CRLF on Windows, and that is not a difference. */
+    private static String lineFeeds(String text) {
+        return text.replace("\r\n", "\n");
+    }
+
+    @Test
+    public void theCommittedGalleryCoversEveryRouteOfTheCatalog() throws Exception {
+        File dir = committedGalleryFolder();
         String index = read(new File(dir, "index.html"));
         for (AutoRoute r : RouteCatalog.all()) {
             for (String name : new String[] {r.id() + "_red.svg", r.id() + "_blue.svg"}) {
@@ -682,5 +692,81 @@ public class RouteGalleryTest {
                         index.contains("src=\"" + name + "\""));
             }
         }
+    }
+
+    /**
+     * Situation: the page and the diagrams that the CURRENT code draws for the whole catalog, compared one file at a time with the committed copy in
+     *     docs/autos.
+     * Expected: every committed file is exactly what is drawn now (line ends aside), and the committed folder holds no route file the catalog does not have.
+     * Why: the team reads docs/autos/index.html, not the code. The committed gallery was once three commits behind the code and said the opposite about what
+     *     scores 20 points (it said 8 POLLEN are the first tip while the code needs 3), and the old check only looked that the files existed, so nothing failed.
+     *     This test fails, with the first line that differs, until the page is regenerated: run tools/render-autos.sh (or .bat) and commit docs/autos in the
+     *     SAME change as the rule, constant, route or text that moved it.
+     * Negative twin: the same comparison against a copy with one word changed reports it, so a green result means the files really are equal.
+     */
+    @Test
+    public void theCommittedGalleryIsExactlyWhatTheCurrentCodeDraws() throws Exception {
+        File dir = committedGalleryFolder();
+        Map<String, String> fresh = RouteGallery.build(RouteCatalog.all());
+        List<String> problems = new ArrayList<String>();
+        for (Map.Entry<String, String> e : fresh.entrySet()) {
+            File committed = new File(dir, e.getKey());
+            if (!committed.isFile()) {
+                problems.add(e.getKey() + " is missing");
+                continue;
+            }
+            String why = firstDifference(lineFeeds(read(committed)), lineFeeds(e.getValue()));
+            if (why != null) {
+                problems.add(e.getKey() + " is out of date: " + why);
+            }
+        }
+        File[] files = dir.listFiles();
+        for (File f : files == null ? new File[0] : files) {
+            if ((f.getName().endsWith("_red.svg") || f.getName().endsWith("_blue.svg")) && !fresh.containsKey(f.getName())) {
+                problems.add(f.getName() + " belongs to no route of the catalog any more (delete it)");
+            }
+        }
+        assertTrue("docs/autos is not what the code draws now; run tools/render-autos.sh (or .bat) and commit docs/autos:\n  " + join(problems),
+                problems.isEmpty());
+    }
+
+    @Test
+    public void theGalleryComparisonSeesAChangedWordAndIgnoresLineEnds() {
+        String page = RouteGallery.indexHtml(RouteCatalog.all());
+        assertNull("the same text is not different", firstDifference(page, page));
+        assertNull("CRLF is not a difference", firstDifference(lineFeeds(page.replace("\n", "\r\n")), page));
+        String old = page.replace("HIVE TIP", "HIVE tip");
+        String why = firstDifference(old, page);
+        assertNotNull("a changed word is reported", why);
+        assertTrue(why, why.contains("line "));
+    }
+
+    /** Null if the two texts are equal, else a sentence naming the first line that differs, with both versions of it (cut to 160 characters). */
+    private static String firstDifference(String committed, String fresh) {
+        if (committed.equals(fresh)) {
+            return null;
+        }
+        String[] a = committed.split("\n", -1);
+        String[] b = fresh.split("\n", -1);
+        for (int i = 0; i < Math.max(a.length, b.length); i++) {
+            String x = i < a.length ? a[i] : "(no such line)";
+            String y = i < b.length ? b[i] : "(no such line)";
+            if (!x.equals(y)) {
+                return "first difference at line " + (i + 1) + ": committed [" + cut(x) + "] but now [" + cut(y) + "]";
+            }
+        }
+        return "the texts differ";
+    }
+
+    private static String cut(String line) {
+        return line.length() <= 160 ? line : line.substring(0, 160) + "...";
+    }
+
+    private static String join(List<String> lines) {
+        StringBuilder sb = new StringBuilder();
+        for (String l : lines) {
+            sb.append(l).append("\n  ");
+        }
+        return sb.toString();
     }
 }
