@@ -574,8 +574,11 @@ public class BioBuzzRobot extends OpMode {
             vision.stop();
         }
         if (drive != null) {
-            // Save where we ended, so the next OpMode (for example a restarted TeleOp) can start from here.
-            PoseStore.save(drive.pose(), alliance, tracker.upSide(), tracker.confirmed(), System.nanoTime());
+            // Save where we ended, so the next OpMode (for example a restarted TeleOp) can start from here. If STOP
+            // was pressed before START there is no HIVE belief yet (the tracker is created in start()), so skip it.
+            if (tracker != null) {
+                PoseStore.save(drive.pose(), alliance, tracker.upSide(), tracker.confirmed(), System.nanoTime());
+            }
             drive.stop();
         }
     }
