@@ -1003,4 +1003,162 @@ public final class RouteAnalysis {
     public int points() {
         return leavePoints() + parkPoints() + tipPoints();
     }
+
+    // ---- expected points: the ceiling above, weighed by how likely the POLLEN are to land ---------------------------
+
+    /**
+     * The chance that the HIVE TIP of this volley happens, when each POLLEN lands in the cell with the chance
+     * {@code Auto.PLAN_SHOT_SUCCESS}. The cell tips when {@code tipNeeded} more POLLEN land on top of the ones already in it, so what counts is
+     * that at least {@code pollenInCellBefore + tipNeeded} of the {@code pollenInCellBefore + count} POLLEN fired at the cell since it came up
+     * land ({@link TipModel#chanceAtLeast}). The first tip, for example, needs 3 of the 4 pre-loads: 47.5 percent at 0.6. 0 for a volley that
+     * does not tip.
+     */
+    public double tipChance(StepInfo info) {
+        return tipChance(info, BioBuzzConstants.Auto.PLAN_SHOT_SUCCESS);
+    }
+
+    /** The same with another chance for one POLLEN to land (a "what if" for a better or worse shooter). */
+    public double tipChance(StepInfo info, double chanceEachLands) {
+        if (!info.tipped || !(info.step instanceof Step.Shoot)) {
+            return 0.0;
+        }
+        int fired = info.pollenInCellBefore + ((Step.Shoot) info.step).count();
+        return TipModel.chanceAtLeast(fired, info.pollenInCellBefore + info.tipNeeded, chanceEachLands);
+    }
+
+    /**
+     * The chance that the HIVE tip of this volley happens AND every tip of ours before it did: a volley at the cell that comes up after a
+     * tip is skipped when the camera never sees that tip, so a later tip cannot happen without the earlier ones.
+     */
+    public double tipChanceWithEarlierTips(StepInfo info, double chanceEachLands) {
+        double chance = 1.0;
+        for (StepInfo other : infos) {
+            if (other.tipped) {
+                chance *= tipChance(other, chanceEachLands);
+            }
+            if (other == info) {
+                return chance;
+            }
+        }
+        return 0.0;
+    }
+
+    /** The HIVE TIPs our volleys are expected to cause: the sum, over our tips, of the chance of that tip and every tip before it. */
+    public double expectedTips(double chanceEachLands) {
+        double expected = 0.0;
+        for (StepInfo info : infos) {
+            if (info.tipped) {
+                expected += tipChanceWithEarlierTips(info, chanceEachLands);
+            }
+        }
+        return expected;
+    }
+
+    /** The expected AUTO points of our HIVE tips: {@code Auto.TIP_POINTS} for each expected tip. The partner's assumed tip is NOT counted, as in {@link #points()}. */
+    public double expectedTipPoints() {
+        return expectedTipPoints(BioBuzzConstants.Auto.PLAN_SHOT_SUCCESS);
+    }
+
+    /** The same with another chance for one POLLEN to land. */
+    public double expectedTipPoints(double chanceEachLands) {
+        return expectedTips(chanceEachLands) * BioBuzzConstants.Auto.TIP_POINTS;
+    }
+
+    /**
+     * The AUTO points our robot can EXPECT, an estimate: LEAVE and PARK are counted in full (they depend only on where the route ends, not on a
+     * shot) and the HIVE TIPs are weighed by their chance ({@link #expectedTipPoints()}). {@link #points()} is the ceiling when every POLLEN lands.
+     */
+    public double expectedPoints() {
+        return expectedPoints(BioBuzzConstants.Auto.PLAN_SHOT_SUCCESS);
+    }
+
+    /** The same with another chance for one POLLEN to land. */
+    public double expectedPoints(double chanceEachLands) {
+        return leavePoints() + parkPoints() + expectedTipPoints(chanceEachLands);
+    }
+
+    /**
+     * The expected points in plain words, labelled as an estimate: for example "about 17.5 (an estimate, not a promise): LEAVE 3 + PARK 5 are
+     * certain if the route gets there, plus 9.5 for the HIVE TIP: the tip needs 3 of the 4 POLLEN fired at the UP cell to land, which is
+     * 47.5 percent, ...".
+     */
+    public String expectedPointsText() {
+        double each = BioBuzzConstants.Auto.PLAN_SHOT_SUCCESS;
+        StringBuilder s = new StringBuilder();
+        s.append("about ").append(one(expectedPoints(each))).append(" (an estimate, not a promise): LEAVE ").append(leavePoints()).append(" + PARK ")
+                .append(parkPoints()).append(" are certain if the route gets there");
+        if (tips == 0) {
+            s.append("; this route tips the HIVE by no volley of its own, so no tip is counted");
+        } else {
+            s.append(", plus ").append(one(expectedTipPoints(each))).append(" for the HIVE ").append(tips == 1 ? "TIP" : "TIPs").append(": ");
+            int n = 0;
+            for (StepInfo info : infos) {
+                if (!info.tipped) {
+                    continue;
+                }
+                n++;
+                int fired = info.pollenInCellBefore + ((Step.Shoot) info.step).count();
+                if (n > 1) {
+                    s.append("; ");
+                }
+                s.append(tips == 1 ? "the tip" : "tip " + n).append(" needs ").append(info.pollenInCellBefore + info.tipNeeded).append(" of the ")
+                        .append(fired).append(" POLLEN fired at the ").append(n == 1 ? "UP cell" : "cell that came up").append(" to land, which is ")
+                        .append(percent(tipChance(info, each)));
+                if (n > 1) {
+                    s.append(" if the tips before it happened, ").append(percent(tipChanceWithEarlierTips(info, each))).append(" in all");
+                }
+            }
+            s.append("; each tip is worth ").append(BioBuzzConstants.Auto.TIP_POINTS).append(" points");
+        }
+        s.append(". Each POLLEN is assumed to land with the chance ").append(percent(each))
+                .append(" (Auto.PLAN_SHOT_SUCCESS: a guess, real teams land 2 of 5 to 4 of 6 shots)");
+        return s.toString();
+    }
+
+    /**
+     * Route time in seconds at which the LAST HIVE tip of our own volleys is planned to be complete (the damper touches the frame): the tipping POLLEN
+     * left the shooter {@code Auto.BALL_FLIGHT_SEC} before it landed, and the tip settles {@code Auto.TIP_SETTLE_PLAN_SEC} after it left. NaN if
+     * the route tips nothing itself.
+     */
+    public double lastTipCompleteSec() {
+        double last = Double.NaN;
+        for (TipEvent e : tipEvents) {
+            if (!e.byPartner) {
+                double done = timing.tipCompleteAtSec(e.timeSec);
+                last = Double.isNaN(last) ? done : Math.max(last, done);
+            }
+        }
+        return last;
+    }
+
+    /**
+     * When the last tip of ours is planned to be complete, in plain words, and what that means for the points: a tip complete before TELEOP starts
+     * (the AUTO period plus the transition) counts as AUTO (manual 10.5), also when it is after the buzzer. An empty string if the route tips nothing.
+     */
+    public String lastTipCompleteText() {
+        double done = lastTipCompleteSec();
+        if (Double.isNaN(done)) {
+            return "";
+        }
+        double buzzer = BioBuzzConstants.Auto.AUTO_DURATION_SEC;
+        double teleop = buzzer + BioBuzzConstants.Auto.TRANSITION_SEC;
+        String when = "the last tip of ours is planned complete at " + one(done) + " s (" + one(BioBuzzConstants.Auto.TIP_SETTLE_PLAN_SEC)
+                + " s after its POLLEN leaves the shooter, Auto.TIP_SETTLE_PLAN_SEC)";
+        if (done <= buzzer) {
+            return when + ", before the " + one(buzzer) + " s buzzer";
+        }
+        if (done < teleop) {
+            return when + ", after the " + one(buzzer) + " s buzzer but before TELEOP starts at " + one(teleop)
+                    + " s, so it still counts as AUTO (manual 10.5); FIRST does not write down how a scorer treats a tip that is still swinging at the buzzer";
+        }
+        return when + ", AFTER TELEOP starts at " + one(teleop) + " s, so it would count as TELEOP, not AUTO";
+    }
+
+    private static String one(double value) {
+        return String.format(java.util.Locale.ROOT, "%.1f", value);
+    }
+
+    private static String percent(double chance) {
+        return one(chance * 100.0) + " percent";
+    }
 }
