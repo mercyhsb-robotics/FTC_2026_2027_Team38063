@@ -55,14 +55,6 @@ public final class BioBuzzConstants {
             "Auto.TURN_RATE_DEG_PER_SEC",
             "Auto.SETTLE_SEC",
             "Auto.INTAKE_DWELL_FLOOR_SEC",
-            "Auto.INTAKE_DWELL_FLOWER_SEC",
-            "Auto.FLOWER_PRESS_DEPTH_IN",
-            "Auto.FLOWER_HEADING_TOLERANCE_DEG",
-            "Auto.FLOWER_ALIGN_TOLERANCE_IN",
-            "Auto.FLOWER_APPROACH_LENGTH_IN",
-            "Auto.FLOWER_APPROACH_SPEED_FRACTION",
-            "Auto.FLOWER_RETREAT_LENGTH_IN",
-            "Auto.FLOWER_CHASSIS_CLEARANCE_IN",
             "Auto.FLOWER_WHEEL_START_OFFSET_IN",
             "Auto.FLOWER_WHEEL_PRESS_OFFSET_IN",
             "Auto.FLOWER_WHEEL_BALL_INBOARD",
@@ -70,6 +62,10 @@ public final class BioBuzzConstants {
             "Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC",
             "Auto.FLOWER_WIGGLE_CYCLES_PER_POLLEN",
             "Auto.FLOWER_WIGGLE_TURN_SEC",
+            "Auto.FLOWER_APPROACH_LENGTH_IN",
+            "Auto.FLOWER_APPROACH_SPEED_FRACTION",
+            "Auto.FLOWER_RETREAT_LENGTH_IN",
+            "Auto.FLOWER_CHASSIS_CLEARANCE_IN",
             "Auto.INTAKE_DWELL_GARDEN_SEC",
             "Auto.AIM_SPINUP_SEC",
             "Auto.TIME_PER_SHOT_SEC"};
@@ -276,11 +272,6 @@ public final class BioBuzzConstants {
         public static final double SETTLE_SEC = 0.3;
         /** ADD: default time to scoop POLLEN off the floor (INTAKE step data may override it). */
         public static final double INTAKE_DWELL_FLOOR_SEC = 2.0;
-        /**
-         * ADD: default time the wheels stay pressed into a FLOWER's bottom POLLEN with the intake running (seconds): the
-         * dwell between the slow approach and the retreat of a FLOWER press-in.
-         */
-        public static final double INTAKE_DWELL_FLOWER_SEC = 4.0;
         /** ADD: default time to sweep up the GARDEN POLLEN line. */
         public static final double INTAKE_DWELL_GARDEN_SEC = 2.5;
         /** ADD: aim with the Limelight and spin the flywheel up before the first shot of a volley. */
@@ -364,52 +355,19 @@ public final class BioBuzzConstants {
          */
         public static final double FLOWER_KEEPOUT_MARGIN_IN = 0.5;
 
-        // ---- FLOWER press-in (autoshoot.routes.FlowerPress) -------------------------------------------------------
-        // To take the bottom POLLEN out of a FLOWER the flat intake wheels (they spin parallel to the floor at the front
-        // corners) must PRESS INTO the POLLEN and roll it up and over the lip of the lower ring (0.35 in in the CAD, about 0.43 in
-        // in the manual: the harder number is the safe one for a ball that must be lifted). The two wheels
-        // are 12.2 in apart, too far to pinch one 2.8 in POLLEN, so ONE wheel does the pressing while the robot stands
-        // to one side of the FLOWER's center line (Robot.INTAKE_WHEEL_OFFSET_IN). The robot faces the wall, drives
-        // straight in until that wheel overlaps the POLLEN, runs the intake while it stays pressed, then backs straight
-        // out. The numbers below describe that move. All distances are measured from the field wall the FLOWER stands on.
-
-        /**
-         * ADD: how far (inches) the pressing wheel pushes into the bottom POLLEN, past the POLLEN's field-side edge (which
-         * is 2.634 + 1.4 = 4.034 in from the wall). The front tip of the wheel stops at 4.034 - this = 2.833 in from the wall and
-         * never closer than the POLLEN's center line (2.634 in). 1.201 in is what the CAD gives when the chassis stands its
-         * clearance off the plate and the wheels reach {@code Robot.INTAKE_REACH_IN}: 5.033 + 0.5 - 2.7 = 2.833 (the old 144 in
-         * numbers gave 1.25). Measure how far the wheel must overlap the ball to roll it over the lip without jamming it
-         * against the closed wall side.
-         */
-        public static final double FLOWER_PRESS_DEPTH_IN = 1.201;
-        /**
-         * ADD: how far (degrees) the robot's heading may be from "facing the wall squarely" when it lines up for a
-         * FLOWER. A crooked robot presses the wheel in at an angle and lets the chassis corner swing toward the plate.
-         */
-        public static final double FLOWER_HEADING_TOLERANCE_DEG = 5.0;
-        /**
-         * ADD: how far (inches) along the wall the MIDDLE OF THE PRESSING WHEEL may be from the FLOWER's center line when
-         * the robot lines up. A wheel that is off to the side presses the edge of the POLLEN instead of its middle.
-         */
-        public static final double FLOWER_ALIGN_TOLERANCE_IN = 1.0;
-        /**
-         * ADD: the straight final approach (inches) from the line-up pose to the press pose must be at least this long, so
-         * the robot is already straight and slow when the wheel touches the POLLEN.
-         */
-        public static final double FLOWER_APPROACH_LENGTH_IN = 6.0;
-        /** ADD: fraction (0-1) of the cruise speed used for the final approach and for the retreat. */
-        public static final double FLOWER_APPROACH_SPEED_FRACTION = 0.3;
-        /** ADD: how far (inches) the robot backs straight out after the dwell. Shorter than this is a WARN. */
-        public static final double FLOWER_RETREAT_LENGTH_IN = 6.0;
-        /**
-         * ADD: the gap (inches) the CHASSIS (the robot without its two flat wheels) keeps from the FLOWER plate while the
-         * wheel is pressed in. The plate's field-side edge is 5.033 in from the wall, so the chassis front stands at least
-         * 5.033 + this from the wall and the wheel must reach the rest of the way: see {@code Robot.INTAKE_REACH_IN}. Measure the standoff
-         * between the wall and the robot's chassis front when the wheel is properly pressed into the POLLEN.
-         */
-        public static final double FLOWER_CHASSIS_CLEARANCE_IN = 0.5;
-        // ---- FLOWER wiggle numbers (autoshoot.routes.FlowerWiggle): how ONE flat wheel rolls the bottom POLLEN out of a FLOWER with a small turn
-        // on the spot, toward the ball and back, once per POLLEN. The turn angle and the standoff are derived from these, never typed in.
+        // ---- FLOWER pick-up: the WIGGLE (autoshoot.routes.FlowerWiggle, FlowerPress, WheelChoice) ------------------
+        // The bottom POLLEN of a FLOWER sits in the hole of a ring about 0.4 in tall (0.35 in in the CAD, 0.43 in in the
+        // manual). To get it out, something has to roll it UP AND OVER the edge of that ring (the "lip"). Our two flat intake
+        // wheels (they spin parallel to the floor at the front corners, 12.2 in apart: too far apart to pinch one 2.8 in
+        // POLLEN) do it with a small OSCILLATION, a "wiggle":
+        //   1. APPROACH: the robot drives straight at the wall (facing it squarely) standing OFF CENTER, so that ONE flat wheel
+        //      is beside the bottom POLLEN, not on it. The CHASSIS (the robot body) stays outside the FLOWER plate.
+        //   2. PUSH: the robot turns on the spot toward the POLLEN. The wheel is far from the point the robot spins about
+        //      (about 10.4 in), so a turn of a few degrees swings the wheel sideways into the ball. The spinning wheel and the push of
+        //      the whole robot together roll the POLLEN out over the lip. The turn angle is DERIVED from the geometry, never typed in.
+        //   3. RELEASE: hold, then turn back the same angle (never past straight) so the next POLLEN can drop down into the hole.
+        //   4. REPEAT once per POLLEN wanted, then back straight out (the retreat).
+        // All the numbers below describe that move. The robot's own position, its "pose", is the point it spins about.
 
         /**
          * ADD: how far (inches) the middle of the pressing wheel stands from the middle of the bottom POLLEN, measured along
@@ -469,6 +427,24 @@ public final class BioBuzzConstants {
          * this pick-up: it turns back, backs out and goes on with the rest of the route (fail closed: it never keeps pushing).
          */
         public static final double FLOWER_WIGGLE_TURN_TIMEOUT_SEC = 1.5;
+        /**
+         * ADD: the straight final approach (inches) from the line-up pose to the pose where the wiggle starts. It must be at least this
+         * long, so the robot is already straight and slow when the wheel reaches the ball.
+         */
+        public static final double FLOWER_APPROACH_LENGTH_IN = 6.0;
+        /** ADD: fraction (0-1) of the cruise speed used for the final approach and for the retreat. */
+        public static final double FLOWER_APPROACH_SPEED_FRACTION = 0.3;
+        /** ADD: how far (inches) the robot backs straight out after the last cycle. */
+        public static final double FLOWER_RETREAT_LENGTH_IN = 6.0;
+        /**
+         * ADD: the gap (inches) the CHASSIS (the robot without its two flat wheels) keeps from the FLOWER plate during the WHOLE
+         * wiggle, the turn included: when the robot turns, the corner of the chassis nearest the plate swings toward it, so the
+         * program stands the robot farther from the wall by exactly the amount that keeps this gap at the worst moment of the swing.
+         * The plate's field-side edge is 5.033 in from the wall. Measure the standoff between the wall and the robot's chassis front
+         * when the wheel is properly pressed into the POLLEN. If the flat wheels stick out too little ({@code Robot.INTAKE_REACH_IN}),
+         * the wheel can no longer reach the ball and the validator says by how many inches.
+         */
+        public static final double FLOWER_CHASSIS_CLEARANCE_IN = 0.5;
         /** TUNE (G304.C): a start footprint within this distance of a perimeter wall counts as touching it. */
         public static final double START_WALL_CONTACT_TOLERANCE_IN = 0.75;
         /**
@@ -616,7 +592,7 @@ public final class BioBuzzConstants {
         // ---- the two flat intake wheels --------------------------------------------------------------------
         // The intake has two small wheels that lie FLAT (their discs are parallel to the floor, like coins on a table)
         // at the two front corners, one left and one right of the center line. In front of the chassis frame only these
-        // two discs exist: there is no full-width strip. To take a FLOWER's bottom POLLEN, ONE of them presses into it
+        // two discs exist: there is no full-width strip. To take a FLOWER's bottom POLLEN, ONE of them wiggles into it
         // (see autoshoot.routes.FlowerPress). The numbers below were read off the goBILDA drawing and must be measured
         // on the real robot.
 
@@ -625,10 +601,10 @@ public final class BioBuzzConstants {
          * edge of the frame (the part that must never touch a FLOWER plate) to the front tip of a wheel. 2.7 in = 68 mm
          * read off the drawing: the outer perimeter reaches 9.77 in ahead of the center of rotation and the frame 7.1 in.
          * {@link #LENGTH_IN} INCLUDES these wheels, so everything that plans with the footprint (the TeleOp auto-shoot,
-         * the route validator) sees the same rectangle. The wheels must reach at least
-         * {@code Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN + Auto.FLOWER_CHASSIS_CLEARANCE_IN - the press stop line} = 2.7 in to press
-         * a FLOWER's POLLEN with the chassis kept off its plate; the route validator checks it and says how many
-         * inches are missing.
+         * the route validator) sees the same rectangle. The longer the wheels stick out, the closer to the FLOWER a wheel can get
+         * while the chassis stays off the plate. During the wiggle the chassis corner swings toward the plate, so the wheels must
+         * stick out far enough to still reach the ball after that swing; the route validator works it out and, if they do not, says
+         * how many inches are missing.
          */
         public static final double INTAKE_REACH_IN = 2.7;
         /**
@@ -641,8 +617,9 @@ public final class BioBuzzConstants {
         /**
          * ADD: how far (inches) the middle of each flat wheel is from the robot's center line, to the left for the left
          * wheel and to the right for the right one. 6.1 in read off the drawing (the two wheels are 12.2 in apart, center to
-         * center, with a 9.45 in gap between them). Too far apart to straddle a 2.8 in POLLEN, so the robot stands to
-         * one side of a FLOWER and presses one wheel into the POLLEN: this number is how far to one side.
+         * center, with a 9.45 in gap between them). Too far apart to straddle a 2.8 in POLLEN, so the robot stands off center
+         * at a FLOWER and wiggles one wheel into the POLLEN. It also sets the lever arm of the wiggle: the wheel is
+         * {@code hypot(forward distance of the wheel, this)} (about 10.4 in) from the point the robot spins about.
          */
         public static final double INTAKE_WHEEL_OFFSET_IN = 6.1;
         /**

@@ -409,7 +409,7 @@ public class RouteSvgLayoutTest {
         AutoRoute flower = AutoRoute.builder("f").title("Flower").startTile("A3").start(BioBuzzConstants.Robot.FRONT_EXTENT_IN, 61.5, 180)
                 .shootUp(4)
                 .driveConstant(13.5, 62, 180).driveConstant(13.5, 48, 180)
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 4).build();
+                .intakeFlower(2.4, 48, 4).build();
         List<String> flowerLabels = stepLabels(parse(RouteSvgRenderer.render(flower, Alliance.RED)));
         assertTrue(flowerLabels.toString(), flowerLabels.contains("INTAKE FLOWER +4"));
     }

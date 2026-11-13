@@ -228,7 +228,8 @@ public final class RouteGallery {
         h.append("and the small ringed dot is its center of rotation, the point every pose refers to (it is ").append(inches(BioBuzzConstants.Robot.FRONT_EXTENT_IN))
                 .append(" behind the front edge and ").append(inches(BioBuzzConstants.Robot.REAR_EXTENT_IN)).append(" in front of the back edge, so it is not in the middle). ");
         h.append("Its FRONT edge (the wheel tips) is green and its BACK edge (the shooter) is orange. A robot with an amber outline breaks a rule at that step. ");
-        h.append("A FLOWER is emptied by pressing ONE flat wheel into its bottom POLLEN: the arrow shows that straight press-in and the dotted arrow the straight retreat. ");
+        h.append("A FLOWER is emptied by a WIGGLE of ONE flat wheel (the program picks the cheaper wheel): the robot drives in off center so that the wheel is beside the bottom POLLEN, turns on the spot toward it and back, once per POLLEN, and backs out. ");
+        h.append("The diagram draws the robot where the wiggle starts, a faint second outline where it ends the push, a curved arrow for the sweep of the wheel and a label such as 'wiggle x4'; the short solid arrow is the straight final approach and the dotted arrow the straight retreat. ");
         h.append("Times use placeholder speeds that nobody has measured yet, so compare routes with them but do not trust them to the second.</p>\n");
         h.append("<p id=\"tip-rule\" class=\"muted\">How a HIVE tips: ").append(esc(TipModel.explainRule())).append(" Every route says who shoots the first tip: ")
                 .append("<code>").append(esc(FirstTip.SELF.summary(0.0))).append("</code> (our pre-loads are the first tip: ")
@@ -446,6 +447,13 @@ public final class RouteGallery {
 
     /** What a step does without repeating its kind (the page shows the kind in its own column). */
     private static String describeRest(RouteAnalysis.StepInfo info) {
+        if (info.press != null) {
+            // a FLOWER pick-up: how many POLLEN, how long, which wheel; then why that wheel, and what the wiggle does
+            return info.pickupText() + " (" + info.sourceName + "; " + info.choice.reason() + "; the robot turns "
+                    + String.format(Locale.ROOT, "%.1f", Math.abs(info.press.turnDeg())) + " deg toward the POLLEN and back, " + info.press.cycles
+                    + " time" + (info.press.cycles == 1 ? "" : "s") + ")" + (info.press.reaches() ? "" : "; THE WHEEL CANNOT REACH: "
+                    + info.press.solution.shortfallText());
+        }
         String d = info.step.describe();
         String kind = info.step.kind().name();
         return d.startsWith(kind + " ") ? d.substring(kind.length() + 1) : d;

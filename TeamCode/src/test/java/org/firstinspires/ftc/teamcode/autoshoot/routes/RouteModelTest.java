@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.autoshoot.routes;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -10,6 +11,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Side;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
@@ -32,7 +34,7 @@ public class RouteModelTest {
                 .driveConstant(30, 30, 45)
                 .driveFacing(40, 20, 57.924, 54.156)
                 .driveBackFacing(41, 21, 57.924, 54.156)
-                .intakeFlower(2.634, 47.281, 13.5, 47.281, 180, 4)
+                .intakeFlower(2.634, 47.281, 4)
                 .intakeGarden(5.9, 1.4, 9.0, 9.7, -90, 4)
                 .intakeFloor(40, 30, 38, 30, 0, 1)
                 .shootSide(Side.AUDIENCE, 2)
@@ -80,11 +82,14 @@ public class RouteModelTest {
     @Test
     public void intakeDwellDefaultsComeFromTheConstants() {
         AutoRoute r = AutoRoute.builder("dwell").start(35, 9.2, -90)
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
+                .intakeFlower(2.4, 48, 4)
                 .intakeGarden(5.9, 1.4, 9, 9.7, -90, 4)
                 .intakeFloor(40, 30, 38, 30, 0, 1)
                 .build();
-        assertEquals(BioBuzzConstants.Auto.INTAKE_DWELL_FLOWER_SEC, ((Step.Intake) r.step(1)).dwellSec(), EPS);
+        // a FLOWER pick-up has no dwell: its time comes from the cycles of the wiggle, and its wheel is AUTO unless the route says otherwise
+        assertEquals(0.0, ((Step.Intake) r.step(1)).dwellSec(), EPS);
+        assertEquals(IntakeWheel.AUTO, ((Step.Intake) r.step(1)).wheel());
+        assertNull("the robot pose of a FLOWER pick-up is derived, not authored", ((Step.Intake) r.step(1)).robotPose());
         assertEquals(BioBuzzConstants.Auto.INTAKE_DWELL_GARDEN_SEC, ((Step.Intake) r.step(2)).dwellSec(), EPS);
         assertEquals(BioBuzzConstants.Auto.INTAKE_DWELL_FLOOR_SEC, ((Step.Intake) r.step(3)).dwellSec(), EPS);
         assertTrue(((Step.Intake) r.step(1)).source().isWallContact());
@@ -219,7 +224,12 @@ public class RouteModelTest {
                 case INTAKE: {
                     Step.Intake ri = (Step.Intake) r;
                     Step.Intake bi = (Step.Intake) b;
-                    assertHalfTurn(ri.robotPose(), bi.robotPose());
+                    if (ri.robotPose() == null) {
+                        assertNull(bi.robotPose());                // a FLOWER pick-up has no authored pose
+                        assertEquals(ri.wheel(), bi.wheel());      // and the robot's own wheel stays the robot's own wheel
+                    } else {
+                        assertHalfTurn(ri.robotPose(), bi.robotPose());
+                    }
                     assertEquals(SIZE - ri.target().x, bi.target().x, EPS);
                     assertEquals(SIZE - ri.target().y, bi.target().y, EPS);
                     assertEquals(ri.source(), bi.source());

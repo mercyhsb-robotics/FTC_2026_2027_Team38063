@@ -173,7 +173,7 @@ public class ConstantsDisciplineTest {
         out.add(source("teleop/BioBuzzRobot.java"));
         // The FLOWER wiggle logic in the route framework: it decides where the robot stands and how far it turns, so it must not hide a number either.
         // (The rest of autoshoot/routes is the validator and its explanations; only these files are scanned.)
-        for (String name : new String[]{"FlowerWiggle", "PressRules"}) {
+        for (String name : new String[]{"FlowerWiggle", "FlowerPress", "WheelChoice", "PressRules", "LegSweeps"}) {
             out.add(source("autoshoot/routes/" + name + ".java"));
         }
         return out;

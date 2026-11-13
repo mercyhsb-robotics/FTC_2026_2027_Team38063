@@ -25,18 +25,20 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
-import org.firstinspires.ftc.teamcode.autoshoot.routes.AllianceField;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.AutoRoute;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.FlowerPress;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteAnalysis;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteCatalog;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.WiggleTestRobot;
 
 /**
  * The robot in the route diagrams: drawn in two tones (the body and the two flat intake wheels) at the start pose and at
- * every INTAKE, SHOOT and PARK pose, with the press-in of a FLOWER shown as a short arrow, and a robot that breaks a rule
+ * every INTAKE, SHOOT and PARK pose, with the wiggle of a FLOWER shown as a second outline, a curved arrow and a label, and a robot that breaks a rule
  * (an ERROR at its step) outlined in amber.
  */
 public class RouteSvgFootprintTest {
@@ -119,13 +121,21 @@ public class RouteSvgFootprintTest {
         return Y_BOTTOM - fieldY * S;
     }
 
-    /** A route with a FLOWER press-in (the INTAKE is step 3) that the validator accepts. */
+    /** A robot whose flat wheels stick out far enough for the wiggle to work (the shipped 2.7 in do not reach the ball, and then the pick-up is drawn as an ERROR). */
+    private static final TimingModel LONG_WHEELS = WiggleTestRobot.timing();
+
+    /** A route with a FLOWER wiggle (the INTAKE is step 3, index 2) that a robot with {@link #LONG_WHEELS} is allowed to run. */
     private static AutoRoute flowerRoute(IntakeWheel wheel) {
-        AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
-        Pose2 lineUp = FlowerPress.idealLineUp(red, 0, wheel);
-        return AutoRoute.builder("flower").title("FLOWER press-in").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
-                .driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees()).label("to the FLOWER")
-                .intakeFlower(2.4, 48, wheel, 3).build();
+        return AutoRoute.builder("flower").title("FLOWER wiggle").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
+                .intakeFlower(2.634, 47.281, wheel, 3).build();
+    }
+
+    private static String render(AutoRoute r, Alliance a) {
+        return RouteSvgRenderer.render(r, a, LONG_WHEELS);
+    }
+
+    private static FlowerPress pickUp(AutoRoute authoredForRed, Alliance alliance) {
+        return RouteAnalysis.of(authoredForRed.forAlliance(alliance), new FieldModel(), LONG_WHEELS).step(2).press;
     }
 
     // ---- the two tones -----------------------------------------------------------------------------
@@ -205,81 +215,6 @@ public class RouteSvgFootprintTest {
         assertTrue("the arrow ends inside the outline, short of the front edge", tip < outline[3] && tip > (outline[2] + outline[3]) / 2.0);
     }
 
-    // ---- the press-in ----------------------------------------------------------------------------------
-
-    @Test
-    public void aFlowerIntakeIsDrawnPressedInWithTheWheelRingedAndAnArrowIntoThePollen() throws Exception {
-        for (IntakeWheel wheel : IntakeWheel.physical()) {
-            AutoRoute r = flowerRoute(wheel);
-            Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
-            Element intake = withClass(byId(d, "route"), "g", "intake").get(0);
-            AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
-            FlowerPress press = FlowerPress.of((Step.Intake) r.step(3), red);
-            // the robot is drawn at the press pose (not at the line-up pose)
-            // (the outline is NOT centered on the pose: facing the left wall its FRONT edge is 9.77 in to the left of the pose and its
-            // BACK edge 8.03 in to the right, and the center-of-rotation dot sits at the pose itself)
-            double[] outline = polygonBounds(withClass(intake, "polygon", "outline").get(0));
-            assertEquals(px(press.press.x - BioBuzzConstants.Robot.FRONT_EXTENT_IN), outline[0], 0.05);
-            assertEquals(px(press.press.x + BioBuzzConstants.Robot.REAR_EXTENT_IN), outline[1], 0.05);
-            assertEquals(py(press.press.y), (outline[2] + outline[3]) / 2.0, 0.05);
-            Element dot = all(withClass(intake, "g", "pose-point").get(0), "circle").get(0);
-            assertEquals(px(press.press.x), num(dot, "cx"), 0.05);
-            assertEquals(py(press.press.y), num(dot, "cy"), 0.05);
-            // exactly one wheel is ringed: the one the step names, and it sits on the FLOWER's center line
-            List<Element> pressing = withClass(intake, "circle", "pressing");
-            assertEquals(1, pressing.size());
-            assertEquals(wheel.name(), pressing.get(0).getAttribute("data-wheel"));
-            assertEquals("the pressing wheel is on the FLOWER's center line (the wall is at x = 0, so y = the FLOWER's y)",
-                    py(BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][1]), num(pressing.get(0), "cy"), 0.05);
-            // a short arrow along the wheel's path: it starts at the line-up pose and ends inside the POLLEN
-            Element group = withClass(intake, "g", "press-in").get(0);
-            assertEquals(wheel.name(), group.getAttribute("data-wheel"));
-            Element line = withClass(group, "line", "press-arrow").get(0);
-            double tipX = px(Footprint.wheelCenter(press.press, wheel).x - BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0);
-            Element head = withClass(group, "polygon", "arrowhead").get(0);
-            assertEquals("the arrowhead tip is the front tip of the wheel", tipX, Double.parseDouble(head.getAttribute("points").split("\\s+")[0].split(",")[0]), 0.05);
-            double pollenEdge = px(BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0);
-            assertTrue("the arrow points into the wall and ends inside the POLLEN (1.2 in past its edge)", tipX < pollenEdge - 1.0);
-            assertTrue("it moves toward the wall (left in the picture)", num(line, "x2") < num(line, "x1"));
-            assertEquals("a straight run in the direction the robot faces", num(line, "y1"), num(line, "y2"), 0.05);
-            // it starts at the middle of the wheel at the line-up pose, so it is the approach plus half a wheel long
-            double run = (num(line, "x1") - tipX) / S;
-            assertEquals("the final approach plus the wheel's radius", BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN
-                    + BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0, run, 0.1);
-            // and a dotted retreat arrow pointing back out
-            Element retreat = withClass(group, "line", "retreat-arrow").get(0);
-            assertTrue("the retreat moves away from the wall", num(retreat, "x2") > num(retreat, "x1"));
-            assertNotNull(retreat.getAttribute("stroke-dasharray"));
-        }
-    }
-
-    @Test
-    public void onlyAFlowerIntakeHasAPressInArrow() throws Exception {
-        for (AutoRoute r : RouteCatalog.all()) {
-            Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
-            assertEquals(r.id(), 0, withClass(byId(d, "route"), "g", "press-in").size());
-            assertEquals(r.id(), 0, withClass(byId(d, "route"), "circle", "pressing").size());
-        }
-        Document flower = parse(RouteSvgRenderer.render(flowerRoute(IntakeWheel.LEFT), Alliance.RED));
-        assertEquals(1, withClass(byId(flower, "route"), "g", "press-in").size());
-    }
-
-    @Test
-    public void theBluePressInIsTheHalfTurnOfTheRedOneWithTheSameWheel() throws Exception {
-        AutoRoute red = flowerRoute(IntakeWheel.RIGHT);
-        Document d = parse(RouteSvgRenderer.render(red, Alliance.BLUE));
-        AutoRoute blue = red.forAlliance(Alliance.BLUE);
-        FlowerPress press = FlowerPress.of((Step.Intake) blue.step(3), new AllianceField(new FieldModel(), Alliance.BLUE));
-        Element pressing = withClass(byId(d, "route"), "circle", "pressing").get(0);
-        assertEquals("RIGHT", pressing.getAttribute("data-wheel"));
-        Point2 c = Footprint.wheelCenter(press.press, IntakeWheel.RIGHT);
-        assertEquals(px(c.x), num(pressing, "cx"), 0.05);
-        assertEquals(py(c.y), num(pressing, "cy"), 0.05);
-        // on the blue half the FLOWER is on the right wall: the arrow runs to the right
-        Element line = withClass(byId(d, "route"), "line", "press-arrow").get(0);
-        assertTrue(num(line, "x2") > num(line, "x1"));
-    }
-
     // ---- a robot that breaks a rule is drawn in the warning colour --------------------------------------------
 
     @Test
@@ -306,21 +241,18 @@ public class RouteSvgFootprintTest {
 
     @Test
     public void aWarningAloneDoesNotChangeTheOutline() throws Exception {
-        // a FLOWER press-in with a retreat of only 2 in is a WARN at step 4 and nothing else is wrong with that step
-        AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
-        Pose2 lineUp = FlowerPress.idealLineUp(red, 0, IntakeWheel.LEFT);
+        // a FLOWER pick-up with a retreat of only 2 in is a WARN at step 3 and nothing else is wrong with that step (for a robot whose wheels reach)
         AutoRoute r = AutoRoute.builder("warn").startTile("B1").start(35, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90).shootUp(4)
-                .driveConstant(lineUp.x, lineUp.y, lineUp.headingDegrees())
-                .intakeFlower(2.4, 48, IntakeWheel.LEFT, 3).retreat(2.0).build();
+                .intakeFlower(2.634, 47.281, IntakeWheel.LEFT, 3).retreat(2.0).build();
         boolean warnAtIntake = false;
-        for (Issue i : RouteValidator.check(r)) {
-            if (i.stepIndex == 3) {
+        for (Issue i : WiggleTestRobot.check(r)) {
+            if (i.stepIndex == 2) {
                 assertFalse("only a WARN at the INTAKE: " + i, i.isError());
                 warnAtIntake = true;
             }
         }
         assertTrue(warnAtIntake);
-        Document d = parse(RouteSvgRenderer.render(r, Alliance.RED));
+        Document d = parse(render(r, Alliance.RED));
         Element intake = withClass(byId(d, "route"), "g", "intake").get(0);
         assertFalse(hasClass(withClass(intake, "polygon", "outline").get(0), "error"));
     }

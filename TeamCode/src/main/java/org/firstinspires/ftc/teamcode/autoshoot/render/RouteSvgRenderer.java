@@ -12,6 +12,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
 import org.firstinspires.ftc.teamcode.autoshoot.core.CellSpec;
 import org.firstinspires.ftc.teamcode.autoshoot.core.ConvexPolygon;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
@@ -30,6 +31,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.ShotGeometry;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.Step;
 import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
+import org.firstinspires.ftc.teamcode.autoshoot.routes.TimingModel;
 
 /**
  * Draws an {@link AutoRoute} as a standalone SVG: a top view of the whole 141.348 x 141.348 in field with the
@@ -52,10 +54,12 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.StepKind;
  *
  * <p>Every robot footprint (start, INTAKE, SHOOT, PARK, end) is drawn in two tones: {@code polygon.outline} is the
  * whole perimeter, {@code polygon.chassis} the body and {@code circle.wheel} the two flat intake wheels (the one that
- * presses a FLOWER also has the class {@code pressing}); a footprint at a step with an ERROR gets the extra class
- * {@code error} on its outline and is drawn in amber. A FLOWER INTAKE also contains {@code g.press-in}: a short arrow
- * ({@code line.press-arrow}) along the pressing wheel's path into the FLOWER and a dotted one ({@code line.retreat-arrow})
- * for the retreat.
+ * works a FLOWER also has the class {@code pressing}); a footprint at a step with an ERROR gets the extra class
+ * {@code error} on its outline and is drawn in amber. A FLOWER INTAKE draws the robot where the wiggle starts and also contains
+ * {@code g.wiggle}: the PUSHED pose (a faint second outline, {@code polygon.pushed-outline}, with {@code polygon.pushed-chassis} and
+ * {@code circle.pushed-wheel}), a curved arrow ({@code path.wiggle-arc}) along the circle the pressing wheel travels on while the robot turns
+ * about its pose point, a label {@code text.wiggle-label} such as "wiggle x4", a short arrow ({@code line.press-arrow}) for the straight final
+ * approach and a dotted one ({@code line.retreat-arrow}) for the retreat.
  */
 public final class RouteSvgRenderer {
     private RouteSvgRenderer() {
@@ -69,12 +73,22 @@ public final class RouteSvgRenderer {
     /** Renders the route for the alliance (a RED-authored route is half-turned for BLUE). */
     public static String render(AutoRoute route, Alliance alliance) {
         AutoRoute own = route.forAlliance(alliance);
-        return new Drawing(own, new RouteValidator().validate(own)).draw();
+        return new Drawing(own, own.analyze(), new RouteValidator().validate(own)).draw();
     }
 
     /** As {@link #render(AutoRoute, Alliance)}, reusing validator findings the caller already has. */
     public static String render(AutoRoute route, Alliance alliance, List<Issue> issues) {
-        return new Drawing(route.forAlliance(alliance), issues).draw();
+        AutoRoute own = route.forAlliance(alliance);
+        return new Drawing(own, own.analyze(), issues).draw();
+    }
+
+    /**
+     * As {@link #render(AutoRoute, Alliance)} for a robot with other timing and wiggle numbers (for example wheels that stick out farther): the route is
+     * analysed and checked with {@code timing}, so the drawing, the findings and the times all describe the same robot.
+     */
+    public static String render(AutoRoute route, Alliance alliance, TimingModel timing) {
+        AutoRoute own = route.forAlliance(alliance);
+        return new Drawing(own, RouteAnalysis.of(own, new FieldModel(), timing), new RouteValidator(new FieldModel(), timing).validate(own)).draw();
     }
 
     // =============================================================================================
@@ -127,10 +141,10 @@ public final class RouteSvgRenderer {
         private final List<double[]> labelBoxes = new ArrayList<double[]>(); // {x0, y0, x1, y1}
         private final Set<String> labelledNominal = new HashSet<String>();
 
-        Drawing(AutoRoute route, List<Issue> issues) {
+        Drawing(AutoRoute route, RouteAnalysis analysis, List<Issue> issues) {
             this.route = route;
             this.alliance = route.alliance();
-            this.a = route.analyze();
+            this.a = analysis;
             this.f = a.field();
             this.issues = issues;
             this.ink = inkFor(alliance);
@@ -707,50 +721,91 @@ public final class RouteSvgRenderer {
             double radius = in.source() == IntakeSource.FLOWER ? BioBuzzConstants.Auto.RENDER_INTAKE_RING_FLOWER_IN
                     : in.source() == IntakeSource.GARDEN ? BioBuzzConstants.Auto.RENDER_INTAKE_RING_GARDEN_IN
                     : BioBuzzConstants.Auto.RENDER_INTAKE_RING_FLOOR_IN;
-            FlowerPress press = FlowerPress.of(in, f);
+            FlowerPress press = info.press;
             w.open("g", "class", "intake", "data-step", Integer.toString(info.index + 1), "data-source", in.source().name());
-            w.element("title", stepTitle(info));
-            // a FLOWER intake is drawn where it happens: at the press pose, the wheel on the POLLEN
-            footprint(press == null ? in.robotPose() : press.press, 0.07, true, broken(info), press == null ? null : press.wheel);
+            w.element("title", stepTitle(info) + (press == null ? "" : " - " + info.pickupText() + " (" + info.choice.reason() + ")"));
+            // a FLOWER pick-up is drawn where the wiggle starts: the robot off center, one wheel beside the ball; the pushed pose is drawn beside it
+            Pose2 shown = press != null ? press.start : in.robotPose();
+            if (shown != null) {
+                footprint(shown, 0.07, true, broken(info), press == null ? null : press.wheel);
+            }
             w.empty("circle", "class", "intake-ring", "cx", n(sx(in.target().x)), "cy", n(sy(in.target().y)), "r", n(len(radius)), "fill",
                     "none", "stroke", ink, "stroke-width", "2.5", "stroke-dasharray", "7 4");
             if (press != null) {
-                pressIn(info, press);
+                wiggle(info, press);
             }
             w.close("g");
         }
 
         /**
-         * The press-in of a FLOWER: a short solid arrow along the path of the pressing wheel, from where the final approach
-         * starts to the wheel's front tip inside the POLLEN, and a short dashed arrow for the retreat (the robot backs straight
-         * out along its own center line).
+         * The wiggle of a FLOWER pick-up. The robot at the START of the swing is drawn as for any step; here come the other three things: the PUSHED pose (the
+         * same robot turned toward the ball, drawn as a faint second outline), a CURVED ARROW along the circle the pressing wheel travels on while the robot
+         * turns about its pose point (from the wheel at the start to the wheel pushed against the ball), and a small label {@code wiggle xN} (N cycles). The
+         * straight final approach to the start pose and the straight retreat are drawn as short arrows as before.
          */
-        private void pressIn(RouteAnalysis.StepInfo info, FlowerPress press) {
+        private void wiggle(RouteAnalysis.StepInfo info, FlowerPress press) {
             Point2 from = Footprint.wheelCenter(press.lineUp, press.wheel);
-            Point2 wheel = Footprint.wheelCenter(press.press, press.wheel);
-            double radius = BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0;
-            double tipX = wheel.x + Math.cos(press.press.heading) * radius;      // the front tip of the wheel, in the POLLEN
-            double tipY = wheel.y + Math.sin(press.press.heading) * radius;
-            w.open("g", "class", "press-in", "data-step", Integer.toString(info.index + 1), "data-wheel", press.wheel.name(), "data-flower",
-                    Integer.toString(press.flower + 1));
-            w.element("title", "press-in: drive straight in, the " + press.wheel + " flat wheel presses the bottom POLLEN of FLOWER "
-                    + (press.flower + 1) + ", then back straight out " + String.format(Locale.ROOT, "%.0f", press.retreatLengthIn) + " in");
-            double ux = sx(tipX) - sx(from.x);
-            double uy = sy(tipY) - sy(from.y);
+            Point2 wheel0 = press.wheelAtStart();
+            Point2 wheel1 = press.wheelPushed();
+            w.open("g", "class", "wiggle", "data-step", Integer.toString(info.index + 1), "data-wheel", press.wheel.name(), "data-flower",
+                    Integer.toString(press.flower + 1), "data-turn-deg", n(press.turnDeg()), "data-cycles", Integer.toString(press.cycles),
+                    "data-reaches", press.reaches() ? "true" : "false");
+            w.element("title", "wiggle: the " + press.wheel + " flat wheel waits beside the bottom POLLEN of FLOWER " + (press.flower + 1) + ", the robot turns "
+                    + String.format(Locale.ROOT, "%.1f", Math.abs(press.turnDeg())) + " deg on the spot toward it and back " + press.cycles
+                    + " time" + (press.cycles == 1 ? "" : "s") + ", then backs straight out " + String.format(Locale.ROOT, "%.0f", press.retreatLengthIn) + " in");
+            // the pushed pose: a faint second outline of the whole robot turned by the derived angle, its body and the two wheels
+            Footprint pushed = Footprint.of(press.pushed);
+            w.empty("polygon", "class", "pushed-outline", "points", points(pushed), "fill", ink, "fill-opacity", "0.05", "stroke", ink, "stroke-width", "1.2",
+                    "stroke-opacity", "0.55", "stroke-dasharray", "3 3", "stroke-linejoin", "round");
+            w.empty("polygon", "class", "pushed-chassis", "points", points(Footprint.chassis(press.pushed, press.spec.intakeReachIn)), "fill", ink,
+                    "fill-opacity", "0.08", "stroke", ink, "stroke-width", "0.6", "stroke-opacity", "0.45", "stroke-linejoin", "round");
+            for (IntakeWheel which : IntakeWheel.physical()) {
+                Point2 c = Footprint.wheelCenter(press.pushed, which);
+                boolean presses = which == press.wheel;
+                w.empty("circle", "class", presses ? "pushed-wheel pressing" : "pushed-wheel", "data-wheel", which.name(), "cx", n(sx(c.x)), "cy", n(sy(c.y)),
+                        "r", n(len(BioBuzzConstants.Robot.INTAKE_WHEEL_DIAMETER_IN / 2.0)), "fill", WHEEL_FILL, "fill-opacity", "0.35", "stroke",
+                        presses ? BioBuzzConstants.Auto.RENDER_FRONT_COLOR : WHEEL_FILL, "stroke-width", presses ? "1.8" : "0.6", "stroke-opacity", "0.8");
+            }
+            // the curved arrow: the pressing wheel's middle travels on a circle about the pose point, radius = the lever arm
+            double lever = press.leverArmIn();
+            double r = len(lever);
+            boolean counterClockwise = press.turnRad() > 0.0;      // seen from above; the picture keeps up as up, so the sense is the same on screen
+            if (Math.abs(press.turnRad()) > 1e-6 && r > 1.0) {
+                w.empty("path", "class", "wiggle-arc", "d", "M " + n(sx(wheel0.x)) + " " + n(sy(wheel0.y)) + " A " + n(r) + " " + n(r) + " 0 0 "
+                                + (counterClockwise ? "0" : "1") + " " + n(sx(wheel1.x)) + " " + n(sy(wheel1.y)),
+                        "fill", "none", "stroke", ink, "stroke-width", "2.6", "stroke-linecap", "round");
+                // the arrowhead follows the arc: it points along the direction the wheel is moving when it arrives
+                Pose2 nearEnd = new Pose2(press.start.x, press.start.y, press.start.heading + press.turnRad() * 0.9);
+                Point2 before = Footprint.wheelCenter(nearEnd, press.wheel);
+                double dx = sx(wheel1.x) - sx(before.x);
+                double dy = sy(wheel1.y) - sy(before.y);
+                double norm = Math.hypot(dx, dy);
+                if (norm > 1e-9) {
+                    arrowhead(sx(wheel1.x), sy(wheel1.y), dx / norm, dy / norm, 8.0, ink, "arrowhead");
+                }
+            }
+            // the straight final approach (from the line-up pose to the start of the wiggle) and the straight retreat
+            double ux = sx(wheel0.x) - sx(from.x);
+            double uy = sy(wheel0.y) - sy(from.y);
             double norm = Math.hypot(ux, uy);
             if (norm > 1.0) {
-                w.empty("line", "class", "press-arrow", "x1", n(sx(from.x)), "y1", n(sy(from.y)), "x2", n(sx(tipX) - ux / norm * 6.0), "y2",
-                        n(sy(tipY) - uy / norm * 6.0), "stroke", ink, "stroke-width", "3", "stroke-linecap", "round");
-                arrowhead(sx(tipX), sy(tipY), ux / norm, uy / norm, 9.0, ink, "arrowhead");
+                w.empty("line", "class", "press-arrow", "x1", n(sx(from.x)), "y1", n(sy(from.y)), "x2", n(sx(wheel0.x) - ux / norm * 6.0), "y2",
+                        n(sy(wheel0.y) - uy / norm * 6.0), "stroke", ink, "stroke-width", "3", "stroke-linecap", "round");
+                arrowhead(sx(wheel0.x), sy(wheel0.y), ux / norm, uy / norm, 9.0, ink, "arrowhead");
             }
-            double rx = sx(press.retreat.x) - sx(press.press.x);
-            double ry = sy(press.retreat.y) - sy(press.press.y);
+            double rx = sx(press.retreat.x) - sx(press.start.x);
+            double ry = sy(press.retreat.y) - sy(press.start.y);
             double rn = Math.hypot(rx, ry);
             if (rn > 1.0) {
-                w.empty("line", "class", "retreat-arrow", "x1", n(sx(press.press.x)), "y1", n(sy(press.press.y)), "x2", n(sx(press.retreat.x) - rx / rn * 5.0),
+                w.empty("line", "class", "retreat-arrow", "x1", n(sx(press.start.x)), "y1", n(sy(press.start.y)), "x2", n(sx(press.retreat.x) - rx / rn * 5.0),
                         "y2", n(sy(press.retreat.y) - ry / rn * 5.0), "stroke", ink, "stroke-width", "2", "stroke-dasharray", "2 4", "stroke-linecap", "round");
                 arrowhead(sx(press.retreat.x), sy(press.retreat.y), rx / rn, ry / rn, 7.0, ink, "arrowhead");
             }
+            // the small label next to the pushed wheel: how many cycles
+            double[] at = placeLabel("wiggle x" + press.cycles, fontPx - 1.0, sx(wheel1.x), sy(wheel1.y));
+            w.element("text", "wiggle x" + press.cycles, "class", "wiggle-label", "x", n(at[0]), "y", n(at[1]), "font-size", n(fontPx - 1.0), "font-weight", "bold",
+                    "fill", ink, "text-anchor", at[2] == 0 ? "start" : at[2] == 1 ? "middle" : "end", "stroke", "#ffffff", "stroke-width", "3",
+                    "stroke-linejoin", "round", "paint-order", "stroke");
             w.close("g");
         }
 
@@ -816,11 +871,8 @@ public final class RouteSvgRenderer {
             if (info.step.kind() == StepKind.SHOOT) {
                 return new double[] {sx(info.shootPose.x), sy(info.shootPose.y)};
             }
-            if (info.step.kind() == StepKind.INTAKE) {
-                FlowerPress press = FlowerPress.of((Step.Intake) info.step, f);
-                if (press != null) {
-                    return new double[] {sx(press.press.x), sy(press.press.y)};     // the robot pressed in, not backed out
-                }
+            if (info.step.kind() == StepKind.INTAKE && info.press != null) {
+                return new double[] {sx(info.press.start.x), sy(info.press.start.y)};     // the robot where the wiggle starts, not backed out
             }
             return new double[] {sx(info.to.x), sy(info.to.y)};
         }

@@ -336,51 +336,24 @@ public final class AutoRoute {
         }
 
         /**
-         * Empty a FLOWER by pressing ONE flat intake wheel into its bottom POLLEN (a "press-in", see {@link FlowerPress}).
-         * {@code (targetX, targetY)} is the FLOWER's center and {@code (robotX, robotY, robotHeadingDeg)} the LINE-UP pose:
-         * where the robot stands, facing the wall squarely with the middle of the pressing wheel on the FLOWER's center
-         * line, when the straight final approach starts (6 in or more from the press pose). The wheel that presses is the
-         * one nearer the center line at that pose. The press pose and the retreat pose are derived, so there is nothing
-         * else to compute. Use {@link #retreat} to change how far the robot backs out. To let the program work out the
-         * line-up pose too, use {@link #intakeFlower(double, double, IntakeWheel, int)}.
+         * Empty a FLOWER by WIGGLING a flat intake wheel into its bottom POLLEN (see {@link FlowerPress} and {@link FlowerWiggle}). Give the FLOWER's center
+         * and how many POLLEN you want; nothing else. The program works out the rest: where the robot stands (off center, beside the ball), how far it
+         * turns toward the ball, the cycles, and which wheel does the work (the cheaper one for the legs before and after, see {@link WheelChoice}). It is
+         * the same as {@code intakeFlower(targetX, targetY, IntakeWheel.AUTO, count)}. The robot goes to the line-up pose by an implicit straight move
+         * that is checked like any other, so put a DRIVE before this step if the straight line would hit something. Use {@link #retreat} to change how
+         * far the robot backs out afterwards.
          */
-        public Builder intakeFlower(double targetX, double targetY, double robotX, double robotY, double robotHeadingDeg,
-                                    int count) {
-            Pose2 lineUp = Pose2.ofDegrees(robotX, robotY, robotHeadingDeg);
-            AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
-            int f = red.nearestFlower(new Point2(targetX, targetY));
-            IntakeWheel wheel = f < 0 ? IntakeWheel.LEFT : FlowerPress.nearerWheel(red, f, lineUp);
-            return intakeFlower(targetX, targetY, robotX, robotY, robotHeadingDeg, wheel, count);
+        public Builder intakeFlower(double targetX, double targetY, int count) {
+            return intakeFlower(targetX, targetY, IntakeWheel.AUTO, count);
         }
 
-        /** As the line-up form of {@code intakeFlower}, naming the flat wheel that presses the POLLEN (LEFT or RIGHT of the robot). */
-        public Builder intakeFlower(double targetX, double targetY, double robotX, double robotY, double robotHeadingDeg,
-                                    IntakeWheel wheel, int count) {
-            steps.add(new Step.Intake(IntakeSource.FLOWER, new Point2(targetX, targetY),
-                    Pose2.ofDegrees(robotX, robotY, robotHeadingDeg), BioBuzzConstants.Auto.INTAKE_DWELL_FLOWER_SEC, count,
-                    BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN, wheel, ""));
+        /** As {@link #intakeFlower(double, double, int)}, forcing the wheel: {@link IntakeWheel#LEFT} or {@link IntakeWheel#RIGHT} (the robot's own), or AUTO to let the program choose. */
+        public Builder intakeFlower(double targetX, double targetY, IntakeWheel wheel, int count) {
+            steps.add(Step.Intake.flower(new Point2(targetX, targetY), count, BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN, wheel, ""));
             return this;
         }
 
-        /**
-         * The shortest way to empty a FLOWER: give its center, the wheel that presses and the count, and the line-up pose
-         * is worked out for you (facing the wall squarely, the middle of that wheel on the FLOWER's center line,
-         * {@code Auto.FLOWER_APPROACH_LENGTH_IN} from the press pose; see {@link FlowerPress#idealLineUp}). Drive to that
-         * pose first. Throws if no FLOWER is near the point.
-         */
-        public Builder intakeFlower(double targetX, double targetY, IntakeWheel wheel, int count) {
-            AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
-            int f = red.nearestFlower(new Point2(targetX, targetY));
-            if (f < 0) {
-                throw new IllegalArgumentException("no FLOWER within " + BioBuzzConstants.Auto.INTAKE_TARGET_MATCH_RADIUS_IN
-                        + " in of (" + targetX + ", " + targetY + ")");
-            }
-            Pose2 lineUp = FlowerPress.idealLineUp(red, f, wheel);
-            return intakeFlower(red.flowerCenter(f).x, red.flowerCenter(f).y, lineUp.x, lineUp.y, lineUp.headingDegrees(),
-                    wheel, count);
-        }
-
-        /** FLOWER INTAKE added last: how far the robot backs straight out after the dwell, in inches. */
+        /** FLOWER INTAKE added last: how far the robot backs straight out after the last cycle of the wiggle, in inches. */
         public Builder retreat(double inches) {
             Step last = last("retreat");
             if (!(last instanceof Step.Intake)) {
@@ -396,16 +369,13 @@ public final class AutoRoute {
         }
 
         /**
-         * General INTAKE: where from, what point, which robot pose, how long, how many POLLEN. (For a FLOWER the wheel that
-         * presses is the one nearer the FLOWER's center line, as in the line-up form of {@code intakeFlower}.)
+         * General INTAKE: where from, what point, which robot pose, how long, how many POLLEN. For a FLOWER the robot pose and the dwell are IGNORED (the
+         * pose is derived and the time comes from the wiggle): it is the same as {@code intakeFlower(targetX, targetY, count)}.
          */
         public Builder intake(IntakeSource source, double targetX, double targetY, double robotX, double robotY,
                               double robotHeadingDeg, double dwellSec, int count) {
             if (source == IntakeSource.FLOWER) {
-                intakeFlower(targetX, targetY, robotX, robotY, robotHeadingDeg, count);
-                Step.Intake flower = (Step.Intake) last("intake");
-                return replaceLast(new Step.Intake(source, flower.target(), flower.robotPose(), dwellSec, count,
-                        flower.retreatLengthIn(), flower.wheel(), ""));
+                return intakeFlower(targetX, targetY, count);
             }
             steps.add(new Step.Intake(source, new Point2(targetX, targetY),
                     Pose2.ofDegrees(robotX, robotY, robotHeadingDeg), dwellSec, count, ""));

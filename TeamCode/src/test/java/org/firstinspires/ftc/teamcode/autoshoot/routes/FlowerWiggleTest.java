@@ -27,7 +27,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Rect;
  */
 public class FlowerWiggleTest {
     private static final double EPS = 1e-6;
-    private static final FlowerWiggle.Spec LONG = FlowerWiggle.Spec.fromConstants().withIntakeReach(4.0);
+    private static final FlowerWiggle.Spec LONG = WiggleTestRobot.spec();
     private static final FlowerWiggle.Spec REAL = FlowerWiggle.Spec.fromConstants();
     /** The least wheel reach (with the shipped clearance) for which the chassis, not the stop line, decides the standoff: 3.5 in works, 3.4 in does not. */
     private static final FlowerWiggle.Spec JUST_ENOUGH = FlowerWiggle.Spec.fromConstants().withIntakeReach(3.5);

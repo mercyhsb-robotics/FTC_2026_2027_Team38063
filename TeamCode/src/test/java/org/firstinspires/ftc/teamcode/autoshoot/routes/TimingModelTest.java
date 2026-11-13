@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
+import org.firstinspires.ftc.teamcode.autoshoot.core.Alliance;
+import org.firstinspires.ftc.teamcode.autoshoot.core.FieldModel;
+import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 import org.junit.Test;
 
@@ -183,5 +186,70 @@ public class TimingModelTest {
         TimingModel.Params slowTurn = new TimingModel.Params();
         slowTurn.turnRateDegPerSec = 45;
         assertEquals(2.0, new TimingModel(slowTurn).turnSeconds(Math.toRadians(90)), EPS);
+    }
+
+    // ---- the FLOWER wiggle ----------------------------------------------------------------------------------------
+
+    private static FlowerPress pickUp(int pollen) {
+        return FlowerPress.plan(new AllianceField(new FieldModel(), Alliance.RED), WiggleTestRobot.spec(), 0,
+                IntakeWheel.LEFT, IntakeWheel.LEFT, pollen,
+                BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN);
+    }
+
+    @Test
+    public void theWiggleCostsOneCycleOfTwoTurnsAndTwoHoldsForEveryPollen() {
+        double halfTurn = Math.max(BioBuzzConstants.Auto.FLOWER_WIGGLE_TURN_SEC, model.turnSeconds(pickUp(1).turnRad()));
+        double cycle = 2.0 * halfTurn + BioBuzzConstants.Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC + BioBuzzConstants.Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC;
+        assertEquals("a half turn is the 0.35 s the constants say: the drive turns 17 degrees in much less", BioBuzzConstants.Auto.FLOWER_WIGGLE_TURN_SEC, halfTurn, EPS);
+        for (int pollen = 1; pollen <= 4; pollen++) {
+            assertEquals(pollen + " POLLEN", pollen * cycle, model.wiggleSeconds(pickUp(pollen)), EPS);
+            assertEquals(cycle, model.wiggleCycleSeconds(pickUp(pollen)), EPS);
+        }
+        // never more cycles than the cap, however many POLLEN are asked for
+        assertEquals(BioBuzzConstants.Auto.FLOWER_WIGGLE_MAX_CYCLES * cycle, model.wiggleSeconds(pickUp(40)), EPS);
+    }
+
+    @Test
+    public void aSlowTurnRateLengthensTheHalfTurnBeyondTheConstant() {
+        TimingModel.Params slow = new TimingModel.Params();
+        slow.turnRateDegPerSec = 20.0;                         // 17 degrees take 0.84 s, more than the 0.35 s of the constant
+        TimingModel slowModel = new TimingModel(slow);
+        FlowerPress p = pickUp(1);
+        double half = Math.abs(p.turnDeg()) / 20.0;
+        assertTrue(half > BioBuzzConstants.Auto.FLOWER_WIGGLE_TURN_SEC);
+        assertEquals(2.0 * half + BioBuzzConstants.Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC + BioBuzzConstants.Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC,
+                slowModel.wiggleSeconds(p), EPS);
+    }
+
+    @Test
+    public void theHoldsAndTheTurnTimeComeFromTheParameters() {
+        TimingModel.Params longer = new TimingModel.Params();
+        longer.wigglePushHoldSec = 1.0;
+        longer.wiggleReleaseHoldSec = 2.0;
+        longer.wiggleTurnSec = 0.5;
+        assertEquals(2.0 * 0.5 + 1.0 + 2.0, new TimingModel(longer).wiggleSeconds(pickUp(1)), EPS);
+    }
+
+    @Test
+    public void aFlowerPickUpIsTheSlowApproachTheWiggleAndTheSlowRetreat() {
+        FlowerPress p = pickUp(3);
+        double slow = BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION;
+        assertEquals(model.legSeconds(p.approach, slow) + model.wiggleSeconds(p) + model.legSeconds(p.retreatPath, slow), model.flowerSeconds(p), EPS);
+        // more cycles per POLLEN make it longer, and only the wiggle part grows
+        FlowerPress twice = FlowerPress.plan(new AllianceField(new FieldModel(), Alliance.RED), WiggleTestRobot.spec().withCycles(2, 6), 0,
+                IntakeWheel.LEFT, IntakeWheel.LEFT, 3,
+                BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN);
+        assertEquals(6, twice.cycles);
+        assertEquals(2.0 * model.wiggleSeconds(p), model.wiggleSeconds(twice), EPS);
+        assertEquals(model.flowerSeconds(p) + model.wiggleSeconds(p), model.flowerSeconds(twice), EPS);
+    }
+
+    @Test
+    public void aModelForOtherWheelsKeepsEverythingElseAndTheOriginalIsUnchanged() {
+        TimingModel longer = model.withFlowerSpec(model.flowerSpec().withIntakeReach(5.0));
+        assertEquals(5.0, longer.flowerSpec().intakeReachIn, EPS);
+        assertEquals("the original is untouched", BioBuzzConstants.Robot.INTAKE_REACH_IN, model.flowerSpec().intakeReachIn, EPS);
+        assertEquals(model.translationSeconds(100, 1.0), longer.translationSeconds(100, 1.0), EPS);
+        assertEquals(model.tipSettleSec(), longer.tipSettleSec(), EPS);
     }
 }

@@ -251,16 +251,14 @@ public abstract class Step {
     // ---------------------------------------------------------------------------------------------
 
     /**
-     * Take POLLEN from a source. The robot first goes to {@link #robotPose()}, then takes the POLLEN there.
+     * Take POLLEN from a source. For a GARDEN or the floor the robot first goes to {@link #robotPose()}, then takes the POLLEN there.
      *
-     * <p>For a FLOWER the step is a PRESS-IN (see {@link FlowerPress}). The two flat intake wheels are 12.2 in apart, too
-     * far to pinch one 2.8 in POLLEN, so ONE of them presses while the robot stands to one side of the FLOWER's center line:
-     * {@link #wheel()} names it (LEFT or RIGHT, the robot's own left and right). {@link #robotPose()} is the LINE-UP pose,
-     * the place the straight final approach starts from: facing the wall squarely with that wheel on the FLOWER's center
-     * line. From there the robot drives straight in until the wheel overlaps the bottom POLLEN, dwells with the intake on,
-     * and backs {@link #retreatLengthIn()} inches straight out; the step ends at that retreat pose. The press and retreat
-     * poses are derived from the FLOWER, so route authors never write them. A FLOWER INTAKE without a wheel is refused when
-     * the step is made.
+     * <p>For a FLOWER the step is a WIGGLE pick-up (see {@link FlowerPress} and {@link FlowerWiggle}) and the author gives NO robot pose: the program
+     * works out where the robot stands, how far it turns and which wheel does the work. The two flat intake wheels are 12.2 in apart, too far to pinch
+     * one 2.8 in POLLEN, so ONE of them works while the robot stands off center beside the ball; either wheel can, so {@link #wheel()} is
+     * {@link IntakeWheel#AUTO} unless the route forces LEFT or RIGHT, and the program picks the cheaper one ({@link WheelChoice}). The step ends where the
+     * robot has backed out to, {@link #retreatLengthIn()} inches straight back from the wiggle. {@link #robotPose()} is null for a FLOWER, and the time
+     * of the step comes from the cycles of the wiggle, not from a dwell ({@link #dwellSec()} is 0).
      */
     public static final class Intake extends Step {
         private final IntakeSource source;
@@ -271,22 +269,38 @@ public abstract class Step {
         private final double retreatLengthIn;
         private final IntakeWheel wheel;
 
-        /** An INTAKE from a GARDEN or the floor. (A FLOWER needs to name its wheel: see the constructor with an IntakeWheel.) */
+        /**
+         * An INTAKE from a GARDEN or the floor. (For a FLOWER the robot pose is not authored, and a pose passed here is ignored: use
+         * {@link #flower}.)
+         */
         public Intake(IntakeSource source, Point2 target, Pose2 robotPose, double dwellSec, int expectedCount,
                       String note) {
             this(source, target, robotPose, dwellSec, expectedCount, BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN, null, note);
         }
 
         /**
-         * @param retreatLengthIn FLOWER only: how far the robot backs straight out after the dwell, in inches (the default
-         *                        is {@code Auto.FLOWER_RETREAT_LENGTH_IN}; a shorter retreat is a WARN)
-         * @param wheel           FLOWER only (required there, ignored elsewhere): which flat wheel presses the POLLEN
+         * A FLOWER pick-up: {@code target} is the FLOWER's center, {@code wheel} is AUTO (the program chooses), LEFT or RIGHT.
+         *
+         * @param retreatLengthIn how far the robot backs straight out after the last cycle, in inches
+         */
+        public static Intake flower(Point2 target, int expectedCount, double retreatLengthIn, IntakeWheel wheel, String note) {
+            return new Intake(IntakeSource.FLOWER, target, null, 0.0, expectedCount, retreatLengthIn, wheel, note);
+        }
+
+        /**
+         * @param robotPose       GARDEN or floor: where the robot stands to take the POLLEN. FLOWER: ignored (null), the poses are derived
+         * @param retreatLengthIn FLOWER only: how far the robot backs straight out after the last cycle, in inches (the default is
+         *                        {@code Auto.FLOWER_RETREAT_LENGTH_IN})
+         * @param wheel           FLOWER only: AUTO (also used when this is null), LEFT or RIGHT; ignored elsewhere
          */
         public Intake(IntakeSource source, Point2 target, Pose2 robotPose, double dwellSec, int expectedCount,
                       double retreatLengthIn, IntakeWheel wheel, String note) {
             super(StepKind.INTAKE, note);
-            if (source == null || target == null || robotPose == null) {
-                throw new IllegalArgumentException("an INTAKE needs a source, a target point and a robot pose");
+            if (source == null || target == null) {
+                throw new IllegalArgumentException("an INTAKE needs a source and a target point");
+            }
+            if (source != IntakeSource.FLOWER && robotPose == null) {
+                throw new IllegalArgumentException("a GARDEN or floor INTAKE needs the robot pose to take the POLLEN from");
             }
             if (!(dwellSec >= 0.0)) {
                 throw new IllegalArgumentException("dwell seconds must be >= 0, got " + dwellSec);
@@ -297,17 +311,13 @@ public abstract class Step {
             if (!(retreatLengthIn >= 0.0)) {
                 throw new IllegalArgumentException("retreat length must be >= 0, got " + retreatLengthIn);
             }
-            if (source == IntakeSource.FLOWER && wheel == null) {
-                throw new IllegalArgumentException("a FLOWER INTAKE must say which flat intake wheel presses the POLLEN"
-                        + " (IntakeWheel.LEFT or RIGHT): the two wheels are too far apart to straddle it");
-            }
             this.source = source;
             this.target = target;
-            this.robotPose = robotPose;
-            this.dwellSec = dwellSec;
+            this.robotPose = source == IntakeSource.FLOWER ? null : robotPose;
+            this.dwellSec = source == IntakeSource.FLOWER ? 0.0 : dwellSec;
             this.expectedCount = expectedCount;
             this.retreatLengthIn = retreatLengthIn;
-            this.wheel = source == IntakeSource.FLOWER ? wheel : null;
+            this.wheel = source == IntakeSource.FLOWER ? (wheel == null ? IntakeWheel.AUTO : wheel) : null;
         }
 
         public IntakeSource source() {
@@ -319,12 +329,12 @@ public abstract class Step {
             return target;
         }
 
-        /** The robot pose to take it from (for a FLOWER: the line-up pose where the straight final approach starts). */
+        /** GARDEN or floor: the robot pose to take it from. FLOWER: null, the pose is derived ({@link FlowerPress}). */
         public Pose2 robotPose() {
             return robotPose;
         }
 
-        /** Seconds spent at the pose with the intake running (for a FLOWER: pressed in). */
+        /** Seconds spent at the pose with the intake running (a GARDEN or floor INTAKE). A FLOWER pick-up has none: its time comes from the wiggle, so this is 0. */
         public double dwellSec() {
             return dwellSec;
         }
@@ -334,14 +344,15 @@ public abstract class Step {
             return expectedCount;
         }
 
-        /** FLOWER only: how far the robot backs straight out after the dwell, in inches. */
+        /** FLOWER only: how far the robot backs straight out after the last cycle, in inches. */
         public double retreatLengthIn() {
             return retreatLengthIn;
         }
 
         /**
-         * FLOWER only: which flat intake wheel presses the POLLEN (the robot's own LEFT or RIGHT; it is the same for the
-         * red and the blue alliance). Null for a GARDEN or floor INTAKE.
+         * FLOWER only: which flat intake wheel does the work: {@link IntakeWheel#AUTO} (the program chooses by cost, see {@link WheelChoice}), or LEFT
+         * or RIGHT (the robot's own left and right, the same for the red and the blue alliance) when the route forces it. Null for a GARDEN or floor
+         * INTAKE.
          */
         public IntakeWheel wheel() {
             return wheel;
@@ -360,14 +371,16 @@ public abstract class Step {
         @Override
         Step halfTurn(double fieldSize) {
             // a half turn of the field turns the whole robot with it, so its left wheel stays its left wheel
-            return new Intake(source, rotate(target, fieldSize), rotate(robotPose, fieldSize), dwellSec,
+            return new Intake(source, rotate(target, fieldSize), robotPose == null ? null : rotate(robotPose, fieldSize), dwellSec,
                     expectedCount, retreatLengthIn, wheel, note());
         }
 
         @Override
         public String describe() {
-            return "INTAKE " + source + " +" + expectedCount + " from " + fmt(robotPose)
-                    + (wheel == null ? "" : " with the " + wheel + " wheel");
+            if (source == IntakeSource.FLOWER) {
+                return "INTAKE FLOWER +" + expectedCount + " by wiggling " + (wheel == IntakeWheel.AUTO ? "the cheaper flat wheel" : "the " + wheel + " wheel");
+            }
+            return "INTAKE " + source + " +" + expectedCount + " from " + fmt(robotPose);
         }
     }
 

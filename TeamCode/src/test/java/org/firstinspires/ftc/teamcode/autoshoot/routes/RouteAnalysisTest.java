@@ -138,9 +138,9 @@ public class RouteAnalysisTest {
     public void theSecondTipNeedsEightPollenBecauseTheNewUpCellHoldsNoNectar() {
         AutoRoute r = AutoRoute.builder("second").start(35, FRONT, -90)
                 .shootUp(4)                                          // tip 1: 3 NECTAR + the 3rd POLLEN, the 4th stays in the robot
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 3)             // 1 + 3 = 4 in the robot
+                .intakeFlower(2.4, 48, 3)             // 1 + 3 = 4 in the robot
                 .shootUp(4)                                          // 4 POLLEN into the empty REAR cell: not enough
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
+                .intakeFlower(2.4, 48, 4)
                 .shootUp(4)                                          // 8 POLLEN in total: tip 2
                 .build();
         RouteAnalysis a = r.analyze();
@@ -671,8 +671,8 @@ public class RouteAnalysisTest {
     @Test
     public void intakesRecogniseFlowersAndTheOtherAlliancesSources() {
         AutoRoute r = AutoRoute.builder("g").start(35, FRONT, -90)
-                .intakeFlower(2.4, 48, 13.5, 48, 180, 4)
-                .intakeFlower(96, 2.4, 70, 9, 0, 1)
+                .intakeFlower(2.4, 48, 4)
+                .intakeFlower(96, 2.4, 1)
                 .intakeGarden(135, 138, 70, 9, 0, 1)
                 .intakeFloor(40, 30, 38, 30, 0, 1)
                 .build();

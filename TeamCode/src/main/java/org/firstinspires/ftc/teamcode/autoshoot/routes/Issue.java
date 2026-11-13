@@ -23,8 +23,8 @@ public final class Issue {
         UNDER_HIVE("G409/G417", "do not be under a HIVE that can still tip"),
         /** G304.D and G415/G416: no contact with a FLOWER except to retrieve POLLEN. */
         FLOWER_KEEPOUT("G304.D/G415", "keep out of FLOWER plates"),
-        /** 9.7 and G415: taking POLLEN from a FLOWER means pressing the intake wheels into the bottom POLLEN. */
-        FLOWER_PRESS("9.7/G415", "press into the FLOWER squarely"),
+        /** 9.7 and G415: taking POLLEN from a FLOWER means wiggling one intake wheel into the bottom POLLEN, and the wheel has to reach it. */
+        FLOWER_PRESS("9.7/G415", "wiggle a wheel into the FLOWER's POLLEN"),
         /** G402: in AUTO a robot stays on its own side. */
         SIDE_G402("G402", "stay on the own side in AUTO"),
         /** G407: at most 4 POLLEN under control. */

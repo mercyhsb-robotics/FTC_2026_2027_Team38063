@@ -87,7 +87,7 @@ public final class AllianceField {
 
     /**
      * The plate grown by {@link BioBuzzConstants.Auto#FLOWER_CHASSIS_CLEARANCE_IN}: where the CHASSIS (the robot body, without
-     * the part where only the two flat intake wheels stick out) may not be while one wheel is pressed into this FLOWER.
+     * the part where only the two flat intake wheels stick out) may not be while one wheel wiggles into this FLOWER, at any pose of the turn.
      */
     public Rect flowerChassisKeepOut(int index) {
         return plates.get(index).inflate(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN);
@@ -166,14 +166,12 @@ public final class AllianceField {
     }
 
     /**
-     * The press stop line: how far from the wall (inches) the FRONT EDGE of the robot stops when the wheels are pressed
-     * into the POLLEN. It is the POLLEN's field-side edge (the center line 2.634 in plus the 1.4 in radius = 4.034 in) minus
-     * {@code Auto.FLOWER_PRESS_DEPTH_IN}, and never closer to the wall than the POLLEN's center line.
+     * The press stop line: how far from the wall (inches) the pressing wheel may reach, at its closest point. It is the POLLEN's center line
+     * (2.634 in from the wall): a wheel that went deeper than that would be pressing the ball against the closed side of the FLOWER instead
+     * of rolling it out toward the robot. During the wiggle the wheel is beside the ball and in front of that line.
      */
     public double flowerPressStopLineIn() {
-        double centerLine = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN;
-        double edge = centerLine + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0;
-        return Math.max(centerLine, edge - BioBuzzConstants.Auto.FLOWER_PRESS_DEPTH_IN);
+        return BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN;
     }
 
     /**
@@ -189,12 +187,18 @@ public final class AllianceField {
     }
 
     /**
-     * How far the wheels must reach in front of the chassis (inches) to press the POLLEN with the chassis kept
-     * {@code FLOWER_CHASSIS_CLEARANCE_IN} off the plate: plate depth + clearance - press stop line.
+     * A robot pose given in the "wall frame" of FLOWER {@code index}, turned into a field pose. The wall frame has its origin on the wall
+     * behind the middle of the POLLEN stack; {@code depthIn} is the distance out from the wall (toward the field), {@code alongIn} the distance
+     * along the wall from the POLLEN's middle line (positive in the direction of the wall's tangent, 90 degrees counter-clockwise from the
+     * inward direction) and {@code wallHeadingRad} the heading measured from the inward direction (180 degrees = facing the wall). Because the
+     * four FLOWERS are the same plate on four walls, a wiggle is worked out once in this frame ({@link FlowerWiggle}) and placed here.
      */
-    public double flowerRequiredReachIn() {
-        return BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN
-                - flowerPressStopLineIn();
+    public Pose2 flowerPose(int index, double depthIn, double alongIn, double wallHeadingRad) {
+        Point2 n = flowerInward(index);
+        Point2 w = flowerWallPoint(index);
+        double x = w.x + n.x * depthIn - n.y * alongIn;
+        double y = w.y + n.y * depthIn + n.x * alongIn;
+        return new Pose2(x, y, Math.atan2(n.y, n.x) + wallHeadingRad);
     }
 
     /** The box from the wall out to {@code depth} inches, {@code half} inches either side of the wall point. */

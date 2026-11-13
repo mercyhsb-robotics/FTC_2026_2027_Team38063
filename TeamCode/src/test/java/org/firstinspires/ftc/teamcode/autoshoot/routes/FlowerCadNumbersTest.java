@@ -24,18 +24,18 @@ import org.firstinspires.ftc.teamcode.autoshoot.routes.Issue.Severity;
  * at 11.44 to 11.84 in above the floor, inside the robot's height.
  *
  * <p>How it works: no robot. The numbers are written out by hand from the CAD report; the tests check that the constants, the
- * boxes the validator uses and the press-in geometry all agree with them, and that a start over the bracket is reported.
+ * boxes the validator uses and the wiggle geometry all agree with them, and that a start over the bracket is reported.
  */
 public class FlowerCadNumbersTest {
     private static final double EPS = 1e-9;
     private final AllianceField red = new AllianceField(new FieldModel(), Alliance.RED);
 
     /**
-     * Situation: the plate, the POLLEN stack and the press numbers of the FLOWER on the red wall.
+     * Situation: the plate, the POLLEN stack and the wiggle numbers of the FLOWER on the red wall.
      * Expected: the plate's field-side edge is 0.162 + 4.871 = 5.033 in from the wall and it is 5.95 in long; the POLLEN center line
-     *     is 2.634 in out, so the bottom POLLEN spans 1.234 to 4.034 in; the wheel tip stops 2.833 in from the wall, 1.201 in into the
-     *     POLLEN, and the chassis then stands 5.533 in out, exactly 0.5 in off the plate with the 2.7 in wheel reach.
-     * Why: these are the derived numbers the press-in rests on; each one moved when the field frame changed.
+     *     is 2.634 in out, so the bottom POLLEN spans 1.234 to 4.034 in; the press stop line (the nearest the wheel may get to the wall) is
+     *     that center line, 2.634 in, and the chassis keeps 5.033 + 0.5 = 5.533 in from the wall.
+     * Why: these are the derived numbers the wiggle rests on; each one moved when the field frame changed.
      */
     @Test
     public void thePlateAndThePressNumbersFollowFromTheCad() {
@@ -51,14 +51,15 @@ public class FlowerCadNumbersTest {
                 BioBuzzConstants.Field.FLOWER_CENTERS_IN[0][0], EPS);
         double pollenFar = BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN + BioBuzzConstants.Auto.POLLEN_DIAMETER_IN / 2.0;
         assertEquals(4.034, pollenFar, 1e-9);
-        assertEquals(2.833, red.flowerPressStopLineIn(), 1e-9);
-        assertEquals(1.201, pollenFar - red.flowerPressStopLineIn(), 1e-9);
-        assertEquals(2.7, red.flowerRequiredReachIn(), 1e-9);
-        assertEquals(5.533, red.flowerPressStopLineIn() + BioBuzzConstants.Robot.INTAKE_REACH_IN, 1e-9);
-        assertEquals(0.5, red.flowerPressStopLineIn() + BioBuzzConstants.Robot.INTAKE_REACH_IN
-                - BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN, 1e-9);
-        // the wheel never goes closer than the center line of the stack
-        assertTrue(red.flowerPressStopLineIn() >= BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN);
+        // the press stop line is the center line of the stack: the wheel never goes nearer the wall than the middle of the ball
+        assertEquals(2.634, red.flowerPressStopLineIn(), 1e-9);
+        assertEquals(BioBuzzConstants.Field.FLOWER_POLLEN_CENTER_FROM_WALL_IN, red.flowerPressStopLineIn(), 1e-9);
+        // the chassis keeps 0.5 in off the plate: its front edge is never nearer the wall than 5.033 + 0.5 = 5.533 in
+        assertEquals(5.533, BioBuzzConstants.Field.FLOWER_PLATE_FAR_EDGE_FROM_WALL_IN + BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN, 1e-9);
+        // the press zone, the part of the plate nearer the wall than the stop line, is 5.95 in long and 2.634 in deep
+        Rect zone = red.flowerPressZone(0);
+        assertEquals(2.634, zone.maxX - zone.minX, 1e-9);
+        assertEquals(5.95, zone.maxY - zone.minY, 1e-9);
     }
 
     /**

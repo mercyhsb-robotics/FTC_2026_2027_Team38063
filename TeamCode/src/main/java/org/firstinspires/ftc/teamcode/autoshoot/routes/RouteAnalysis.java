@@ -111,13 +111,23 @@ public final class RouteAnalysis {
         public final int sourceRemainingBefore;
         /** INTAKE: true if the source belongs to the other alliance (off limits in AUTO, rule G402). */
         public final boolean sourceOffLimits;
+        /**
+         * FLOWER INTAKE: the pick-up the robot makes, with the wheel {@link WheelChoice} chose for it (see {@link FlowerPress}); null for any other
+         * step, and for a FLOWER step whose target point is near no FLOWER. The validator, the renderer and the timing all read this one object.
+         */
+        public final FlowerPress press;
+        /** FLOWER INTAKE: how the wheel was chosen (every option with its cost and legality); null when {@link #press} is null. */
+        public final WheelChoice.Choice choice;
+        /** FLOWER INTAKE: seconds of the pick-up itself (slow approach, the wiggle cycles and the slow retreat), without the move to the line-up pose; 0 otherwise. */
+        public final double pickupSec;
 
         StepInfo(int index, Step step, Pose2 from, Pose2 to, DrivePath path, DrivePath approach, double startSec,
                  double durationSec, int pollenBefore, int pollenAfter, Side upSideBefore, Side upSideAfter,
                  Side targetSide, boolean targetWasUp, Pose2 shootPose, boolean shootPoseIsNominal, boolean tipped,
                  int pollenInCellAfter, String sourceName, int sourceRemainingBefore, boolean sourceOffLimits,
                  double launchSec, double tipSec, int firedAfterTip, int nectarInCellBefore, double tipWaitSec,
-                 int pollenInCellBefore, int tipNeeded, int tipSpare, double confirmWaitSec, boolean tipDependent, boolean skipped) {
+                 int pollenInCellBefore, int tipNeeded, int tipSpare, double confirmWaitSec, boolean tipDependent, boolean skipped,
+                 FlowerPress press, WheelChoice.Choice choice, double pickupSec) {
             this.index = index;
             this.step = step;
             this.from = from;
@@ -150,6 +160,21 @@ public final class RouteAnalysis {
             this.nectarInCellBefore = nectarInCellBefore;
             this.tipWaitSec = tipWaitSec;
             this.pollenInCellBefore = pollenInCellBefore;
+            this.press = press;
+            this.choice = choice;
+            this.pickupSec = pickupSec;
+        }
+
+        /**
+         * FLOWER INTAKE in plain words for the gallery and the diagram: "FLOWER pick-up: 4 POLLEN in about 5.2 s with the LEFT wheel", and how the wheel was
+         * chosen. An empty string for any other step.
+         */
+        public String pickupText() {
+            if (press == null) {
+                return "";
+            }
+            return "FLOWER pick-up: " + ((Step.Intake) step).expectedCount() + " POLLEN in about " + String.format(java.util.Locale.ROOT, "%.1f", pickupSec)
+                    + " s with the " + press.wheel + " wheel";
         }
 
         public double endSec() {
@@ -330,7 +355,7 @@ public final class RouteAnalysis {
             if (skip != null && skip[i]) {
                 // a volley that needs a tip the robot never confirms: it stays where it is and goes on with the next step
                 out.add(new StepInfo(i, step, pose, pose, null, null, t, 0.0, held, held, hive.up, hive.up, null, false, null, false,
-                        false, hive.pollen, null, -1, false, Double.NaN, Double.NaN, 0, 0, Double.NaN, 0, 0, 0, 0.0, true, true));
+                        false, hive.pollen, null, -1, false, Double.NaN, Double.NaN, 0, 0, Double.NaN, 0, 0, 0, 0.0, true, true, null, null, 0.0));
                 continue;
             }
             Pose2 from = pose;
@@ -358,6 +383,9 @@ public final class RouteAnalysis {
             int nectarBefore = 0;
             int pollenBeforeInCell = 0;
             double tipWaitSec = Double.NaN;
+            FlowerPress press = null;
+            WheelChoice.Choice choice = null;
+            double pickupSec = 0.0;
 
             switch (step.kind()) {
                 case START:
@@ -372,13 +400,24 @@ public final class RouteAnalysis {
                 }
                 case INTAKE: {
                     Step.Intake in = (Step.Intake) step;
-                    // A FLOWER is a press-in: the robot pose is the line-up pose, then the robot presses in and backs out,
-                    // so the step ends at the retreat pose and costs the slow approach and retreat as well.
-                    FlowerPress press = FlowerPress.of(in, field);
-                    approach = approachOrNull(from, in.robotPose());
-                    duration = (approach == null ? 0.0 : timing.moveSeconds(from, in.robotPose()))
-                            + (press == null ? timing.intakeSeconds(in) : timing.flowerSeconds(in, press));
-                    to = press == null ? in.robotPose() : press.retreat;
+                    int flowerIndex = in.source() == IntakeSource.FLOWER ? field.nearestFlower(in.target()) : -1;
+                    if (flowerIndex >= 0) {
+                        // A FLOWER is a wiggle pick-up: the robot goes to a line-up pose it works out itself (the wheel is chosen by cost, looking at the legs
+                        // before and after), drives in, wiggles and backs out, so the step ends at the retreat pose.
+                        choice = WheelChoice.choose(field, timing, in, flowerIndex, from, lookahead(route, i, field, hive));
+                        press = choice.press();
+                        pickupSec = timing.flowerSeconds(press);
+                        approach = approachOrNull(from, press.lineUp);
+                        duration = (approach == null ? 0.0 : timing.moveSeconds(from, press.lineUp)) + pickupSec;
+                        to = press.retreat;
+                    } else if (in.source() == IntakeSource.FLOWER) {
+                        // the target point is near no FLOWER: there is nothing to take and nowhere to go (the validator warns)
+                        to = from;
+                    } else {
+                        approach = approachOrNull(from, in.robotPose());
+                        duration = (approach == null ? 0.0 : timing.moveSeconds(from, in.robotPose())) + timing.intakeSeconds(in);
+                        to = in.robotPose();
+                    }
                     // in the give-up plan a volley was left out, so the robot may hold more than planned: it stops taking at 4 (G407)
                     int taken = skip == null ? in.expectedCount() : Math.min(in.expectedCount(), Math.max(0, BioBuzzConstants.Auto.POLLEN_CAPACITY - held));
                     held += taken;
@@ -512,13 +551,47 @@ public final class RouteAnalysis {
             out.add(new StepInfo(i, step, from, to, path, approach, t, duration, heldBefore, held, upBefore, hive.up,
                     targetSide, targetWasUp, shootPose, nominal, tipped, hive.pollen, sourceName, sourceLeft, offLimits,
                     launchSec, tipSec, firedAfterTip, nectarBefore, tipWaitSec, pollenBeforeInCell, tipNeeded, tipSpare, confirmWait,
-                    tipDependent, false));
+                    tipDependent, false, press, choice, pickupSec));
             t += duration;
             pose = to;
         }
         // A partner tip that is assumed after the route has ended still happens (the robot stands where it ended).
         hive.advanceTo(Double.POSITIVE_INFINITY);
         return new RouteAnalysis(route, field, timing, out, t, gained, shot, tips, hive, partnerTipSec);
+    }
+
+    /**
+     * What the robot does right after step {@code i}, for the wheel choice of a FLOWER pick-up: the next step that moves the robot (a WAIT does not). A SHOOT
+     * that leaves its pose to the solver counts with the nominal pose in front of the cell that is UP now.
+     */
+    private static WheelChoice.Lookahead lookahead(AutoRoute route, int i, AllianceField field, Hive hive) {
+        for (int j = i + 1; j < route.size(); j++) {
+            Step next = route.step(j);
+            switch (next.kind()) {
+                case WAIT:
+                case WAIT_FOR_TIP:
+                    continue;
+                case DRIVE:
+                    return WheelChoice.Lookahead.drive((Step.Drive) next);
+                case PARK:
+                    return WheelChoice.Lookahead.pose(((Step.Park) next).pose());
+                case INTAKE: {
+                    Step.Intake n = (Step.Intake) next;
+                    return n.source() == IntakeSource.FLOWER ? WheelChoice.Lookahead.flower(n) : WheelChoice.Lookahead.pose(n.robotPose());
+                }
+                case SHOOT: {
+                    Step.Shoot sh = (Step.Shoot) next;
+                    if (sh.poseOrNull() != null) {
+                        return WheelChoice.Lookahead.pose(sh.poseOrNull());
+                    }
+                    Side side = sh.target().isUpCell() ? hive.up : sh.target().fixedSideOrNull();
+                    return WheelChoice.Lookahead.pose(field.nominalShootPose(side));
+                }
+                default:
+                    return WheelChoice.Lookahead.none();
+            }
+        }
+        return WheelChoice.Lookahead.none();
     }
 
     private static DrivePath approachOrNull(Pose2 from, Pose2 to) {

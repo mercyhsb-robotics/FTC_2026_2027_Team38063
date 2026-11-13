@@ -69,6 +69,10 @@ public class ConstantsCheckFlowerWiggleTest {
                 "Auto.FLOWER_WIGGLE_TURN_SEC", "Auto.FLOWER_CHASSIS_CLEARANCE_IN", "Robot.INTAKE_REACH_IN", "Robot.INTAKE_WHEEL_OFFSET_IN"}) {
             assertTrue(name + " is an estimate and must be on the list", listed.contains(name));
         }
+        // the numbers of the old straight press-in are gone, so they cannot be listed or measured by mistake
+        for (String gone : new String[] {"Auto.FLOWER_PRESS_DEPTH_IN", "Auto.INTAKE_DWELL_FLOWER_SEC", "Auto.FLOWER_HEADING_TOLERANCE_DEG", "Auto.FLOWER_ALIGN_TOLERANCE_IN"}) {
+            assertTrue(gone + " is replaced by the wiggle", !listed.contains(gone));
+        }
     }
 
     @Test

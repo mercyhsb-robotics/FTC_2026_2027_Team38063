@@ -1,138 +1,156 @@
 package org.firstinspires.ftc.teamcode.autoshoot.routes;
 
+import java.util.Locale;
+
 import org.firstinspires.ftc.teamcode.BioBuzzConstants;
-import org.firstinspires.ftc.teamcode.autoshoot.core.Angles;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Footprint;
 import org.firstinspires.ftc.teamcode.autoshoot.core.IntakeWheel;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Point2;
 import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
 
 /**
- * The geometry of taking the bottom POLLEN out of a FLOWER: a PRESS-IN. Route authors write only a simple
- * {@code intakeFlower(...)}; this class derives everything else from the FLOWER and from that step.
+ * A FLOWER pick-up planned for ONE flat wheel at ONE FLOWER: the poses the robot passes through and the paths between them. Route authors write only
+ * {@code intakeFlower(which FLOWER, how many POLLEN)}; everything here is derived from the FLOWER, the robot and the constants
+ * ({@link FlowerWiggle} does the maths, {@link WheelChoice} picks the wheel).
  *
- * <p><b>Why a press-in.</b> The FLOWER holds its POLLEN in a stack in the middle of a plate that stands on the field wall.
- * The bottom POLLEN sits in the hole of a ring that is about 0.4 in tall (0.354 in in the official CAD, 0.43 in in the manual),
- * so to get it out the ball has to be pushed UP AND OVER the edge of that ring (the "lip"). Our intake wheels lie flat (parallel to the floor) at the front corners of
- * the robot. They do the job only if they <b>press into</b> the POLLEN and roll it over the lip toward the robot. So the
- * robot faces the wall, drives straight in until the wheel overlaps the POLLEN, runs the intake while it stays pressed in,
- * then backs straight out. It is not a drive-by and not a drive through the plate.
+ * <p><b>Why a wiggle.</b> The bottom POLLEN of a FLOWER sits in the hole of a ring about 0.4 in tall, so it has to be rolled up AND over the ring's
+ * edge (the "lip"). Our two flat wheels lie flat at the front corners and are 12.2 in apart, too far to pinch the 2.8 in ball. So the robot
+ * works ONE wheel with a small oscillation: it drives in OFF CENTER so that the wheel is beside the ball, turns on the spot toward the ball (the wheel
+ * sweeps sideways into it; the spinning wheel and the push of the whole robot roll it out over the lip), turns back so the next ball can drop into
+ * the hole, and repeats once per POLLEN wanted. Then it backs straight out.
  *
- * <p><b>One wheel, not two.</b> The two wheels are 12.2 in apart (center to center), far more than the 2.8 in POLLEN, so the
- * pair cannot straddle and pinch it. ONE wheel presses while the robot stands to one side of the FLOWER's center line, shifted
- * by {@code Robot.INTAKE_WHEEL_OFFSET_IN} (6.1 in) so that the middle of that wheel is on the POLLEN; the other wheel is
- * 12.2 in away along the wall, clear of the plate. The step names the wheel ({@link Step.Intake#wheel()}).
- *
- * <p>Top view of the press, FLOWER on the wall at the bottom, robot facing the wall (not to scale; the numbers are the
- * defaults of {@code BioBuzzConstants}):
+ * <p>Top view of the working wheel (the wall at the bottom, the robot facing it; distances from the wall; wheels that stick out 4 in so that it works).
+ * {@code (L)} is the middle of the working wheel, {@code ( o )} the bottom POLLEN. Not to scale:
  * <pre>
- *                    robot (front toward the wall)
- *            +-----------------------------+
- *            |           chassis           |        chassis front: 5.533 in from the wall
- *            +--+------+----------+------+-+        (plate edge 5.033 in + clearance 0.5 in)
- *               |wheel |          |wheel |           the two flat wheels stick out 2.7 in
- *               +--+---+          +------+           in front of the chassis
- *     plate        |
- *   +----------+   |  the pressing wheel is on the POLLEN, 1.201 in past its edge
- *   |  (POLLEN)|---+  front tip of the wheel: 2.833 in from the wall
- *   +----------+
- * ==================== wall ===================
+ *  5.4 in                                  (L)    start: the wheel is 3.8 in to the side of the ball's middle
+ *                                           :
+ *                                           :     the robot turns about its pose point, 17 degrees toward the ball
+ *  4.0 in                  (L)  . . . . . .'      end of the push: 1.8 in from the ball's middle, 1.0 in into it
+ *                        ( o )
+ *  2.6 in
+ *  ======================== wall ===========================================
  * </pre>
- * Measured out from the wall, with the default numbers:
- * <pre>
- *   0.000 in   the wall (the plate's back edge stands 0.162 in off it)
- *   2.634 in   center line of the POLLEN stack (the wheel never goes closer than this)
- *   2.833 in   PRESS STOP LINE: the front tip of the pressing wheel (4.034 - FLOWER_PRESS_DEPTH_IN of 1.201)
- *   4.034 in   field-side edge of the bottom POLLEN (so the wheel overlaps it by 1.201 in)
- *   5.033 in   field-side edge of the plate (4.871 in deep, 5.95 in along the wall)
- *   5.533 in   the closest the chassis front may be (plate + FLOWER_CHASSIS_CLEARANCE_IN of 0.5 in)
- * </pre>
- * The chassis front stands 2.7 in (the wheel reach) behind the wheel tips, i.e. at 2.833 + 2.7 = 5.533 in: exactly the
- * closest it may be. If the real wheels reach less than that, the validator says how many inches are missing.
+ * The chassis (the robot body) stays outside the plate the whole time, also while it turns; only the wheel may be over the plate.
  *
- * <p>The three poses of a press-in (the position is the pose point, the point the robot spins about):
+ * <p>The poses (the position is the pose point, the point the robot spins about):
  * <ol>
- *   <li>{@link #lineUp}: where the straight final approach starts. Written by the author (it is the INTAKE step's
- *       robot pose), or derived by {@link #idealLineUp}.</li>
- *   <li>{@link #press}: derived. Facing the wall squarely, with the middle of the pressing wheel on the FLOWER's center
- *       line and the wheel's front tip on the press stop line ({@link AllianceField#flowerPressStopLineIn()}: the POLLEN's
- *       field-side edge, 4.034 in from the wall, minus {@code Auto.FLOWER_PRESS_DEPTH_IN}).</li>
- *   <li>{@link #retreat}: derived. The press pose backed straight out by the step's retreat length. The INTAKE step
- *       ends here.</li>
+ *   <li>{@link #lineUp}: where the straight, slow final approach begins ({@code Auto.FLOWER_APPROACH_LENGTH_IN} before {@link #start}); the robot
+ *       faces the wall squarely. The step's move to it is a planned, checked straight line from wherever the robot was.</li>
+ *   <li>{@link #start}: the approach ends and the wiggle begins. The wheel's middle is {@code Auto.FLOWER_WHEEL_START_OFFSET_IN} from the ball's middle along
+ *       the wall. How far from the wall it stands is DERIVED so that the chassis keeps its clearance off the plate at every pose of the turn.</li>
+ *   <li>{@link #pushed}: the same position turned by {@link #turnRad} toward the ball, so the wheel is {@code Auto.FLOWER_WHEEL_PRESS_OFFSET_IN} from the ball's middle.</li>
+ *   <li>{@link #retreat}: straight back from {@link #start} by the step's retreat length. The step ends here.</li>
  * </ol>
  *
- * <p><b>The invariants the validator enforces</b> (rules I1 to I4 of the press-in; walls, plate and HIVE are checked by
- * {@link RouteValidator}):
+ * <p><b>The rules the validator enforces</b> (walls, plates and the HIVE are checked by {@link RouteValidator} with the real footprint at every pose of
+ * every leg, the turn included):
  * <ul>
- *   <li><b>I1</b> Nothing of the robot ever goes into or past a wall.</li>
- *   <li><b>I2</b> The CHASSIS (the footprint minus the front {@code Robot.INTAKE_REACH_IN} where only the wheels stick
- *       out, {@link Footprint#chassis(Pose2)}) never overlaps a FLOWER plate (it keeps {@code Auto.FLOWER_CHASSIS_CLEARANCE_IN}
- *       off the plate being pressed) or the HIVE keep-out, in any step, including the FLOWER's own INTAKE step.</li>
- *   <li><b>I3</b> Only the ONE pressing wheel disc ({@link Footprint#wheelDisc}) may enter the plate of the FLOWER being
- *       emptied, only during that FLOWER's INTAKE step, and only up to the press stop line. The other wheel stays out of
- *       the plate.</li>
- *   <li><b>I4</b> The approach is perpendicular to the wall (heading within {@code Auto.FLOWER_HEADING_TOLERANCE_DEG}), the
- *       middle of the pressing wheel is within {@code Auto.FLOWER_ALIGN_TOLERANCE_IN} of the FLOWER's center line, the
- *       final approach is a straight run of at least {@code Auto.FLOWER_APPROACH_LENGTH_IN} at the slow
- *       {@code Auto.FLOWER_APPROACH_SPEED_FRACTION}, then comes a dwell with the intake on, then a straight retreat of
- *       {@code Auto.FLOWER_RETREAT_LENGTH_IN}. The chassis stands at least {@code Auto.FLOWER_CHASSIS_CLEARANCE_IN}
- *       outside the plate, so the wheel must reach the rest of the way ({@link #requiredReachIn}).</li>
+ *   <li><b>I1</b> nothing of the robot ever goes into or past a wall;</li>
+ *   <li><b>I2</b> the CHASSIS (the footprint without the front {@code Robot.INTAKE_REACH_IN}, where only the wheels stick out) never comes within
+ *       {@code Auto.FLOWER_CHASSIS_CLEARANCE_IN} of the plate, at ANY pose of the approach, the swing or the retreat;</li>
+ *   <li><b>I3</b> only the ONE pressing wheel disc may be over the plate, and it never goes nearer the wall than the POLLEN's center line; the other wheel stays out;</li>
+ *   <li><b>I4</b> the approach is perpendicular to the wall, straight and slow, and the retreat is straight: they are derived, so they hold by construction;</li>
+ *   <li><b>I5</b> the wheel can actually reach the ball ({@link #reaches()}); if not, the finding says by how many inches the wheels fall short.</li>
  * </ul>
  */
 public final class FlowerPress {
     /** Index of the FLOWER (position in {@code Field.FLOWER_CENTERS_IN}). */
     public final int flower;
-    /** The flat intake wheel that presses the POLLEN (the robot's own left or right). */
+    /** The flat intake wheel that does the work: LEFT or RIGHT, the robot's own left or right (never AUTO). */
     public final IntakeWheel wheel;
-    /** The pose the straight final approach starts from (the INTAKE step's own robot pose). */
+    /** What the route asked for: AUTO (the program chose {@link #wheel}) or the wheel it was told to use. */
+    public final IntakeWheel requested;
+    /** The numbers (wheel reach, clearance, offsets) the pick-up was derived from. */
+    public final FlowerWiggle.Spec spec;
+    /** The derived wiggle for this wheel (in the wall frame): standoff, turn, whether the wheel reaches. */
+    public final FlowerWiggle.Solution solution;
+    /** The pose the straight final approach starts from. */
     public final Pose2 lineUp;
-    /** The pose with the wheel pressed into the POLLEN: derived from the FLOWER and the wheel. */
-    public final Pose2 press;
-    /** The pose after backing straight out: derived. The INTAKE step ends here. */
+    /** The pose where the approach ends and the wiggle begins (the robot faces the wall, the wheel beside the ball). */
+    public final Pose2 start;
+    /** The pose at the end of the push: {@link #start} turned toward the ball. */
+    public final Pose2 pushed;
+    /** The pose after backing straight out. The INTAKE step ends here. */
     public final Pose2 retreat;
-    /** The straight, slow final approach {@code lineUp -> press}. */
-    public final DrivePath approach;
-    /** The straight, slow retreat {@code press -> retreat}. */
-    public final DrivePath retreatPath;
-    /** How far the line-up heading is from facing the wall squarely, in radians (0 to PI). */
-    public final double headingErrorRad;
-    /**
-     * How far the MIDDLE OF THE PRESSING WHEEL is from the FLOWER's center line at the line-up pose, along the wall, in
-     * inches (the sign only says which way along the wall). Near 0 when the robot is lined up.
-     */
-    public final double lateralIn;
-    /** How far (inches) the line-up pose is from the press pose measured straight out from the wall: the length of the final approach. */
-    public final double approachAxialIn;
-    /** How far the robot backs out (inches), from the step. */
+    /** How many POLLEN the pick-up is for. */
+    public final int count;
+    /** How many push-and-release cycles it makes. */
+    public final int cycles;
+    /** How far the straight final approach is, in inches. */
+    public final double approachLengthIn;
+    /** How far the robot backs out, in inches. */
     public final double retreatLengthIn;
-    /** The press stop line: distance of the wheel's front tip from the wall at the press, in inches. */
-    public final double stopLineIn;
-    /** How far the wheels have to stick out in front of the chassis (inches) for the press to work. */
-    public final double requiredReachIn;
+    /** The straight, slow final approach {@code lineUp -> start}. */
+    public final DrivePath approach;
+    /** The turn on the spot {@code start -> pushed} (the way back, {@code pushed -> start}, sweeps the same poses). */
+    public final DrivePath swing;
+    /** The straight, slow retreat {@code start -> retreat}. */
+    public final DrivePath retreatPath;
 
-    private FlowerPress(int flower, IntakeWheel wheel, Pose2 lineUp, Pose2 press, Pose2 retreat, double headingErrorRad,
-                        double lateralIn, double approachAxialIn, double retreatLengthIn, double stopLineIn,
-                        double requiredReachIn) {
+    private FlowerPress(int flower, IntakeWheel wheel, IntakeWheel requested, FlowerWiggle.Spec spec, FlowerWiggle.Solution solution,
+                        Pose2 lineUp, Pose2 start, Pose2 pushed, Pose2 retreat, int count, int cycles, double approachLengthIn,
+                        double retreatLengthIn) {
         this.flower = flower;
         this.wheel = wheel;
+        this.requested = requested;
+        this.spec = spec;
+        this.solution = solution;
         this.lineUp = lineUp;
-        this.press = press;
+        this.start = start;
+        this.pushed = pushed;
         this.retreat = retreat;
-        this.approach = DrivePath.straight(lineUp, press);
-        this.retreatPath = DrivePath.straight(press, retreat);
-        this.headingErrorRad = headingErrorRad;
-        this.lateralIn = lateralIn;
-        this.approachAxialIn = approachAxialIn;
+        this.count = count;
+        this.cycles = cycles;
+        this.approachLengthIn = approachLengthIn;
         this.retreatLengthIn = retreatLengthIn;
-        this.stopLineIn = stopLineIn;
-        this.requiredReachIn = requiredReachIn;
+        this.approach = DrivePath.straight(lineUp, start);
+        this.swing = DrivePath.straight(start, pushed);
+        this.retreatPath = DrivePath.straight(start, retreat);
     }
 
     /**
-     * The press-in an INTAKE step makes, or null if the step does not take from a FLOWER or its target point is not
-     * near any FLOWER (the validator warns about that separately).
+     * The pick-up of {@code count} POLLEN from FLOWER {@code flower} with the real wheel {@code wheel} (LEFT or RIGHT), for the numbers in
+     * {@code spec}. {@code requested} is what the route asked for (AUTO or the wheel itself), kept only so the gallery can say how the wheel was chosen;
+     * {@code retreatLengthIn} is how far the robot backs out.
+     */
+    static FlowerPress plan(AllianceField field, FlowerWiggle.Spec spec, int flower, IntakeWheel wheel, IntakeWheel requested, int count,
+                            double retreatLengthIn) {
+        return plan(field, spec, flower, FlowerWiggle.solve(wheel, spec), requested, count, retreatLengthIn);
+    }
+
+    /**
+     * As above for a wiggle that is already worked out. The tests use it to hand the validator a pick-up that is NOT the derived one (for example a standoff
+     * that forgets the swing) and check that the rules notice.
+     */
+    static FlowerPress plan(AllianceField field, FlowerWiggle.Spec spec, int flower, FlowerWiggle.Solution s, IntakeWheel requested, int count,
+                            double retreatLengthIn) {
+        IntakeWheel wheel = s.wheel;
+        double approachLen = BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN;
+        Pose2 lineUp = field.flowerPose(flower, s.standoffIn + approachLen, s.lateralIn, Math.PI);
+        Pose2 start = field.flowerPose(flower, s.standoffIn, s.lateralIn, Math.PI);
+        Pose2 pushed = field.flowerPose(flower, s.standoffIn, s.lateralIn, Math.PI + s.turnRad);
+        Pose2 retreat = field.flowerPose(flower, s.standoffIn + retreatLengthIn, s.lateralIn, Math.PI);
+        return new FlowerPress(flower, wheel, requested, spec, s, lineUp, start, pushed, retreat, count, FlowerWiggle.cyclesFor(spec, count),
+                approachLen, retreatLengthIn);
+    }
+
+    /** As {@link #plan(AllianceField, FlowerWiggle.Spec, int, IntakeWheel, IntakeWheel, int, double)} for the real robot's numbers and the default retreat. */
+    public static FlowerPress plan(AllianceField field, int flower, IntakeWheel wheel, int count) {
+        return plan(field, FlowerWiggle.Spec.fromConstants(), flower, wheel, wheel, count, BioBuzzConstants.Auto.FLOWER_RETREAT_LENGTH_IN);
+    }
+
+    /**
+     * The pick-up an INTAKE step makes, or null if the step does not take from a FLOWER or its target point is not near any FLOWER (the validator warns
+     * about that separately). With a LEFT or RIGHT wheel the wheel is the one asked for; with AUTO it is the one {@link WheelChoice} picks when
+     * there is no previous or next step to consider (so by legality and then clearance, LEFT on a tie). Inside a route the choice also weighs the legs before
+     * and after: read it from {@code RouteAnalysis.StepInfo#press} instead.
      */
     public static FlowerPress of(Step.Intake step, AllianceField field) {
+        return of(step, field, FlowerWiggle.Spec.fromConstants());
+    }
+
+    /** As {@link #of(Step.Intake, AllianceField)} for other numbers (a "what if the wheels were longer?"). */
+    public static FlowerPress of(Step.Intake step, AllianceField field, FlowerWiggle.Spec spec) {
         if (step.source() != IntakeSource.FLOWER) {
             return null;
         }
@@ -140,66 +158,59 @@ public final class FlowerPress {
         if (f < 0) {
             return null;
         }
-        IntakeWheel wheel = step.wheel();
-        Pose2 lineUp = step.robotPose();
-        double stop = field.flowerPressStopLineIn();
-        Pose2 press = poseWithWheelOnCenterLine(field, f, wheel, stop);
-        Point2 n = field.flowerInward(f);
-        Pose2 retreat = new Pose2(press.x + n.x * step.retreatLengthIn(), press.y + n.y * step.retreatLengthIn(), press.heading);
-        Point2 wheelAtLineUp = Footprint.wheelCenter(lineUp, wheel);
-        double axial = field.flowerWallDistance(f, new Point2(lineUp.x, lineUp.y))
-                - field.flowerWallDistance(f, new Point2(press.x, press.y));
-        return new FlowerPress(f, wheel, lineUp, press, retreat, Math.abs(Angles.error(lineUp.heading, press.heading)),
-                field.flowerLateral(f, wheelAtLineUp), axial, step.retreatLengthIn(), stop, field.flowerRequiredReachIn());
+        return WheelChoice.choose(field, new TimingModel().withFlowerSpec(spec), step, f, null, WheelChoice.Lookahead.none()).press();
     }
 
-    /**
-     * The ideal line-up pose for FLOWER {@code flower} and the wheel that will press: facing the wall squarely, the middle
-     * of that wheel on the FLOWER's center line, the wheel tip {@code Auto.FLOWER_APPROACH_LENGTH_IN} farther out than at the
-     * press. The route builder uses it when the author gives only the FLOWER.
-     */
-    public static Pose2 idealLineUp(AllianceField field, int flower, IntakeWheel wheel) {
-        return poseWithWheelOnCenterLine(field, flower, wheel,
-                field.flowerPressStopLineIn() + BioBuzzConstants.Auto.FLOWER_APPROACH_LENGTH_IN);
+    // ---- derived values ----------------------------------------------------------------------------------
+
+    /** The turn of the push in radians, positive = counter-clockwise (the way the wheel is carried toward the ball). */
+    public double turnRad() {
+        return solution.turnRad;
     }
 
-    /**
-     * The wheel whose middle is nearer the FLOWER's center line when the robot stands at {@code pose}: the natural choice
-     * when an author gives a line-up pose but not the wheel. (An exact tie goes to the LEFT wheel.)
-     */
-    public static IntakeWheel nearerWheel(AllianceField field, int flower, Pose2 pose) {
-        double left = Math.abs(field.flowerLateral(flower, Footprint.wheelCenter(pose, IntakeWheel.LEFT)));
-        double right = Math.abs(field.flowerLateral(flower, Footprint.wheelCenter(pose, IntakeWheel.RIGHT)));
-        return right < left ? IntakeWheel.RIGHT : IntakeWheel.LEFT;
+    /** The turn of the push in degrees. */
+    public double turnDeg() {
+        return solution.turnDeg();
     }
 
-    /**
-     * The pose that faces FLOWER {@code flower}'s wall squarely, with the front tip of the wheels {@code frontTipFromWallIn}
-     * inches from the wall and the middle of {@code wheel} exactly on the FLOWER's center line.
-     */
-    static Pose2 poseWithWheelOnCenterLine(AllianceField field, int flower, IntakeWheel wheel, double frontTipFromWallIn) {
-        Point2 n = field.flowerInward(flower);
-        Point2 wall = field.flowerWallPoint(flower);
-        double heading = field.flowerFacingHeading(flower);
-        double depth = frontTipFromWallIn + Footprint.frontExtentIn();           // wall to the pose point
-        Pose2 centered = new Pose2(wall.x + n.x * depth, wall.y + n.y * depth, heading);
-        // slide the robot along the wall until the middle of its wheel is on the center line (the wall's direction is (-n.y, n.x))
-        double off = field.flowerLateral(flower, Footprint.wheelCenter(centered, wheel));
-        return new Pose2(centered.x + n.y * off, centered.y - n.x * off, heading);
+    /** True if the wheel gets within the press offset of the ball without breaking a rule (see {@link FlowerWiggle.Solution#reaches}). */
+    public boolean reaches() {
+        return solution.reaches;
     }
 
-    /** The heading error in degrees (0 to 180). */
-    public double headingErrorDeg() {
-        return Math.toDegrees(headingErrorRad);
+    /** How many more inches the wheels would have to stick out for the pick-up to work (0 if it works; infinite if no length helps). */
+    public double missingReachIn() {
+        return solution.missingReachIn;
     }
 
-    /** How many inches short the wheels are of what the press needs (0 if {@code Robot.INTAKE_REACH_IN} is enough). */
-    public double reachMissingIn() {
-        return reachMissingIn(BioBuzzConstants.Robot.INTAKE_REACH_IN);
+    /** The distance from the pose point to the middle of the wheel, in inches: the lever arm of the turn. */
+    public double leverArmIn() {
+        return solution.leverArmIn;
     }
 
-    /** As {@link #reachMissingIn()} for wheels that stick out {@code reachIn} inches in front of the chassis. */
-    public double reachMissingIn(double reachIn) {
-        return Math.max(0.0, requiredReachIn - reachIn);
+    /** The middle of the pressing wheel at the start of the wiggle, in field inches. */
+    public Point2 wheelAtStart() {
+        return Footprint.wheelCenter(start, wheel);
+    }
+
+    /** The middle of the pressing wheel at the end of the push, in field inches. */
+    public Point2 wheelPushed() {
+        return Footprint.wheelCenter(pushed, wheel);
+    }
+
+    /** The middle of the bottom POLLEN of this FLOWER, in field inches. */
+    public Point2 ball(AllianceField field) {
+        return field.flowerCenter(flower);
+    }
+
+    /** True if the program chose the wheel ({@link #requested} is AUTO). */
+    public boolean wasChosen() {
+        return requested.isAuto();
+    }
+
+    /** One short line for lists: how many POLLEN, which wheel, how far it turns and how many times. */
+    public String describe() {
+        return "FLOWER " + (flower + 1) + " with the " + wheel + " wheel: " + String.format(Locale.ROOT, "%.1f", Math.abs(turnDeg()))
+                + " deg wiggle x" + cycles;
     }
 }

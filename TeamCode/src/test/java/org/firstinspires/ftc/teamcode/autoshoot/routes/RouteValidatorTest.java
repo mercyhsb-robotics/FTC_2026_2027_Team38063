@@ -264,10 +264,10 @@ public class RouteValidatorTest {
         assertOnly(validate(plain), Rule.FLOWER_KEEPOUT, Severity.ERROR);
 
         // the old validator excused the whole plate for the drive that led to a FLOWER intake. Not any more: the only part
-        // of the robot that may enter a plate is the one pressing flat wheel, during the press-in (see FlowerPressTest)
+        // of the robot that may enter a plate is the one working flat wheel, during the wiggle (see FlowerPressTest)
         AutoRoute.Builder intake = AutoRoute.builder("x").start(FRONT, 61.5, 180).driveConstant(FRONT + 4.6, 62, 180)
                 .driveConstant(FRONT + 4.6, 48, 180)
-                .intakeFlower(2.4, 48, FRONT + 4.6, 48, 180, 4);
+                .intakeFlower(2.4, 48, 4);
         List<Issue> l = validate(intake);
         boolean driveFlagged = false;
         for (Issue i : l) {
@@ -347,7 +347,7 @@ public class RouteValidatorTest {
     public void takingFromTheOtherAlliancesSourcesIsAnError() {
         // robot pose on the own side so that only the source is wrong: FLOWER 4 sits on the audience wall at x = 96 (blue's)
         List<Issue> flower = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
-                .driveConstant(70, 12, 0).intakeFlower(96, 2.4, 70, 12, 0, 1));
+                .driveConstant(70, 12, 0).intakeFlower(96, 2.4, 1));
         assertEquals(1, count(flower, Rule.SOURCE, Severity.ERROR));
         assertTrue(first(flower, Rule.SOURCE).message.contains("opposing side"));
         List<Issue> garden = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
@@ -358,7 +358,7 @@ public class RouteValidatorTest {
     @Test
     public void anIntakeWhoseTargetIsNearNoSourceIsAWarning() {
         List<Issue> l = validate(AutoRoute.builder("x").start(58, FRONT, -90).shootUp(4)
-                .driveConstant(30, 30, 0).intakeFlower(60, 30, 30, 30, 0, 1));
+                .driveConstant(30, 30, 0).intakeFlower(60, 30, 1));
         assertEquals(1, count(l, Rule.SOURCE, Severity.WARN));
         assertTrue(first(l, Rule.SOURCE).message.contains("nothing to take"));
     }

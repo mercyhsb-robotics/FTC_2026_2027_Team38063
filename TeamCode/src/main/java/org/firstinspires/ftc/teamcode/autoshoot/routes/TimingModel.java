@@ -11,8 +11,9 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.Pose2;
  *
  * <p>The model: a drive leg accelerates to the cruise speed, cruises and brakes (a trapezoid, or a
  * triangle on short legs); turning happens while driving, so a leg costs the longer of the two; every
- * leg that moved ends with a settle time. An INTAKE costs its dwell (a FLOWER press-in also costs its slow
- * straight approach and its slow straight retreat), a SHOOT costs the aim and
+ * leg that moved ends with a settle time. A GARDEN or floor INTAKE costs its dwell; a FLOWER pick-up costs its slow straight approach, one
+ * push-and-release cycle of the wiggle for every cycle it makes (two turns and two holds each, see {@link #wiggleSeconds}) and its slow straight
+ * retreat. A SHOOT costs the aim and
  * spin-up plus one feed time per POLLEN (or its fixed duration), a WAIT costs its seconds, and START
  * and PARK are free (the drive before them already paid the settle).
  */
@@ -28,6 +29,17 @@ public final class TimingModel {
         public double timePerShotSec = BioBuzzConstants.Auto.TIME_PER_SHOT_SEC;
         /** Fraction of the cruise speed for the final approach to a FLOWER and for the retreat from it. */
         public double flowerSpeedFraction = BioBuzzConstants.Auto.FLOWER_APPROACH_SPEED_FRACTION;
+        /** How long one half of a wiggle cycle's turn takes (seconds), at least; the drive's own turn rate can make it longer. */
+        public double wiggleTurnSec = BioBuzzConstants.Auto.FLOWER_WIGGLE_TURN_SEC;
+        /** How long the robot stays turned in, the wheel pressed on the ball, before it turns back (seconds). */
+        public double wigglePushHoldSec = BioBuzzConstants.Auto.FLOWER_WIGGLE_PUSH_HOLD_SEC;
+        /** How long the robot stays turned back, so the next POLLEN can drop into the hole (seconds). */
+        public double wiggleReleaseHoldSec = BioBuzzConstants.Auto.FLOWER_WIGGLE_RELEASE_HOLD_SEC;
+        /**
+         * The geometry numbers of the FLOWER wiggle (wheel reach, clearance, offsets, cycles): the real robot's by default. A question like "what if the
+         * wheels were longer?" changes this, never the constants (see {@link TimingModel#withFlowerSpec}).
+         */
+        public FlowerWiggle.Spec flowerSpec = FlowerWiggle.Spec.fromConstants();
         /**
          * How long the camera must have seen the tipped cell's tags steadily before the robot believes the HIVE has FULLY
          * tipped and goes on ({@code Vision.HIVE_STABLE_SEEN_SEC}). A tip is complete only when the damper touches the frame,
@@ -35,6 +47,24 @@ public final class TimingModel {
          * the tip but this long after it.
          */
         public double tipSettleSec = BioBuzzConstants.Vision.HIVE_STABLE_SEEN_SEC;
+
+        /** A copy of these inputs that can be changed without touching the original. */
+        public Params copy() {
+            Params c = new Params();
+            c.cruiseInPerSec = cruiseInPerSec;
+            c.accelInPerSec2 = accelInPerSec2;
+            c.turnRateDegPerSec = turnRateDegPerSec;
+            c.settleSec = settleSec;
+            c.aimSpinUpSec = aimSpinUpSec;
+            c.timePerShotSec = timePerShotSec;
+            c.flowerSpeedFraction = flowerSpeedFraction;
+            c.wiggleTurnSec = wiggleTurnSec;
+            c.wigglePushHoldSec = wigglePushHoldSec;
+            c.wiggleReleaseHoldSec = wiggleReleaseHoldSec;
+            c.flowerSpec = flowerSpec;
+            c.tipSettleSec = tipSettleSec;
+            return c;
+        }
     }
 
     private static final double TINY = 1e-9;
@@ -47,6 +77,18 @@ public final class TimingModel {
 
     public TimingModel(Params params) {
         this.p = params;
+    }
+
+    /** The geometry numbers of the FLOWER wiggle this model (and every analysis that uses it) works with. */
+    public FlowerWiggle.Spec flowerSpec() {
+        return p.flowerSpec;
+    }
+
+    /** The same model for a robot with other wiggle numbers (for example wheels that stick out farther): a new model, this one is unchanged. */
+    public TimingModel withFlowerSpec(FlowerWiggle.Spec spec) {
+        Params c = p.copy();
+        c.flowerSpec = spec;
+        return new TimingModel(c);
     }
 
     /** Time to travel {@code distanceIn} inches from rest to rest at the given fraction of the cruise speed. */
@@ -120,18 +162,32 @@ public final class TimingModel {
         return Math.max(drive, turn) + p.settleSec;
     }
 
-    /** Time spent at the intake pose with the intake running. */
+    /** Time spent at the intake pose with the intake running (a GARDEN or floor INTAKE; a FLOWER pick-up is {@link #flowerSeconds}). */
     public double intakeSeconds(Step.Intake step) {
         return step.dwellSec();
     }
 
     /**
-     * Time of a FLOWER press-in after the robot is lined up: the slow straight approach, the dwell with the intake on and
-     * the slow straight retreat (each leg that moves ends with the settle time).
+     * Time of a FLOWER pick-up after the robot is at its line-up pose: the slow straight approach, the wiggle ({@link #wiggleSeconds}) and the slow
+     * straight retreat (each leg that moves ends with the settle time).
      */
-    public double flowerSeconds(Step.Intake step, FlowerPress press) {
-        return legSeconds(press.approach, p.flowerSpeedFraction) + intakeSeconds(step)
+    public double flowerSeconds(FlowerPress press) {
+        return legSeconds(press.approach, p.flowerSpeedFraction) + wiggleSeconds(press)
                 + legSeconds(press.retreatPath, p.flowerSpeedFraction);
+    }
+
+    /**
+     * Time of the wiggle itself: one cycle for each of {@code press.cycles}, each cycle being turn in, hold pushed, turn back, hold released. A half-turn
+     * takes {@code Auto.FLOWER_WIGGLE_TURN_SEC} or, if it is longer, what the drive needs to turn that far at its turn rate.
+     */
+    public double wiggleSeconds(FlowerPress press) {
+        double half = Math.max(p.wiggleTurnSec, turnSeconds(press.turnRad()));
+        return press.cycles * (half + p.wigglePushHoldSec + half + p.wiggleReleaseHoldSec);
+    }
+
+    /** One cycle of the wiggle in seconds: the turn in, the push hold, the turn back and the release hold. */
+    public double wiggleCycleSeconds(FlowerPress press) {
+        return press.cycles == 0 ? 0.0 : wiggleSeconds(press) / press.cycles;
     }
 
     /** Aim and spin-up plus one feed time per POLLEN, or the step's fixed duration. */
