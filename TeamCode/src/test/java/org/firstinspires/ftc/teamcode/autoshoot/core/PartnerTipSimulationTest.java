@@ -44,10 +44,18 @@ public class PartnerTipSimulationTest {
     /** How long the HIVE takes to swing up before it is at rest: its tags blink in and out of view meanwhile. */
     private static final double SWING_SEC = 1.2;
 
-    /** The route under test: wait for the partner's tip (giving up at {@code giveUp}), fire 4 at the cell that comes up, then leave the wall. */
+    /** Where the route parks: its back edge 2 in off the red wall, in the middle of the LOADING ZONE, so it keeps LEAVE too (QA21). */
+    private static final double PARK_X = BioBuzzConstants.Robot.REAR_EXTENT_IN + 2.0;
+    private static final double PARK_Y = 106.0;
+
+    /**
+     * The route under test: wait for the partner's tip (giving up at {@code giveUp}), fire 4 at the cell that comes up, then the SAFE
+     * steps that do not depend on any tip: leave the rear wall and PARK in the LOADING ZONE.
+     */
     private static AutoRoute route(double giveUp) {
         return AutoRoute.builder("partner_rear").start(61.5, BioBuzzConstants.Field.SIZE_IN - BioBuzzConstants.Robot.FRONT_EXTENT_IN, 90)
-                .partnerTipsFirst().waitForTip(giveUp).shootUp(4).driveConstant(61.5, 112.0, 90).build();
+                .partnerTipsFirst().waitForTip(giveUp).shootUp(61.5, 130.0, 90, 4).driveConstant(61.5, 112.0, 90).driveLinear(PARK_X, PARK_Y, 0.0)
+                .park(PARK_X, PARK_Y, 0.0).build();
     }
 
     /** What a run produced. */
@@ -59,8 +67,10 @@ public class PartnerTipSimulationTest {
         /** The route time at which the camera confirmed the tip; NaN if it never did. */
         double confirmedAt = Double.NaN;
         TipWait.Outcome outcome;
-        /** The route time at which the safe step (the drive off the wall) was finished. */
+        /** The route time at which the safe steps (leave the wall, PARK) were finished. */
         double safeStepDoneAt;
+        /** True if the robot ended parked in the LOADING ZONE, off every wall (the plan it followed earns LEAVE and PARK). */
+        boolean parked;
     }
 
     /** One simulated match from the start of the wait to the end of the safe step (the dropouts, if any, are drawn with a fixed seed). */
@@ -82,8 +92,9 @@ public class PartnerTipSimulationTest {
         double deadline = plan.effectiveGiveUpSec(plan.step(1));
         RouteAnalysis.StepInfo volleyStep = plan.step(2);
         double approachSec = volleyStep.launchSec - volleyStep.startSec;
-        double safeAfterVolley = plan.step(3).durationSec;
-        double safeAfterGiveUp = plan.giveUpPlan().step(3).durationSec;
+        RouteAnalysis giveUpPlan = plan.giveUpPlan();
+        double safeAfterVolley = plan.totalSeconds() - volleyStep.endSec();
+        double safeAfterGiveUp = giveUpPlan.totalSeconds() - giveUpPlan.step(2).endSec();
         TipWait wait = new TipWait(confirmation, deadline);
 
         CellSpec rear = field.cell(Alliance.RED, Side.REAR);
@@ -158,7 +169,25 @@ public class PartnerTipSimulationTest {
             }
         }
         out.outcome = wait.outcome();
+        // the plan the robot followed: the normal one after a confirmed tip, the give-up plan (volley left out) otherwise
+        RouteAnalysis followed = out.outcome == TipWait.Outcome.CONFIRMED ? plan : giveUpPlan;
+        out.parked = followed.park() && followed.leave();
         return out;
+    }
+
+    @Test
+    public void theRouteUnderTestIsLegalAndItsSafePointsDoNotDependOnTheTip() {
+        // the route the simulation runs is a real, valid route: no ERROR, and the validator has no complaint about the tip never coming
+        for (double giveUp : new double[] {16.0, 20.0}) {
+            List<org.firstinspires.ftc.teamcode.autoshoot.routes.Issue> issues = org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator.check(route(giveUp));
+            assertTrue(issues.toString(), org.firstinspires.ftc.teamcode.autoshoot.routes.RouteValidator.isRunnable(issues));
+            for (org.firstinspires.ftc.teamcode.autoshoot.routes.Issue i : issues) {
+                assertFalse(i.toString(), i.message.contains("never confirmed"));
+            }
+        }
+        RouteAnalysis plan = route(20.0).analyze();
+        assertTrue(plan.park() && plan.leave());
+        assertTrue("the give-up plan earns the same safe points: " + plan.giveUpPlan().points(), plan.giveUpPlan().points() == plan.points());
     }
 
     // ---- the partner tips at 4 s, 12 s and 20 s, or never --------------------------------------------------------------
@@ -176,6 +205,7 @@ public class PartnerTipSimulationTest {
             assertTrue("a POLLEN left at " + shot + " s, before the confirmation at " + r.confirmedAt, shot > r.confirmedAt);
         }
         assertTrue(r.safeStepDoneAt <= BUDGET);
+        assertTrue("parked in the zone with LEAVE too", r.parked);
     }
 
     @Test
@@ -194,7 +224,8 @@ public class PartnerTipSimulationTest {
         Result r = run(20.0, false, 0.0, 20.0);
         assertEquals("gave up before the late tip", TipWait.Outcome.GAVE_UP, r.outcome);
         assertEquals("no POLLEN left the robot", 0, r.shotTimes.size());
-        assertTrue("the safe step (leaving the wall) was done inside the AUTO limit: " + r.safeStepDoneAt, r.safeStepDoneAt > 0.0 && r.safeStepDoneAt <= BUDGET);
+        assertTrue("the safe steps (leave the wall, PARK) were done inside the AUTO limit: " + r.safeStepDoneAt, r.safeStepDoneAt > 0.0 && r.safeStepDoneAt <= BUDGET);
+        assertTrue("and the robot parks with LEAVE: it gave the volley up, not the points it can always earn", r.parked);
     }
 
     @Test
@@ -204,6 +235,7 @@ public class PartnerTipSimulationTest {
         assertEquals(0, r.shotTimes.size());
         assertTrue(r.confirmedAt != r.confirmedAt);                 // NaN: never confirmed
         assertTrue("safe step done at " + r.safeStepDoneAt, r.safeStepDoneAt > 0.0 && r.safeStepDoneAt <= BUDGET);
+        assertTrue("the robot still parks", r.parked);
     }
 
     // ---- no camera, no shot --------------------------------------------------------------------------------------------
@@ -216,6 +248,7 @@ public class PartnerTipSimulationTest {
         assertEquals("no camera, no shot", 0, r.shotTimes.size());
         assertTrue(r.confirmedAt != r.confirmedAt);
         assertTrue(r.safeStepDoneAt > 0.0 && r.safeStepDoneAt <= BUDGET);
+        assertTrue("it still parks", r.parked);
     }
 
     // ---- a flaky camera: whatever happens, nothing is fired before the confirmation ----------------------------------------
@@ -240,6 +273,7 @@ public class PartnerTipSimulationTest {
                         assertEquals(0, r.shotTimes.size());
                     }
                     assertTrue(r.safeStepDoneAt > 0.0 && r.safeStepDoneAt <= BUDGET);
+                    assertTrue(r.parked);
                 }
             }
         }
@@ -267,6 +301,7 @@ public class PartnerTipSimulationTest {
             assertEquals("giveUp " + giveUp + ", tip " + (latest + 0.15), TipWait.Outcome.GAVE_UP, after.outcome);
             assertEquals(0, after.shotTimes.size());
             assertTrue(after.safeStepDoneAt <= BUDGET + 0.2);
+            assertTrue(after.parked && before.parked);
         }
     }
 
@@ -277,6 +312,7 @@ public class PartnerTipSimulationTest {
             assertEquals("tip at " + tipAt, 0, r.firedBeforeTheTipWasDone);
             assertTrue("tip at " + tipAt + ": done at " + r.safeStepDoneAt, r.safeStepDoneAt > 0.0 && r.safeStepDoneAt <= BUDGET + 0.2);
             assertEquals("tip at " + tipAt, r.outcome == TipWait.Outcome.CONFIRMED ? 4 : 0, r.shotTimes.size());
+            assertTrue("tip at " + tipAt + ": it parks whether or not it fired", r.parked);
             assertFalse(r.outcome == TipWait.Outcome.WAITING);
         }
     }

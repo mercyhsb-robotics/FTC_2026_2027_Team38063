@@ -107,6 +107,8 @@ cannot continue.
 | Picks a far-away pose when a nearer one is fine | planning costs `PLAN_*` |
 | Goes to the wrong side after a tip | press D-pad down; `Vision.HIVE_CONFIRM_FRAMES` / `HIVE_CONFIRM_SEC` / `HIVE_LOST_SEC` |
 | Switches sides in the middle of a volley when nothing tipped | `Vision.HIVE_LOST_SEC` up (tags blocked for a moment) |
+| An AUTO that waits for the partner's tip never believes the HIVE has tipped (it gives up and skips the volley) | the camera is not seeing the new cell's tags steadily: check the Limelight Diagnostic first; `Vision.HIVE_STABLE_SEEN_SEC` down only if the tags are steady but the 0.5 s settle time is too long for the plan |
+| An AUTO shoots before the HIVE has stopped rocking | `Vision.HIVE_STABLE_SEEN_SEC` up (the camera must see the new cell's tags this long without a break) |
 | Range reported by the camera is off | the camera constants in `LIMELIGHT_SETUP.md` §4 |
 | Pose settles slowly after a camera correction / correction is too jumpy | `Vision.POSE_CORRECTION_GAIN` (up = faster, down = smoother), `POSE_CORRECTION_MAX_STEP_IN` |
 | "Drift correction: ignored: camera disagrees by N in" | N is bigger than `POSE_CORRECTION_GATE_IN`: either the drift really is that big (press the pose-reset button on the start pose) or the camera constants are wrong |

@@ -432,6 +432,20 @@ public class RouteGalleryTest {
     }
 
     @Test
+    public void aVolleyThatWaitsForTheCameraToConfirmOurOwnTipSaysSo() throws Exception {
+        // two volleys from the same pose: the second goes into the cell that came up with OUR tip and starts only after the camera has seen it steady
+        AutoRoute two = AutoRoute.builder("two").title("Two").description("d").startTile("C1").start(58, BioBuzzConstants.Robot.FRONT_EXTENT_IN, -90)
+                .shootUp(58, 30, -90, 4).shootSide(org.firstinspires.ftc.teamcode.autoshoot.core.Side.REAR, 58, 30, -90, 2).build();
+        Document page = parse(RouteGallery.indexHtml(Collections.singletonList(two)));
+        List<Element> notes = withClass(section(page, "two"), "div", "confirmnote");
+        assertEquals(1, notes.size());
+        assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("stands here for 0.5 s until its camera has seen the cell that came up with its own tip steady"));
+        assertTrue(notes.get(0).getTextContent(), notes.get(0).getTextContent().contains("never because a time has passed"));
+        // a route with a single volley has no such wait
+        assertEquals(0, withClass(section(parse(RouteGallery.indexHtml(RouteCatalog.all())), "garden_cycle"), "div", "confirmnote").size());
+    }
+
+    @Test
     public void everyStepIsListedWithItsNote() throws Exception {
         Document page = parse(RouteGallery.indexHtml(RouteCatalog.all()));
         for (AutoRoute r : RouteCatalog.all()) {

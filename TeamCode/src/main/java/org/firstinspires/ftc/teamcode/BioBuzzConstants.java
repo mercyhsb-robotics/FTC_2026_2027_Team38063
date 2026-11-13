@@ -185,7 +185,8 @@ public final class BioBuzzConstants {
          * G409 says a robot may not catch or deflect what a tipped HIVE releases, so for this many seconds after a
          * tip the robot footprint must stay out of that cell's spill zone (see TIP_SPILL_MARGIN_IN). 3 s is a first
          * guess for the balls to land and stop rolling: watch a real tip and replace it. The route checker counts it from
-         * the planned tip time; the robot itself counts it from the moment its camera has confirmed the tip.
+         * the planned tip time plus the settle time (Vision.HIVE_STABLE_SEEN_SEC); the robot itself counts it from the moment
+         * its camera has confirmed the tip (TipConfirmation.spillClearAtSec).
          */
         public static final double TIP_SPILL_CLEAR_SEC = 3.0;
         /**
@@ -946,7 +947,13 @@ public final class BioBuzzConstants {
         public static final int HIVE_CONFIRM_FRAMES = 3;
         /** TUNE: ... spread over at least this many seconds. */
         public static final double HIVE_CONFIRM_SEC = 0.15;
-        /** TUNE: after seeing the up cell's tags steadily for this long, losing all of them means the HIVE may have tipped. */
+        /**
+         * TUNE: after seeing the up cell's tags steadily for this long, losing all of them means the HIVE may have tipped. It is
+         * also the SETTLE TIME of the autonomous period: a HIVE counts as fully tipped only when the camera has seen the new up
+         * cell's cluster, with a full geometry, without a break for this long (TipConfirmation), because a TIP is complete only
+         * when the damper touches the frame and launching at a HIVE that is still rocking can spoil it (G417). The route plan
+         * adds it to every WAIT_FOR_TIP, to the latest partner tip that still works and to the spill window.
+         */
         public static final double HIVE_STABLE_SEEN_SEC = 0.5;
         /** TUNE: tags missing this long (with the camera link healthy) after a steady sighting counts as a suspected tip. */
         public static final double HIVE_LOST_SEC = 0.6;

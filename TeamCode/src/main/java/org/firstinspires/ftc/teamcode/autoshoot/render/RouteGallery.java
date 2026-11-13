@@ -330,6 +330,11 @@ public final class RouteGallery {
             if (info.step instanceof Step.WaitForTip) {
                 h.append("<div class=\"note waitnote\">").append(esc(waitText(a, info))).append("</div>");
             }
+            if (info.confirmWaitSec > 0.0) {
+                h.append("<div class=\"note confirmnote\">").append(esc("The robot stands here for " + seconds(info.confirmWaitSec)
+                        + " until its camera has seen the cell that came up with its own tip steady (the settle time): a cell is shot at only after the"
+                        + " camera has confirmed it, never because a time has passed, and the volley is skipped if the camera cannot.")).append("</div>");
+            }
             if (!info.step.note().isEmpty()) {
                 h.append("<div class=\"note\">").append(esc(info.step.note())).append("</div>");
             }
