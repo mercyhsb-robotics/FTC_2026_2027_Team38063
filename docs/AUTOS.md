@@ -114,7 +114,7 @@ Two rules of thumb that the validator enforces:
 |---|---|---|---|
 | Start | G304 | outside the field or the own half, not touching a wall, in the LOADING ZONE, touching a FLOWER or the HIVE | |
 | Field walls | 9.2, G412 | any part of the robot overlaps a wall by more than 0.1 in (rounding noise) at any moment: at the start, along every leg, while turning in place (the corners of the square sweep out to 12.6 in from the center), at an INTAKE, at the PARK pose and at the end. Touching is fine; no step, `wallContact` or not, may push in | |
-| HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame | |
+| HIVE | G417, G409 | the robot footprint comes within 3 in of the HIVE frame footprint (the floor area of its rails and legs, 49.46 x 38.95 in). The gaps under and inside the frame count as solid: a 12.13 in robot might physically fit between the legs, but nobody has measured the real frame, so no route goes there. A DOWN cell hangs out past the frame by up to 5.4 in, but only 30.6 in up or higher, so it is not an obstacle | |
 | FLOWERS | G304.D, G415 | a leg runs into a FLOWER plate (except the one an INTAKE takes from) | |
 | Center line | G402 | the robot center crosses into the opponent half | the body ends over the line |
 | POLLEN | G407 | more than 4 held, firing more than held, taking from the other alliance's GARDEN or FLOWER | a source that is empty or that does not exist; a floor intake before anything was shot |

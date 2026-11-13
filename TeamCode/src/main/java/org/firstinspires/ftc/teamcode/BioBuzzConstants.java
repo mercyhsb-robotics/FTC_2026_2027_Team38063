@@ -204,7 +204,40 @@ public final class BioBuzzConstants {
          * within this much. It is numeric precision, not a safety margin.
          */
         public static final double SWEEP_RESOLUTION_IN = 0.001;
-        /** TUNE (G417 design guard): extra clearance kept around the HIVE frame footprint. */
+        /**
+         * TUNE (G417 / G409 design guard): extra clearance, in inches, kept on EVERY side of the HIVE frame footprint.
+         * The validator's keep-out is the whole frame footprint (x 47.27 to 96.73, y 52.53 to 91.47) grown by this much.
+         *
+         * <p><b>What the 12.13 in tall robot can actually hit</b> (audit of field_layout.verified.md 2.1 and 2.1b):
+         * <ul>
+         *   <li>The only things of the HIVE below the robot's height are in the FRAME: two base rails on the floor along y,
+         *       at x about 47.3 to 49.3 and 94.7 to 96.7, and four legs that lean inward from the corners of those rails
+         *       up to the apexes above the HIVE axes (x 59.25 and 84.75, 43.95 in up). A leg is only 12.13 in high
+         *       where it is about 3.3 in in from the rail. A robot that stays out of the keep-out can touch neither a
+         *       rail nor a leg; one that drives into the frame hits a rail first.</li>
+         *   <li>The crossbar is 43.95 in up and the lowest point of any CELL is 30.6 in up (an UP cell's is about 46.6
+         *       in). The tallest part of the robot is 12.13 in (13.0 in with the camera), so no CELL, and no cell that
+         *       is swinging up or down, can touch it.</li>
+         *   <li>A DOWN cell hangs out past the frame footprint by up to 5.4 in (red rear cell: y up to 96.9, the frame ends at
+         *       91.47), but only at 30.6 in up or higher, so a robot passes UNDER that overhang. That is why the overhang is
+         *       not part of the keep-out. Standing under it is not forbidden by this check.</li>
+         *   <li>Nothing else on the field is lower than the robot except the FLOWER plates (4.75 in deep, handled
+         *       separately) and the loose POLLEN.</li>
+         * </ul>
+         *
+         * <p><b>Why the keep-out is the whole footprint and not just the rails.</b> There is an open window under the
+         * HIVE between the legs (a 17.80 in wide robot clears the legs from about x = 59.5 to 84.5 at its height), but
+         * the leg geometry was read off drawings (about +/- 1.5 in) and nobody has measured the real frame, G409 says a robot
+         * must not stand where a tipping HIVE drops things, and a wrong guess costs a match. So ANY gap under or inside
+         * the frame is treated as SOLID and a route never goes through it. (The only way to drive under it would be to
+         * measure the real frame first and then write a new rule.)
+         *
+         * <p><b>Why 3.0 in.</b> The frame as measured in the plan view of the field report reaches up to 0.63 in beyond the
+         * nominal 49.46 x 38.95 in footprint (rail thickness and figure error), and the field is only good to about
+         * +/- 1 in; 3.0 in covers both with about 1.4 in left for odometry drift and the robot's own stopping error. The
+         * test HiveKeepOutTest checks that this is a superset of the footprint and of that measured envelope, edge by edge and
+         * corner by corner.
+         */
         public static final double HIVE_KEEPOUT_MARGIN_IN = 3.0;
         /** TUNE: extra clearance kept around a FLOWER plate (the plate itself is in Field.FLOWER_KEEPOUT_*). */
         public static final double FLOWER_KEEPOUT_MARGIN_IN = 0.5;
