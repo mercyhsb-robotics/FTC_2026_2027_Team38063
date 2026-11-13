@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Standard: start turned in the rear corner, wait beside the cell that comes up, shoot 4 into it, park - RED alliance</title>
+<title id="svg-title">Standard: start turned in a corner, wait beside the cell that comes up, shoot 4 into it, park - RED alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_rear_shoot_park for the RED alliance, starting in tile B6, with 6 steps: 1 START at (36.3, 128.2, 125 deg); 2 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 19.0 s on the route clock; 3 SHOOT 4 at UP cell from (36.8, 127.4, 125 deg); 4 DRIVE off the wall constant to 36.3, 112.0; 5 DRIVE to zone linear to 12.0, 108.0; 6 PARK at (12.0, 108.0, 0 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 18.5 s. Estimated 21.5 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="13.23" font-weight="bold" fill="#222222">Standard: start turned in the rear corner, wait beside the cell that comes up, shoot 4 into it, park - RED alliance</text>
+<text id="title" x="24" y="27" font-size="14.09" font-weight="bold" fill="#222222">Standard: start turned in a corner, wait beside the cell that comes up, shoot 4 into it, park - RED alliance</text>
 <text id="subtitle" x="24" y="45" font-size="9.9" fill="#555555">id partner_rear_shoot_park  |  start tile B6  |  6 steps  |  red ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 18.5 s</text>
 <rect x="24" y="52" width="40" height="4" fill="#c62828"/>
 <g id="field">

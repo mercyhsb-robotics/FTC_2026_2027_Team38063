@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Standard: start on the red wall below the LOADING ZONE, go up the corridor, wait, shoot 4, park - RED alliance</title>
+<title id="svg-title">Standard: start on the side wall just below the LOADING ZONE, go up the corridor, wait, shoot 4, park - RED alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_standard_red_wall_a4 for the RED alliance, starting in tile A4, with 9 steps: 1 START at (8.9, 80.0, 90 deg); 2 DRIVE up the corridor constant to 26.0, 123.0; 3 DRIVE past the FLOWER constant to 60.5, 123.0; 4 DRIVE to the shooting pose constant to 60.5, 131.0; 5 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 18.8 s on the route clock; 6 SHOOT 4 at UP cell from (60.5, 131.0, 90 deg); 7 DRIVE off the wall constant to 60.5, 112.0; 8 DRIVE to zone linear to 12.5, 106.0; 9 PARK at (12.5, 106.0, 180 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 18.3 s. Estimated 21.6 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="13.83" font-weight="bold" fill="#222222">Standard: start on the red wall below the LOADING ZONE, go up the corridor, wait, shoot 4, park - RED alliance</text>
+<text id="title" x="24" y="27" font-size="13.12" font-weight="bold" fill="#222222">Standard: start on the side wall just below the LOADING ZONE, go up the corridor, wait, shoot 4, park - RED alliance</text>
 <text id="subtitle" x="24" y="45" font-size="9.6" fill="#555555">id partner_standard_red_wall_a4  |  start tile A4  |  9 steps  |  red ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 18.3 s</text>
 <rect x="24" y="52" width="40" height="4" fill="#c62828"/>
 <g id="field">

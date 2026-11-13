@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 900" width="900" height="900" role="img" aria-labelledby="svg-title svg-desc" font-family="Helvetica, Arial, sans-serif">
-<title id="svg-title">Standard: start in C1 like the old autos, slide left, go up the corridor, wait, shoot 4, park - BLUE alliance</title>
+<title id="svg-title">Standard: start where RedAlliance_C1 does, slide over, go up the side corridor, wait, shoot 4, park - BLUE alliance</title>
 <desc id="svg-desc">Top view of the 141.35 by 141.35 inch BIOBUZZ field, audience at the bottom, red alliance on the left. Route partner_standard_c1_corridor for the BLUE alliance, starting in tile D6, with 10 steps: 1 START at (83.3, 131.6, 90 deg); 2 DRIVE slide left constant to 114.3, 111.3; 3 DRIVE up the left corridor constant to 114.3, 23.3; 4 DRIVE across constant to 83.4, 18.3; 5 DRIVE to the shooting pose constant to 83.4, 15.9; 6 WAIT_FOR_TIP until the camera sees the HIVE tipped, giving up at 19.1 s on the route clock; 7 SHOOT 4 at UP cell from (83.4, 15.9, -90 deg); 8 DRIVE off the wall constant to 83.4, 29.3; 9 DRIVE to zone linear to 128.8, 35.3; 10 PARK at (128.8, 35.3, 0 deg). First tip: partner tips first, assumed at 12.0 s; latest that works 18.6 s. Estimated 21.4 s, POLLEN balance -4, up to 8 points for our robot; 0 errors and 0 warnings.</desc>
 <defs>
 <linearGradient id="area-red" x1="1" y1="0" x2="0" y2="0">
@@ -15,7 +15,7 @@
 </pattern>
 </defs>
 <rect id="background" x="0" y="0" width="900" height="900" fill="#ffffff"/>
-<text id="title" x="24" y="27" font-size="13.96" font-weight="bold" fill="#222222">Standard: start in C1 like the old autos, slide left, go up the corridor, wait, shoot 4, park - BLUE alliance</text>
+<text id="title" x="24" y="27" font-size="13.23" font-weight="bold" fill="#222222">Standard: start where RedAlliance_C1 does, slide over, go up the side corridor, wait, shoot 4, park - BLUE alliance</text>
 <text id="subtitle" x="24" y="45" font-size="9.5" fill="#555555">id partner_standard_c1_corridor  |  start tile D6  |  10 steps  |  blue ink  |  first tip: partner tips first, assumed at 12.0 s; latest that works 18.6 s</text>
 <rect x="24" y="52" width="40" height="4" fill="#1565c0"/>
 <g id="field">
