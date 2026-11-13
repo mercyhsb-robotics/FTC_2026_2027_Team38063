@@ -85,8 +85,8 @@ public final class AllianceField {
     }
 
     /**
-     * The plate grown by {@link BioBuzzConstants.Auto#FLOWER_CHASSIS_CLEARANCE_IN}: where the CHASSIS (the robot without
-     * its intake strip) may not be while its wheels are pressed into this FLOWER.
+     * The plate grown by {@link BioBuzzConstants.Auto#FLOWER_CHASSIS_CLEARANCE_IN}: where the CHASSIS (the robot body, without
+     * the part where only the two flat intake wheels stick out) may not be while one wheel is pressed into this FLOWER.
      */
     public Rect flowerChassisKeepOut(int index) {
         return plates.get(index).inflate(BioBuzzConstants.Auto.FLOWER_CHASSIS_CLEARANCE_IN);

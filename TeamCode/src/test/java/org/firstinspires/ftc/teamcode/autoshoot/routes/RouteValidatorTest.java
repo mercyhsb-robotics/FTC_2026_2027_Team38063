@@ -224,7 +224,7 @@ public class RouteValidatorTest {
         assertOnly(validate(plain), Rule.FLOWER_KEEPOUT, Severity.ERROR);
 
         // the old validator excused the whole plate for the drive that led to a FLOWER intake. Not any more: the only part
-        // of the robot that may enter a plate is the wheel strip, during the press-in (see FlowerPressTest)
+        // of the robot that may enter a plate is the one pressing flat wheel, during the press-in (see FlowerPressTest)
         AutoRoute.Builder intake = AutoRoute.builder("x").start(8.9, 61.5, 180).driveConstant(13.5, 62, 180)
                 .driveConstant(13.5, 48, 180)
                 .intakeFlower(2.4, 48, 13.5, 48, 180, 4);
