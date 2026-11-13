@@ -216,7 +216,7 @@ public class RouteGalleryTest {
     /** A partner route that waits at the rear wall for the partner's tip and then fires 4 POLLEN at the rear cell. */
     private static AutoRoute partnerRoute() {
         return AutoRoute.builder("partner_rear").title("Partner tips first").description("d").startTile("C6")
-                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(30).shootUp(62.0, 132.5, 90, 4).build();
+                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
     }
 
     private static List<AutoRoute> catalogAndPartner() {
@@ -256,6 +256,63 @@ public class RouteGalleryTest {
                 .partnerTipsFirst().shootUp(4).build();
         String voided = rowValue(section(parse(RouteGallery.indexHtml(Collections.singletonList(early))), "early"), "Assumed partner tip");
         assertTrue(voided, voided.startsWith("none:"));
+    }
+
+    @Test
+    public void everyPartnerRouteShowsTheLatestPartnerTipThatStillWorksAndOtherRoutesDoNot() throws Exception {
+        Document page = parse(RouteGallery.indexHtml(catalogAndPartner()));
+        Element partner = section(page, "partner_rear");
+        // gives up at 20 s, the tip is assumed at 12 s: 8 s of slack
+        String slack = rowValue(partner, "Latest partner tip that works");
+        assertTrue(slack, slack.startsWith("20.0 s is the latest partner tip the route can still use, 8.0 s of slack after the assumed 12.0 s."));
+        assertTrue(slack, slack.contains("skips the volleys that need the tip"));
+        // the summary table repeats the number next to the assumption
+        boolean inSummary = false;
+        for (Element row : withClass(page, "tr", "summary-row")) {
+            if (row.getAttribute("data-route").equals("partner_rear")) {
+                inSummary = row.getTextContent().contains("latest tip that works: 20.0 s");
+            }
+        }
+        assertTrue("the summary row of the partner route carries the latest tip", inSummary);
+        // routes that shoot the first tip themselves have no such row
+        assertFalse(section(page, "garden_cycle").getTextContent().contains("Latest partner tip"));
+        for (Element row : withClass(page, "tr", "summary-row")) {
+            if (!row.getAttribute("data-route").equals("partner_rear")) {
+                assertFalse(row.getTextContent(), row.getTextContent().contains("latest tip that works"));
+            }
+        }
+    }
+
+    @Test
+    public void theSlackTextSaysWhenARouteHasLittleOrNoSlackOrDoesNotDependOnThePartner() throws Exception {
+        AutoRoute tight = AutoRoute.builder("tight").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
+                .partnerTipsFirst().waitForTip(13).shootUp(62.0, 132.5, 90, 4).build();
+        AutoRoute broken = AutoRoute.builder("broken").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
+                .partnerTipsFirst().waitForTip(10).shootUp(62.0, 132.5, 90, 4).build();
+        AutoRoute free = AutoRoute.builder("free").title("t").description("d").startTile("C6").start(61.5, 135.1, 90)
+                .partnerTipsFirst().driveConstant(61.5, 120, 90).build();
+        Document page = parse(RouteGallery.indexHtml(java.util.Arrays.asList(tight, broken, free)));
+        String tightText = rowValue(section(page, "tight"), "Latest partner tip that works");
+        assertTrue(tightText, tightText.contains("1.0 s of slack"));
+        assertTrue(tightText, tightText.contains("less than 3.0 s"));
+        String brokenText = rowValue(section(page, "broken"), "Latest partner tip that works");
+        assertTrue(brokenText, brokenText.contains("2.0 s BEFORE the assumed 12.0 s"));
+        assertTrue(brokenText, brokenText.contains("does not work with the assumed tip time"));
+        String freeText = rowValue(section(page, "free"), "Latest partner tip that works");
+        assertTrue(freeText, freeText.startsWith("any time"));
+    }
+
+    @Test
+    public void aWaitForTipStepSaysThatTheCameraDecidesAndHowLateItMayGiveUp() throws Exception {
+        Document page = parse(RouteGallery.indexHtml(catalogAndPartner()));
+        List<Element> notes = withClass(section(page, "partner_rear"), "div", "waitnote");
+        assertEquals(1, notes.size());
+        String text = notes.get(0).getTextContent();
+        assertTrue(text, text.contains("after the camera has SEEN the HIVE tipped, never at a time"));
+        assertTrue(text, text.contains("stops waiting at 20.0 s on the route clock"));
+        assertTrue(text, text.contains("may wait until"));
+        // no other route has a WAIT_FOR_TIP, so none has such a note
+        assertEquals(0, withClass(section(page, "garden_cycle"), "div", "waitnote").size());
     }
 
     @Test

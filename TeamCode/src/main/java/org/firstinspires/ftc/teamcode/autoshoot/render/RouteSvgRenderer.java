@@ -204,7 +204,7 @@ public final class RouteSvgRenderer {
             for (int i = 0; i < route.size(); i++) {
                 d.append(i == 0 ? "" : "; ").append(i + 1).append(' ').append(route.step(i).describe());
             }
-            d.append(". First tip: ").append(route.firstTipSummary()).append(". Estimated ").append(sec(a.totalSeconds()))
+            d.append(". First tip: ").append(firstTipText()).append(". Estimated ").append(sec(a.totalSeconds()))
                     .append(", POLLEN balance ").append(signed(a.pollenBalance()))
                     .append(", up to ").append(a.points()).append(" points for our robot; ").append(countOf(Issue.Severity.ERROR))
                     .append(" errors and ").append(countOf(Issue.Severity.WARN)).append(" warnings.");
@@ -238,6 +238,18 @@ public final class RouteSvgRenderer {
             return c;
         }
 
+        /**
+         * Who shoots the first tip, and for a partner route also the latest partner tip that still works (so the drive team
+         * sees how slow a partner the route can stand).
+         */
+        private String firstTipText() {
+            if (!a.partnerTipAssumed()) {
+                return route.firstTipSummary();
+            }
+            double latest = a.latestPartnerTipSec();
+            return route.firstTipSummary() + "; " + (Double.isInfinite(latest) ? "any tip time works" : "latest that works " + sec(latest));
+        }
+
         private void title() {
             String text = route.title() + " - " + alliance + " alliance";
             double size = Math.min(20.0, 852.0 / (text.length() * 0.56));
@@ -245,7 +257,7 @@ public final class RouteSvgRenderer {
                     "fill", BioBuzzConstants.Auto.RENDER_TEXT_COLOR);
             // The first-tip assumption is part of what the route IS: the drive team picks the auto that matches the partner's.
             String sub = "id " + route.id() + "  |  start tile " + route.startTile() + "  |  " + route.size() + " steps  |  "
-                    + (alliance == Alliance.RED ? "red" : "blue") + " ink  |  first tip: " + route.firstTipSummary();
+                    + (alliance == Alliance.RED ? "red" : "blue") + " ink  |  first tip: " + firstTipText();
             w.element("text", sub, "id", "subtitle", "x", "24", "y", "45", "font-size", n(fitFontPx(sub, 12.0)), "fill", MUTED_TEXT);
             // ink swatch so the colour is explained once
             w.empty("rect", "x", "24", "y", "52", "width", "40", "height", "4", "fill", ink);
@@ -821,7 +833,7 @@ public final class RouteSvgRenderer {
                 case WAIT:
                 case WAIT_FOR_TIP: {
                     String text = step.kind() == StepKind.WAIT_FOR_TIP
-                            ? "WAIT FOR TIP (max " + n(((Step.WaitForTip) step).timeoutSeconds()) + " s)"
+                            ? "WAIT FOR TIP (give up at " + n(((Step.WaitForTip) step).giveUpSec()) + " s)"
                             : "WAIT " + n(((Step.Wait) step).seconds()) + " s";
                     double[] pos = placeLabel(text, fontPx, p[0], p[1]);
                     // a small clock in front of the text

@@ -245,7 +245,11 @@ public final class RouteGallery {
             h.append("<td><a href=\"#").append(esc(e.route.id())).append("\">").append(esc(e.route.title())).append("</a><br /><code>")
                     .append(esc(e.route.id())).append("</code></td>");
             h.append("<td>").append(esc(e.route.startTile())).append("</td>");
-            h.append("<td>").append(esc(e.route.firstTipSummary())).append("</td>");
+            h.append("<td>").append(esc(e.route.firstTipSummary()));
+            if (a.partnerTipAssumed()) {
+                h.append("<br /><span class=\"note\">").append(esc(latestTipText(a))).append("</span>");
+            }
+            h.append("</td>");
             h.append("<td>").append(e.route.size()).append("</td>");
             h.append("<td>").append(seconds(a.totalSeconds())).append("</td>");
             h.append("<td>").append(a.points()).append("</td>");
@@ -291,6 +295,9 @@ public final class RouteGallery {
                             + ": an assumption, shown here and NOT counted in our points"
                     : "none: this route tips the HIVE itself before " + seconds(a.partnerTipSec()) + ", so the partner's tip is not needed");
         }
+        if (a.partnerTipAssumed()) {
+            row(h, "Latest partner tip that works", esc(slackText(a)));
+        }
         row(h, "POLLEN", "hold " + BioBuzzConstants.Auto.PRELOAD_POLLEN + " at the start, +" + a.pollenGained() + " taken, -"
                 + a.pollenShot() + " fired, " + a.pollenEnd() + " at the end (balance " + signed(a.pollenBalance()) + ")");
         row(h, "Our HIVE TIPs", Integer.toString(a.tips()) + (a.tips() == 0 ? "" : " (the first needs " + TipModel.firstTipPollen()
@@ -310,6 +317,9 @@ public final class RouteGallery {
             h.append("<li class=\"step\" data-kind=\"").append(info.step.kind().name()).append("\"><span class=\"kind\">")
                     .append(info.step.kind().name()).append("</span> ").append(esc(describeRest(info))).append(" <span class=\"time\">t = ")
                     .append(oneDecimal(info.startSec)).append(" to ").append(oneDecimal(info.endSec())).append(" s</span>");
+            if (info.step instanceof Step.WaitForTip) {
+                h.append("<div class=\"note waitnote\">").append(esc(waitText(a, info))).append("</div>");
+            }
             if (!info.step.note().isEmpty()) {
                 h.append("<div class=\"note\">").append(esc(info.step.note())).append("</div>");
             }
@@ -424,6 +434,44 @@ public final class RouteGallery {
         String d = info.step.describe();
         String kind = info.step.kind().name();
         return d.startsWith(kind + " ") ? d.substring(kind.length() + 1) : d;
+    }
+
+    /** Short: the latest partner tip that still works, for the summary table. */
+    private static String latestTipText(RouteAnalysis a) {
+        double latest = a.latestPartnerTipSec();
+        return Double.isInfinite(latest) ? "works with any partner tip time" : "latest tip that works: " + seconds(latest);
+    }
+
+    /**
+     * The slack of a partner route in plain words: how late the partner may tip and the route still does everything it
+     * plans, and why that is the limit. The robot never shoots because of a time; the numbers only tell the drive team
+     * which partner routes are safe to pick.
+     */
+    private static String slackText(RouteAnalysis a) {
+        double latest = a.latestPartnerTipSec();
+        if (Double.isInfinite(latest)) {
+            return "any time: this route does not depend on when the partner tips (it never shoots at the cell that comes up)";
+        }
+        double slack = a.partnerTipSlackSec();
+        String text = seconds(latest) + " is the latest partner tip the route can still use, " + seconds(Math.abs(slack))
+                + (slack >= 0 ? " of slack after" : " BEFORE") + " the assumed " + seconds(a.partnerTipSec()) + ".";
+        if (slack < 0) {
+            return text + " The route does not work with the assumed tip time.";
+        }
+        if (slack < BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC) {
+            return text + " That is less than " + seconds(BioBuzzConstants.Auto.PARTNER_TIP_MIN_SLACK_SEC)
+                    + ": pick this route only if the partner is as fast as agreed.";
+        }
+        return text + " If the partner tips later than that, the robot gives up waiting, skips the volleys that need the tip"
+                + " and still does LEAVE and PARK.";
+    }
+
+    /** The give-up time of a WAIT_FOR_TIP and the latest one the rest of the route allows. */
+    private static String waitText(RouteAnalysis a, RouteAnalysis.StepInfo info) {
+        double giveUp = ((Step.WaitForTip) info.step).giveUpSec();
+        return "The robot shoots after the camera has SEEN the HIVE tipped, never at a time. It stops waiting at " + seconds(giveUp)
+                + " on the route clock; the steps after this one take " + seconds(a.totalSeconds() - info.endSec())
+                + ", so it may wait until " + seconds(a.latestGiveUpSec(info)) + " at the latest.";
     }
 
     private static String pose(Pose2 p) {

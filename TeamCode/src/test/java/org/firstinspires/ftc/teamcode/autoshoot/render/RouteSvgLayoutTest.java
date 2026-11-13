@@ -309,7 +309,7 @@ public class RouteSvgLayoutTest {
     @Test
     public void theSubtitleAndFooterLinesWithTheFirstTipTextStillFitTheWidthOfTheImage() throws Exception {
         AutoRoute partner = AutoRoute.builder("partner_rear_wait_then_two_volleys").title("Partner tips first").startTile("C6")
-                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(30).shootUp(62.0, 132.5, 90, 4).build();
+                .start(61.5, 135.1, 90).partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
         List<AutoRoute> routes = new ArrayList<AutoRoute>(RouteCatalog.all());
         routes.add(partner);
         for (AutoRoute r : routes) {

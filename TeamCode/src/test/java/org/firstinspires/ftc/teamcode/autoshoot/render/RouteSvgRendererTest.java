@@ -459,7 +459,7 @@ public class RouteSvgRendererTest {
 
     private static AutoRoute partnerRoute() {
         return AutoRoute.builder("partner_rear").title("Partner tips first").startTile("C6").start(61.5, 135.1, 90)
-                .partnerTipsFirst().waitForTip(30).shootUp(62.0, 132.5, 90, 4).build();
+                .partnerTipsFirst().waitForTip(20).shootUp(62.0, 132.5, 90, 4).build();
     }
 
     @Test
@@ -470,11 +470,20 @@ public class RouteSvgRendererTest {
                 assertTrue(r.id() + ": " + sub, sub.contains("first tip: " + r.firstTipSummary()));
             }
         }
-        assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED)), "subtitle").getTextContent()
-                .contains("first tip: partner tips first, assumed at 12.0 s"));
+        // a partner route also says how late the partner may tip: it gives up waiting at 20 s, the rest needs about 6 s
+        String partnerSub = byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED)), "subtitle").getTextContent();
+        assertTrue(partnerSub, partnerSub.contains("first tip: partner tips first, assumed at 12.0 s; latest that works 20.0 s"));
         // the description for screen readers carries it too
         assertTrue(byId(parse(RouteSvgRenderer.render(partnerRoute(), Alliance.BLUE)), "svg-desc").getTextContent()
-                .contains("First tip: partner tips first, assumed at 12.0 s."));
+                .contains("First tip: partner tips first, assumed at 12.0 s; latest that works 20.0 s."));
+        // a partner route that never shoots at the cell that comes up does not depend on the time at all
+        AutoRoute independent = AutoRoute.builder("partner_walk").title("t").startTile("C6").start(61.5, 135.1, 90).partnerTipsFirst()
+                .driveConstant(61.5, 120, 90).build();
+        String walkSub = byId(parse(RouteSvgRenderer.render(independent, Alliance.RED)), "subtitle").getTextContent();
+        assertTrue(walkSub, walkSub.contains("assumed at 12.0 s; any tip time works"));
+        // a route that shoots the first tip itself has no such words
+        String selfSub = byId(parse(RouteSvgRenderer.render(RouteCatalog.byId("garden_cycle"), Alliance.RED)), "subtitle").getTextContent();
+        assertFalse(selfSub, selfSub.contains("latest that works"));
     }
 
     @Test
@@ -490,11 +499,11 @@ public class RouteSvgRendererTest {
     }
 
     @Test
-    public void waitForTipIsDrawnAsAClockWithItsTimeout() throws Exception {
+    public void waitForTipIsDrawnAsAClockWithItsGiveUpTime() throws Exception {
         Document d = parse(RouteSvgRenderer.render(partnerRoute(), Alliance.RED));
         boolean found = false;
         for (Element t : withClass(byId(d, "route"), "text", "step-label")) {
-            found |= t.getTextContent().equals("WAIT FOR TIP (max 30 s)");
+            found |= t.getTextContent().equals("WAIT FOR TIP (give up at 20 s)");
         }
         assertTrue(found);
         assertEquals(1, withClass(byId(d, "route"), "g", "clock").size());
