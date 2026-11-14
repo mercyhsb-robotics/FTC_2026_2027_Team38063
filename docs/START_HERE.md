@@ -5,7 +5,7 @@ order, tick each box, and read the "You should see" line after every step. If yo
 "If not" line. If that does not help, ask a mentor before you go on.
 
 > **Competition day (automatic shooting is not ready): use "Manual TeleOp"** (TeleOp, group "0 Competition"). You aim and shoot by hand.
-> **Hold the right trigger to shoot:** the flywheel and the feeder start together, and when you let go the flywheel brakes to a stop at once.
+> **Hold the right trigger to shoot:** the flywheel spins up and the feeder pushes POLLEN in as soon as the flywheel is fast enough, and when you let go the flywheel brakes to a stop at once.
 > **Hold the left trigger to take POLLEN in.** Hold the left bumper to drive slowly while you aim. Every mechanism has a hold-to-reverse button:
 > right bumper (indexer), B (shooter wheel), A (intake roller), X (the two corner servos, the "feelers"). All the buttons are in the [Controller map](#controller-map).
 
@@ -41,9 +41,9 @@ POLLEN) and a **feeder** (also called the indexer: a servo that pushes one POLLE
 **Limelight** camera on top faces the back, like the shooter (it is mounted upside down: see step 36b). It finds **AprilTags** (black and white square codes
 with a number) on the HIVE.
 
-**What it can do for you.** In TeleOp (the driver-controlled part of a match), **hold D-pad up** and the robot drives
+**What it can do for you.** This is the **"BioBuzzRobot"** OpMode (a TeleOp: the driver-controlled part of a match). In it, **hold D-pad up** and the robot drives
 itself to the closest legal spot in front of the UP cell, turns its back to the cell, aims with the camera and
-shoots every POLLEN it holds. Let go and you have control again.
+shoots every POLLEN it holds. Let go and you have control again. (In the "Manual TeleOp", D-pad up makes the shooting speed faster and nothing drives itself.)
 
 **You need:**
 
@@ -62,7 +62,7 @@ shoots every POLLEN it holds. Let go and you have control again.
 * Keep hands, hair and loose sleeves away from the wheels, the front rollers and the back flywheel.
 * Take the POLLEN out of the robot before a motor test (the shot table steps need one POLLEN).
 * One person always holds the Driver Station and is ready to press **STOP**.
-* When the robot drives itself, stand clear. Let go of D-pad up to take control back.
+* When the robot drives itself (only in "BioBuzzRobot"), stand clear. Let go of D-pad up to take control back. (In the "Manual TeleOp", D-pad up only makes the shooting speed faster.)
 * Shoot only into the cell that is UP.
 
 ## How to read this guide
@@ -94,7 +94,7 @@ Above every number is a comment that starts with one word. You will see these wo
 
 1. Type the new number in the constants file.
 2. If its word was ADD, change the word in the comment to VERIFY (or TUNE), and delete the number's name from the
-   list called `PLACEHOLDERS` near the top of the file. (The TeleOp prints that list at INIT as "Placeholders still to
+   list called `PLACEHOLDERS` near the top of the file. (Both TeleOps, "Manual TeleOp" and "BioBuzzRobot", print that list at INIT as "Placeholders still to
    measure". A test checks that the list and the words agree.)
 3. Press the green Run button again (step 2) to install the new code on the robot. It takes about a minute.
 
@@ -130,7 +130,7 @@ driving library. We call it the **Pedro file**. Pedro's own tuners write its num
 | `intakeMotor` | the front roller | motor |
 | `servoLeft`, `servoRight` | the two corner intake servos | continuous-rotation servo |
 | `limelight` | the Limelight 3A camera | USB device |
-| `imu` | the Control Hub's built-in gyro (only the backup drive uses it) | built in |
+| `imu` | the Control Hub's built-in gyro; the Manual TeleOp's drive needs this name | built in |
 
   These are `BioBuzzConstants.Hardware`. A **continuous-rotation servo** spins like a motor instead of turning to an
   angle. Save the configuration and make it the active one.
@@ -142,8 +142,7 @@ driving library. We call it the **Pedro file**. Pedro's own tuners write its num
   Under Autonomous: "Auto Route Picker" (group "2 Autonomous"), "RedAlliance_B1", "RedAlliance_C1", "RedAlliance_LeavePark", "PedroPathingAuto_Forward", "PedroPathingAuto_Strafe" and "AutoPath".
   **If not:** step 2 did not finish. Run again.
 
-- [ ] **6. Find your gamepad buttons.** Open the [Controller map](#controller-map) below once and look at the picture. You
-  will use the A button and the B button a lot.
+- [ ] **6. Find your gamepad buttons.** Open the [Controller map](#controller-map) below once and look at the picture. In the Robot Check you will use the A button (yes) and the B button (no) a lot.
 
 ## Run the Robot Check
 
@@ -226,12 +225,12 @@ at its own front distance from that wall (the file's `Robot.FRONT_EXTENT_IN` is 
   Check them once with your tape.
   Example: you measure 9.8 in to the front, so type `9.8`.
   The sums must match the size of the robot: front + rear = `Robot.LENGTH_IN` (17.80 in) and left + right = `Robot.WIDTH_IN` (17.62 in).
-  **You should see:** later, at INIT of the TeleOp, no error.
-  **If not:** if the sums do not match, the TeleOp refuses to start at INIT and the message names the two numbers that disagree.
+  **You should see:** later, at INIT of "BioBuzzRobot", no error.
+  **If not:** if the sums do not match, "BioBuzzRobot" refuses to start at INIT and the message names the two numbers that disagree. (The Manual TeleOp does not use these numbers, so it does not refuse to start for them.)
   Measure again, or fix the size in step 14.
 
 - [ ] **14. Measure the whole outline.** With the robot standing normally, measure the longest length and width in inches.
-  Write them in `Robot.LENGTH_IN` and `Robot.WIDTH_IN` (the team measured 17.80 and 17.62; the drawing says 17.80 and 17.80). The robot is 17.62 x 17.80 in, so it fits in the 18 in start cube (rule R102) with 0.38 in to spare in width and 0.20 in in length. If you add a part that sticks out, measure again: the Robot Check and the TeleOp INIT warn "larger than the 18 in start cube" if the robot grows past 18 in.
+  Write them in `Robot.LENGTH_IN` and `Robot.WIDTH_IN` (the team measured 17.80 and 17.62; the drawing says 17.80 and 17.80). The robot is 17.62 x 17.80 in, so it fits in the 18 in start cube (rule R102) with 0.38 in to spare in width and 0.20 in in length. If you add a part that sticks out, measure again: the Robot Check and the INIT screen of both TeleOps warn "larger than the 18 in start cube" if the robot grows past 18 in.
 
 - [ ] **15. ★ Measure where the ball leaves the robot.** The ball leaves the ramp at the back. Tape a measure straight
   back from the center-of-rotation mark to the point where the ball leaves the ramp. Write it as a **negative** number
@@ -277,7 +276,7 @@ at its own front distance from that wall (the file's `Robot.FRONT_EXTENT_IN` is 
   (it is 5.1875 in from the back and the back is 8.03 in behind the center, so it is 8.03 - 5.1875 = 2.8425 in behind the center, so **-2.8425**). Both are in the Pedro file (`pedro/Constants.java`) already.
 
 - [ ] **21. Finish the list.** For every ADD number you replaced in steps 13 to 17, change ADD to VERIFY in its comment and delete its name from `PLACEHOLDERS` (see "How to change a number"). Run the code again (step 2).
-  **You should see:** the TeleOp's INIT screen no longer lists the names you did. (Names that start with `Auto.` are for planning autonomous routes on a computer. Ignore them today.)
+  **You should see:** the INIT screen of the Manual TeleOp and of "BioBuzzRobot" no longer lists the names you did. (Names that start with `Auto.` are for planning autonomous routes on a computer. Ignore them today.)
   **If not:** a name still listed means it is still in `PLACEHOLDERS`.
 
 ## Tune driving with Pedro
@@ -295,7 +294,7 @@ Run them in this order: each one needs the one before it to be right.
 - [ ] **23. Mecanum Tuner** (robot on blocks). It asks for the four motor names, then spins each wheel one at a time. Enter
   `frontLeft`, `frontRight`, `backLeft` and `backRight`. After each wheel, say whether it spun **Forward** (the top of the wheel moved toward the front
   of the robot) or **Reversed**. At the end it shows a block of code. Copy only the four `Direction` lines (for example
-  `c.frontLeftDirection.set(...)`) into `drivetrainConfig` in the Pedro file.
+  `c.frontLeftDirection.set(...)`) into `drivetrainConfig` in the Pedro file. Pedro uses these directions (so do "BioBuzzRobot", the autonomous programs and the Robot Check). The Manual TeleOp does not: its wheel directions are in `MecanumDrive.init`.
   **You should see:** four lines with FORWARD or REVERSE.
   **If not:** if the wrong wheel spun, a motor is plugged into the wrong port. Fix the cable and start again.
 
@@ -345,8 +344,8 @@ Run them in this order: each one needs the one before it to be right.
 
 - [ ] **30. Drive the TeleOp.** Choose TeleOp, group "0 Competition", "Manual TeleOp", INIT, then PLAY. Drive with the sticks on the floor.
   **You should see:** left stick forward = robot forward, left stick right = robot slides right, right stick right = robot turns clockwise. The screen lists the buttons.
-  **If not:** the Manual TeleOp uses the simple drive in `mechanisms/mecanumdrive/MecanumDrive.java` (no odometry). If the robot twists or jerks instead of driving straight, one wheel direction is wrong there: ask a mentor.
-  (The settings `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN` and `MANUAL_TURN_SIGN` only change "BioBuzzRobot", which drives with Pedro.)
+  **If not:** the Manual TeleOp uses the simple drive in `mechanisms/mecanumdrive/MecanumDrive.java` (no odometry). If the robot goes the wrong way, or twists or jerks instead of driving straight, ask a mentor. The wheel directions are in `MecanumDrive.init` and the stick signs are in the `drive.drive(...)` line of `ManualTeleOp.java`.
+  In BioBuzzRobot: it drives with Pedro, so flip `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN` or `MANUAL_TURN_SIGN` between `1.0` and `-1.0`, one at a time. If a wheel is wrong, redo the Mecanum Tuner (step 23). These settings and the Pedro file do not change the Manual TeleOp.
 
 - [ ] **31. Run the Robot Check again** (step 8) and check that "Drive wheels" and "Pinpoint odometry" pass.
   **You should see:** PASS for both. In the Pinpoint check, turning the robot on the spot should not slide its position more than about 3 in.
@@ -488,7 +487,7 @@ in line with the HIVE, range 39.0 in (computed), speed about 1200 ticks per seco
 
 ## Controller map
 
-All buttons use gamepad 1, an Xbox-style gamepad. A, B, X and Y are the four round buttons on the right (A bottom, B right, X left, Y top). LB and RB are the bumpers on top, LT and RT are the triggers, LS and RS are the stick buttons (push a stick straight down). **Menu** is also called **Start** and **View** is also called **Back**. (A PlayStation pad works too: cross is A, circle is B, square is X, triangle is Y, Options is Menu and Share is View.)
+Gamepad 1 drives. Gamepad 2 (if you have one) can also press the shooter, intake, reverse and speed buttons. Use Xbox-style gamepads. A, B, X and Y are the four round buttons on the right (A bottom, B right, X left, Y top). LB and RB are the bumpers on top, LT and RT are the triggers, LS and RS are the stick buttons (push a stick straight down). **Menu** is also called **Start** and **View** is also called **Back**. (A PlayStation pad works too: cross is A, circle is B, square is X, triangle is Y, Options is Menu and Share is View.)
 
 ```
   LT = left trigger                      RT = right trigger
@@ -511,7 +510,7 @@ All buttons use gamepad 1, an Xbox-style gamepad. A, B, X and Y are the four rou
 ### TeleOp: "Manual TeleOp" (use this at competition)
 
 You aim and shoot by hand. Nothing automatic runs: no camera, no odometry. It needs only the drive motors, the shooter and the intake.
-Pick TeleOp, group "0 Competition", "Manual TeleOp". A second gamepad (gamepad 2), if you have one, can press the shooter, intake and reverse
+Pick TeleOp, group "0 Competition", "Manual TeleOp". A second gamepad (gamepad 2), if you have one, can press the shooter, intake, reverse and shooting-speed
 buttons too, so one person can drive while another shoots.
 
 **Hold** means: keep it pressed. **Press** means: one quick press.
@@ -520,7 +519,7 @@ buttons too, so one person can drive while another shoots.
 |---|---|---|
 | Left stick | Drive: forward and back, slide left and right (the directions are the robot's own). | the simple drive in `MecanumDrive` |
 | Right stick | Left and right: turn (right = clockwise). | the simple drive in `MecanumDrive` |
-| **Right trigger (RT)** | **Hold: SHOOT.** The flywheel spins up and the feeder pushes POLLEN in as soon as the flywheel is fast enough (above 950 ticks per second): both from this one button. **Let go and the flywheel brakes to a stop at once** and the feeder stops. | `Shooter.MANUAL_TARGET_TPS` (1200), `Shooter.MANUAL_MIN_TPS` (950), `Shooter.FLYWHEEL_BRAKE_ON_STOP` (true) |
+| **Right trigger (RT)** | **Hold: SHOOT.** The flywheel spins up and the feeder pushes POLLEN in as soon as the flywheel is fast enough (about 80% of the shooting speed: 950 ticks per second at the normal 1200): both from this one button. **Let go and the flywheel brakes to a stop at once** and the feeder stops. | `Controls.TRIGGER_THRESHOLD`, `Shooter.MANUAL_TARGET_TPS` (1200), `Shooter.MANUAL_MIN_TPS` (950), `Shooter.FLYWHEEL_BRAKE_ON_STOP` (true) |
 | **Left trigger (LT)** | **Hold: INTAKE.** The front roller and both corner servos (the "feelers") pull POLLEN in. It never runs while you shoot or clear a jam (the robot may hold at most 4 POLLEN). | `Controls.TRIGGER_THRESHOLD` |
 | Left bumper (LB) | **Hold: slow mode.** Driving and turning at about a third of the speed, for careful aiming. | `Manual.SLOW_MODE_BUTTON`, `Manual.SLOW_MODE_SCALE` |
 | D-pad up, D-pad down | **Press:** the shooting speed one step faster or slower (25 ticks per second each; 800 to 1600). The screen shows the speed. | `Manual.SPEED_UP_BUTTON`, `SPEED_DOWN_BUTTON`, `SPEED_STEP_TPS`, `SPEED_MIN_TPS`, `SPEED_MAX_TPS` |
@@ -537,12 +536,13 @@ buttons too, so one person can drive while another shoots.
 
 If you hold several buttons, the order of importance is: clearing a jam, then shooting, then taking POLLEN in. Pushing POLLEN out works at any time.
 The screen says what the robot is doing now (SHOOTING, INTAKE, CLEARING A JAM, REVERSING), the shooting speed and whether slow mode is on.
-Not used: the Xbox button, View, Menu, the stick buttons, Y.
+Not used: the Xbox button, View, Menu, D-pad right, the stick buttons, Y.
 
 ### TeleOp: "BioBuzzRobot" (automatic shooting and parking, for testing)
 
 The same shooter, intake and reverse buttons as the Manual TeleOp (right trigger = shoot, left trigger = intake, right bumper, B, A and X = reverse),
-plus the automatic features. The D-pad is used by the automatic features here, so there is no shooting-speed trim: it shoots at `Shooter.MANUAL_TARGET_TPS`.
+plus the automatic features. Gamepad 2's shooter, intake and reverse buttons work here too. The right bumper or B on either gamepad cancels an auto-score.
+The D-pad is used by the automatic features here, so there is no shooting-speed trim: it shoots at `Shooter.MANUAL_TARGET_TPS`.
 It drives with Pedro and the Pinpoint, so run the Pedro tuners (steps 22 to 29) first.
 
 | Control | What it does | Setting that changes it |
@@ -552,13 +552,13 @@ It drives with Pedro and the Pinpoint, so run the Pedro tuners (steps 22 to 29) 
 | D-pad up | **Hold:** auto-score. The robot drives to the scoring spot, aims and shoots. Let go to stop and take over. | `Controls.SHOOT_BUTTON` |
 | D-pad down | **Press:** "the other cell is up". Flips which cell the robot thinks is UP. | `Controls.TOGGLE_HIVE_BUTTON` |
 | D-pad left, D-pad right | Before PLAY (INIT) only: choose the RED / BLUE alliance. After PLAY: not used. | `Controls.ALLIANCE_RED_BUTTON`, `Controls.ALLIANCE_BLUE_BUTTON` |
-| Right trigger (RT), left trigger (LT) | Hold: shoot by hand / take POLLEN in (see the Manual TeleOp above). | fixed in the code |
-| Right bumper (RB), B, A, X | Hold: indexer / shooter flywheel / intake roller / corner servos run backward (see the Manual TeleOp above). Right bumper and B also cancel auto-score. | `Controls.UNJAM_INDEXER_BUTTON`, `UNJAM_SHOOTER_BUTTON`, `REVERSE_INTAKE_BUTTON`, `REVERSE_FEELERS_BUTTON` |
+| Right trigger (RT), left trigger (LT) | Hold: shoot by hand / take POLLEN in (see the Manual TeleOp above). | `Controls.TRIGGER_THRESHOLD` |
+| Right bumper (RB), B, A, X | Hold: indexer / shooter flywheel / intake roller / corner servos run backward (see the Manual TeleOp above). Right bumper and B (on gamepad 1 or gamepad 2) also cancel auto-score. | `Controls.UNJAM_INDEXER_BUTTON`, `UNJAM_SHOOTER_BUTTON`, `REVERSE_INTAKE_BUTTON`, `REVERSE_FEELERS_BUTTON` |
 | View (Back) | **Hold 0.6 s:** "the robot is on the default start pose". Resets its position. Works only when it is not auto-scoring. | `Controls.RESET_POSE_BUTTON`, `Controls.RESET_POSE_HOLD_SEC` |
 | Menu (Start) | **Hold:** park assist. The robot drives itself into your own LOADING ZONE by a safe road, stops there and holds. The screen says "Parked: release the button". Letting go, pushing the left stick hard, or holding the shoot or a jam button gives the sticks back at once. Do this at the end of the match for the 5 PARK points. It needs a trusted position (the start pose or the View reset). Do not press A or B while you hold Menu: on the Driver Station, Menu (Start) with A or B pairs the gamepad again. | `Controls.PARK_BUTTON` |
 | Xbox button, stick buttons (LS, RS), Y, LB | Not used. | none |
 
-While the robot auto-scores, the intake, the corner servos and the right trigger are switched off, because it may hold at most 4 POLLEN. A jam button (right bumper or B) cancels the auto-score and then works as written.
+While the robot auto-scores, the right trigger, the left trigger, A and X do nothing (the intake and the corner servos are switched off), because it may hold at most 4 POLLEN. A jam button (right bumper or B, on gamepad 1 or gamepad 2) cancels the auto-score and then works as written.
 If you still hold D-pad up when you let go of a jam button, the auto-score can start again: let go of D-pad up first. The screen says **CLEARING A JAM** while you hold a jam button.
 
 ### "00 Robot Check"
@@ -615,9 +615,9 @@ The Menu button (park assist) is a TeleOp button: it is in the table of "BioBuzz
 - [ ] **52. Place the robot** on the default start place (step 38): RED, front touching the audience wall, centered on tile C1, in line with the HIVE, facing the wall. Put in the POLLEN the way you do in a match (at most 4).
   Measure the robot's **edges**, never the tape mark, when you place it.
 
-- [ ] **53. Start the TeleOp.** "BioBuzzRobot". INIT. Choose the alliance with D-pad left (red) or D-pad right (blue). The gamepad light turns red or blue.
+- [ ] **53. Start "BioBuzzRobot".** INIT. Choose the alliance with D-pad left (red) or D-pad right (blue). The gamepad light turns red or blue.
   **You should see:** "Drive: Pedro + Pinpoint", any constants warnings, "Placeholders still to measure", the Vision line (the camera running), and "Start pose: default: center of tile C1, front against the audience wall".
-  **If not:** "LEGACY drive" means Pedro or the Pinpoint failed to start (check the name `pinpoint` and the cable). An error that names a constant means that number is wrong: fix it and run again.
+  **If not:** in BioBuzzRobot, "LEGACY drive" (the simple drive, without Pedro) means Pedro or the Pinpoint failed to start (check the name `pinpoint` and the cable). An error that names a constant means that number is wrong: fix it and run again.
 
 - [ ] **54. Press PLAY.** The robot now believes it stands on the start place. (If you restart within 5 minutes, it keeps the old position. If you moved the robot by hand, put it on the start place and **hold View for 0.6 s**.)
 
@@ -691,7 +691,7 @@ If the last line says **REFUSED**, the robot **will not move** after PLAY. Fix w
 
 **The routes.** Every route's title starts with a **tier** word: **Safe** (easy to set up, nothing extra: start with these), **Standard** (one extra job or a harder place to start) and **Aggressive** (more points are possible, but there is more that can go wrong and it uses nearly all of the 30 s). A title that starts with **Advanced** is for experts only. Open `docs/autos/index.html` in a browser to see every route drawn for both alliances with its start place, time and points; the table of all routes is in [`docs/AUTOS.md`](AUTOS.md).
 
-**What the robot does by itself.** It runs the route you chose, step by step. It **never fires at a cell the camera has not seen UP**: no camera, no shot. The only volley that needs no camera is the first one, at the cell that is UP from the start of the match. When AUTO ends it **stops everything** (the wheels, the shooter and the intake). It **keeps its position** (and the alliance) for the TeleOp, so you can start the TeleOp without resetting. Nobody has run the picker on the real robot yet: stay next to it with the Driver Station, ready to press **STOP**.
+**What the robot does by itself.** It runs the route you chose, step by step. It **never fires at a cell the camera has not seen UP**: no camera, no shot. The only volley that needs no camera is the first one, at the cell that is UP from the start of the match. When AUTO ends it **stops everything** (the wheels, the shooter and the intake). It **keeps its position** (and the alliance) for "BioBuzzRobot", so you can start it without resetting. Nobody has run the picker on the real robot yet: stay next to it with the Driver Station, ready to press **STOP**.
 
 - [ ] **60. Place the robot with a tape measure.** Choose the alliance and a route with the gamepad (see the controller map). Read the line **where to put the robot** on the screen. Put the side that faces the wall **on** the wall, square to it, and measure from the wall to the robot's **edge**, never to the tape mark.
   **You should see:** the distances on the screen match your tape measure.
@@ -723,12 +723,12 @@ With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_
 
 | What you see | What to try |
 |---|---|
-| The TeleOp refuses to start at INIT, with "BioBuzzConstants has errors" | The message names the constant. Fix that number (for example front + rear distance must equal the robot length). |
+| A TeleOp refuses to start at INIT, with "BioBuzzConstants has errors" | The message names the constant. Fix that number (for example front + rear distance must equal the robot length: that one stops "BioBuzzRobot" only). The Manual TeleOp refuses to start only for errors in the settings it uses, the manual controls. |
 | The Driver Station does not list the OpModes | Run step 2 again. |
-| The robot drives the wrong way: stick forward, robot goes back (or slides or turns the wrong way) | Flip `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN` or `MANUAL_TURN_SIGN` between `1.0` and `-1.0`, one at a time. |
-| The robot twists or jerks instead of driving straight, or the Robot Check says a wheel went backward | A wheel direction is wrong. Redo the Mecanum Tuner (step 23): the four `Direction` lines in `drivetrainConfig` in the Pedro file. Run the Robot Check again. |
+| The robot drives the wrong way: stick forward, robot goes back (or slides or turns the wrong way) | In BioBuzzRobot: flip `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN` or `MANUAL_TURN_SIGN` between `1.0` and `-1.0`, one at a time. In the Manual TeleOp: ask a mentor. The wheel directions are in `MecanumDrive.init` and the stick signs are in the `drive.drive(...)` line of `ManualTeleOp.java`. |
+| The robot twists or jerks instead of driving straight, or the Robot Check says a wheel went backward | A wheel direction is wrong. In BioBuzzRobot: redo the Mecanum Tuner (step 23): the four `Direction` lines in `drivetrainConfig` in the Pedro file. In the Manual TeleOp: ask a mentor (its wheel directions are in `MecanumDrive.init`). Run the Robot Check again. |
 | The Pedro tuner page does not open | The laptop must be on the Robot Controller's Wi-Fi, and the Driver Station must stay connected. Try `http://192.168.43.1:10158` again. |
-| The TeleOp says "LEGACY drive" | Pedro or the Pinpoint did not start. Check the name `pinpoint`, the cable, and the Robot Check Pinpoint check. |
+| BioBuzzRobot says "LEGACY drive" | Pedro or the Pinpoint did not start. Check the name `pinpoint`, the cable, and the Robot Check Pinpoint check. (The Manual TeleOp always uses the simple drive and does not use Pedro or the Pinpoint.) |
 | The camera is not seen: "NO Limelight", or the status is `NOT_CONNECTED`, `NO_RESULT`, `STALE`, `STALLED` or `WRONG_PIPELINE` | Check the USB cable in the blue port. Wait 20 s after power-on. The configuration name must be exactly `limelight`. Pipeline 0 must be the AprilTag pipeline (step 36). Open the Limelight page (step 35). |
 | The camera sees no tags | Check pitch, exposure, marker size 82.55 mm and Full 3D (step 36). Is the HIVE in view from this spot? |
 | The flywheel never gets to speed (`FLYWHEEL_NOT_AT_SPEED`, `SPINUP_TIMEOUT`) | Use a fresh battery. The target must be below what the motor can do (about 2800 ticks per second). Check the flywheel cable and encoder (Robot Check, flywheel). `Shooter.FLYWHEEL_PIDF_P` (40) and `FLYWHEEL_PIDF_F` (12.5) are goBILDA's starting numbers. `Shooter.AT_SPEED_BELOW_FRAC`, `AT_SPEED_ABOVE_FRAC`, `AT_SPEED_RISE_SEC` widen the "at speed" window. |
@@ -754,7 +754,7 @@ With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_
 1. The Pinpoint (two small wheels and a gyro) tracks the robot's pose. Pedro drives to a pose using it.
 2. The Limelight finds the four AprilTags of each HIVE cell. Their order and height tell the code which cell is UP.
 3. The tags are on the cells, and the cells move, so the camera cannot say where the robot is on the field. The Pinpoint does that. The camera gives alignment, and an optional small correction of drift.
-4. Hold D-pad up and the controller **plans**: it picks the closest legal spot in front of the UP cell, with the robot's back (the shooter) toward the cell and the range inside the shot table.
+4. In "BioBuzzRobot", hold D-pad up and the controller **plans**: it picks the closest legal spot in front of the UP cell, with the robot's back (the shooter) toward the cell and the range inside the shot table.
 5. It **drives** there around the walls, the HIVE frame and the FLOWERS (the POLLEN holders on the walls), checking the whole robot rectangle, not just its center.
 6. It **aligns** and holds the spot. The camera trims the heading toward the aim point.
 7. It **feeds**: the feeder runs only while every condition is true: the pose is trusted, the UP cell is confirmed, the tags are in view, the range is in the table, the robot is still, the shooter points at the cell, and the flywheel is at speed.
