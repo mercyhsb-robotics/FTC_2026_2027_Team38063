@@ -18,9 +18,9 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  * <p><b>The rules (the same every loop).</b>
  * <ul>
  *   <li><b>Shoot = hold the RIGHT TRIGGER.</b> The flywheel spins up to the shooting speed and the feeder pushes
- *       POLLEN into it, but only once the flywheel is fast enough ({@code Shooter.MANUAL_MIN_TPS}), so the first
- *       ball is never fed too early. <b>Let go and the flywheel brakes to a stop at once and the feeder stops</b>
- *       (a coasting flywheel once threw out a POLLEN nobody meant to shoot).</li>
+ *       POLLEN into it, but only once the flywheel is fast enough (about 80% of the shooting speed: see
+ *       {@code Shooter.MANUAL_MIN_TPS}), so the first ball is never fed too early. <b>Let go and the flywheel brakes to
+ *       a stop at once and the feeder stops</b> (a coasting flywheel once threw out a POLLEN nobody meant to shoot).</li>
  *   <li><b>Intake = hold the LEFT TRIGGER.</b> The front roller and both corner servos pull POLLEN in. Let go and
  *       they stop.</li>
  *   <li><b>Reverse, every mechanism.</b> Hold a button and that mechanism runs BACKWARD (settings in
@@ -29,7 +29,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  *   <li><b>Priority:</b> clearing a jam beats shooting, and shooting beats pulling in. The robot never takes POLLEN
  *       in while it is shooting or clearing a jam (it may hold at most 4 POLLEN). Pushing POLLEN out works at any time.</li>
  * </ul>
- * A second gamepad (the "operator") can press the same buttons: either gamepad can shoot, intake or clear a jam.
+ * A second gamepad (the "operator") can press the same buttons: either gamepad can shoot, intake or reverse.
  * The sticks are read by the OpMode, not here.
  *
  * <p>Words: a <b>trigger</b> is the analog button under each index finger (it counts as pressed past
@@ -45,11 +45,14 @@ final class ManualMechanisms {
 
     // What the last update() decided, for the Driver Station screen.
     private boolean shooting;
+    private boolean feeding;
     private boolean intaking;
     private boolean reversingRoller;
     private boolean reversingFeelers;
     private boolean unjammingIndexer;
     private boolean unjammingShooter;
+    // The flywheel speed read ONCE in the last update() (a hub read: the screen reuses it instead of reading again).
+    private double flywheelTps;
 
     ManualMechanisms(Launcher launcher, Intake intake, CRServo servoLeft, CRServo servoRight) {
         this.launcher = launcher;
@@ -62,24 +65,32 @@ final class ManualMechanisms {
      * Reads the buttons and drives the mechanisms. Call once per loop.
      *
      * @param driver gamepad 1
-     * @param operator gamepad 2 (may be unused: a gamepad that is not connected simply presses nothing)
+     * @param operator gamepad 2 (a gamepad that is not connected simply presses nothing)
      * @param shootTps the flywheel speed to shoot at, in ticks per second
      */
     void update(Gamepad driver, Gamepad operator, double shootTps) {
         double threshold = BioBuzzConstants.Controls.TRIGGER_THRESHOLD;
         boolean shootAsked = driver.right_trigger > threshold || (operator != null && operator.right_trigger > threshold);
         boolean intakeAsked = driver.left_trigger > threshold || (operator != null && operator.left_trigger > threshold);
-        unjammingIndexer = held(driver, operator, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON);
-        unjammingShooter = held(driver, operator, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
-        // The priority rules (jam beats shoot beats intake) are plain functions in ManualRules, so they are unit-tested.
-        boolean rollerReverseAsked = held(driver, operator, BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON);
-        boolean feelerReverseAsked = held(driver, operator, BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON);
-        ManualRules.Decision d = ManualRules.decide(shootAsked, intakeAsked, unjammingIndexer, unjammingShooter,
-                rollerReverseAsked, feelerReverseAsked);
+        // The priority rules (jam beats shoot beats pulling in) are plain functions in ManualRules, so they are unit-tested.
+        ManualRules.Decision d = ManualRules.decide(shootAsked, intakeAsked,
+                held(driver, operator, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON),
+                held(driver, operator, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON),
+                held(driver, operator, BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON),
+                held(driver, operator, BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON));
+        apply(d, shootTps);
+    }
+
+    /** Carries out one decision: moves the flywheel, the feeder, the roller and the corner servos. Package-private so a test can call it. */
+    void apply(ManualRules.Decision d, double shootTps) {
         shooting = d.shoot;
         intaking = d.pullingIn();
         reversingRoller = d.rollerDirection < 0;
         reversingFeelers = d.feelerDirection < 0;
+        unjammingIndexer = d.reverseIndexer;
+        unjammingShooter = d.reverseShooter;
+        feeding = false;
+        flywheelTps = launcher.velocity();
 
         if (d.reverseShooter) {
             // The flywheel runs slowly backward (the launcher forgets any forward speed first).
@@ -96,9 +107,10 @@ final class ManualMechanisms {
                 launcher.setTargetVelocity(0.0);
                 launcher.feederReverse();
             } else if (d.shoot) {
-                // Spin up and feed together: the feeder only runs while the flywheel is fast enough.
+                // Spin up and feed together: the feeder only runs while the flywheel is fast enough for the speed being shot.
                 launcher.setTargetVelocity(shootTps);
-                launcher.setFeederOn(launcher.velocity() > BioBuzzConstants.Shooter.MANUAL_MIN_TPS);
+                feeding = flywheelTps > feedAboveTps(shootTps);
+                launcher.setFeederOn(feeding);
             } else {
                 // Nothing asked for: the flywheel brakes to a stop (see Launcher.setTargetVelocity) and the feeder stops.
                 launcher.setTargetVelocity(0.0);
@@ -117,8 +129,14 @@ final class ManualMechanisms {
         // The two corner servos (feelers). They are mirror images, so "pull in" is a different sign on each side; pushing out is
         // the opposite of that sign at the reverse power.
         double feelerPower = d.feelerDirection > 0 ? 1.0 : (d.feelerDirection < 0 ? -BioBuzzConstants.Controls.FEELER_REVERSE_POWER : 0.0);
-        servoLeft.setPower(feelerPower * BioBuzzConstants.Run.INTAKE_LEFT_SERVO_POWER);
-        servoRight.setPower(feelerPower * BioBuzzConstants.Run.INTAKE_RIGHT_SERVO_POWER);
+        // (Off is a plain 0.0: multiplying 0.0 by the negative left-servo power would give -0.0.)
+        servoLeft.setPower(feelerPower == 0.0 ? 0.0 : feelerPower * BioBuzzConstants.Run.INTAKE_LEFT_SERVO_POWER);
+        servoRight.setPower(feelerPower == 0.0 ? 0.0 : feelerPower * BioBuzzConstants.Run.INTAKE_RIGHT_SERVO_POWER);
+    }
+
+    /** The flywheel speed above which the feeder may run while shooting at {@code shootTps} (see {@link ManualRules#feedThresholdTps}). */
+    static double feedAboveTps(double shootTps) {
+        return ManualRules.feedThresholdTps(shootTps, BioBuzzConstants.Shooter.MANUAL_MIN_TPS, BioBuzzConstants.Shooter.MANUAL_TARGET_TPS);
     }
 
     /** Stops everything (the flywheel brakes). For the end of the OpMode. */
@@ -127,7 +145,16 @@ final class ManualMechanisms {
         intake.stopIntake();
         servoLeft.setPower(0.0);
         servoRight.setPower(0.0);
+        clearStatus();
+    }
+
+    /**
+     * Forgets what the screen would show, without touching any hardware. For a loop in which something else (the automatic
+     * shooting) has the mechanisms and {@link #update} is not called, so the screen does not show an old state.
+     */
+    void clearStatus() {
         shooting = false;
+        feeding = false;
         intaking = false;
         reversingRoller = false;
         reversingFeelers = false;
@@ -140,7 +167,17 @@ final class ManualMechanisms {
         return shooting;
     }
 
-    /** True while the intake is running. */
+    /** True while the feeder is pushing POLLEN into the flywheel because the flywheel is fast enough. */
+    boolean feeding() {
+        return feeding;
+    }
+
+    /** The flywheel speed read in the last update(), in ticks per second. */
+    double flywheelTps() {
+        return flywheelTps;
+    }
+
+    /** True while the intake is pulling POLLEN in. */
     boolean intaking() {
         return intaking;
     }
@@ -160,9 +197,15 @@ final class ManualMechanisms {
         return unjammingIndexer;
     }
 
-    /** True while the shooter flywheel is being run slowly backward by hand. */
+    /** True while the shooter flywheel is being run backward by hand. */
     boolean unjammingShooter() {
         return unjammingShooter;
+    }
+
+    /** True if a jam-clearing button (indexer or shooter) is held on either gamepad. BioBuzzRobot uses this to cancel an auto-score. */
+    static boolean jamButtonHeld(Gamepad driver, Gamepad operator) {
+        return held(driver, operator, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON)
+                || held(driver, operator, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
     }
 
     // True if the button is held on the driver's gamepad or on the operator's.

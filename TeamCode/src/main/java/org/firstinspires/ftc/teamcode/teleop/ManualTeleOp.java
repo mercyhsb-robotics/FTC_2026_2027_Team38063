@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.mechanisms.mecanumdrive.MecanumDrive;
  * automatic runs: no odometry, no camera, no auto-shoot. It needs only the drive motors, the shooter, the intake and
  * the Control Hub, so there is very little that can go wrong.
  *
- * <p><b>Controls (Xbox-style gamepad 1; gamepad 2 can press the shooter and intake buttons too).</b>
+ * <p><b>Controls (Xbox-style gamepad 1; gamepad 2 can press the shooter, intake, reverse and speed buttons too).</b>
  * <ul>
  *   <li><b>Left stick:</b> drive forward / back and slide left / right. <b>Right stick (left / right):</b> turn.</li>
  *   <li><b>Right trigger (hold): SHOOT.</b> The flywheel spins up and the feeder pushes POLLEN in once it is fast
@@ -40,6 +40,10 @@ import org.firstinspires.ftc.teamcode.mechanisms.mecanumdrive.MecanumDrive;
  * The robot drives with the simple "legacy" mecanum drive ({@link MecanumDrive}), which needs no position tracking.
  * The OpMode "BioBuzzRobot" is the one with automatic shooting and parking.
  *
+ * <p>At INIT it refuses to start only if a setting THIS OpMode uses is wrong (the manual controls: see
+ * {@code ConstantsCheck.runManual}). Problems in settings it does not use (the camera, the field, the routes) are shown on
+ * the screen, but do not stop it.
+ *
  * <p>This class is wiring only: the shooter and intake rules are in {@link ManualMechanisms}.
  */
 @TeleOp(name = "Manual TeleOp", group = "0 Competition")
@@ -50,22 +54,41 @@ public class ManualTeleOp extends OpMode {
     private CRServo servoLeft;
     private CRServo servoRight;
     private ManualMechanisms mechanisms;
+    // The whole constants check, only for showing warnings, placeholders and other problems at INIT.
+    private ConstantsCheck.Report fullReport;
 
     // The flywheel speed used for shooting, in ticks per second. Starts at the normal speed; D-pad up / down change it.
     private double shootTps = BioBuzzConstants.Shooter.MANUAL_TARGET_TPS;
-    // Were the three speed buttons down on the previous loop? Used to act once per press, not on every loop.
-    private boolean prevFaster;
-    private boolean prevSlower;
-    private boolean prevNormal;
+    // One of these per button and per gamepad, so a press on either gamepad counts once, even if the other gamepad holds the same button.
+    private final Press fasterOn1 = new Press();
+    private final Press fasterOn2 = new Press();
+    private final Press slowerOn1 = new Press();
+    private final Press slowerOn2 = new Press();
+    private final Press normalOn1 = new Press();
+    private final Press normalOn2 = new Press();
+
+    /** Remembers whether a button was down on the previous loop, so a press is acted on once and not on every loop it is held. */
+    private static final class Press {
+        private boolean previous;
+
+        /** True only on the loop where the button goes from up to down. */
+        boolean pressed(boolean down) {
+            boolean edge = down && !previous;
+            previous = down;
+            return edge;
+        }
+    }
 
     /** Runs once at INIT: checks the constants and finds the hardware. */
     @Override
     public void init() {
-        // Refuse a nonsense setting here, with a message that names it, instead of failing in the middle of a match.
-        ConstantsCheck.Report report = ConstantsCheck.run();
-        if (!report.ok()) {
-            throw new IllegalStateException("BioBuzzConstants has errors: " + report.errors);
+        // Refuse a wrong manual-control setting here, with a message that names it, instead of failing in the middle of a match.
+        ConstantsCheck.Report manual = ConstantsCheck.runManual();
+        if (!manual.ok()) {
+            throw new IllegalStateException("The manual-control settings in BioBuzzConstants have errors: " + manual.errors);
         }
+        // The rest of the constants are checked for the screen only (they belong to the camera, field and route features).
+        fullReport = ConstantsCheck.run();
         // Bulk caching: the hub sends all its readings in one batch instead of one slow request per reading.
         for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
@@ -77,14 +100,23 @@ public class ManualTeleOp extends OpMode {
         servoLeft = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.LEFT_INTAKE_SERVO);
         servoRight = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.RIGHT_INTAKE_SERVO);
         mechanisms = new ManualMechanisms(launcher, intake, servoLeft, servoRight);
-        drive = new MecanumDrive();
-        drive.init(hardwareMap);
-        telemetry.addLine("Manual TeleOp ready. Press PLAY.");
+        // The drive is kept in a local variable until init() has worked, so stop() never meets a half-built drive.
+        MecanumDrive legacyDrive = new MecanumDrive();
+        legacyDrive.init(hardwareMap);
+        drive = legacyDrive;
     }
 
-    /** Runs while waiting for PLAY: shows the buttons so nobody has to remember them. */
+    /** Runs while waiting for PLAY: shows the checks and the buttons so nobody has to remember them. */
     @Override
     public void init_loop() {
+        telemetry.addLine("Manual TeleOp ready. Press PLAY.");
+        if (!fullReport.warnings.isEmpty()) {
+            telemetry.addData("Constants WARNINGS", fullReport.warnings);
+        }
+        if (!fullReport.errors.isEmpty()) {
+            telemetry.addData("Other constants problems (not used by this OpMode)", fullReport.errors);
+        }
+        telemetry.addData("Placeholders still to measure", fullReport.placeholders.size() + ": " + fullReport.placeholders);
         showButtons();
     }
 
@@ -92,29 +124,29 @@ public class ManualTeleOp extends OpMode {
     @Override
     public void loop() {
         // Slow mode: hold the slow button and every stick request is scaled down for careful aiming.
-        boolean slow = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Manual.SLOW_MODE_BUTTON);
+        boolean slow = pressedAny(BioBuzzConstants.Manual.SLOW_MODE_BUTTON);
         double scale = slow ? BioBuzzConstants.Manual.SLOW_MODE_SCALE : 1.0;
         // MecanumDrive wants the raw stick values (see MecanumDrive.drive for the signs).
         drive.drive(gamepad1.left_stick_y * scale, gamepad1.left_stick_x * scale, gamepad1.right_stick_x * scale);
 
-        // Shooting speed: act once per press.
-        boolean faster = pressedAny(BioBuzzConstants.Manual.SPEED_UP_BUTTON);
-        boolean slower = pressedAny(BioBuzzConstants.Manual.SPEED_DOWN_BUTTON);
-        boolean normal = pressedAny(BioBuzzConstants.Manual.SPEED_RESET_BUTTON);
-        if (faster && !prevFaster) {
+        // Shooting speed: each press on either gamepad counts once.
+        boolean faster = fasterOn1.pressed(GamepadButtons.pressed(gamepad1, BioBuzzConstants.Manual.SPEED_UP_BUTTON))
+                | fasterOn2.pressed(GamepadButtons.pressed(gamepad2, BioBuzzConstants.Manual.SPEED_UP_BUTTON));
+        boolean slower = slowerOn1.pressed(GamepadButtons.pressed(gamepad1, BioBuzzConstants.Manual.SPEED_DOWN_BUTTON))
+                | slowerOn2.pressed(GamepadButtons.pressed(gamepad2, BioBuzzConstants.Manual.SPEED_DOWN_BUTTON));
+        boolean normal = normalOn1.pressed(GamepadButtons.pressed(gamepad1, BioBuzzConstants.Manual.SPEED_RESET_BUTTON))
+                | normalOn2.pressed(GamepadButtons.pressed(gamepad2, BioBuzzConstants.Manual.SPEED_RESET_BUTTON));
+        if (faster) {
             shootTps = ManualRules.trimShootSpeed(shootTps, 1, BioBuzzConstants.Manual.SPEED_STEP_TPS,
                     BioBuzzConstants.Manual.SPEED_MIN_TPS, BioBuzzConstants.Manual.SPEED_MAX_TPS);
         }
-        if (slower && !prevSlower) {
+        if (slower) {
             shootTps = ManualRules.trimShootSpeed(shootTps, -1, BioBuzzConstants.Manual.SPEED_STEP_TPS,
                     BioBuzzConstants.Manual.SPEED_MIN_TPS, BioBuzzConstants.Manual.SPEED_MAX_TPS);
         }
-        if (normal && !prevNormal) {
+        if (normal) {
             shootTps = BioBuzzConstants.Shooter.MANUAL_TARGET_TPS;
         }
-        prevFaster = faster;
-        prevSlower = slower;
-        prevNormal = normal;
 
         // The shooter and the intake (see ManualMechanisms for the rules).
         mechanisms.update(gamepad1, gamepad2, shootTps);
@@ -145,7 +177,7 @@ public class ManualTeleOp extends OpMode {
             doing = "CLEARING A JAM: " + (mechanisms.unjammingIndexer() ? "indexer BACKWARD (slow)  " : "")
                     + (mechanisms.unjammingShooter() ? "shooter wheel BACKWARD (slow)" : "");
         } else if (mechanisms.shooting()) {
-            doing = launcher.velocity() > BioBuzzConstants.Shooter.MANUAL_MIN_TPS ? "SHOOTING (feeding)" : "SHOOTING: wheel spinning up";
+            doing = mechanisms.feeding() ? "SHOOTING (feeding)" : "SHOOTING: wheel spinning up";
         } else if (mechanisms.intaking()) {
             doing = "INTAKE";
         } else {
@@ -155,7 +187,8 @@ public class ManualTeleOp extends OpMode {
             doing += "   REVERSING: " + (mechanisms.reversingRoller() ? "intake roller  " : "") + (mechanisms.reversingFeelers() ? "feelers" : "");
         }
         telemetry.addData("Now", doing);
-        telemetry.addData("Shoot speed", String.format("%.0f ticks per second  (flywheel now %.0f)", shootTps, launcher.velocity()));
+        telemetry.addData("Shoot speed", String.format("%.0f ticks per second  (flywheel now %.0f, feeds above %.0f)", shootTps,
+                mechanisms.flywheelTps(), ManualMechanisms.feedAboveTps(shootTps)));
         telemetry.addData("Drive", slow ? "SLOW MODE" : "normal");
         showButtons();
     }

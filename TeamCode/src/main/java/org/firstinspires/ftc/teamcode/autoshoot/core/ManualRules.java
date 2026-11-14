@@ -67,6 +67,16 @@ public final class ManualRules {
     }
 
     /**
+     * The flywheel speed above which the feeder may push a POLLEN in while shooting at {@code shootTps}. It is the same share of the
+     * shooting speed that {@code minTps} is of {@code normalTps} (950 of 1200, about 80%), so a trimmed speed keeps the same gate: a driver
+     * who trims the speed down never ends up with a gate the flywheel cannot reach, and one who trims it up never feeds a ball while
+     * the wheel is far too slow.
+     */
+    public static double feedThresholdTps(double shootTps, double minTps, double normalTps) {
+        return shootTps * minTps / normalTps;
+    }
+
+    /**
      * The shooting speed after one press of a speed button.
      *
      * @param currentTps the speed now, in ticks per second

@@ -81,6 +81,77 @@ public class ManualRulesTest {
     }
 
     /**
+     * Situation: only the intake trigger is held.
+     * Expected: the roller and both corner servos pull POLLEN in (direction 1) and nothing else runs.
+     * Why: it is the headline feature of the left trigger, and nothing else pins it.
+     */
+    @Test
+    public void theIntakeTriggerAlonePullsInWithBothParts() {
+        ManualRules.Decision d = ManualRules.decide(false, true, false, false, false, false);
+        assertEquals(1, d.rollerDirection);
+        assertEquals(1, d.feelerDirection);
+        assertTrue(d.pullingIn());
+        assertFalse(d.pushingOut());
+        assertFalse(d.shoot);
+        assertFalse(d.reverseIndexer);
+        assertFalse(d.reverseShooter);
+    }
+
+    /**
+     * Situation: the feeder gate for different shooting speeds.
+     * Expected: at the normal speed the gate is the tested 950; it scales with the trimmed speed, so it is always below the shooting speed
+     * (the flywheel can reach it) and about 79% of it.
+     * Why: a fixed 950 would never let the feeder run at a trimmed speed of 950 or less, and would feed far too early at 1600.
+     */
+    @Test
+    public void theFeederGateFollowsTheShootingSpeed() {
+        double min = BioBuzzConstants.Shooter.MANUAL_MIN_TPS;
+        double normal = BioBuzzConstants.Shooter.MANUAL_TARGET_TPS;
+        assertEquals("at the normal speed the gate is the tested one", min, ManualRules.feedThresholdTps(normal, min, normal), 1e-9);
+        for (double speed = BioBuzzConstants.Manual.SPEED_MIN_TPS; speed <= BioBuzzConstants.Manual.SPEED_MAX_TPS; speed += 25.0) {
+            double gate = ManualRules.feedThresholdTps(speed, min, normal);
+            assertTrue("the gate (" + gate + ") must be below the shooting speed " + speed, gate < speed);
+            assertEquals("the gate is the same share of the speed", min / normal, gate / speed, 1e-9);
+        }
+        assertTrue("a trimmed-up speed raises the gate", ManualRules.feedThresholdTps(1600.0, min, normal) > min);
+        assertTrue("a trimmed-down speed lowers the gate", ManualRules.feedThresholdTps(800.0, min, normal) < min);
+    }
+
+    /**
+     * Situation: the startup check for the Manual TeleOp only ({@code ConstantsCheck.runManual}) with the shipped constants.
+     * Expected: no errors.
+     * Why: the Manual TeleOp refuses to start on an error here, so the shipped settings must pass.
+     */
+    @Test
+    public void theShippedManualSettingsPassTheManualOnlyCheck() {
+        ConstantsCheck.Report report = ConstantsCheck.runManual();
+        assertTrue(report.errors.toString(), report.ok());
+    }
+
+    /**
+     * Situation: the trigger threshold and the jam powers are checked with good and bad values.
+     * Expected: a threshold of 0, 1 or more, or below 0 is reported; the shipped one passes; a jam power of zero or above the limit is reported.
+     * Why: a threshold of 1 or more disables the triggers; one of 0 would shoot from a resting trigger.
+     */
+    @Test
+    public void theTriggerThresholdAndJamPowersAreChecked() {
+        ConstantsCheck.Report good = new ConstantsCheck.Report();
+        ConstantsCheck.checkTriggerThreshold(good, BioBuzzConstants.Controls.TRIGGER_THRESHOLD);
+        ConstantsCheck.checkJamPowers(good, BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER, BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER,
+                BioBuzzConstants.Controls.UNJAM_MAX_POWER);
+        assertTrue(good.errors.toString(), good.errors.isEmpty());
+        for (double bad : new double[]{0.0, 1.0, 1.5, -0.2}) {
+            ConstantsCheck.Report r = new ConstantsCheck.Report();
+            ConstantsCheck.checkTriggerThreshold(r, bad);
+            assertContains(r.errors.toString(), "TRIGGER_THRESHOLD");
+        }
+        ConstantsCheck.Report jam = new ConstantsCheck.Report();
+        ConstantsCheck.checkJamPowers(jam, 0.0, 0.9, 0.5);
+        assertContains(jam.errors.toString(), "FEEDER_REVERSE_POWER");
+        assertContains(jam.errors.toString(), "FLYWHEEL_UNJAM_POWER");
+    }
+
+    /**
      * Situation: the driver holds the shoot trigger and the two intake reverse buttons.
      * Expected: it shoots and the intake pushes out.
      * Why: pushing a POLLEN out never conflicts with shooting.

@@ -105,7 +105,7 @@ public class LauncherBrakeTest {
      * Situation: the shooter jam button is held (the flywheel runs slowly backward) and then let go.
      * Expected: while held the reverse power is applied; on release the power goes to zero (braking) and speed control is NOT
      * switched back on until a forward speed is asked for.
-     * Why: after clearing a jam the wheel must stop at once, not coast, and a forward speed asked for during the reverse is ignored.
+     * Why: after clearing a jam the wheel must stop at once, not coast.
      */
     @Test
     public void clearingAJamEndsWithABrake() {
@@ -117,17 +117,34 @@ public class LauncherBrakeTest {
         assertTrue(launcher.flywheelReversing());
 
         flywheelLog.clear();
-        launcher.setTargetVelocity(1200.0);
-        assertTrue("a forward speed must be ignored while reversing: " + flywheelLog, flywheelLog.isEmpty());
-
         launcher.reverseFlywheel(false);
         assertEquals(Collections.singletonList("power 0.0"), flywheelLog);
         assertFalse(launcher.flywheelReversing());
-        assertFalse("no speed control until a speed is asked for", flywheelLog.contains("mode RUN_USING_ENCODER"));
 
         flywheelLog.clear();
         launcher.setTargetVelocity(1200.0);
         assertEquals(Arrays.asList("mode RUN_USING_ENCODER", "velocity 1200.0"), flywheelLog);
+    }
+
+    /**
+     * Situation: the flywheel is running slowly backward and a forward speed is asked for without letting go first (for example the
+     * automatic shooting starts).
+     * Expected: the reverse ends and the flywheel spins up: speed control is switched on, then the speed command is sent.
+     * Why: otherwise the flywheel could stay stuck running backward while the shooting waits for a speed it never reaches.
+     */
+    @Test
+    public void aForwardSpeedEndsASlowReverse() {
+        launcher.reverseFlywheel(true);
+        flywheelLog.clear();
+
+        launcher.setTargetVelocity(1200.0);
+
+        assertEquals(Arrays.asList("mode RUN_USING_ENCODER", "velocity 1200.0"), flywheelLog);
+        assertFalse(launcher.flywheelReversing());
+
+        flywheelLog.clear();
+        launcher.reverseFlywheel(false);
+        assertTrue("nothing more to undo: " + flywheelLog, flywheelLog.isEmpty());
     }
 
     /**

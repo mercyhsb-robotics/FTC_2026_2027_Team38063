@@ -22,7 +22,12 @@ public class Intake {
 
     /** Finds the roller motor in the robot configuration. Call once, from the OpMode's init(). */
     public void init (HardwareMap hardwareMap) {
-        intakeMotor = hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.INTAKE_MOTOR);
+        configure(hardwareMap.get(DcMotor.class, BioBuzzConstants.Hardware.INTAKE_MOTOR));
+    }
+
+    /** The rest of init(), taking the motor as an argument. Public so a unit test can pass a pretend motor. */
+    public void configure(DcMotor motor) {
+        intakeMotor = motor;
         // RUN_USING_ENCODER: the motor controller uses the motor's encoder to regulate its speed, so the power we
         // give is a fraction (-1..1) of the motor's top speed.
         intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);

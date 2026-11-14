@@ -67,8 +67,8 @@ public class Launcher {
                 hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.FEEDER));
     }
 
-    // The rest of init(), taking the two devices as arguments. Package-private so a unit test can pass pretend motors.
-    void configure(DcMotorEx flywheelMotor, CRServo feederServo) {
+    // The rest of init(), taking the two devices as arguments. Public so a unit test can pass pretend motors.
+    public void configure(DcMotorEx flywheelMotor, CRServo feederServo) {
         flywheel = flywheelMotor;
         // RUN_USING_ENCODER: the motor controller uses the encoder to hold the speed we ask for (closed loop),
         // which is what setVelocity() needs.
@@ -107,20 +107,18 @@ public class Launcher {
      * <p><b>Stopping brakes the wheel.</b> A flywheel that is only "switched off" keeps spinning for seconds, and a loose
      * POLLEN that touches it can be thrown out of the robot. So a zero target puts the motor in plain power mode at zero power
      * with BRAKE (when {@code Shooter.FLYWHEEL_BRAKE_ON_STOP} is true, the shipped setting), which stops the wheel quickly.
-     * Asking for a forward speed again switches speed control back on. Ignored while the flywheel is being run backward by
-     * hand (see reverseFlywheel).
+     * Asking for a forward speed again switches speed control back on, and also ends a slow reverse by hand (see reverseFlywheel):
+     * a forward speed request always wins here, and the caller (ManualMechanisms) decides the priorities between buttons.
      */
     public void setTargetVelocity(double tps) {
         double wanted = Math.max(0.0, tps);
         if (wanted == targetTps) {
             return;
         }
-        if (flywheelReversing && wanted > 0.0) {
-            return;      // a jam is being cleared: no forward speed until the reverse button is let go
-        }
         targetTps = wanted;
         targetSetAtNanos = System.nanoTime();
         if (wanted > 0.0) {
+            flywheelReversing = false;      // a forward speed ends any slow reverse
             if (openLoop) {
                 flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 openLoop = false;
@@ -147,7 +145,7 @@ public class Launcher {
      * Runs the flywheel slowly BACKWARD (or stops that) to free a jammed POLLEN. While {@code on} is true the motor gets
      * a small steady reverse power (BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER) with no speed control; the moment it
      * is false the motor brakes to a stop and stays ready for the next shot (speed control comes back with the next speed
-     * request). Safe to call every loop. Call it only when the flywheel is not being used to shoot.
+     * request, which also ends the reverse). Safe to call every loop. Call it only when the flywheel is not being used to shoot.
      */
     public void reverseFlywheel(boolean on) {
         if (on) {

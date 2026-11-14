@@ -108,8 +108,8 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  *   <li>Reverse buttons (hold): right bumper = indexer (feeder) slowly backward, B = shooter flywheel slowly backward (both clear a jam),
  *       A = intake roller backward, X = the two corner servos (the 'feelers') backward (these push a POLLEN out).</li>
  * </ul>
- * While the robot is shooting automatically the intake, the corner servos and the manual launch buttons are
- * switched off (the robot may hold at most 4 POLLEN), so only the sticks and the buttons above work.
+ * While the robot is shooting automatically the intake, the corner servos and the manual shoot (right trigger), intake (left trigger),
+ * A and X buttons are switched off (the robot may hold at most 4 POLLEN), so only the sticks and the buttons above work.
  */
 @TeleOp
 public class BioBuzzRobot extends OpMode {
@@ -370,8 +370,8 @@ public class BioBuzzRobot extends OpMode {
         prevToggle = toggle;
         // Holding a jam-clearing button cancels any automatic shooting (it counts as letting go of the shoot button),
         // so the driver can free a stuck POLLEN at once and the robot never fights them.
-        boolean unjamRequested = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON)
-                || GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
+        // (A jam button on either gamepad counts: gamepad 2 can press them too.)
+        boolean unjamRequested = ManualMechanisms.jamButtonHeld(gamepad1, gamepad2);
         boolean shootHeld = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.SHOOT_BUTTON) && !unjamRequested;
         handlePoseReset(now);
 
@@ -429,6 +429,7 @@ public class BioBuzzRobot extends OpMode {
             drive.apply(out, sticks[0], sticks[1], sticks[2]);
             unjamIndexerNow = false;
             unjamShooterNow = false;
+            mechanisms.clearStatus();                // the manual buttons are not read now: do not show an old state
         } else {
             if (prevState != AutoShootController.State.IDLE) {
                 launcher.stop();                    // the button was just released: stop the flywheel and feeder
@@ -605,8 +606,13 @@ public class BioBuzzRobot extends OpMode {
     /** Runs once at STOP: switches the mechanisms off, stops the camera and saves the pose for the next OpMode. */
     @Override
     public void stop() {
-        intake.stopIntake();
-        launcher.stop();
+        // The mechanisms are null if init() failed (for example a wrong constant), so check before using them.
+        if (intake != null) {
+            intake.stopIntake();
+        }
+        if (launcher != null) {
+            launcher.stop();
+        }
         if (vision != null) {
             vision.stop();
         }

@@ -115,15 +115,8 @@ public final class ConstantsCheck {
             r.errors.add("Shooter.FEEDER_*_POWER must be between -1 and 1.");
         }
         // The jam-clearing reverse must be slow (a fast reverse can throw the ball or hurt the mechanism) and must run.
-        double unjamMax = BioBuzzConstants.Controls.UNJAM_MAX_POWER;
-        if (BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER <= 0.0 || BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER > unjamMax) {
-            r.errors.add("Shooter.FEEDER_REVERSE_POWER must be above 0 and at most " + unjamMax
-                    + ": the jam-clearing reverse is meant to be slow.");
-        }
-        if (BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER <= 0.0 || BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER > unjamMax) {
-            r.errors.add("Shooter.FLYWHEEL_UNJAM_POWER must be above 0 and at most " + unjamMax
-                    + ": the jam-clearing reverse is meant to be slow.");
-        }
+        checkJamPowers(r, BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER, BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER,
+                BioBuzzConstants.Controls.UNJAM_MAX_POWER);
         // The two jam-clearing buttons must be different from each other and from the other TeleOp buttons.
         Button indexerButton = BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON;
         Button shooterButton = BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON;
@@ -270,16 +263,7 @@ public final class ConstantsCheck {
             takenBy.add("a fixed manual control in BioBuzzRobot (intake, launch or feeder)");
         }
         checkParkButton(r, BioBuzzConstants.Controls.PARK_BUTTON, taken.toArray(new Button[0]), takenBy.toArray(new String[0]));
-        checkManualControls(r, BioBuzzConstants.Manual.SLOW_MODE_SCALE, BioBuzzConstants.Manual.SPEED_STEP_TPS,
-                BioBuzzConstants.Manual.SPEED_MIN_TPS, BioBuzzConstants.Manual.SPEED_MAX_TPS, BioBuzzConstants.Shooter.MANUAL_TARGET_TPS,
-                new Button[]{BioBuzzConstants.Manual.SLOW_MODE_BUTTON, BioBuzzConstants.Manual.SPEED_UP_BUTTON,
-                        BioBuzzConstants.Manual.SPEED_DOWN_BUTTON, BioBuzzConstants.Manual.SPEED_RESET_BUTTON,
-                        BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON,
-                        BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON, BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON},
-                new String[]{"Manual.SLOW_MODE_BUTTON", "Manual.SPEED_UP_BUTTON", "Manual.SPEED_DOWN_BUTTON", "Manual.SPEED_RESET_BUTTON",
-                        "Controls.UNJAM_INDEXER_BUTTON", "Controls.UNJAM_SHOOTER_BUTTON", "Controls.REVERSE_INTAKE_BUTTON",
-                        "Controls.REVERSE_FEELERS_BUTTON"});
-        checkReversePowers(r, BioBuzzConstants.Controls.INTAKE_REVERSE_POWER, BioBuzzConstants.Controls.FEELER_REVERSE_POWER);
+        checkManualSettings(r);
         // The park, shoot, alliance ... buttons of BioBuzzRobot must not be the intake reverse buttons either.
         checkParkButton(r, BioBuzzConstants.Controls.PARK_BUTTON, new Button[]{BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON,
                 BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON}, new String[]{"Controls.REVERSE_INTAKE_BUTTON", "Controls.REVERSE_FEELERS_BUTTON"});
@@ -483,6 +467,59 @@ public final class ConstantsCheck {
         }
         if (!(tieSec >= 0.0)) {
             r.errors.add("Auto.START_SEARCH_TIE_SEC (" + tieSec + " s) cannot be negative: it is how close two route times must be for the search to call them a tie.");
+        }
+    }
+
+    /**
+     * Only the settings the Manual TeleOp uses: the shooting-speed and slow-mode settings, the manual buttons, the reverse powers,
+     * the jam powers and the trigger threshold. The Manual TeleOp refuses to start on an error here and ignores the rest of the constants
+     * (the camera, the field, the routes), which it does not use, so an unrelated typo cannot stop the competition OpMode.
+     */
+    public static Report runManual() {
+        Report r = new Report();
+        checkJamPowers(r, BioBuzzConstants.Shooter.FEEDER_REVERSE_POWER, BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER,
+                BioBuzzConstants.Controls.UNJAM_MAX_POWER);
+        checkManualSettings(r);
+        return r;
+    }
+
+    // The manual-control checks that both run() and runManual() make, with the shipped constants.
+    private static void checkManualSettings(Report r) {
+        checkManualControls(r, BioBuzzConstants.Manual.SLOW_MODE_SCALE, BioBuzzConstants.Manual.SPEED_STEP_TPS,
+                BioBuzzConstants.Manual.SPEED_MIN_TPS, BioBuzzConstants.Manual.SPEED_MAX_TPS, BioBuzzConstants.Shooter.MANUAL_TARGET_TPS,
+                new Button[]{BioBuzzConstants.Manual.SLOW_MODE_BUTTON, BioBuzzConstants.Manual.SPEED_UP_BUTTON,
+                        BioBuzzConstants.Manual.SPEED_DOWN_BUTTON, BioBuzzConstants.Manual.SPEED_RESET_BUTTON,
+                        BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON,
+                        BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON, BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON},
+                new String[]{"Manual.SLOW_MODE_BUTTON", "Manual.SPEED_UP_BUTTON", "Manual.SPEED_DOWN_BUTTON", "Manual.SPEED_RESET_BUTTON",
+                        "Controls.UNJAM_INDEXER_BUTTON", "Controls.UNJAM_SHOOTER_BUTTON", "Controls.REVERSE_INTAKE_BUTTON",
+                        "Controls.REVERSE_FEELERS_BUTTON"});
+        checkReversePowers(r, BioBuzzConstants.Controls.INTAKE_REVERSE_POWER, BioBuzzConstants.Controls.FEELER_REVERSE_POWER);
+        checkTriggerThreshold(r, BioBuzzConstants.Controls.TRIGGER_THRESHOLD);
+    }
+
+    /**
+     * The two jam-clearing reverse powers must be above zero (or the button does nothing) and at most {@code max} (a fast reverse can throw
+     * the ball or hurt the mechanism): the reverse is meant to be slow.
+     */
+    static void checkJamPowers(Report r, double feederReverse, double flywheelUnjam, double max) {
+        if (feederReverse <= 0.0 || feederReverse > max) {
+            r.errors.add("Shooter.FEEDER_REVERSE_POWER must be above 0 and at most " + max
+                    + ": the jam-clearing reverse is meant to be slow.");
+        }
+        if (flywheelUnjam <= 0.0 || flywheelUnjam > max) {
+            r.errors.add("Shooter.FLYWHEEL_UNJAM_POWER must be above 0 and at most " + max
+                    + ": the jam-clearing reverse is meant to be slow.");
+        }
+    }
+
+    /**
+     * A trigger counts as pressed when it is pulled PAST the threshold, so the threshold must be between 0 and 1 (not including either):
+     * 1 or more means the trigger can never count, and 0 or less means a resting trigger that reads a little above zero would shoot.
+     */
+    static void checkTriggerThreshold(Report r, double threshold) {
+        if (!(threshold > 0.0 && threshold < 1.0)) {
+            r.errors.add("Controls.TRIGGER_THRESHOLD (" + threshold + ") must be above 0 and below 1: it is how far a trigger must be pulled to count as pressed.");
         }
     }
 
