@@ -40,15 +40,15 @@ connect, check, measure, tune, set up the camera, build the shot table, try auto
 | Left stick / right stick | drive / turn |
 | **D-pad up (hold)** | drive to the scoring pose and shoot everything; release to take over |
 | D-pad down | "the other cell is up": flip which cell the robot believes is tipped up |
-| Share (hold ~0.6 s) | "I am standing on the default start pose": resets odometry |
+| View (hold ~0.6 s) | "I am standing on the default start pose": resets odometry |
 | D-pad left / right (INIT only) | choose RED / BLUE alliance |
-| Cross / circle | intake motor on / off |
+| A / B | intake motor on / off |
 | Triggers | the two corner servos |
-| Triangle / square | manual launch on / off (feeds once the flywheel is fast enough) |
+| Y / X | manual launch on / off (feeds once the flywheel is fast enough) |
 | Right bumper (hold) | feeder forward |
 | **Left bumper (hold)** | **clear a jam:** run the indexer (feeder) slowly backward; also cancels auto-score |
 | **D-pad right (hold, after PLAY)** | **clear a jam:** run the shooter flywheel slowly backward; also cancels auto-score |
-| **Options (hold)** | **park:** drive into your own LOADING ZONE and hold there (5 PARK points at the end); release to take over |
+| **Menu (hold)** | **park:** drive into your own LOADING ZONE and hold there (5 PARK points at the end); release to take over |
 
 Moving the left stick hard while the robot is driving itself cancels the automatic drive.
 

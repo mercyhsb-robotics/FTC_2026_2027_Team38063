@@ -44,7 +44,7 @@ shoots every POLLEN it holds. Let go and you have control again.
 
 * a laptop with Android Studio and this project;
 * the Robot Controller (**RC**: the Control Hub, or a phone, on the robot) and a **Driver Station** (**DS**: the phone or tablet app you use to start programs);
-* a PlayStation-style gamepad;
+* an Xbox-style gamepad (the Xbox controller or the Logitech F310);
 * a charged robot battery, USB cables, a tape measure, painter's tape, a ruler;
 * blocks to hold the robot with its wheels in the air;
 * a big sheet of paper and a marker pen (for step 12);
@@ -138,7 +138,7 @@ driving library. We call it the **Pedro file**. Pedro's own tuners write its num
   **If not:** step 2 did not finish. Run again.
 
 - [ ] **6. Find your gamepad buttons.** Open the [Controller map](#controller-map) below once and look at the picture. You
-  will use "cross" (the X button) and "circle" (the O button) a lot.
+  will use the A button and the B button a lot.
 
 ## Run the Robot Check
 
@@ -149,12 +149,12 @@ press a button**, and every test is short and gentle.
   battery. One person holds the Driver Station ready to press STOP.
 
 - [ ] **8. Start it.** On the Driver Station choose TeleOp, group "1 Start here", "00 Robot Check". Press INIT.
-  Connect the gamepad: press **Options and cross** together (on other gamepads: Start and A). Press PLAY.
+  Connect the gamepad: press **Menu and A** together (Menu is also called Start, so this is Start and A). Press PLAY.
   **You should see:** "Step 0 of 10: Safety first".
   **If not:** the gamepad is not connected. The INIT screen says "Gamepad 1 is now:" and the gamepad type.
 
 - [ ] **9. Follow the screen, one check at a time.** The screen says "Step 3 of 10" and so on. In this guide we call those **checks**, so they are not mixed up with the numbered steps of the guide.
-  Press cross (yes, continue) to start each check. The checks are:
+  Press A (yes, continue) to start each check. The checks are:
 
   * **Check 0, Safety first:** you promise the robot is on blocks and everyone is clear.
   * **Check 1, Battery:** reads the volts. 12.4 V or more passes. Below 11.0 V fails: charge the battery.
@@ -172,11 +172,11 @@ press a button**, and every test is short and gentle.
 
   Put the robot back on the blocks for checks 5 to 7 if you took it off for check 4.
   **You should see:** a result for each check: PASS, WARN or FAIL.
-  **If not:** press circle (no) if anything looks wrong. Circle also stops a running motor at once.
+  **If not:** press B (no) if anything looks wrong. B also stops a running motor at once.
 
 - [ ] **10. Read the summary and fix every FAIL.** The last screen lists every check with PASS, WARN or FAIL, and says what
   to fix. Use the D-pad up and down buttons to scroll. Fix each FAIL (the table [If something goes wrong](#if-something-goes-wrong) helps), run the
-  check again, and repeat until there is no FAIL. If you skipped a check with triangle, run the whole Robot Check again
+  check again, and repeat until there is no FAIL. If you skipped a check with Y, run the whole Robot Check again
   without skipping before a match.
   **You should see:** a line that says "RESULT: ... 0 FAIL".
   **If not:** a wheel that turned the wrong way is fixed in step 23. A missing Limelight is fixed in steps 32 to 44. You can come back here after those steps.
@@ -459,13 +459,13 @@ in line with the HIVE, range 39.0 in (computed), speed about 1200 ticks per seco
 
 - [ ] **45. Set up.** Put the robot at a measured range from the HIVE, in line with the cell (the cell axis is the middle of the 20 in wide opening). Load one POLLEN. Everyone stands clear of the back of the robot, where the POLLEN is thrown.
 
-- [ ] **46. Run "Shooter Tuner".** TeleOp, group "AutoShoot". INIT, PLAY. Press cross to start the flywheel. D-pad up and down change the speed by 10 ticks per second (hold the left bumper for 50). Wait for `at speed: true`.
-  Hold circle to feed one POLLEN and watch where it goes.
+- [ ] **46. Run "Shooter Tuner".** TeleOp, group "AutoShoot". INIT, PLAY. Press A to start the flywheel. D-pad up and down change the speed by 10 ticks per second (hold the left bumper for 50). Wait for `at speed: true`.
+  Hold B to feed one POLLEN and watch where it goes.
   **You should see:** a screen with "Flywheel RUNNING", the target and measured speeds, "Shots counted by dip", and your recorded rows.
   **If not:** if `at speed` never becomes true, see "flywheel never at speed" in the problem table.
 
 - [ ] **47. Find the speed that scores, for at least three ranges between 30 and 44 in.** For each range, find the **lowest** speed that sends the POLLEN through the middle of the opening. Too fast flies over the cell. Hitting the outside of a cell is a
-  foul. Set the range to your tape number with D-pad left and right (0.5 in per press, 2 in with the left bumper held). Press triangle to **record a row**. The rows appear on the screen and in the robot log. (Square clears them.)
+  foul. Set the range to your tape number with D-pad left and right (0.5 in per press, 2 in with the left bumper held). Press Y to **record a row**. The rows appear on the screen and in the robot log. (X clears them.)
   A robot against the audience wall, in line, reaches at most 39.0 in. For longer ranges stand to one side of the line (no more than 20 degrees: `AutoShoot.SHOOT_CONE_HALF_ANGLE_DEG`). For shorter ones stand closer to the HIVE.
   If step 19 told you to move the 39.0 row, do it now: use the range your tape says and keep the speed.
   **You should see:** at least three rows like `{30.0, 1150},`.
@@ -483,23 +483,22 @@ in line with the HIVE, range 39.0 in (computed), speed about 1200 ticks per seco
 
 ## Controller map
 
-All buttons use gamepad 1, a PlayStation-style gamepad. "Cross" is the X button and "circle" is the O button. (L1, R1 are the bumpers on top; L2, R2 are the triggers; L3, R3 are the stick buttons.)
+All buttons use gamepad 1, an Xbox-style gamepad. A, B, X and Y are the four round buttons on the right (A bottom, B right, X left, Y top). LB and RB are the bumpers on top, LT and RT are the triggers, LS and RS are the stick buttons (push a stick straight down). **Menu** is also called **Start** and **View** is also called **Back**. (A PlayStation pad works too: cross is A, circle is B, square is X, triangle is Y, Options is Menu and Share is View.)
 
 ```
-  L2 = left trigger                      R2 = right trigger
-  L1 = left bumper                       R1 = right bumper
+  LT = left trigger                      RT = right trigger
+  LB = left bumper                       RB = right bumper
 .----------------------------------------------------------.
 |                                                          |
-|               SHARE  [ touchpad ]  OPTIONS               |
+|               VIEW      [ XBOX ]      MENU               |
 |                                                          |
-|  D-PAD                                     FACE BUTTONS  |
-|     UP                                         TRIANGLE  |
-|  LEFT  RIGHT                             SQUARE  CIRCLE  |
-|    DOWN                                           CROSS  |
-|                            PS                            |
-|                                                          |
-|    LEFT STICK                               RIGHT STICK  |
-|    (push = L3)                              (push = R3)  |
+|  LEFT STICK                                FACE BUTTONS  |
+|  (push = LS)                                          Y  |
+|                                                   X   B  |
+|  D-PAD                                                A  |
+|     UP                                                   |
+|  LEFT  RIGHT                                RIGHT STICK  |
+|    DOWN                                     (push = RS)  |
 |                                                          |
 '----------------------------------------------------------'
 ```
@@ -516,17 +515,17 @@ All buttons use gamepad 1, a PlayStation-style gamepad. "Cross" is the X button 
 | D-pad down | **Press:** "the other cell is up". Flips which cell the robot thinks is UP. | `Controls.TOGGLE_HIVE_BUTTON` |
 | D-pad left | Before PLAY (INIT) only: choose the RED alliance. After PLAY: not used. | `Controls.ALLIANCE_RED_BUTTON` |
 | D-pad right | Before PLAY (INIT): choose the BLUE alliance. After PLAY, **hold:** run the shooter flywheel slowly **backward** to free a jammed POLLEN. It stops when you let go and it cancels auto-score. | `Controls.ALLIANCE_BLUE_BUTTON` (INIT); `Controls.UNJAM_SHOOTER_BUTTON` and `Shooter.FLYWHEEL_UNJAM_POWER` (play) |
-| Cross (X) | **Press:** intake roller on. It stays on. | fixed in the code |
-| Circle (O) | **Press:** intake roller off. | fixed in the code |
-| Triangle | **Press:** manual launch on. The flywheel spins up to 1200 ticks per second and the feeder pushes POLLEN once it is above 950. | fixed in the code; speeds `Shooter.MANUAL_TARGET_TPS`, `Shooter.MANUAL_MIN_TPS` |
-| Square | **Press:** manual launch off. | fixed in the code |
-| Left bumper (L1) | **Hold:** run the indexer (the feeder) slowly **backward** to free a jammed POLLEN. It stops when you let go and it cancels auto-score. | `Controls.UNJAM_INDEXER_BUTTON`; `Shooter.FEEDER_REVERSE_POWER` |
-| Right bumper (R1) | **Hold:** run the feeder **forward** (push a POLLEN toward the flywheel). | fixed in the code; `Shooter.FEEDER_FORWARD_POWER` |
-| Left trigger (L2) | **Hold** (pull past 0.3): the left corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
-| Right trigger (R2) | **Hold** (pull past 0.3): the right corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
-| Share | **Hold 0.6 s:** "the robot is on the default start pose". Resets its position. Works only when it is not auto-scoring. | `Controls.RESET_POSE_BUTTON`, `Controls.RESET_POSE_HOLD_SEC` |
-| Options | **Hold:** park assist. The robot drives itself into your own LOADING ZONE by a safe road, stops there and holds. The screen says "Parked: release the button". Letting go, pushing the left stick hard, or holding the shoot or a jam button gives the sticks back at once. Do this at the end of the match for the 5 PARK points. It needs a trusted position (the start pose or the Share reset). | `Controls.PARK_BUTTON` |
-| PS, touchpad, left stick push (L3), right stick push (R3) | Not used. | none |
+| A | **Press:** intake roller on. It stays on. | fixed in the code |
+| B | **Press:** intake roller off. | fixed in the code |
+| Y | **Press:** manual launch on. The flywheel spins up to 1200 ticks per second and the feeder pushes POLLEN once it is above 950. | fixed in the code; speeds `Shooter.MANUAL_TARGET_TPS`, `Shooter.MANUAL_MIN_TPS` |
+| X | **Press:** manual launch off. | fixed in the code |
+| Left bumper (LB) | **Hold:** run the indexer (the feeder) slowly **backward** to free a jammed POLLEN. It stops when you let go and it cancels auto-score. | `Controls.UNJAM_INDEXER_BUTTON`; `Shooter.FEEDER_REVERSE_POWER` |
+| Right bumper (RB) | **Hold:** run the feeder **forward** (push a POLLEN toward the flywheel). | fixed in the code; `Shooter.FEEDER_FORWARD_POWER` |
+| Left trigger (LT) | **Hold** (pull past 0.3): the left corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
+| Right trigger (RT) | **Hold** (pull past 0.3): the right corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
+| View (Back) | **Hold 0.6 s:** "the robot is on the default start pose". Resets its position. Works only when it is not auto-scoring. | `Controls.RESET_POSE_BUTTON`, `Controls.RESET_POSE_HOLD_SEC` |
+| Menu (Start) | **Hold:** park assist. The robot drives itself into your own LOADING ZONE by a safe road, stops there and holds. The screen says "Parked: release the button". Letting go, pushing the left stick hard, or holding the shoot or a jam button gives the sticks back at once. Do this at the end of the match for the 5 PARK points. It needs a trusted position (the start pose or the View reset). Do not press A or B while you hold Menu: on the Driver Station, Menu (Start) with A or B pairs the gamepad again. | `Controls.PARK_BUTTON` |
+| Xbox button, left stick push (LS), right stick push (RS) | Not used. | none |
 
 While the robot auto-scores, the intake, the corner servos, the manual launch buttons and the right bumper are switched off, because it may hold at most 4 POLLEN. A jam button cancels the auto-score and then works as written.
 If you still hold D-pad up when you let go of a jam button, the auto-score can start again: let go of D-pad up first. The screen says **CLEARING A JAM** while you hold a jam button.
@@ -535,14 +534,14 @@ If you still hold D-pad up when you let go of a jam button, the auto-score can s
 
 | Control | What it does | Setting that changes it |
 |---|---|---|
-| Cross (X) | Yes. Continue. Start the check you are on. | `RobotCheck.YES_BUTTON` |
-| Circle (O) | No, or "there is a problem". Stops a running motor at once. | `RobotCheck.NO_BUTTON` |
-| Triangle | Skip this check (the safety check cannot be skipped). | `RobotCheck.SKIP_BUTTON` |
-| Square | Do the check again. | `RobotCheck.REPEAT_BUTTON` |
-| Touchpad | In the gamepad check: finish early. | `RobotCheck.GAMEPAD_FINISH_BUTTON` |
+| A | Yes. Continue. Start the check you are on. | `RobotCheck.YES_BUTTON` |
+| B | No, or "there is a problem". Stops a running motor at once. | `RobotCheck.NO_BUTTON` |
+| Y | Skip this check (the safety check cannot be skipped). | `RobotCheck.SKIP_BUTTON` |
+| X | Do the check again. | `RobotCheck.REPEAT_BUTTON` |
+| Right stick push (RS) | In the gamepad check: finish early. | `RobotCheck.GAMEPAD_FINISH_BUTTON` |
 | D-pad up, D-pad down | Scroll the summary when it is longer than the screen. | `RobotCheck.SCROLL_UP_BUTTON`, `RobotCheck.SCROLL_DOWN_BUTTON` |
 | Every button and both triggers | In the gamepad check they are only tested, they do nothing. | `RobotCheck.GAMEPAD_BUTTONS_TO_CHECK` |
-| Sticks, L3, R3, PS | Not used. | none |
+| Sticks, left stick push (LS), Xbox button | Not used. | none |
 
 A press that comes less than 0.4 s after the screen changed is ignored (`RobotCheck.BUTTON_LOCKOUT_SEC`).
 
@@ -560,11 +559,11 @@ A press that comes less than 0.4 s after the screen changed is ignored (`RobotCh
 |---|---|---|
 | D-pad up / down | **Press:** flywheel target speed +10 / -10 ticks per second. | `Shooter.TUNER_SPEED_STEP_TPS` |
 | D-pad right / left | **Press:** recorded range +0.5 / -0.5 in. | `Shooter.TUNER_RANGE_STEP_IN` |
-| Left bumper (L1) | **Hold** while you press D-pad: big steps (50 ticks per second, 2 in). | `Shooter.TUNER_SPEED_BIG_STEP_TPS`, `Shooter.TUNER_RANGE_BIG_STEP_IN` |
-| Cross (X) | **Press:** flywheel start / stop. | fixed in the code |
-| Circle (O) | **Hold:** feed POLLEN (only while the flywheel runs). | fixed in the code; `Shooter.FEEDER_FORWARD_POWER` |
-| Triangle | **Press:** record a row with the current range and speed. | fixed in the code |
-| Square | **Press:** forget all recorded rows. | fixed in the code |
+| Left bumper (LB) | **Hold** while you press D-pad: big steps (50 ticks per second, 2 in). | `Shooter.TUNER_SPEED_BIG_STEP_TPS`, `Shooter.TUNER_RANGE_BIG_STEP_IN` |
+| A | **Press:** flywheel start / stop. | fixed in the code |
+| B | **Hold:** feed POLLEN (only while the flywheel runs). | fixed in the code; `Shooter.FEEDER_FORWARD_POWER` |
+| Y | **Press:** record a row with the current range and speed. | fixed in the code |
+| X | **Press:** forget all recorded rows. | fixed in the code |
 | Everything else | Not used. | none |
 
 ### Autonomous: "Auto Route Picker"
@@ -578,7 +577,7 @@ You use it **before PLAY** (INIT) with gamepad 1. After PLAY the robot drives by
 | D-pad left | **Press:** choose the RED alliance. | `Run.MENU_RED_BUTTON` |
 | D-pad right | **Press:** choose the BLUE alliance. | `Run.MENU_BLUE_BUTTON` |
 
-The Options button (park assist) is a TeleOp button: it is in the table of "BioBuzzRobot" above and does nothing in the Auto Route Picker.
+The Menu button (park assist) is a TeleOp button: it is in the table of "BioBuzzRobot" above and does nothing in the Auto Route Picker.
 
 ## Try auto-shoot on the field mat
 
@@ -589,7 +588,7 @@ The Options button (park assist) is a TeleOp button: it is in the table of "BioB
   **You should see:** "Drive: Pedro + Pinpoint", any constants warnings, "Placeholders still to measure", the Vision line (the camera running), and "Start pose: default: center of tile C1, front against the audience wall".
   **If not:** "LEGACY drive" means Pedro or the Pinpoint failed to start (check the name `pinpoint` and the cable). An error that names a constant means that number is wrong: fix it and run again.
 
-- [ ] **54. Press PLAY.** The robot now believes it stands on the start place. (If you restart within 5 minutes, it keeps the old position. If you moved the robot by hand, put it on the start place and **hold Share for 0.6 s**.)
+- [ ] **54. Press PLAY.** The robot now believes it stands on the start place. (If you restart within 5 minutes, it keeps the old position. If you moved the robot by hand, put it on the start place and **hold View for 0.6 s**.)
 
 - [ ] **55. Hold D-pad up.** Watch the screen and your hands.
   **You should see, in this order:** `Planning` (it may flash by), `Driving to the scoring pose` (skipped if you are already in place), `Aligning`, `Feeding`, `Done: 4 shot(s)`. The gamepad buzzes briefly when the robot arrives, and twice when it is done.
@@ -621,7 +620,7 @@ the camera has seen it), the Vision line and the Pose.
 
 | Reason | What to try |
 |---|---|
-| `POSE_UNTRUSTED` | The robot does not know where it is. Put it on the start place and hold Share 0.6 s. Check the Pinpoint cable. |
+| `POSE_UNTRUSTED` | The robot does not know where it is. Put it on the start place and hold View 0.6 s. Check the Pinpoint cable. |
 | `HIVE_UNCONFIRMED` | The camera has not seen the UP cell's tags. Do the Limelight steps. Or press D-pad down until "HIVE up side" names the cell that really is up. While you set up the camera you may set `AutoShoot.REQUIRE_HIVE_CONFIRMATION` to `false`. **Set it back to `true` before a match**: shooting into the DOWN cell is a foul. |
 | `TAGS_LOST` | The tags vanished (a tip, or something in the way). Wait. If it pauses too often, raise `AutoShoot.VISION_LOSS_PAUSE_SEC`. |
 | `OUT_OF_RANGE` | The range is outside the shot table. Add rows (steps 45 to 48). |
@@ -717,7 +716,7 @@ With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_
 | It switches sides in the middle of a volley when nothing tipped | Raise `Vision.HIVE_LOST_SEC` (the tags were blocked for a moment). |
 | It swings wide near the wall or the HIVE | Lower `AutoShoot.KEEPOUT_MARGIN_IN` or `WALL_CLEARANCE_IN`. Check the robot size numbers. |
 | The camera says DOWN for the up cell | Step 41, and step 36b: the camera is upside down, so the signs of `tx` and `ty` may need flipping together. |
-| The position slowly drifts | Put the robot on the start place and hold Share for 0.6 s. After step 43, try drift correction (step 59). |
+| The position slowly drifts | Put the robot on the start place and hold View for 0.6 s. After step 43, try drift correction (step 59). |
 
 ## How it works, in ten lines
 

@@ -537,6 +537,6 @@ public final class RobotCheckJudge {
         }
         return fail("These controls were not seen: " + RobotCheckText.join(notSeen, ", ") + ".",
                 "Press each of those once (press " + RobotCheckText.button(cfg.repeat) + " to try again). If one never shows up, the gamepad may be in the"
-                        + " wrong mode or the wrong gamepad is paired: on the Driver Station press Start and A on the PlayStation gamepad again.");
+                        + " wrong mode or the wrong gamepad is paired: on the Driver Station press Start and A on the gamepad again (the Menu button is Start).");
     }
 }

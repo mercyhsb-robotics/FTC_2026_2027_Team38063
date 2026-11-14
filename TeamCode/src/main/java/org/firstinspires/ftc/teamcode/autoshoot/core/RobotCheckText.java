@@ -8,8 +8,8 @@ import java.util.Locale;
  * Small helpers that turn numbers and button names into the plain words shown on the Driver Station by the Robot
  * Check. Plain Java, no FTC SDK.
  *
- * <p>Why a separate class: every screen needs the same few things (a number with one decimal, "cross (X)" instead of
- * CROSS, the name of a wheel), and keeping them in one place keeps the wording the same everywhere.
+ * <p>Why a separate class: every screen needs the same few things (a number with one decimal, "Menu (Start)" instead of
+ * START, the name of a wheel), and keeping them in one place keeps the wording the same everywhere.
  */
 public final class RobotCheckText {
     private RobotCheckText() {
@@ -25,17 +25,17 @@ public final class RobotCheckText {
         return String.format(Locale.US, "%.1f", value);
     }
 
-    /** A button the way a PlayStation controller labels it, with the plain name first: "cross (X)", "left bumper (L1)". */
+    /** A button the way an Xbox controller labels it, with the plain name first: "A", "left bumper (LB)", "Menu (Start)". */
     public static String button(Button b) {
         switch (b) {
-            case CROSS:
-                return "cross (X)";
-            case CIRCLE:
-                return "circle (O)";
-            case SQUARE:
-                return "square";
-            case TRIANGLE:
-                return "triangle";
+            case A:
+                return "A";
+            case B:
+                return "B";
+            case X:
+                return "X";
+            case Y:
+                return "Y";
             case DPAD_UP:
                 return "D-pad up";
             case DPAD_DOWN:
@@ -45,21 +45,19 @@ public final class RobotCheckText {
             case DPAD_RIGHT:
                 return "D-pad right";
             case LEFT_BUMPER:
-                return "left bumper (L1)";
+                return "left bumper (LB)";
             case RIGHT_BUMPER:
-                return "right bumper (R1)";
+                return "right bumper (RB)";
             case LEFT_STICK_BUTTON:
-                return "left stick button (L3)";
+                return "left stick button (LS)";
             case RIGHT_STICK_BUTTON:
-                return "right stick button (R3)";
-            case SHARE:
-                return "share";
-            case OPTIONS:
-                return "options";
-            case PS:
-                return "PS button";
-            case TOUCHPAD:
-                return "touchpad (the big pad in the middle)";
+                return "right stick button (RS)";
+            case BACK:
+                return "View (Back)";
+            case START:
+                return "Menu (Start)";
+            case GUIDE:
+                return "Xbox button";
             default:
                 return b.name();
         }

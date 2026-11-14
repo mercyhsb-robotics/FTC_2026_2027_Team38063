@@ -91,20 +91,20 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  *
  * <p><b>Controls (gamepad 1).</b> The shoot, "other cell is up", pose reset and alliance buttons are assigned in
  * {@code BioBuzzConstants.Controls}; the sticks' sign, scale and deadband are there too. The manual mechanism
- * buttons (cross, circle, triangle, square, bumpers, triggers) are fixed in {@link #manualControls()}.
+ * buttons (A, B, Y, X, bumpers, triggers) are fixed in {@link #manualControls()}.
  * <ul>
  *   <li>Left stick: drive forward / back and strafe left / right, relative to the robot. Right stick, left / right:
  *       turn. Pushing the left stick hard while the robot is driving itself cancels the automatic drive.</li>
  *   <li>D-pad up (hold): drive to the scoring pose and shoot everything; release to take over again.</li>
- *   <li>Options (hold): park. The robot drives itself into its own LOADING ZONE, stops and holds the spot (5 points); release to
+ *   <li>Menu (hold): park. The robot drives itself into its own LOADING ZONE, stops and holds the spot (5 points); release to
  *       take over again. It needs a trusted pose, never runs while shooting, and holding the shoot or a jam-clearing button cancels it.</li>
  *   <li>D-pad down: "the other cell is up": flips which cell the robot believes is tipped up.</li>
- *   <li>Share (hold about 0.6 s, only while not auto-shooting): "I am standing on the default start pose":
+ *   <li>View (hold about 0.6 s, only while not auto-shooting): "I am standing on the default start pose":
  *       resets the odometry position to it.</li>
  *   <li>D-pad left / right (INIT only): choose the RED / BLUE alliance.</li>
- *   <li>Cross / circle: intake motor on / off.</li>
+ *   <li>A / B: intake motor on / off.</li>
  *   <li>Left / right trigger (hold): the left / right corner-pulling intake servo.</li>
- *   <li>Triangle / square: manual launch on / off (the feeder runs once the flywheel is fast enough).</li>
+ *   <li>Y / X: manual launch on / off (the feeder runs once the flywheel is fast enough).</li>
  *   <li>Left / right bumper (hold): feeder runs backward / forward, for clearing a jam.</li>
  * </ul>
  * While the robot is shooting automatically the intake, the corner servos and the manual launch buttons are
@@ -176,7 +176,7 @@ public class BioBuzzRobot extends OpMode {
     private boolean resetLatched;
     // The auto-shoot state on the previous loop; used to notice the moment the shoot button is released.
     private AutoShootController.State prevState = AutoShootController.State.IDLE;
-    // The triangle / square latch: true while the manual launch is switched on.
+    // The Y / X latch: true while the manual launch is switched on.
     private boolean manualLaunchOn;
     // True while a jam-clearing button is held (shown on the screen).
     private boolean unjamIndexerNow;
@@ -506,17 +506,17 @@ public class BioBuzzRobot extends OpMode {
         servoLeft.setPower(gamepad1.left_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? -1 : 0);
         servoRight.setPower(gamepad1.right_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? 1 : 0);
 
-        // Launcher: triangle spins up and feeds, square stops. While held, the jam-clearing buttons run the indexer or
+        // Launcher: Y spins up and feeds, X stops. While held, the jam-clearing buttons run the indexer or
         // the flywheel slowly BACKWARD to free a stuck POLLEN; the right bumper runs the feeder forward while held.
         // Clearing a jam always wins over a manual launch that was left on.
         boolean unjamIndexer = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON);
         boolean unjamShooter = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
         unjamIndexerNow = unjamIndexer;
         unjamShooterNow = unjamShooter;
-        if (gamepad1.triangle) {
+        if (gamepad1.y) {
             manualLaunchOn = true;
         }
-        if (gamepad1.square) {
+        if (gamepad1.x) {
             manualLaunchOn = false;
         }
         if (unjamShooter) {
@@ -540,11 +540,11 @@ public class BioBuzzRobot extends OpMode {
             }
         }
 
-        // The intake motor stays on after cross until circle is pressed.
-        if (gamepad1.cross) {
+        // The intake motor stays on after A until B is pressed.
+        if (gamepad1.a) {
             intake.startIntake();
         }
-        if (gamepad1.circle) {
+        if (gamepad1.b) {
             intake.stopIntake();
         }
     }

@@ -17,14 +17,14 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  * is shown in telemetry: watch and listen to the robot (keep hands and loose objects clear of the flywheel).
  *
  * <p>Controls (gamepad 1). There is no "release to stop": each command stays until another one replaces it, so
- * press square or D-pad down to stop everything.
+ * press X or D-pad down to stop everything.
  * <ul>
- *   <li>Triangle (hold): flywheel to the manual speed ({@code BioBuzzConstants.Shooter.MANUAL_TARGET_TPS}) and the
+ *   <li>Y (hold): flywheel to the manual speed ({@code BioBuzzConstants.Shooter.MANUAL_TARGET_TPS}) and the
  *       feeder runs once the flywheel is faster than {@code MANUAL_MIN_TPS}.</li>
  *   <li>D-pad up: flywheel to the manual speed (ticks per second), feeder untouched.</li>
  *   <li>D-pad left: feeder backward (clears a jam). D-pad right: feeder forward (pushes a POLLEN into the
  *       flywheel).</li>
- *   <li>Square or D-pad down: stop the flywheel and the feeder.</li>
+ *   <li>X or D-pad down: stop the flywheel and the feeder.</li>
  * </ul>
  * What you should see: the flywheel spins up (the exit side is the BACK of the robot) and a POLLEN pushed by the
  * feeder is thrown out the back. If the feeder pushes the wrong way, the fix is {@code Shooter.FEEDER_INVERTED}.
@@ -44,7 +44,7 @@ public class LauncherTest extends OpMode {
     // Runs over and over after PLAY: each button simply sends one command to the launcher.
     @Override
     public void loop() {
-        if (gamepad1.triangle) {
+        if (gamepad1.y) {
             launcher.launch(true);
         }
 
@@ -65,7 +65,7 @@ public class LauncherTest extends OpMode {
             launcher.feederForward();
         }
 
-        if (gamepad1.square) {
+        if (gamepad1.x) {
             launcher.stop();
         }
     }

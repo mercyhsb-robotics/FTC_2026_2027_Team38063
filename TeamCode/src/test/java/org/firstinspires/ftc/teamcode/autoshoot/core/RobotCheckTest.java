@@ -285,7 +285,7 @@ public class RobotCheckTest {
 
     /**
      * Situation: the check has just started.
-     * Expected: the safety screen (step 0 of 10) shows the four safety rules and "Press cross (X) to start the check.",
+     * Expected: the safety screen (step 0 of 10) shows the four safety rules and "Press A to start the check.",
      *     and no motor is commanded.
      * Why: nothing may move before the team has read the safety rules and pressed the start button.
      */
@@ -297,7 +297,7 @@ public class RobotCheckTest {
         assertShows(r, "Put the robot on blocks");
         assertShows(r, "POLLEN");
         assertShows(r, "STOP");
-        assertShows(r, "Press cross (X) to start the check.");
+        assertShows(r, "Press A to start the check.");
         assertFalse(r.last.commands.anyOn());
     }
 
@@ -404,14 +404,14 @@ public class RobotCheckTest {
         r.yes();
         assertEquals("Step 1 of 10: Battery", r.last.title);
         assertShows(r, "The robot will not move.");
-        assertShows(r, "Press cross (X) to read it, or triangle to skip this step.");
+        assertShows(r, "Press A to read it, or Y to skip this step.");
         r.yes();
         assertShows(r, "Result: PASS.");
         assertShows(r, "12.8 volts");
-        assertShows(r, "Press cross (X) for the next step, or square to do this step again.");
+        assertShows(r, "Press A for the next step, or X to do this step again.");
         r.in.batteryVolts = 10.0;
         r.repeat();
-        assertShows(r, "Press cross (X) to read it");
+        assertShows(r, "Press A to read it");
         r.yes();
         assertShows(r, "Result: FAIL.");
         assertShows(r, "What to do: Put in a fully charged battery now");
@@ -491,7 +491,7 @@ public class RobotCheckTest {
 
     /**
      * Situation: a normal Pedro run of the wheel step, answering yes for each wheel.
-     * Expected: nothing moves on the ready screens; each press of cross spins exactly one wheel, in the order front-left,
+     * Expected: nothing moves on the ready screens; each press of A spins exactly one wheel, in the order front-left,
      *     back-left, front-right, back-right, at the gentle power for the set time; the wheel stops by itself and the
      *     question appears; four yes answers give PASS.
      * Why: the brief: spin each wheel one at a time, gently, 0.6 seconds, forward.
@@ -602,7 +602,7 @@ public class RobotCheckTest {
 
     /**
      * Situation: after a wheel has spun, the repeat button is pressed on the question.
-     * Expected: the same wheel's ready screen comes back, no motor runs until cross is pressed again, and the answer is
+     * Expected: the same wheel's ready screen comes back, no motor runs until A is pressed again, and the answer is
      *     asked for that same wheel.
      * Why: a 0.6 second spin is easy to miss; the student must be able to see it again, with a fresh press.
      */
@@ -1479,7 +1479,7 @@ public class RobotCheckTest {
      * Situation: every button and both triggers are pressed once.
      * Expected: the screen shows what is pressed right now and how many were seen; when the last one is seen the step
      *     PASSes by itself with "All 14 controls".
-     * Why: the brief: show which buttons the gamepad is pressing so the PlayStation mapping can be confirmed.
+     * Why: the brief: show which buttons the gamepad is pressing so the Xbox mapping can be confirmed.
      */
     @Test
     public void gamepadPassesWhenEveryControlWasSeen() {
@@ -1489,10 +1489,10 @@ public class RobotCheckTest {
         r.in.gamepadType = "SONY_PS4";
         r.yes();
         assertShows(r, "SEEN 0 of 14.");
-        r.in.buttons.add(Button.SQUARE);
+        r.in.buttons.add(Button.X);
         r.in.leftTrigger = true;
         r.tick();
-        assertShows(r, "Pressing now: square, left trigger (L2).");
+        assertShows(r, "Pressing now: X, left trigger (LT).");
         assertShows(r, "SEEN 2 of 14.");
         assertShows(r, "this controller is: SONY_PS4");
         r.in.buttons.clear();
@@ -1503,10 +1503,10 @@ public class RobotCheckTest {
         assertShows(r, "All 14 controls");
     }
 
-    /** Presses everything except the square button and the left trigger (already seen). */
+    /** Presses everything except the X button and the left trigger (already seen). */
     private static void passGamepadRest(Run r) {
         for (Button b : r.cfg.gamepadButtons) {
-            if (b != Button.SQUARE) {
+            if (b != Button.X) {
                 r.wait(0.1);
                 r.press(b);
             }
@@ -1538,7 +1538,7 @@ public class RobotCheckTest {
 
     /**
      * Situation: the button that started the step is still held, and the student finishes early with only some buttons seen.
-     * Expected: the starting press is not counted as a seen button (cross is listed as not seen, D-pad up is not); finishing
+     * Expected: the starting press is not counted as a seen button (A is listed as not seen, D-pad up is not); finishing
      *     early gives FAIL listing the controls that were not seen (in words), and advice about the gamepad mode.
      * Why: only fresh presses count (so the press that started the step is not one), and a missing button must be named.
      */
@@ -1556,10 +1556,10 @@ public class RobotCheckTest {
         assertEquals(Verdict.FAIL, r.verdict(StepId.GAMEPAD));
         String detail = r.check.detail(StepId.GAMEPAD);
         assertContains("detail", detail, "These controls were not seen:");
-        assertContains("detail", detail, "circle (O)");
-        assertContains("detail", detail, "left bumper (L1)");
-        assertContains("detail", detail, "right trigger (R2)");
-        assertContains("detail", detail, "cross (X)");
+        assertContains("detail", detail, "B");
+        assertContains("detail", detail, "left bumper (LB)");
+        assertContains("detail", detail, "right trigger (RT)");
+        assertContains("detail", detail, "A");
         assertFalse(detail.contains("D-pad up"));
         assertContains("advice", r.check.advice(StepId.GAMEPAD), "Start and A");
     }
@@ -1567,7 +1567,7 @@ public class RobotCheckTest {
     /**
      * Situation: nothing is pressed for the whole gamepad time.
      * Expected: the step ends by itself with FAIL.
-     * Why: the step must never get stuck, even with a controller that has no touchpad button.
+     * Why: the step must never get stuck, even with a controller whose finish button is broken.
      */
     @Test
     public void theGamepadStepEndsByItselfAfterItsTime() {
@@ -1847,11 +1847,11 @@ public class RobotCheckTest {
         assertContains("problems", c.problems().toString(), "four different buttons");
 
         c = RobotCheckConfig.fromConstants();
-        c.gamepadFinish = Button.CROSS;
+        c.gamepadFinish = Button.A;
         assertContains("problems", c.problems().toString(), "GAMEPAD_FINISH_BUTTON");
 
         c = RobotCheckConfig.fromConstants();
-        c.gamepadButtons = new Button[]{Button.CROSS, Button.TOUCHPAD};
+        c.gamepadButtons = new Button[]{Button.A, Button.RIGHT_STICK_BUTTON};
         assertContains("problems", c.problems().toString(), "also in GAMEPAD_BUTTONS_TO_CHECK");
 
         c = RobotCheckConfig.fromConstants();
@@ -1917,21 +1917,21 @@ public class RobotCheckTest {
 
     /**
      * Situation: the real constants are read.
-     * Expected: the button choices are cross = yes, circle = no, triangle = skip, and the HIVE tag range is 30 to 45.
+     * Expected: the button choices are A = yes, B = no, Y = skip, and the HIVE tag range is 30 to 45.
      * Why: pins the conventions the student guide describes.
      */
     @Test
     public void theButtonAndTagConventionsAreTheDocumentedOnes() {
         RobotCheckConfig c = RobotCheckConfig.fromConstants();
-        assertEquals(Button.CROSS, c.yes);
-        assertEquals(Button.CIRCLE, c.no);
-        assertEquals(Button.TRIANGLE, c.skip);
+        assertEquals(Button.A, c.yes);
+        assertEquals(Button.B, c.no);
+        assertEquals(Button.Y, c.skip);
         assertEquals(30, c.tagIdMin);
         assertEquals(45, c.tagIdMax);
         Set<Button> checked = EnumSet.noneOf(Button.class);
         checked.addAll(Arrays.asList(c.gamepadButtons));
-        assertTrue(checked.containsAll(EnumSet.of(Button.CROSS, Button.CIRCLE, Button.SQUARE, Button.TRIANGLE, Button.DPAD_UP,
-                Button.DPAD_DOWN, Button.DPAD_LEFT, Button.DPAD_RIGHT, Button.SHARE, Button.OPTIONS, Button.LEFT_BUMPER,
+        assertTrue(checked.containsAll(EnumSet.of(Button.A, Button.B, Button.X, Button.Y, Button.DPAD_UP,
+                Button.DPAD_DOWN, Button.DPAD_LEFT, Button.DPAD_RIGHT, Button.BACK, Button.START, Button.LEFT_BUMPER,
                 Button.RIGHT_BUMPER)));
     }
 }

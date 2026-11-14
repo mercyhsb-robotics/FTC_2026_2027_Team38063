@@ -1283,7 +1283,7 @@ public final class BioBuzzConstants {
     }
 
     // =========================================================================================
-    // DRIVER CONTROLS (PlayStation-style gamepad 1) AND THE STARTING POSE
+    // DRIVER CONTROLS (Xbox-style gamepad 1) AND THE STARTING POSE
     // =========================================================================================
     public static final class Controls {
         private Controls() {
@@ -1294,7 +1294,7 @@ public final class BioBuzzConstants {
         /** TUNE: press this if the HIVE tipped and the robot does not know: it flips which cell it believes is up. */
         public static final Button TOGGLE_HIVE_BUTTON = Button.DPAD_DOWN;
         /** TUNE: hold this to tell the robot it is standing exactly on the default start pose (resets odometry). */
-        public static final Button RESET_POSE_BUTTON = Button.SHARE;
+        public static final Button RESET_POSE_BUTTON = Button.BACK;
         /** TUNE: ... for this long, so it cannot be hit by accident (seconds). */
         public static final double RESET_POSE_HOLD_SEC = 0.6;
         /** TUNE: during INIT, press this to choose the RED alliance. */
@@ -1318,18 +1318,18 @@ public final class BioBuzzConstants {
          * TUNE: HOLD this to park. The robot drives itself into its own LOADING ZONE (the 5 points of PARK at the end of TeleOp),
          * stops there and holds the spot; let go and you are driving again at once. It needs a trusted pose (see
          * {@link #RESET_POSE_BUTTON}), never runs while the robot is shooting, and holding the shoot button or a jam-clearing button
-         * cancels it. It must be a button nothing else uses ({@code ConstantsCheck} says so at INIT). OPTIONS is the small button
-         * on the right of the pad; the Driver Station calls it Start, so do not hold it together with cross or circle (that
+         * cancels it. It must be a button nothing else uses ({@code ConstantsCheck} says so at INIT). START is the small Menu button
+         * on the right of the pad; the Driver Station calls it Start, so do not hold it together with A or B (that
          * pair re-assigns the gamepad).
          */
-        public static final Button PARK_BUTTON = Button.OPTIONS;
+        public static final Button PARK_BUTTON = Button.START;
         /**
-         * FIXED (the buttons {@code BioBuzzRobot.manualControls} reads directly, the ones that are not set above): intake on (cross),
-         * intake off (circle), manual launch on (triangle), manual launch off (square) and the feeder forward (right bumper).
+         * FIXED (the buttons {@code BioBuzzRobot.manualControls} reads directly, the ones that are not set above): intake on (A),
+         * intake off (B), manual launch on (Y), manual launch off (X) and the feeder forward (right bumper).
          * {@code ConstantsCheck} refuses a setting above that uses one of them, because two jobs on one button fire together.
          */
         public static final Button[] FIXED_MANUAL_BUTTONS = {
-                Button.CROSS, Button.CIRCLE, Button.TRIANGLE, Button.SQUARE, Button.RIGHT_BUMPER};
+                Button.A, Button.B, Button.Y, Button.X, Button.RIGHT_BUMPER};
 
         /** TUNE: a trigger counts as pressed beyond this (0-1). */
         public static final double TRIGGER_THRESHOLD = 0.3;
@@ -1696,18 +1696,18 @@ public final class BioBuzzConstants {
         private RobotCheck() {
         }
 
-        // ---- gamepad 1 buttons (PlayStation names) ------------------------------------------------
+        // ---- gamepad 1 buttons (Xbox names) ------------------------------------------------
 
         /** TUNE: "yes" and "continue": the answer to a question, and the button that starts a step or goes to the next one. */
-        public static final Button YES_BUTTON = Button.CROSS;
+        public static final Button YES_BUTTON = Button.A;
         /** TUNE: "no" and "there is a problem". While a motor is running it also stops the motor at once. */
-        public static final Button NO_BUTTON = Button.CIRCLE;
+        public static final Button NO_BUTTON = Button.B;
         /** TUNE: skip the step you are on (the safety step can never be skipped). */
-        public static final Button SKIP_BUTTON = Button.TRIANGLE;
+        public static final Button SKIP_BUTTON = Button.Y;
         /** TUNE: do the part you are on again (spin a wheel again, or repeat a whole step from its result screen). */
-        public static final Button REPEAT_BUTTON = Button.SQUARE;
+        public static final Button REPEAT_BUTTON = Button.X;
         /** TUNE: finish the gamepad step early. It must not be one of the buttons that step asks you to press. */
-        public static final Button GAMEPAD_FINISH_BUTTON = Button.TOUCHPAD;
+        public static final Button GAMEPAD_FINISH_BUTTON = Button.RIGHT_STICK_BUTTON;
         /** TUNE: scroll the summary list up and down when it is longer than the screen. */
         public static final Button SCROLL_UP_BUTTON = Button.DPAD_UP;
         public static final Button SCROLL_DOWN_BUTTON = Button.DPAD_DOWN;
@@ -1717,9 +1717,9 @@ public final class BioBuzzConstants {
          * too: in that step they are only tested, they do not act.
          */
         public static final Button[] GAMEPAD_BUTTONS_TO_CHECK = {
-                Button.CROSS, Button.CIRCLE, Button.SQUARE, Button.TRIANGLE,
+                Button.A, Button.B, Button.X, Button.Y,
                 Button.DPAD_UP, Button.DPAD_DOWN, Button.DPAD_LEFT, Button.DPAD_RIGHT,
-                Button.LEFT_BUMPER, Button.RIGHT_BUMPER, Button.SHARE, Button.OPTIONS};
+                Button.LEFT_BUMPER, Button.RIGHT_BUMPER, Button.BACK, Button.START};
         /**
          * TUNE: a button press is ignored when it comes this soon (seconds) after the screen changed. It stops a
          * double click from racing through two screens, and so from starting a motor by accident.

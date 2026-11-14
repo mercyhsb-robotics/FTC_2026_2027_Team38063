@@ -27,10 +27,10 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  * <ul>
  *   <li>D-pad up / down: flywheel target +/- 10 ticks per second (hold the left bumper for +/- 50);</li>
  *   <li>D-pad right / left: recorded range +/- 0.5 in (hold the left bumper for +/- 2 in);</li>
- *   <li>cross: start / stop the flywheel;</li>
- *   <li>circle (hold): run the feeder; the dip each ball causes is measured;</li>
- *   <li>triangle: record a table row with the current range and target (also written to the robot log);</li>
- *   <li>square: forget the recorded rows.</li>
+ *   <li>A: start / stop the flywheel;</li>
+ *   <li>B (hold): run the feeder; the dip each ball causes is measured;</li>
+ *   <li>Y: record a table row with the current range and target (also written to the robot log);</li>
+ *   <li>X: forget the recorded rows.</li>
  * </ul>
  * The dip numbers tell you how to set SHOT_DIP_FRAC and AT_SPEED_*: SHOT_DIP_FRAC should be about half the
  * smallest dip you see, and the feeder should wait until the speed has recovered.
@@ -44,8 +44,8 @@ import org.firstinspires.ftc.teamcode.mechanisms.launcher.Launcher;
  *
  * <p><b>When to run it and what to do.</b> Use it when the shot table is new or no longer fits (a new flywheel, a new
  * PIDF, a changed launch point). It is in the Driver Station TeleOp list as "Shooter Tuner" (group "AutoShoot").
- * Put the robot at a measured range, load a POLLEN, press INIT then PLAY, start the flywheel with cross, wait for
- * "at speed: true", and hold circle to feed one ball. Keep hands and loose objects clear of the flywheel and the
+ * Put the robot at a measured range, load a POLLEN, press INIT then PLAY, start the flywheel with A, wait for
+ * "at speed: true", and hold B to feed one ball. Keep hands and loose objects clear of the flywheel and the
  * back of the robot, where the POLLEN is thrown. The robot does not drive.
  *
  * <p><b>What the screen shows.</b> The flywheel state, target and measured speed (tps) and whether it is "at
@@ -68,7 +68,7 @@ public class ShooterTuner extends OpMode {
     private double targetTps = BioBuzzConstants.Shooter.MANUAL_TARGET_TPS;
     // The range, in inches, that a recorded row will be labelled with. Starts at the measured wall shot.
     private double rangeIn = BioBuzzConstants.Shooter.TUNER_START_RANGE_IN;
-    // True while the flywheel is switched on (cross toggles it).
+    // True while the flywheel is switched on (A toggles it).
     private boolean running;
     // System.nanoTime() (nanoseconds) at PLAY; the logic clock counts from here.
     private long startNanos;
@@ -79,9 +79,9 @@ public class ShooterTuner extends OpMode {
     private boolean prevDown;
     private boolean prevLeft;
     private boolean prevRight;
-    private boolean prevCross;
-    private boolean prevTriangle;
-    private boolean prevSquare;
+    private boolean prevA;
+    private boolean prevY;
+    private boolean prevX;
 
     // The lowest flywheel speed (tps) seen since the feeder last started; NaN until the first feed.
     private double minSinceFeed = Double.NaN;
@@ -89,7 +89,7 @@ public class ShooterTuner extends OpMode {
     private double lastDipDepthFrac = Double.NaN;
     // Was the feeder running on the previous loop? Used to notice when a feed starts and stops.
     private boolean prevFeeding;
-    // The rows recorded with triangle, as text ready to paste into the shot table.
+    // The rows recorded with Y, as text ready to paste into the shot table.
     private final List<String> rows = new ArrayList<String>();
 
     // Runs once at INIT: sets up the shooter and the two helpers, using the same settings the real robot uses.
@@ -133,7 +133,7 @@ public class ShooterTuner extends OpMode {
         if (gamepad1.dpad_left && !prevLeft) {
             rangeIn = Math.max(0.0, rangeIn - stepR);
         }
-        if (gamepad1.cross && !prevCross) {
+        if (gamepad1.a && !prevA) {
             running = !running;
             counter.start(now);
         }
@@ -141,15 +141,15 @@ public class ShooterTuner extends OpMode {
         prevDown = gamepad1.dpad_down;
         prevRight = gamepad1.dpad_right;
         prevLeft = gamepad1.dpad_left;
-        prevCross = gamepad1.cross;
+        prevA = gamepad1.a;
 
         // Command the flywheel (0 = off) and read its measured speed.
         launcher.setTargetVelocity(running ? targetTps : 0.0);
         double v = launcher.velocity();
         // "At speed" = the speed has been inside the window around the target for long enough (debounced).
         boolean atSpeed = ready.update(now, running, targetTps, v);
-        // The feeder runs only while the flywheel is on AND circle is held.
-        boolean feeding = running && gamepad1.circle;
+        // The feeder runs only while the flywheel is on AND B is held.
+        boolean feeding = running && gamepad1.b;
         launcher.setFeederOn(feeding);
         counter.update(now, feeding, atSpeed, targetTps, v);
 
@@ -166,17 +166,17 @@ public class ShooterTuner extends OpMode {
         }
         prevFeeding = feeding;
 
-        // Triangle records a row "{range, speed}," (also logged); square forgets all recorded rows.
-        if (gamepad1.triangle && !prevTriangle) {
+        // Y records a row "{range, speed}," (also logged); X forgets all recorded rows.
+        if (gamepad1.y && !prevY) {
             String row = String.format(Locale.US, "{%.1f, %.0f},", rangeIn, targetTps);
             rows.add(row);
             RobotLog.ii("ShooterTuner", "SHOT_TABLE row: " + row);
         }
-        if (gamepad1.square && !prevSquare) {
+        if (gamepad1.x && !prevX) {
             rows.clear();
         }
-        prevTriangle = gamepad1.triangle;
-        prevSquare = gamepad1.square;
+        prevY = gamepad1.y;
+        prevX = gamepad1.x;
 
         telemetry.addData("Flywheel", String.format(Locale.US, "%s  target %.0f  measured %.0f  at speed: %s",
                 running ? "RUNNING" : "stopped", targetTps, v, atSpeed));

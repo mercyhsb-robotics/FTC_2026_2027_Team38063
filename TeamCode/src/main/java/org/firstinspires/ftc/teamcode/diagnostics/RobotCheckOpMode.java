@@ -40,8 +40,8 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * {@code BioBuzzConstants.RobotCheck}.
  *
  * <p><b>The steps.</b> 0 safety, 1 battery, 2 hardware names, 3 drive wheels, 4 Pinpoint odometry, 5 intake, 6 flywheel,
- * 7 feeder, 8 Limelight camera, 9 gamepad, 10 summary. On the gamepad: cross (X) = yes / continue, circle (O) = no /
- * problem (and it stops a running motor at once), triangle = skip the step, square = do it again. The buttons are
+ * 7 feeder, 8 Limelight camera, 9 gamepad, 10 summary. On the gamepad: A = yes / continue, B = no /
+ * problem (and it stops a running motor at once), Y = skip the step, X = do it again. The buttons are
  * {@code BioBuzzConstants.RobotCheck.YES_BUTTON} and its neighbours.
  *
  * <p><b>Fail safe.</b> No motor or servo moves until the student presses the continue button; every test is short and at

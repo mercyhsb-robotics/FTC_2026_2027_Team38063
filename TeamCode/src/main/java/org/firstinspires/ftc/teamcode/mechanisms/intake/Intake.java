@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.BioBuzzConstants;
  * <p>The two corner-pulling servos that sit beside the roller are NOT part of this class; {@code BioBuzzRobot}
  * drives them directly from the triggers.
  *
- * <p>Who uses it: {@code BioBuzzRobot} (cross turns it on, circle turns it off; it is also switched off while the
+ * <p>Who uses it: {@code BioBuzzRobot} (A turns it on, B turns it off; it is also switched off while the
  * robot is shooting automatically, because the robot may hold at most 4 POLLEN) and the {@code IntakeTest}
  * diagnostic. The motor's name in the robot configuration is {@code BioBuzzConstants.Hardware.INTAKE_MOTOR}.
  */

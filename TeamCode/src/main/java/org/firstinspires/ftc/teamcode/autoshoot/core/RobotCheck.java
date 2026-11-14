@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.autoshoot.core.RobotCheckJudge.Judgement;
  * <ol>
  *   <li><b>Ready screen:</b> what you do, what the robot will do, how to continue. Nothing moves yet. The yes button
  *       starts it, the skip button skips the step.</li>
- *   <li><b>Running:</b> a motor turns for a short, fixed time at a gentle power (the circle button stops it at once).</li>
+ *   <li><b>Running:</b> a motor turns for a short, fixed time at a gentle power (the B button stops it at once).</li>
  *   <li><b>Question or waiting:</b> you answer yes / no, or you do something by hand (push the robot, hold a tag, press
  *       buttons).</li>
  *   <li><b>Result screen:</b> PASS, WARN or FAIL, what was seen, and the one thing to do. The yes button goes on, the
@@ -783,10 +783,10 @@ public final class RobotCheck {
             }
         }
         if (!seenLeftTrigger) {
-            out.add("left trigger (L2)");
+            out.add("left trigger (LT)");
         }
         if (!seenRightTrigger) {
-            out.add("right trigger (R2)");
+            out.add("right trigger (RT)");
         }
         return out;
     }
@@ -993,7 +993,7 @@ public final class RobotCheck {
                 l.add(startOrSkip("to start"));
                 break;
             case GAMEPAD:
-                l.add("This shows which gamepad buttons the robot sees, so you can check them against the PlayStation labels.");
+                l.add("This shows which gamepad buttons the robot sees, so you can check them against the labels on the controller.");
                 l.add("Press every button and both triggers once. Each one is marked SEEN. When all are seen the step passes by itself.");
                 l.add("To finish early press the " + b(cfg.gamepadFinish) + ". The robot will not move.");
                 l.add(startOrSkip("to start"));
@@ -1112,10 +1112,10 @@ public final class RobotCheck {
             holding.add(b(x));
         }
         if (in.leftTrigger) {
-            holding.add("left trigger (L2)");
+            holding.add("left trigger (LT)");
         }
         if (in.rightTrigger) {
-            holding.add("right trigger (R2)");
+            holding.add("right trigger (RT)");
         }
         l.add("Pressing now: " + (holding.isEmpty() ? "nothing" : RobotCheckText.join(holding, ", ")) + ".");
         List<String> notSeen = gamepadNotSeen();

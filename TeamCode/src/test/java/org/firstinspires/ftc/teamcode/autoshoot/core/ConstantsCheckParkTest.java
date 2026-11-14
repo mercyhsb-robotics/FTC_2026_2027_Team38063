@@ -121,13 +121,13 @@ public class ConstantsCheckParkTest {
 
     /**
      * Situation: the five fixed manual buttons listed in the constants.
-     * Expected: they are the ones the manual controls of the TeleOp read: cross, circle, triangle, square and the right bumper.
+     * Expected: they are the ones the manual controls of the TeleOp read: A, B, Y, X and the right bumper.
      * Why: the clash check is only as good as this list.
      */
     @Test
     public void theFixedManualButtonsAreTheOnesTheTeleOpReads() {
         Set<Button> set = new HashSet<Button>(Arrays.asList(BioBuzzConstants.Controls.FIXED_MANUAL_BUTTONS));
-        assertEquals(new HashSet<Button>(Arrays.asList(Button.CROSS, Button.CIRCLE, Button.TRIANGLE, Button.SQUARE, Button.RIGHT_BUMPER)), set);
+        assertEquals(new HashSet<Button>(Arrays.asList(Button.A, Button.B, Button.Y, Button.X, Button.RIGHT_BUMPER)), set);
     }
 
     private static ConstantsCheck.Report settings(double minOverlap, double safe, double arriveIn, double arriveDeg, double arriveSpeed,
