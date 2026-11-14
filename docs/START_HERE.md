@@ -4,6 +4,11 @@ This is the one guide for the robot day. You do not need to have run an FTC robo
 order, tick each box, and read the "You should see" line after every step. If you do not see it, read the
 "If not" line. If that does not help, ask a mentor before you go on.
 
+> **Competition day (automatic shooting is not ready): use "Manual TeleOp"** (TeleOp, group "0 Competition"). You aim and shoot by hand.
+> **Hold the right trigger to shoot:** the flywheel and the feeder start together, and when you let go the flywheel brakes to a stop at once.
+> **Hold the left trigger to take POLLEN in.** Hold the left bumper to drive slowly while you aim. Every mechanism has a hold-to-reverse button:
+> right bumper (indexer), B (shooter wheel), A (intake roller), X (the two corner servos, the "feelers"). All the buttons are in the [Controller map](#controller-map).
+
 **Contents**
 
 * [What this robot does and what you need](#what-this-robot-does-and-what-you-need)
@@ -133,7 +138,7 @@ driving library. We call it the **Pedro file**. Pedro's own tuners write its num
   **If not:** a name that is wrong by one letter is the usual reason. Check the capital letters.
 
 - [ ] **5. Look at the OpMode lists.**
-  **You should see:** under TeleOp: "00 Robot Check" (group "1 Start here"), "BioBuzzRobot", "Limelight Diagnostic" and "Shooter Tuner" (group "AutoShoot").
+  **You should see:** under TeleOp: "Manual TeleOp" (group "0 Competition"), "00 Robot Check" (group "1 Start here"), "BioBuzzRobot", "Limelight Diagnostic" and "Shooter Tuner" (group "AutoShoot").
   Under Autonomous: "Auto Route Picker" (group "2 Autonomous"), "RedAlliance_B1", "RedAlliance_C1", "RedAlliance_LeavePark", "PedroPathingAuto_Forward", "PedroPathingAuto_Strafe" and "AutoPath".
   **If not:** step 2 did not finish. Run again.
 
@@ -338,10 +343,10 @@ Run them in this order: each one needs the one before it to be right.
 - [ ] **29. Run "PedroPathingAuto_Strafe".** The same, sideways: 48 in to the robot's right and back, so keep 4 ft (120 cm) of clear floor to the right.
   **You should see:** it ends within about 1 to 2 in of where it began.
 
-- [ ] **30. Drive the TeleOp.** Choose TeleOp, "BioBuzzRobot", INIT. Choose the alliance with D-pad left (red) or D-pad right (blue). Press PLAY. Drive with the sticks on the floor.
-  **You should see:** left stick forward = robot forward, left stick right = robot slides right, right stick right = robot turns clockwise.
-  **If not:** if the whole robot goes the opposite way, change `Controls.MANUAL_FORWARD_SIGN`, `Controls.MANUAL_STRAFE_SIGN` or `Controls.MANUAL_TURN_SIGN`
-  from `1.0` to `-1.0` (one at a time). If the robot twists or jerks instead of driving straight, one wheel direction is wrong: redo step 23.
+- [ ] **30. Drive the TeleOp.** Choose TeleOp, group "0 Competition", "Manual TeleOp", INIT, then PLAY. Drive with the sticks on the floor.
+  **You should see:** left stick forward = robot forward, left stick right = robot slides right, right stick right = robot turns clockwise. The screen lists the buttons.
+  **If not:** the Manual TeleOp uses the simple drive in `mechanisms/mecanumdrive/MecanumDrive.java` (no odometry). If the robot twists or jerks instead of driving straight, one wheel direction is wrong there: ask a mentor.
+  (The settings `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN` and `MANUAL_TURN_SIGN` only change "BioBuzzRobot", which drives with Pedro.)
 
 - [ ] **31. Run the Robot Check again** (step 8) and check that "Drive wheels" and "Pinpoint odometry" pass.
   **You should see:** PASS for both. In the Pinpoint check, turning the robot on the spot should not slide its position more than about 3 in.
@@ -503,31 +508,57 @@ All buttons use gamepad 1, an Xbox-style gamepad. A, B, X and Y are the four rou
 '----------------------------------------------------------'
 ```
 
-### TeleOp: "BioBuzzRobot"
+### TeleOp: "Manual TeleOp" (use this at competition)
+
+You aim and shoot by hand. Nothing automatic runs: no camera, no odometry. It needs only the drive motors, the shooter and the intake.
+Pick TeleOp, group "0 Competition", "Manual TeleOp". A second gamepad (gamepad 2), if you have one, can press the shooter, intake and reverse
+buttons too, so one person can drive while another shoots.
 
 **Hold** means: keep it pressed. **Press** means: one quick press.
 
 | Control | What it does | Setting that changes it |
 |---|---|---|
+| Left stick | Drive: forward and back, slide left and right (the directions are the robot's own). | the simple drive in `MecanumDrive` |
+| Right stick | Left and right: turn (right = clockwise). | the simple drive in `MecanumDrive` |
+| **Right trigger (RT)** | **Hold: SHOOT.** The flywheel spins up and the feeder pushes POLLEN in as soon as the flywheel is fast enough (above 950 ticks per second): both from this one button. **Let go and the flywheel brakes to a stop at once** and the feeder stops. | `Shooter.MANUAL_TARGET_TPS` (1200), `Shooter.MANUAL_MIN_TPS` (950), `Shooter.FLYWHEEL_BRAKE_ON_STOP` (true) |
+| **Left trigger (LT)** | **Hold: INTAKE.** The front roller and both corner servos (the "feelers") pull POLLEN in. It never runs while you shoot or clear a jam (the robot may hold at most 4 POLLEN). | `Controls.TRIGGER_THRESHOLD` |
+| Left bumper (LB) | **Hold: slow mode.** Driving and turning at about a third of the speed, for careful aiming. | `Manual.SLOW_MODE_BUTTON`, `Manual.SLOW_MODE_SCALE` |
+| D-pad up, D-pad down | **Press:** the shooting speed one step faster or slower (25 ticks per second each; 800 to 1600). The screen shows the speed. | `Manual.SPEED_UP_BUTTON`, `SPEED_DOWN_BUTTON`, `SPEED_STEP_TPS`, `SPEED_MIN_TPS`, `SPEED_MAX_TPS` |
+| D-pad left | **Press:** back to the normal shooting speed. | `Manual.SPEED_RESET_BUTTON` |
+
+**The reverse buttons.** Every mechanism has one. Hold it and that mechanism runs backward; let go and it stops. They work together in any combination.
+
+| Control | What runs backward | Setting that changes it |
+|---|---|---|
+| Right bumper (RB) | The **indexer** (the feeder), slowly. Frees a POLLEN stuck between the feeder and the flywheel. It stops any shooting. | `Controls.UNJAM_INDEXER_BUTTON`; `Shooter.FEEDER_REVERSE_POWER` |
+| B | The **shooter flywheel**, slowly. Frees a POLLEN stuck in the flywheel. When you let go it brakes. It stops any shooting. | `Controls.UNJAM_SHOOTER_BUTTON`; `Shooter.FLYWHEEL_UNJAM_POWER` |
+| A | The **intake roller**: pushes a POLLEN out of the front. Beats pulling in with the left trigger. | `Controls.REVERSE_INTAKE_BUTTON`; `Controls.INTAKE_REVERSE_POWER` (0.5) |
+| X | **Both corner servos** (the "feelers"): push a POLLEN out. Hold A and X together to push everything out. | `Controls.REVERSE_FEELERS_BUTTON`; `Controls.FEELER_REVERSE_POWER` (0.5) |
+
+If you hold several buttons, the order of importance is: clearing a jam, then shooting, then taking POLLEN in. Pushing POLLEN out works at any time.
+The screen says what the robot is doing now (SHOOTING, INTAKE, CLEARING A JAM, REVERSING), the shooting speed and whether slow mode is on.
+Not used: the Xbox button, View, Menu, the stick buttons, Y.
+
+### TeleOp: "BioBuzzRobot" (automatic shooting and parking, for testing)
+
+The same shooter, intake and reverse buttons as the Manual TeleOp (right trigger = shoot, left trigger = intake, right bumper, B, A and X = reverse),
+plus the automatic features. The D-pad is used by the automatic features here, so there is no shooting-speed trim: it shoots at `Shooter.MANUAL_TARGET_TPS`.
+It drives with Pedro and the Pinpoint, so run the Pedro tuners (steps 22 to 29) first.
+
+| Control | What it does | Setting that changes it |
+|---|---|---|
 | Left stick | Drive: forward and back, slide left and right (the directions are the robot's own). Pushing it hard (past 0.6 for 0.15 s) while the robot drives itself cancels the automatic drive. | `Controls.MANUAL_FORWARD_SIGN`, `MANUAL_STRAFE_SIGN`, `MANUAL_DRIVE_SCALE`, `STICK_DEADBAND`; `AutoShoot.DRIVER_OVERRIDE_STICK`, `DRIVER_OVERRIDE_SEC` |
-| Right stick | Left and right: turn (right = clockwise). Up and down: not used. | `Controls.MANUAL_TURN_SIGN`, `MANUAL_TURN_SCALE`, `STICK_DEADBAND` |
+| Right stick | Left and right: turn (right = clockwise). | `Controls.MANUAL_TURN_SIGN`, `MANUAL_TURN_SCALE`, `STICK_DEADBAND` |
 | D-pad up | **Hold:** auto-score. The robot drives to the scoring spot, aims and shoots. Let go to stop and take over. | `Controls.SHOOT_BUTTON` |
 | D-pad down | **Press:** "the other cell is up". Flips which cell the robot thinks is UP. | `Controls.TOGGLE_HIVE_BUTTON` |
-| D-pad left | Before PLAY (INIT) only: choose the RED alliance. After PLAY: not used. | `Controls.ALLIANCE_RED_BUTTON` |
-| D-pad right | Before PLAY (INIT): choose the BLUE alliance. After PLAY, **hold:** run the shooter flywheel slowly **backward** to free a jammed POLLEN. It stops when you let go and it cancels auto-score. | `Controls.ALLIANCE_BLUE_BUTTON` (INIT); `Controls.UNJAM_SHOOTER_BUTTON` and `Shooter.FLYWHEEL_UNJAM_POWER` (play) |
-| A | **Press:** intake roller on. It stays on. | fixed in the code |
-| B | **Press:** intake roller off. | fixed in the code |
-| Y | **Press:** manual launch on. The flywheel spins up to 1200 ticks per second and the feeder pushes POLLEN once it is above 950. | fixed in the code; speeds `Shooter.MANUAL_TARGET_TPS`, `Shooter.MANUAL_MIN_TPS` |
-| X | **Press:** manual launch off. | fixed in the code |
-| Left bumper (LB) | **Hold:** run the indexer (the feeder) slowly **backward** to free a jammed POLLEN. It stops when you let go and it cancels auto-score. | `Controls.UNJAM_INDEXER_BUTTON`; `Shooter.FEEDER_REVERSE_POWER` |
-| Right bumper (RB) | **Hold:** run the feeder **forward** (push a POLLEN toward the flywheel). | fixed in the code; `Shooter.FEEDER_FORWARD_POWER` |
-| Left trigger (LT) | **Hold** (pull past 0.3): the left corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
-| Right trigger (RT) | **Hold** (pull past 0.3): the right corner intake servo pulls POLLEN in. | fixed in the code; `Controls.TRIGGER_THRESHOLD` |
+| D-pad left, D-pad right | Before PLAY (INIT) only: choose the RED / BLUE alliance. After PLAY: not used. | `Controls.ALLIANCE_RED_BUTTON`, `Controls.ALLIANCE_BLUE_BUTTON` |
+| Right trigger (RT), left trigger (LT) | Hold: shoot by hand / take POLLEN in (see the Manual TeleOp above). | fixed in the code |
+| Right bumper (RB), B, A, X | Hold: indexer / shooter flywheel / intake roller / corner servos run backward (see the Manual TeleOp above). Right bumper and B also cancel auto-score. | `Controls.UNJAM_INDEXER_BUTTON`, `UNJAM_SHOOTER_BUTTON`, `REVERSE_INTAKE_BUTTON`, `REVERSE_FEELERS_BUTTON` |
 | View (Back) | **Hold 0.6 s:** "the robot is on the default start pose". Resets its position. Works only when it is not auto-scoring. | `Controls.RESET_POSE_BUTTON`, `Controls.RESET_POSE_HOLD_SEC` |
 | Menu (Start) | **Hold:** park assist. The robot drives itself into your own LOADING ZONE by a safe road, stops there and holds. The screen says "Parked: release the button". Letting go, pushing the left stick hard, or holding the shoot or a jam button gives the sticks back at once. Do this at the end of the match for the 5 PARK points. It needs a trusted position (the start pose or the View reset). Do not press A or B while you hold Menu: on the Driver Station, Menu (Start) with A or B pairs the gamepad again. | `Controls.PARK_BUTTON` |
-| Xbox button, left stick push (LS), right stick push (RS) | Not used. | none |
+| Xbox button, stick buttons (LS, RS), Y, LB | Not used. | none |
 
-While the robot auto-scores, the intake, the corner servos, the manual launch buttons and the right bumper are switched off, because it may hold at most 4 POLLEN. A jam button cancels the auto-score and then works as written.
+While the robot auto-scores, the intake, the corner servos and the right trigger are switched off, because it may hold at most 4 POLLEN. A jam button (right bumper or B) cancels the auto-score and then works as written.
 If you still hold D-pad up when you let go of a jam button, the auto-score can start again: let go of D-pad up first. The screen says **CLEARING A JAM** while you hold a jam button.
 
 ### "00 Robot Check"
@@ -702,7 +733,7 @@ With the front touching the wall, the center of rotation is `Robot.FRONT_EXTENT_
 | The camera sees no tags | Check pitch, exposure, marker size 82.55 mm and Full 3D (step 36). Is the HIVE in view from this spot? |
 | The flywheel never gets to speed (`FLYWHEEL_NOT_AT_SPEED`, `SPINUP_TIMEOUT`) | Use a fresh battery. The target must be below what the motor can do (about 2800 ticks per second). Check the flywheel cable and encoder (Robot Check, flywheel). `Shooter.FLYWHEEL_PIDF_P` (40) and `FLYWHEEL_PIDF_F` (12.5) are goBILDA's starting numbers. `Shooter.AT_SPEED_BELOW_FRAC`, `AT_SPEED_ABOVE_FRAC`, `AT_SPEED_RISE_SEC` widen the "at speed" window. |
 | The robot will not shoot | Read the `Waiting:` or `Stopped:` line and use the tables in "Try auto-shoot". |
-| A POLLEN is **jammed** in the indexer or the flywheel | **Let go of D-pad up first** (it can start the auto-score again). Then **hold left bumper** (the indexer runs slowly backward) or **hold D-pad right** (the flywheel runs slowly backward). They stop when you let go. If it will not free, switch the robot off, then free it by hand with a mentor. The speeds are `Shooter.FEEDER_REVERSE_POWER` and `Shooter.FLYWHEEL_UNJAM_POWER` (0.15 each). Raise one a little at a time. The TeleOp refuses numbers above 0.5 (`Controls.UNJAM_MAX_POWER`). |
+| A POLLEN is **jammed** in the indexer or the flywheel | In the Manual TeleOp: **hold the right bumper** (the indexer runs slowly backward) or **hold B** (the flywheel runs slowly backward). They stop when you let go, and the flywheel brakes. In "BioBuzzRobot", let go of D-pad up first (it can start the auto-score again). A POLLEN stuck in the front: hold **A** (roller) or **X** (corner servos). If it will not free, switch the robot off, then free it by hand with a mentor. The jam speeds are `Shooter.FEEDER_REVERSE_POWER` and `Shooter.FLYWHEEL_UNJAM_POWER` (0.15 each). Raise one a little at a time. The TeleOp refuses numbers above 0.5 (`Controls.UNJAM_MAX_POWER`). |
 | Every shot at one distance is high or short | Change that row of `Shooter.SHOT_TABLE`: a lower speed for high, a higher speed for short. |
 | Shots are wrong only beyond some distance | Add table rows out to that distance. |
 | Every shot lands to one side | `Robot.LAUNCH_POINT_LEFT_IN`: is the ball exit really on the center line? |

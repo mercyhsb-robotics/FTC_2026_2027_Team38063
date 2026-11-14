@@ -25,7 +25,8 @@ connect, check, measure, tune, set up the camera, build the shot table, try auto
 | OpMode | What it is for |
 |---|---|
 | **00 Robot Check** (TeleOp, group "1 Start here") | A guided test of every part (battery, names, wheels, Pinpoint, intake, flywheel, feeder, camera, gamepad). Run it first, with the robot on blocks. |
-| **BioBuzzRobot** (TeleOp) | Driving. Hold **D-pad up** to auto-score. Alliance is chosen during INIT. |
+| **Manual TeleOp** (TeleOp, group "0 Competition") | **Use this at competition.** You aim and shoot by hand: hold the right trigger to shoot (the flywheel and feeder start together and the flywheel brakes when you let go), the left trigger to intake. |
+| **BioBuzzRobot** (TeleOp) | Driving with the automatic features: hold **D-pad up** to auto-score. Alliance is chosen during INIT. Same shooter and intake buttons as the Manual TeleOp. |
 | **Limelight Diagnostic** | Check the camera, its mounting constants and the tag readings with the robot standing still. |
 | **Shooter Tuner** | Build the shot table: flywheel speed vs. distance. |
 | **Auto Route Picker** (Autonomous, group "2 Autonomous") | **The way to run an auto.** At INIT you choose a route and the alliance (D-pad up / down picks the route, D-pad left = RED, D-pad right = BLUE). The screen shows who tips the HIVE first, the time, our points, the route check, the Limelight, the values still to measure and, in plain words, where to put the robot (measured to its edges). If it says REFUSED the robot will not move: fix it or pick another route. After PLAY the robot drives the route by itself, never fires at a cell the camera has not seen UP, stops everything when AUTO ends and keeps its position for the TeleOp. The routes have a tier word in their title: **Safe**, **Standard** or **Aggressive** (**Advanced** is for experts). |
@@ -38,17 +39,19 @@ connect, check, measure, tune, set up the camera, build the shot table, try auto
 | Control | Action |
 |---|---|
 | Left stick / right stick | drive / turn |
-| **D-pad up (hold)** | drive to the scoring pose and shoot everything; release to take over |
-| D-pad down | "the other cell is up": flip which cell the robot believes is tipped up |
-| View (hold ~0.6 s) | "I am standing on the default start pose": resets odometry |
-| D-pad left / right (INIT only) | choose RED / BLUE alliance |
-| A / B | intake motor on / off |
-| Triggers | the two corner servos |
-| Y / X | manual launch on / off (feeds once the flywheel is fast enough) |
-| Right bumper (hold) | feeder forward |
-| **Left bumper (hold)** | **clear a jam:** run the indexer (feeder) slowly backward; also cancels auto-score |
-| **D-pad right (hold, after PLAY)** | **clear a jam:** run the shooter flywheel slowly backward; also cancels auto-score |
-| **Menu (hold)** | **park:** drive into your own LOADING ZONE and hold there (5 PARK points at the end); release to take over |
+| **Right trigger (hold)** | **shoot by hand:** the flywheel spins up and the feeder pushes POLLEN in once it is fast enough; let go and the flywheel brakes to a stop |
+| **Left trigger (hold)** | **intake:** the roller and both corner servos pull POLLEN in |
+| Left bumper (hold) | slow drive, for careful aiming (Manual TeleOp only) |
+| D-pad up / down / left | shooting speed faster / slower / normal (Manual TeleOp only) |
+| **Right bumper (hold)** | reverse the **indexer** (feeder), slowly: clears a jam |
+| **B (hold)** | reverse the **shooter flywheel**, slowly: clears a jam |
+| **A (hold)** | reverse the **intake roller**: pushes a POLLEN out |
+| **X (hold)** | reverse the **two corner servos** (the feelers): pushes a POLLEN out |
+| D-pad up (hold) | BioBuzzRobot only: drive to the scoring pose and shoot everything; release to take over |
+| D-pad down | BioBuzzRobot only: "the other cell is up": flip which cell the robot believes is tipped up |
+| View (hold ~0.6 s) | BioBuzzRobot only: "I am standing on the default start pose": resets odometry |
+| D-pad left / right (INIT only) | BioBuzzRobot only: choose RED / BLUE alliance |
+| **Menu (hold)** | BioBuzzRobot only, **park:** drive into your own LOADING ZONE and hold there (5 PARK points at the end); release to take over |
 
 Moving the left stick hard while the robot is driving itself cancels the automatic drive.
 
@@ -66,7 +69,7 @@ robot. Two tests enforce this, and the TeleOp lists the values still marked ADD 
 ```
 TeamCode/src/main/java/org/firstinspires/ftc/teamcode/
   BioBuzzConstants.java        <- every tunable value
-  teleop/                      <- BioBuzzRobot: the driver-controlled OpMode (wiring only)
+  teleop/                      <- ManualTeleOp (competition) and BioBuzzRobot (automatic features): the driver-controlled OpModes (wiring only)
   autonomous/                  <- the autonomous OpModes: AutoRoutePicker, and the old RedAlliance_*; pathtests/ = Pedro path tests
   autoshoot/core/              <- the auto-shoot logic: field model, planner, vision analysis, state machine
                                   (plain Java, unit tested)
