@@ -270,6 +270,26 @@ public final class ConstantsCheck {
             takenBy.add("a fixed manual control in BioBuzzRobot (intake, launch or feeder)");
         }
         checkParkButton(r, BioBuzzConstants.Controls.PARK_BUTTON, taken.toArray(new Button[0]), takenBy.toArray(new String[0]));
+        checkManualControls(r, BioBuzzConstants.Manual.SLOW_MODE_SCALE, BioBuzzConstants.Manual.SPEED_STEP_TPS,
+                BioBuzzConstants.Manual.SPEED_MIN_TPS, BioBuzzConstants.Manual.SPEED_MAX_TPS, BioBuzzConstants.Shooter.MANUAL_TARGET_TPS,
+                new Button[]{BioBuzzConstants.Manual.SLOW_MODE_BUTTON, BioBuzzConstants.Manual.SPEED_UP_BUTTON,
+                        BioBuzzConstants.Manual.SPEED_DOWN_BUTTON, BioBuzzConstants.Manual.SPEED_RESET_BUTTON,
+                        BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON,
+                        BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON, BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON},
+                new String[]{"Manual.SLOW_MODE_BUTTON", "Manual.SPEED_UP_BUTTON", "Manual.SPEED_DOWN_BUTTON", "Manual.SPEED_RESET_BUTTON",
+                        "Controls.UNJAM_INDEXER_BUTTON", "Controls.UNJAM_SHOOTER_BUTTON", "Controls.REVERSE_INTAKE_BUTTON",
+                        "Controls.REVERSE_FEELERS_BUTTON"});
+        checkReversePowers(r, BioBuzzConstants.Controls.INTAKE_REVERSE_POWER, BioBuzzConstants.Controls.FEELER_REVERSE_POWER);
+        // The park, shoot, alliance ... buttons of BioBuzzRobot must not be the intake reverse buttons either.
+        checkParkButton(r, BioBuzzConstants.Controls.PARK_BUTTON, new Button[]{BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON,
+                BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON}, new String[]{"Controls.REVERSE_INTAKE_BUTTON", "Controls.REVERSE_FEELERS_BUTTON"});
+        for (Button reverse : new Button[]{BioBuzzConstants.Controls.REVERSE_INTAKE_BUTTON, BioBuzzConstants.Controls.REVERSE_FEELERS_BUTTON}) {
+            if (reverse == BioBuzzConstants.Controls.SHOOT_BUTTON || reverse == BioBuzzConstants.Controls.TOGGLE_HIVE_BUTTON
+                    || reverse == BioBuzzConstants.Controls.RESET_POSE_BUTTON || reverse == BioBuzzConstants.Controls.ALLIANCE_RED_BUTTON
+                    || reverse == BioBuzzConstants.Controls.ALLIANCE_BLUE_BUTTON) {
+                r.errors.add("An intake reverse button (" + reverse + ") is also used for auto-shooting, the HIVE toggle, the pose reset or the alliance choice.");
+            }
+        }
         checkParkSettings(r, BioBuzzConstants.Park.MIN_OVERLAP_IN, BioBuzzConstants.Auto.PARK_MIN_OVERLAP_IN, BioBuzzConstants.Park.ARRIVE_IN,
                 BioBuzzConstants.Park.ARRIVE_DEG, BioBuzzConstants.Park.ARRIVE_SPEED_IN_S, BioBuzzConstants.Park.GRID_STEP_IN,
                 BioBuzzConstants.Park.HEADING_STEP_DEG, BioBuzzConstants.Park.MAX_ROUTE_CHECKS,
@@ -463,6 +483,51 @@ public final class ConstantsCheck {
         }
         if (!(tieSec >= 0.0)) {
             r.errors.add("Auto.START_SEARCH_TIE_SEC (" + tieSec + " s) cannot be negative: it is how close two route times must be for the search to call them a tie.");
+        }
+    }
+
+    /**
+     * The intake roller and the corner servos run backward at these powers while their reverse buttons are held. A power of zero would do
+     * nothing and one above 1 is a typo (servo and motor power is -1 to 1).
+     */
+    static void checkReversePowers(Report r, double intakePower, double feelerPower) {
+        if (!(intakePower > 0.0 && intakePower <= 1.0)) {
+            r.errors.add("Controls.INTAKE_REVERSE_POWER (" + intakePower + ") must be above 0 and at most 1.");
+        }
+        if (!(feelerPower > 0.0 && feelerPower <= 1.0)) {
+            r.errors.add("Controls.FEELER_REVERSE_POWER (" + feelerPower + ") must be above 0 and at most 1.");
+        }
+    }
+
+    /**
+     * The settings of the Manual TeleOp. The slow-mode factor must leave the robot able to move; the shooting-speed range must be a real range
+     * the flywheel motor can reach (about 2800 ticks per second at most) and must hold the normal speed; one press must change the speed by a
+     * step that fits in the range; and no two of the buttons may be the same (two jobs on one button fire together).
+     * {@code names[i]} says which setting {@code buttons[i]} is, so the message can name it.
+     */
+    static void checkManualControls(Report r, double slowScale, double stepTps, double minTps, double maxTps, double normalTps,
+                                    Button[] buttons, String[] names) {
+        if (!(slowScale >= 0.1 && slowScale <= 1.0)) {
+            r.errors.add("Manual.SLOW_MODE_SCALE (" + slowScale + ") must be between 0.1 and 1: it is the share of full speed that slow mode drives at.");
+        }
+        if (!(minTps > 0.0 && minTps < maxTps)) {
+            r.errors.add("Manual.SPEED_MIN_TPS (" + minTps + ") must be above 0 and below Manual.SPEED_MAX_TPS (" + maxTps + ").");
+        }
+        if (maxTps > 2400.0) {
+            r.errors.add("Manual.SPEED_MAX_TPS (" + maxTps + ") is more than the flywheel motor can do (about 2800 ticks per second, 2400 is the limit used here).");
+        }
+        if (!(normalTps >= minTps && normalTps <= maxTps)) {
+            r.errors.add("Shooter.MANUAL_TARGET_TPS (" + normalTps + ") must be between Manual.SPEED_MIN_TPS and Manual.SPEED_MAX_TPS.");
+        }
+        if (!(stepTps > 0.0 && stepTps <= (maxTps - minTps) / 2.0)) {
+            r.errors.add("Manual.SPEED_STEP_TPS (" + stepTps + ") must be above 0 and at most half of the speed range.");
+        }
+        for (int i = 0; i < buttons.length; i++) {
+            for (int j = i + 1; j < buttons.length; j++) {
+                if (buttons[i] == buttons[j]) {
+                    r.errors.add(names[i] + " and " + names[j] + " are both " + buttons[i] + ": two jobs on one button would fire together.");
+                }
+            }
         }
     }
 

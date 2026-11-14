@@ -909,8 +909,11 @@ public final class BioBuzzConstants {
         public static final double FLYWHEEL_PIDF_I = 0.0;
         public static final double FLYWHEEL_PIDF_D = 0.0;
         public static final double FLYWHEEL_PIDF_F = 12.5;
-        /** VERIFY: true = brake when the flywheel is told to stop. False coasts, which is easier on the gearbox. */
-        public static final boolean FLYWHEEL_BRAKE_ON_STOP = false;
+        /**
+         * TUNE: true = the flywheel BRAKES to a stop the moment it is told to stop (the driver lets go of the shoot trigger). False lets it coast
+         * down for seconds, and a loose POLLEN that touches a coasting flywheel can be thrown out of the robot, so the team wants true.
+         */
+        public static final boolean FLYWHEEL_BRAKE_ON_STOP = true;
         /** TUNE: speed to hold while idle between volleys, in ticks per second. 0 = stop completely. */
         public static final double FLYWHEEL_IDLE_TPS = 0.0;
 
@@ -1305,15 +1308,29 @@ public final class BioBuzzConstants {
         public static final double UNJAM_MAX_POWER = 0.5;
         /**
          * TUNE: HOLD this to run the indexer (the feeder) slowly BACKWARD and free a jammed POLLEN (speed:
-         * Shooter.FEEDER_REVERSE_POWER). It stops when you let go, and it stops any automatic shooting.
+         * Shooter.FEEDER_REVERSE_POWER). It stops when you let go, and it stops any shooting. The right bumper is under the
+         * right index finger, so a driver can press it while still holding the sticks.
          */
-        public static final Button UNJAM_INDEXER_BUTTON = Button.LEFT_BUMPER;
+        public static final Button UNJAM_INDEXER_BUTTON = Button.RIGHT_BUMPER;
         /**
          * TUNE: HOLD this to run the shooter flywheel slowly BACKWARD and free a jammed POLLEN (speed:
-         * Shooter.FLYWHEEL_UNJAM_POWER). It stops when you let go, and it stops any automatic shooting. (During INIT
-         * the same D-pad button chooses the alliance; the two uses never overlap.)
+         * Shooter.FLYWHEEL_UNJAM_POWER). It stops when you let go (the flywheel brakes), and it stops any shooting.
          */
-        public static final Button UNJAM_SHOOTER_BUTTON = Button.DPAD_RIGHT;
+        public static final Button UNJAM_SHOOTER_BUTTON = Button.B;
+        /**
+         * TUNE: HOLD this to run the front intake ROLLER BACKWARD and push a POLLEN out of the front (speed: INTAKE_REVERSE_POWER). It stops
+         * when you let go. It beats pulling in with the intake trigger.
+         */
+        public static final Button REVERSE_INTAKE_BUTTON = Button.A;
+        /**
+         * TUNE: HOLD this to run BOTH corner servos (the "feelers") BACKWARD and push a POLLEN out (speed: FEELER_REVERSE_POWER). It stops
+         * when you let go. It beats pulling in with the intake trigger. Hold it together with REVERSE_INTAKE_BUTTON to push everything out.
+         */
+        public static final Button REVERSE_FEELERS_BUTTON = Button.X;
+        /** TUNE: power of the intake roller while REVERSE_INTAKE_BUTTON is held (0 to 1). */
+        public static final double INTAKE_REVERSE_POWER = 0.5;
+        /** TUNE: power of each corner servo while REVERSE_FEELERS_BUTTON is held (0 to 1; 1 = the full speed they pull in at). */
+        public static final double FEELER_REVERSE_POWER = 0.5;
         /**
          * TUNE: HOLD this to park. The robot drives itself into its own LOADING ZONE (the 5 points of PARK at the end of TeleOp),
          * stops there and holds the spot; let go and you are driving again at once. It needs a trusted pose (see
@@ -1324,12 +1341,11 @@ public final class BioBuzzConstants {
          */
         public static final Button PARK_BUTTON = Button.START;
         /**
-         * FIXED (the buttons {@code BioBuzzRobot.manualControls} reads directly, the ones that are not set above): intake on (A),
-         * intake off (B), manual launch on (Y), manual launch off (X) and the feeder forward (right bumper).
-         * {@code ConstantsCheck} refuses a setting above that uses one of them, because two jobs on one button fire together.
+         * FIXED (the buttons the manual mechanism controls read directly, the ones that are not set above): none. Shoot and intake are
+         * the two triggers (they are not Buttons: see {@code ManualMechanisms}), and every button the manual controls use is a setting
+         * in {@code Controls} or {@code Manual}. The list stays so {@code ConstantsCheck} can refuse a setting that uses a fixed button.
          */
-        public static final Button[] FIXED_MANUAL_BUTTONS = {
-                Button.A, Button.B, Button.Y, Button.X, Button.RIGHT_BUMPER};
+        public static final Button[] FIXED_MANUAL_BUTTONS = {};
 
         /** TUNE: a trigger counts as pressed beyond this (0-1). */
         public static final double TRIGGER_THRESHOLD = 0.3;
@@ -1368,6 +1384,33 @@ public final class BioBuzzConstants {
         /** TUNE: gamepad light colors for the alliance (red, green, blue, each 0-1). */
         public static final double[] RED_LED = {1.0, 0.0, 0.0};
         public static final double[] BLUE_LED = {0.0, 0.0, 1.0};
+    }
+
+    // =========================================================================================
+    // THE MANUAL TELEOP ("Manual TeleOp": the driver aims and shoots by hand, nothing automatic)
+    // Shoot is the right trigger and intake is the left trigger (fixed in the code). These are the other buttons and numbers.
+    // The jam-clearing buttons are in Controls (UNJAM_INDEXER_BUTTON, UNJAM_SHOOTER_BUTTON); the normal shooting speed is Shooter.MANUAL_TARGET_TPS.
+    // =========================================================================================
+    public static final class Manual {
+        private Manual() {
+        }
+
+        /** TUNE: HOLD this to drive and turn slowly, for careful aiming. */
+        public static final Button SLOW_MODE_BUTTON = Button.LEFT_BUMPER;
+        /** TUNE: in slow mode every stick request is multiplied by this (0.1 to 1): 0.35 is about a third of the speed. */
+        public static final double SLOW_MODE_SCALE = 0.35;
+        /** TUNE: press this to make the shooting speed one step faster (on either gamepad). */
+        public static final Button SPEED_UP_BUTTON = Button.DPAD_UP;
+        /** TUNE: press this to make the shooting speed one step slower. */
+        public static final Button SPEED_DOWN_BUTTON = Button.DPAD_DOWN;
+        /** TUNE: press this to go back to the normal shooting speed (Shooter.MANUAL_TARGET_TPS). */
+        public static final Button SPEED_RESET_BUTTON = Button.DPAD_LEFT;
+        /** TUNE: how much one press of the speed buttons changes the shooting speed, in ticks per second. */
+        public static final double SPEED_STEP_TPS = 25.0;
+        /** TUNE: the slowest shooting speed the buttons can set, in ticks per second. */
+        public static final double SPEED_MIN_TPS = 800.0;
+        /** TUNE: the fastest shooting speed the buttons can set, in ticks per second (the flywheel motor tops out near 2800). */
+        public static final double SPEED_MAX_TPS = 1600.0;
     }
 
     // =========================================================================================

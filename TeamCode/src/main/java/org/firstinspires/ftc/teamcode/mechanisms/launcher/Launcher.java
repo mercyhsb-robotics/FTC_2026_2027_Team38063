@@ -48,6 +48,10 @@ public class Launcher {
     private long targetSetAtNanos;
     // True while the flywheel is being run BACKWARD by hand to clear a jam (see reverseFlywheel).
     private boolean flywheelReversing;
+    // True while the flywheel motor is in plain power mode (RUN_WITHOUT_ENCODER). That is how it is stopped: with zero power and
+    // BRAKE the motor is shorted and the flywheel stops fast instead of coasting. Speed control (RUN_USING_ENCODER) is switched
+    // back on the next time a forward speed is asked for.
+    private boolean openLoop;
 
     /** @param telemetry unused; kept so existing callers keep compiling. */
     public void init(HardwareMap hardwareMap, Telemetry telemetry) {
@@ -59,7 +63,13 @@ public class Launcher {
      * Call once, from the OpMode's init(). Leaves both stopped.
      */
     public void init(HardwareMap hardwareMap) {
-        flywheel = hardwareMap.get(DcMotorEx.class, BioBuzzConstants.Hardware.FLYWHEEL);
+        configure(hardwareMap.get(DcMotorEx.class, BioBuzzConstants.Hardware.FLYWHEEL),
+                hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.FEEDER));
+    }
+
+    // The rest of init(), taking the two devices as arguments. Package-private so a unit test can pass pretend motors.
+    void configure(DcMotorEx flywheelMotor, CRServo feederServo) {
+        flywheel = flywheelMotor;
         // RUN_USING_ENCODER: the motor controller uses the encoder to hold the speed we ask for (closed loop),
         // which is what setVelocity() needs.
         flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -75,7 +85,7 @@ public class Launcher {
                     BioBuzzConstants.Shooter.FLYWHEEL_PIDF_D, BioBuzzConstants.Shooter.FLYWHEEL_PIDF_F));
         }
 
-        feeder = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.FEEDER);
+        feeder = feederServo;
         // The direction is set ONCE; reversing is done with the sign of the power, so a command is never
         // sent with the old direction.
         feeder.setDirection(BioBuzzConstants.Shooter.FEEDER_INVERTED
@@ -84,36 +94,60 @@ public class Launcher {
         targetTps = 0.0;
         feederPower = 0.0;
         flywheelReversing = false;
+        openLoop = false;
         targetSetAtNanos = System.nanoTime();
     }
 
     // ------------------------------------------------------------------------------------ flywheel
 
     /**
-     * Sets the flywheel speed in ticks per second; zero or less stops it (it never spins backward). Only talks to the
+     * Sets the flywheel speed in ticks per second; zero or less STOPS it (it never spins backward here). Only talks to the
      * hub when the target changes, so it is safe to call every loop.
+     *
+     * <p><b>Stopping brakes the wheel.</b> A flywheel that is only "switched off" keeps spinning for seconds, and a loose
+     * POLLEN that touches it can be thrown out of the robot. So a zero target puts the motor in plain power mode at zero power
+     * with BRAKE (when {@code Shooter.FLYWHEEL_BRAKE_ON_STOP} is true, the shipped setting), which stops the wheel quickly.
+     * Asking for a forward speed again switches speed control back on. Ignored while the flywheel is being run backward by
+     * hand (see reverseFlywheel).
      */
     public void setTargetVelocity(double tps) {
         double wanted = Math.max(0.0, tps);
         if (wanted == targetTps) {
             return;
         }
+        if (flywheelReversing && wanted > 0.0) {
+            return;      // a jam is being cleared: no forward speed until the reverse button is let go
+        }
         targetTps = wanted;
         targetSetAtNanos = System.nanoTime();
         if (wanted > 0.0) {
+            if (openLoop) {
+                flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                openLoop = false;
+            }
             // Closed-loop speed command: the motor controller works to hold this many ticks per second.
             flywheel.setVelocity(wanted);
         } else {
-            // Cut the power (coast or brake, as chosen in init()).
-            flywheel.setPower(0.0);
+            stopFlywheelPower();
         }
+    }
+
+    // Zero power in plain power mode: the motor brakes (or floats, if FLYWHEEL_BRAKE_ON_STOP is false) instead of holding a
+    // speed target. The power is set to zero before AND after the mode change so no old speed command is ever applied.
+    private void stopFlywheelPower() {
+        flywheel.setPower(0.0);
+        if (!openLoop) {
+            flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            openLoop = true;
+        }
+        flywheel.setPower(0.0);
     }
 
     /**
      * Runs the flywheel slowly BACKWARD (or stops that) to free a jammed POLLEN. While {@code on} is true the motor gets
      * a small steady reverse power (BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER) with no speed control; the moment it
-     * is false the motor stops and goes back to speed-control mode, ready for the next shot. Safe to call every loop.
-     * Call it only when the flywheel is not being used to shoot.
+     * is false the motor brakes to a stop and stays ready for the next shot (speed control comes back with the next speed
+     * request). Safe to call every loop. Call it only when the flywheel is not being used to shoot.
      */
     public void reverseFlywheel(boolean on) {
         if (on) {
@@ -122,14 +156,12 @@ public class Launcher {
                 // plain reverse power.
                 targetTps = 0.0;
                 targetSetAtNanos = System.nanoTime();
-                flywheel.setPower(0.0);
-                flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                stopFlywheelPower();
                 flywheelReversing = true;
             }
             flywheel.setPower(-BioBuzzConstants.Shooter.FLYWHEEL_UNJAM_POWER);
         } else if (flywheelReversing) {
-            flywheel.setPower(0.0);
-            flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            flywheel.setPower(0.0);      // plain power mode with zero power: brakes
             flywheelReversing = false;
         }
     }

@@ -120,14 +120,14 @@ public class ConstantsCheckParkTest {
     }
 
     /**
-     * Situation: the five fixed manual buttons listed in the constants.
-     * Expected: they are the ones the manual controls of the TeleOp read: A, B, Y, X and the right bumper.
-     * Why: the clash check is only as good as this list.
+     * Situation: the fixed manual buttons listed in the constants.
+     * Expected: the list is empty. Shoot and intake are the two triggers (they are not Buttons) and every other manual button is a setting
+     * in Controls or Manual.
+     * Why: the clash check is only as good as this list; a button that the code reads directly must be added to it again.
      */
     @Test
-    public void theFixedManualButtonsAreTheOnesTheTeleOpReads() {
-        Set<Button> set = new HashSet<Button>(Arrays.asList(BioBuzzConstants.Controls.FIXED_MANUAL_BUTTONS));
-        assertEquals(new HashSet<Button>(Arrays.asList(Button.A, Button.B, Button.Y, Button.X, Button.RIGHT_BUMPER)), set);
+    public void theManualControlsReadNoFixedButtons() {
+        assertEquals(0, BioBuzzConstants.Controls.FIXED_MANUAL_BUTTONS.length);
     }
 
     private static ConstantsCheck.Report settings(double minOverlap, double safe, double arriveIn, double arriveDeg, double arriveSpeed,

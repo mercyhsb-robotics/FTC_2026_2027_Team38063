@@ -33,6 +33,11 @@ public class Intake {
         intakeMotor.setPower(1.0);
     }
 
+    /** Runs the roller BACKWARD at the given power (0 to 1), to push a POLLEN out of the front. stopIntake() stops it. */
+    public void reverseIntake(double power) {
+        intakeMotor.setPower(-Math.abs(power));
+    }
+
     /** Stops the roller (power 0). */
     public void stopIntake() {
         intakeMotor.setPower(0);

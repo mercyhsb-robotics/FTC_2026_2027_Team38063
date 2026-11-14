@@ -90,8 +90,9 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  * The gamepad rumbles when an auto-shoot starts, arrives, finishes (two blips) or gives up (long, strong).
  *
  * <p><b>Controls (gamepad 1).</b> The shoot, "other cell is up", pose reset and alliance buttons are assigned in
- * {@code BioBuzzConstants.Controls}; the sticks' sign, scale and deadband are there too. The manual mechanism
- * buttons (A, B, Y, X, bumpers, triggers) are fixed in {@link #manualControls()}.
+ * {@code BioBuzzConstants.Controls}; the sticks' sign, scale and deadband are there too. The shooter and intake
+ * (right trigger = shoot, left trigger = intake, bumper / B = clear a jam) work exactly as in the "Manual TeleOp"
+ * and are explained in {@link ManualMechanisms}.
  * <ul>
  *   <li>Left stick: drive forward / back and strafe left / right, relative to the robot. Right stick, left / right:
  *       turn. Pushing the left stick hard while the robot is driving itself cancels the automatic drive.</li>
@@ -102,10 +103,10 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
  *   <li>View (hold about 0.6 s, only while not auto-shooting): "I am standing on the default start pose":
  *       resets the odometry position to it.</li>
  *   <li>D-pad left / right (INIT only): choose the RED / BLUE alliance.</li>
- *   <li>A / B: intake motor on / off.</li>
- *   <li>Left / right trigger (hold): the left / right corner-pulling intake servo.</li>
- *   <li>Y / X: manual launch on / off (the feeder runs once the flywheel is fast enough).</li>
- *   <li>Left / right bumper (hold): feeder runs backward / forward, for clearing a jam.</li>
+ *   <li>Right trigger (hold): SHOOT by hand. The flywheel spins up and the feeder runs once it is fast enough; let go and the flywheel brakes to a stop.</li>
+ *   <li>Left trigger (hold): INTAKE (the roller and both corner servos).</li>
+ *   <li>Reverse buttons (hold): right bumper = indexer (feeder) slowly backward, B = shooter flywheel slowly backward (both clear a jam),
+ *       A = intake roller backward, X = the two corner servos (the 'feelers') backward (these push a POLLEN out).</li>
  * </ul>
  * While the robot is shooting automatically the intake, the corner servos and the manual launch buttons are
  * switched off (the robot may hold at most 4 POLLEN), so only the sticks and the buttons above work.
@@ -121,6 +122,8 @@ public class BioBuzzRobot extends OpMode {
     // setPower(-1..1) sets its speed and direction instead of a position.
     private CRServo servoLeft;
     private CRServo servoRight;
+    // The rules for the manual shoot, intake and jam-clearing buttons (shared with the Manual TeleOp).
+    private ManualMechanisms mechanisms;
 
     // ---- drive: Pedro owns the motors when it starts; otherwise the legacy class does
     // The Pedro/Pinpoint drive. null if Pedro could not start (then auto-shoot is off).
@@ -176,8 +179,6 @@ public class BioBuzzRobot extends OpMode {
     private boolean resetLatched;
     // The auto-shoot state on the previous loop; used to notice the moment the shoot button is released.
     private AutoShootController.State prevState = AutoShootController.State.IDLE;
-    // The Y / X latch: true while the manual launch is switched on.
-    private boolean manualLaunchOn;
     // True while a jam-clearing button is held (shown on the screen).
     private boolean unjamIndexerNow;
     private boolean unjamShooterNow;
@@ -212,6 +213,7 @@ public class BioBuzzRobot extends OpMode {
         intake.init(hardwareMap);
         servoLeft = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.LEFT_INTAKE_SERVO);
         servoRight = hardwareMap.get(CRServo.class, BioBuzzConstants.Hardware.RIGHT_INTAKE_SERVO);
+        mechanisms = new ManualMechanisms(launcher, intake, servoLeft, servoRight);
 
         // Pedro builds the Pinpoint localizer first, so if that fails no drive motor has been touched yet.
         // (Constants.create builds Pedro's Follower from the settings in pedro/Constants.java.)
@@ -425,7 +427,6 @@ public class BioBuzzRobot extends OpMode {
             launcher.setFeederOn(out.feederOn);                  // the controller decides when a ball may be fed
             // Carry out the controller's drive command: follow a route, hold a pose, or (FAULT) use the sticks.
             drive.apply(out, sticks[0], sticks[1], sticks[2]);
-            manualLaunchOn = false;
             unjamIndexerNow = false;
             unjamShooterNow = false;
         } else {
@@ -497,56 +498,13 @@ public class BioBuzzRobot extends OpMode {
     }
 
     /**
-     * The existing manual launcher, intake and corner-servo controls. Only used when the robot is not shooting
-     * automatically. These buttons are fixed here, not in BioBuzzConstants.Controls.
+     * The manual shooter, intake and jam-clearing controls (right trigger = shoot, left trigger = intake, ...). Only used
+     * when the robot is not shooting automatically. The rules are in {@link ManualMechanisms}, shared with the Manual TeleOp.
      */
     private void manualControls() {
-        // Corner servos on the triggers. The left one runs at power -1 and the right one at +1 (so they turn in
-        // opposite directions). Each runs only while its trigger is pulled past the threshold.
-        servoLeft.setPower(gamepad1.left_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? -1 : 0);
-        servoRight.setPower(gamepad1.right_trigger > BioBuzzConstants.Controls.TRIGGER_THRESHOLD ? 1 : 0);
-
-        // Launcher: Y spins up and feeds, X stops. While held, the jam-clearing buttons run the indexer or
-        // the flywheel slowly BACKWARD to free a stuck POLLEN; the right bumper runs the feeder forward while held.
-        // Clearing a jam always wins over a manual launch that was left on.
-        boolean unjamIndexer = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_INDEXER_BUTTON);
-        boolean unjamShooter = GamepadButtons.pressed(gamepad1, BioBuzzConstants.Controls.UNJAM_SHOOTER_BUTTON);
-        unjamIndexerNow = unjamIndexer;
-        unjamShooterNow = unjamShooter;
-        if (gamepad1.y) {
-            manualLaunchOn = true;
-        }
-        if (gamepad1.x) {
-            manualLaunchOn = false;
-        }
-        if (unjamShooter) {
-            launcher.setTargetVelocity(0.0);       // no forward speed target while the flywheel runs backward
-            launcher.reverseFlywheel(true);
-            if (unjamIndexer) {
-                launcher.feederReverse();
-            } else {
-                launcher.feederStop();
-            }
-        } else {
-            launcher.reverseFlywheel(false);
-            if (unjamIndexer) {
-                launcher.feederReverse();
-            } else if (gamepad1.right_bumper) {
-                launcher.feederForward();
-            } else if (manualLaunchOn) {
-                launcher.launch(true);
-            } else {
-                launcher.launch(false);
-            }
-        }
-
-        // The intake motor stays on after A until B is pressed.
-        if (gamepad1.a) {
-            intake.startIntake();
-        }
-        if (gamepad1.b) {
-            intake.stopIntake();
-        }
+        mechanisms.update(gamepad1, gamepad2, BioBuzzConstants.Shooter.MANUAL_TARGET_TPS);
+        unjamIndexerNow = mechanisms.unjammingIndexer();
+        unjamShooterNow = mechanisms.unjammingShooter();
     }
 
     /**
@@ -605,6 +563,10 @@ public class BioBuzzRobot extends OpMode {
         if (unjamIndexerNow || unjamShooterNow) {
             telemetry.addData("CLEARING A JAM", (unjamIndexerNow ? "indexer BACKWARD (slow)  " : "")
                     + (unjamShooterNow ? "shooter wheel BACKWARD (slow)" : ""));
+        }
+        if (mechanisms.reversingRoller() || mechanisms.reversingFeelers()) {
+            telemetry.addData("REVERSING", (mechanisms.reversingRoller() ? "intake roller  " : "")
+                    + (mechanisms.reversingFeelers() ? "feelers" : ""));
         }
         if (out == null) {
             telemetry.addLine("AUTO-SHOOT DISABLED: " + driveNote);
